@@ -1,500 +1,560 @@
-import { CodeReviewExpert } from '../CodeReviewExpert'
+// Direct tool tests for CodeReviewExpert without BaseAgent dependencies
+
 import { logger } from '@/infrastructure/logging/logger'
 
-// Mock the logger to avoid console output during tests
+// Mock logger
 jest.mock('@/infrastructure/logging/logger', () => ({
   logger: {
     info: jest.fn(),
     error: jest.fn(),
     warn: jest.fn(),
-    debug: jest.fn(),
+    debug: jest.fn()
   }
 }))
 
-// Mock the BaseAgent class to avoid initialization issues
-jest.mock('@/agents/base/BaseAgent', () => ({
-  BaseAgent: class MockBaseAgent {
-    protected config: any
-    protected tools: any = {}
-    protected status = 'ready'
-    
-    constructor() {
-      // Empty constructor to avoid initialization issues
-    }
-    
-    createAgentTools() {
-      return {
-        automated_code_analyzer: {},
-        security_vulnerability_scanner: {},
-        code_quality_metrics_calculator: {},
-        pull_request_reviewer: {},
-        code_style_enforcer: {}
-      }
-    }
-  }
-}))
+// Import the expert class
+const CodeReviewExpert = jest.requireActual('../CodeReviewExpert').CodeReviewExpert
 
-// Mock Mastra core
-jest.mock('@mastra/core', () => ({
-  createTool: jest.fn(),
-  Agent: jest.fn()
-}))
-
-describe('CodeReviewExpert Tools', () => {
-  let codeReviewExpert: CodeReviewExpert
-  const mockProjectPath = '/mock/project/path'
+describe('CodeReviewExpert Tools Direct Testing', () => {
+  let expert: any
 
   beforeEach(() => {
-    codeReviewExpert = new CodeReviewExpert()
-    jest.clearAllMocks()
+    // Create expert without calling BaseAgent constructor
+    expert = Object.create(CodeReviewExpert.prototype)
+    
+    // Manually set the required properties
+    expert.config = {
+      id: 'test-expert',
+      name: 'Test Expert',
+      version: '1.0.0'
+    }
   })
 
-  describe('Automated Code Analyzer Tool', () => {
-    it('should perform comprehensive code analysis with enterprise configuration', async () => {
+  describe('Tool Method Direct Calls', () => {
+    it('should execute automated code analyzer directly', async () => {
       const params = {
-        project_path: mockProjectPath,
-        analysis_scope: 'full' as const,
-        eslint_config: 'enterprise' as const,
-        sonarqube_integration: true,
-        typescript_strict: true,
-        include_performance: true,
-        generate_report: true
+        source_path: './src',
+        analysis_type: 'full',
+        language: 'typescript',
+        rule_sets: ['@typescript-eslint/recommended', 'airbnb-base'],
+        exclude_patterns: ['node_modules', 'dist'],
+        fix_automatically: false
       }
 
-      const result = await codeReviewExpert['executeAutomatedCodeAnalyzer'](params)
+      const result = await expert.executeAutomatedCodeAnalyzer(params)
 
+      expect(result).toBeDefined()
       expect(result.success).toBe(true)
-      expect(result.data).toHaveProperty('analysis_summary')
-      expect(result.data).toHaveProperty('eslint_results')
-      expect(result.data).toHaveProperty('typescript_results')
-      expect(result.data).toHaveProperty('sonarqube_results')
-      expect(result.data).toHaveProperty('performance_analysis')
-      expect(result.data).toHaveProperty('configurations')
-      expect(result.data).toHaveProperty('recommendations')
-      expect(result.data).toHaveProperty('setup_instructions')
-      expect(result.data).toHaveProperty('ci_integration')
-
-      expect(result.data.configurations).toHaveProperty('eslint')
-      expect(result.data.configurations).toHaveProperty('typescript')
-      expect(result.data.configurations).toHaveProperty('sonarqube')
-
-      expect(result.metadata).toHaveProperty('project_path', params.project_path)
-      expect(result.metadata).toHaveProperty('analysis_scope', params.analysis_scope)
-
-      expect(logger.info).toHaveBeenCalledWith('Executing automated code analysis', { params })
+      expect(result.retries).toBe(0)
+      expect(result.data).toBeDefined()
+      expect(result.data.analysis_type).toBe('full')
+      expect(result.data.results).toBeDefined()
+      expect(result.data.results.eslint).toBeDefined()
+      expect(result.data.results.sonarqube).toBeDefined()
+      expect(result.data.results.typescript).toBeDefined()
+      expect(result.data.configurations).toBeDefined()
+      expect(result.data.quality_score).toEqual(expect.any(Number))
+      expect(result.metadata.language).toBe('typescript')
+      expect(result.metadata.analysis_type).toBe('full')
     })
 
-    it('should handle analysis without SonarQube integration', async () => {
+    it('should execute security vulnerability scanner directly', async () => {
       const params = {
-        project_path: mockProjectPath,
-        analysis_scope: 'changed-files' as const,
-        sonarqube_integration: false,
-        include_performance: false
-      }
-
-      const result = await codeReviewExpert['executeAutomatedCodeAnalyzer'](params)
-
-      expect(result.success).toBe(true)
-      expect(result.data.sonarqube_results).toBeNull()
-      expect(result.data.performance_analysis).toBeNull()
-      expect(result.data.configurations.sonarqube).toBeNull()
-    })
-
-    it('should generate appropriate ESLint configurations for different levels', async () => {
-      const enterpriseConfig = await codeReviewExpert['generateESLintConfig']('enterprise')
-      const strictConfig = await codeReviewExpert['generateESLintConfig']('strict')
-      const recommendedConfig = await codeReviewExpert['generateESLintConfig']('recommended')
-
-      // Enterprise should have the most strict rules
-      expect(enterpriseConfig.rules['@typescript-eslint/explicit-function-return-type']).toBe('error')
-      expect(enterpriseConfig.rules['complexity']).toEqual(['error', 10])
-
-      // All configs should extend prettier to avoid formatting conflicts
-      expect(enterpriseConfig.extends).toContain('prettier')
-      expect(strictConfig.extends).toContain('prettier')
-      expect(recommendedConfig.extends).toContain('prettier')
-
-      // Verify security plugin is included
-      expect(enterpriseConfig.plugins).toContain('security')
-    })
-  })
-
-  describe('Security Vulnerability Scanner Tool', () => {
-    it('should perform comprehensive security scan with multiple scanners', async () => {
-      const params = {
-        project_path: mockProjectPath,
-        scan_type: 'full' as const,
-        severity_threshold: 'medium' as const,
-        scanners: ['snyk', 'semgrep', 'npm-audit'] as const,
-        include_licenses: true,
-        auto_fix: true
-      }
-
-      const result = await codeReviewExpert['executeSecurityVulnerabilityScanner'](params)
-
-      expect(result.success).toBe(true)
-      expect(result.data).toHaveProperty('scan_summary')
-      expect(result.data).toHaveProperty('vulnerability_details')
-      expect(result.data).toHaveProperty('scanner_results')
-      expect(result.data).toHaveProperty('license_compliance')
-      expect(result.data).toHaveProperty('auto_fix_suggestions')
-      expect(result.data).toHaveProperty('remediation_guide')
-
-      expect(result.data.scan_summary).toHaveProperty('total_vulnerabilities')
-      expect(result.data.scan_summary).toHaveProperty('critical')
-      expect(result.data.scan_summary).toHaveProperty('scanners_used', params.scanners)
-
-      expect(result.data.scanner_results).toHaveProperty('snyk')
-      expect(result.data.scanner_results).toHaveProperty('semgrep')
-      expect(result.data.scanner_results).toHaveProperty('npm_audit')
-
-      expect(result.metadata).toHaveProperty('total_vulnerabilities')
-      expect(result.metadata).toHaveProperty('critical_vulnerabilities')
-
-      expect(logger.info).toHaveBeenCalledWith('Executing security vulnerability scan', { params })
-    })
-
-    it('should handle code-only security scans', async () => {
-      const params = {
-        project_path: mockProjectPath,
-        scan_type: 'code' as const,
-        scanners: ['semgrep', 'codeql'] as const,
-        include_licenses: false
-      }
-
-      const result = await codeReviewExpert['executeSecurityVulnerabilityScanner'](params)
-
-      expect(result.success).toBe(true)
-      expect(result.data.license_compliance).toBeNull()
-      expect(result.data.scanner_results.snyk).toBeNull()
-      expect(result.data.scanner_results.semgrep).toBeTruthy()
-      expect(result.data.scanner_results.codeql).toBeTruthy()
-    })
-
-    it('should generate security gates configuration', () => {
-      const securityGates = codeReviewExpert['generateSecurityGatesConfig']()
-
-      expect(securityGates).toHaveProperty('block_on_critical', true)
-      expect(securityGates).toHaveProperty('block_on_high', true)
-      expect(securityGates).toHaveProperty('license_compliance', true)
-      expect(securityGates).toHaveProperty('fail_build', true)
-    })
-  })
-
-  describe('Code Quality Metrics Calculator Tool', () => {
-    it('should calculate comprehensive quality metrics', async () => {
-      const params = {
-        project_path: mockProjectPath,
-        metrics_suite: 'enterprise' as const,
-        complexity_threshold: 10,
-        maintainability_threshold: 70,
-        include_history: true,
-        report_format: 'json' as const,
-        baseline_comparison: true
-      }
-
-      const result = await codeReviewExpert['executeCodeQualityMetricsCalculator'](params)
-
-      expect(result.success).toBe(true)
-      expect(result.data).toHaveProperty('metrics_summary')
-      expect(result.data).toHaveProperty('complexity_metrics')
-      expect(result.data).toHaveProperty('maintainability_metrics')
-      expect(result.data).toHaveProperty('size_metrics')
-      expect(result.data).toHaveProperty('duplication_metrics')
-      expect(result.data).toHaveProperty('coverage_metrics')
-      expect(result.data).toHaveProperty('trend_analysis')
-      expect(result.data).toHaveProperty('baseline_comparison')
-      expect(result.data).toHaveProperty('quality_gates')
-      expect(result.data).toHaveProperty('recommendations')
-
-      // Verify cyclomatic complexity metrics
-      expect(result.data.complexity_metrics.cyclomatic_complexity).toHaveProperty('average')
-      expect(result.data.complexity_metrics.cyclomatic_complexity).toHaveProperty('maximum')
-      expect(result.data.complexity_metrics.cyclomatic_complexity).toHaveProperty('threshold', 10)
-      expect(result.data.complexity_metrics.cyclomatic_complexity).toHaveProperty('violations')
-
-      // Verify maintainability metrics
-      expect(result.data.maintainability_metrics.maintainability_index).toHaveProperty('average')
-      expect(result.data.maintainability_metrics.maintainability_index).toHaveProperty('threshold', 70)
-      expect(result.data.maintainability_metrics.technical_debt).toHaveProperty('ratio')
-
-      expect(result.metadata).toHaveProperty('overall_score')
-      expect(result.metadata).toHaveProperty('quality_grade')
-
-      expect(logger.info).toHaveBeenCalledWith('Calculating code quality metrics', { params })
-    })
-
-    it('should calculate quality grade correctly', () => {
-      expect(codeReviewExpert['calculateQualityGrade'](95)).toBe('A')
-      expect(codeReviewExpert['calculateQualityGrade'](85)).toBe('B')
-      expect(codeReviewExpert['calculateQualityGrade'](75)).toBe('C')
-      expect(codeReviewExpert['calculateQualityGrade'](65)).toBe('D')
-      expect(codeReviewExpert['calculateQualityGrade'](55)).toBe('F')
-    })
-
-    it('should generate different report formats', () => {
-      const mockMetrics = { overall_score: 85.5, cyclomatic_complexity: { average: 4.2 }, coverage: { line_coverage: 87.3 } }
-
-      const jsonReport = codeReviewExpert['generateQualityReport'](mockMetrics, 'json')
-      const markdownReport = codeReviewExpert['generateQualityReport'](mockMetrics, 'markdown')
-      const sonarReport = codeReviewExpert['generateQualityReport'](mockMetrics, 'sonar')
-      const csvReport = codeReviewExpert['generateQualityReport'](mockMetrics, 'csv')
-
-      expect(typeof jsonReport).toBe('string')
-      expect(markdownReport).toContain('# Code Quality Report')
-      expect(sonarReport).toContain('sonar.quality.score=85.5')
-      expect(csvReport).toContain('metric,value')
-    })
-  })
-
-  describe('Pull Request Reviewer Tool', () => {
-    it('should perform comprehensive pull request review', async () => {
-      const params = {
-        repository_url: 'https://github.com/test/repo',
-        pr_number: 123,
-        review_level: 'comprehensive' as const,
-        auto_approve: false,
-        quality_gates: ['tests', 'coverage', 'security'] as const,
-        notification_channels: ['slack', 'email'],
-        integration_tests: true,
-        performance_benchmark: true
-      }
-
-      const result = await codeReviewExpert['executePullRequestReviewer'](params)
-
-      expect(result.success).toBe(true)
-      expect(result.data).toHaveProperty('pr_summary')
-      expect(result.data).toHaveProperty('analysis_results')
-      expect(result.data).toHaveProperty('review_decision')
-      expect(result.data).toHaveProperty('feedback_summary')
-      expect(result.data).toHaveProperty('automation_config')
-      expect(result.data).toHaveProperty('next_steps')
-
-      expect(result.data.pr_summary).toHaveProperty('repository', params.repository_url)
-      expect(result.data.pr_summary).toHaveProperty('pr_number', params.pr_number)
-
-      expect(result.data.analysis_results).toHaveProperty('quality_checks')
-      expect(result.data.analysis_results).toHaveProperty('security_checks')
-      expect(result.data.analysis_results).toHaveProperty('performance_checks')
-
-      expect(result.data.review_decision).toHaveProperty('recommendation')
-      expect(result.data.review_decision).toHaveProperty('auto_approved')
-      expect(result.data.review_decision).toHaveProperty('confidence_score')
-
-      expect(result.metadata).toHaveProperty('repository_url', params.repository_url)
-      expect(result.metadata).toHaveProperty('pr_number', params.pr_number)
-
-      expect(logger.info).toHaveBeenCalledWith('Executing pull request review', { params })
-    })
-
-    it('should handle basic pull request review without performance benchmarks', async () => {
-      const params = {
-        repository_url: 'https://github.com/test/repo',
-        pr_number: 456,
-        review_level: 'basic' as const,
-        performance_benchmark: false
-      }
-
-      const result = await codeReviewExpert['executePullRequestReviewer'](params)
-
-      expect(result.success).toBe(true)
-      expect(result.data.analysis_results.performance_checks).toBeNull()
-    })
-
-    it('should generate GitHub Actions workflow for PR automation', () => {
-      const workflow = codeReviewExpert['generatePRWorkflow']({})
-
-      expect(workflow).toHaveProperty('name', 'PR Review Automation')
-      expect(workflow).toHaveProperty('on')
-      expect(workflow.on).toHaveProperty('pull_request')
-      expect(workflow).toHaveProperty('jobs')
-      expect(workflow.jobs).toHaveProperty('review')
-    })
-  })
-
-  describe('Code Style Enforcer Tool', () => {
-    it('should enforce enterprise code style standards', async () => {
-      const params = {
-        project_path: mockProjectPath,
-        style_guide: 'enterprise-custom' as const,
+        source_path: './src',
+        scanners: ['snyk', 'semgrep', 'codeql'],
+        severity_levels: ['critical', 'high', 'medium'],
+        include_dependencies: true,
         auto_fix: true,
-        file_extensions: ['.ts', '.tsx', '.js', '.jsx'],
-        pre_commit_setup: true,
-        ci_integration: true
+        output_format: 'json'
       }
 
-      const result = await codeReviewExpert['executeCodeStyleEnforcer'](params)
+      const result = await expert.executeSecurityVulnerabilityScanner(params)
 
+      expect(result).toBeDefined()
       expect(result.success).toBe(true)
-      expect(result.data).toHaveProperty('style_analysis')
-      expect(result.data).toHaveProperty('configurations')
-      expect(result.data).toHaveProperty('auto_fix_results')
-      expect(result.data).toHaveProperty('pre_commit_setup')
-      expect(result.data).toHaveProperty('ci_integration')
-      expect(result.data).toHaveProperty('setup_instructions')
-      expect(result.data).toHaveProperty('package_json_scripts')
-      expect(result.data).toHaveProperty('best_practices')
-
-      expect(result.data.configurations).toHaveProperty('prettier')
-      expect(result.data.configurations).toHaveProperty('eslint')
-      expect(result.data.configurations).toHaveProperty('ignore_files')
-      expect(result.data.configurations).toHaveProperty('editor_config')
-
-      expect(result.data.style_analysis).toHaveProperty('compliance_score')
-      expect(result.data.style_analysis).toHaveProperty('total_files')
-      expect(result.data.style_analysis).toHaveProperty('total_issues')
-
-      expect(result.metadata).toHaveProperty('compliance_score')
-
-      expect(logger.info).toHaveBeenCalledWith('Executing code style enforcement', { params })
+      expect(result.retries).toBe(0)
+      expect(result.data).toBeDefined()
+      expect(result.data.scan_results).toBeDefined()
+      expect(result.data.scan_results.snyk).toBeDefined()
+      expect(result.data.scan_results.semgrep).toBeDefined()
+      expect(result.data.scan_results.codeql).toBeDefined()
+      expect(result.data.auto_fix_suggestions).toBeDefined()
+      expect(result.data.summary.total_vulnerabilities).toEqual(expect.any(Number))
+      expect(result.metadata.scanners_used).toEqual(['snyk', 'semgrep', 'codeql'])
+      expect(result.metadata.auto_fixable).toEqual(expect.any(Number))
     })
 
-    it('should generate Prettier configurations for different style guides', async () => {
-      const airbnbConfig = await codeReviewExpert['generatePrettierConfig']('airbnb')
-      const googleConfig = await codeReviewExpert['generatePrettierConfig']('google')
-      const enterpriseConfig = await codeReviewExpert['generatePrettierConfig']('enterprise-custom')
+    it('should execute code quality metrics calculator directly', async () => {
+      const params = {
+        source_path: './src',
+        metrics_types: ['complexity', 'maintainability', 'coverage', 'duplication', 'debt'],
+        thresholds: {
+          complexity: 10,
+          maintainability: 70,
+          coverage: 80,
+          duplication: 5,
+          debt_ratio: 15
+        },
+        report_format: 'detailed',
+        include_suggestions: true
+      }
 
-      expect(airbnbConfig).toHaveProperty('singleQuote', true)
-      expect(airbnbConfig).toHaveProperty('trailingComma', 'all')
+      const result = await expert.executeCodeQualityMetricsCalculator(params)
 
-      expect(googleConfig).toHaveProperty('singleQuote', false)
-      expect(googleConfig).toHaveProperty('printWidth', 80)
-
-      expect(enterpriseConfig).toHaveProperty('printWidth', 120)
-      expect(enterpriseConfig).toHaveProperty('tabWidth', 2)
+      expect(result).toBeDefined()
+      expect(result.success).toBe(true)
+      expect(result.retries).toBe(0)
+      expect(result.data).toBeDefined()
+      expect(result.data.metrics).toBeDefined()
+      expect(result.data.metrics.complexity).toBeDefined()
+      expect(result.data.metrics.maintainability).toBeDefined()
+      expect(result.data.metrics.coverage).toBeDefined()
+      expect(result.data.quality_gates).toBeDefined()
+      expect(result.data.overall_score).toEqual(expect.any(Number))
+      expect(result.data.suggestions).toEqual(expect.any(Array))
+      expect(result.metadata.metrics_calculated).toEqual(params.metrics_types)
     })
 
-    it('should generate ESLint config that excludes formatting rules', async () => {
-      const eslintConfig = await codeReviewExpert['generateESLintStyleConfig']('standard')
+    it('should execute pull request reviewer directly', async () => {
+      const params = {
+        repository_url: 'https://github.com/user/repo',
+        pr_number: '123',
+        review_scope: 'full',
+        quality_gates: {
+          min_coverage: 80,
+          max_complexity: 10,
+          no_security_issues: true,
+          no_lint_errors: true
+        },
+        auto_approve: false,
+        ci_integration: 'github-actions'
+      }
 
-      expect(eslintConfig.extends).toContain('prettier')
-      expect(eslintConfig.rules).toHaveProperty('@typescript-eslint/no-unused-vars', 'error')
-      expect(eslintConfig.rules).toHaveProperty('prefer-const', 'error')
-      expect(eslintConfig.rules).toHaveProperty('no-var', 'error')
+      const result = await expert.executePullRequestReviewer(params)
+
+      expect(result).toBeDefined()
+      expect(result.success).toBe(true)
+      expect(result.retries).toBe(0)
+      expect(result.data).toBeDefined()
+      expect(result.data.pr_analysis).toBeDefined()
+      expect(result.data.quality_gates).toBeDefined()
+      expect(result.data.quality_gates.gates).toBeDefined()
+      expect(result.data.ci_workflow).toBeDefined()
+      expect(result.data.auto_approval).toBeDefined()
+      expect(result.metadata.repository_url).toBe('https://github.com/user/repo')
+      expect(result.metadata.review_scope).toBe('full')
     })
 
-    it('should setup pre-commit hooks configuration', async () => {
-      const preCommitConfig = await codeReviewExpert['setupPreCommitHooks'](mockProjectPath)
+    it('should execute code style enforcer directly', async () => {
+      const params = {
+        source_path: './src',
+        style_guide: 'airbnb',
+        formatting_tools: ['prettier', 'eslint'],
+        pre_commit_hooks: true,
+        ci_enforcement: true,
+        fix_on_save: true,
+        custom_rules: {
+          'max-len': ['error', { code: 120 }]
+        }
+      }
 
-      expect(preCommitConfig).toHaveProperty('husky_config')
-      expect(preCommitConfig).toHaveProperty('lint_staged_config')
-      expect(preCommitConfig).toHaveProperty('package_json_additions')
+      const result = await expert.executeCodeStyleEnforcer(params)
 
-      expect(preCommitConfig.husky_config).toHaveProperty('pre-commit', 'lint-staged')
-      expect(preCommitConfig.lint_staged_config['*.{ts,tsx,js,jsx}']).toEqual(['prettier --write', 'eslint --fix'])
-      expect(preCommitConfig.lint_staged_config['*.{json,md}']).toEqual(['prettier --write'])
-      expect(preCommitConfig.package_json_additions.scripts).toHaveProperty('prepare', 'husky install')
-    })
-
-    it('should generate proper .editorconfig', () => {
-      const editorConfig = codeReviewExpert['generateEditorConfig']('enterprise-custom')
-
-      expect(editorConfig).toContain('root = true')
-      expect(editorConfig).toContain('charset = utf-8')
-      expect(editorConfig).toContain('end_of_line = lf')
-      expect(editorConfig).toContain('indent_style = space')
-      expect(editorConfig).toContain('indent_size = 2')
+      expect(result).toBeDefined()
+      expect(result.success).toBe(true)
+      expect(result.retries).toBe(0)
+      expect(result.data).toBeDefined()
+      expect(result.data.configurations).toBeDefined()
+      expect(result.data.configurations.prettier).toBeDefined()
+      expect(result.data.configurations.eslint).toBeDefined()
+      expect(result.data.pre_commit_hooks).toBeDefined()
+      expect(result.data.ci_configuration).toBeDefined()
+      expect(result.data.style_analysis).toBeDefined()
+      expect(result.metadata.style_guide).toBe('airbnb')
+      expect(result.metadata.formatting_tools).toEqual(['prettier', 'eslint'])
     })
   })
 
-  describe('Agent Configuration', () => {
-    it('should have correct agent configuration', () => {
-      expect(codeReviewExpert.config.id).toBe('code-review-expert')
-      expect(codeReviewExpert.config.name).toBe('Code Review Expert')
-      expect(codeReviewExpert.config.version).toBe('1.0.0')
-      expect(codeReviewExpert.config.temperature).toBe(0.1)
-      expect(codeReviewExpert.config.priority).toBe('high')
+  describe('Tool Definition Validation', () => {
+    it('should have properly defined tool schemas', () => {
+      const toolDefinitions = expert.getToolDefinitions()
       
-      expect(codeReviewExpert.config.specialties).toContain('static_code_analysis')
-      expect(codeReviewExpert.config.specialties).toContain('security_vulnerability_scanning')
-      expect(codeReviewExpert.config.specialties).toContain('code_quality_metrics')
-      expect(codeReviewExpert.config.specialties).toContain('pull_request_automation')
-      expect(codeReviewExpert.config.specialties).toContain('code_style_enforcement')
-
-      expect(codeReviewExpert.config.capabilities).toContain('ESLint & SonarQube Integration')
-      expect(codeReviewExpert.config.capabilities).toContain('Security Scanning (Snyk, Semgrep, CodeQL)')
-      expect(codeReviewExpert.config.capabilities).toContain('Quality Metrics (Cyclomatic Complexity, Maintainability)')
-      expect(codeReviewExpert.config.capabilities).toContain('GitHub Actions PR Automation')
-      expect(codeReviewExpert.config.capabilities).toContain('Prettier & Code Style Enforcement')
+      expect(toolDefinitions).toHaveLength(5)
       
-      expect(codeReviewExpert.config.tags).toContain('code-review')
-      expect(codeReviewExpert.config.tags).toContain('static-analysis')
-      expect(codeReviewExpert.config.tags).toContain('security')
-      expect(codeReviewExpert.config.tags).toContain('quality')
+      const expectedTools = [
+        'automated_code_analyzer',
+        'security_vulnerability_scanner',
+        'code_quality_metrics_calculator',
+        'pull_request_reviewer',
+        'code_style_enforcer'
+      ]
+      
+      const actualToolNames = toolDefinitions.map((tool: any) => tool.name)
+      expect(actualToolNames).toEqual(expectedTools)
+      
+      // Validate each tool has required structure
+      toolDefinitions.forEach((tool: any) => {
+        expect(tool.name).toBeTruthy()
+        expect(tool.description).toBeTruthy()
+        expect(tool.parameters).toEqual(expect.objectContaining({
+          type: 'object',
+          properties: expect.any(Object)
+        }))
+        expect(tool.execute).toEqual(expect.any(Function))
+      })
     })
 
-    it('should have correct metadata configuration', () => {
-      expect(codeReviewExpert.config.metadata.supportedLanguages).toContain('TypeScript')
-      expect(codeReviewExpert.config.metadata.supportedLanguages).toContain('JavaScript')
-      expect(codeReviewExpert.config.metadata.supportedLanguages).toContain('React')
-      expect(codeReviewExpert.config.metadata.supportedLanguages).toContain('Node.js')
-
-      expect(codeReviewExpert.config.metadata.analysisTools).toContain('ESLint')
-      expect(codeReviewExpert.config.metadata.analysisTools).toContain('SonarQube')
-      expect(codeReviewExpert.config.metadata.analysisTools).toContain('Snyk')
-      expect(codeReviewExpert.config.metadata.analysisTools).toContain('Semgrep')
-      expect(codeReviewExpert.config.metadata.analysisTools).toContain('CodeQL')
-      expect(codeReviewExpert.config.metadata.analysisTools).toContain('Prettier')
-
-      expect(codeReviewExpert.config.metadata.cicdPlatforms).toContain('GitHub Actions')
-      expect(codeReviewExpert.config.metadata.cicdPlatforms).toContain('GitLab CI')
-      expect(codeReviewExpert.config.metadata.cicdPlatforms).toContain('Azure DevOps')
-      expect(codeReviewExpert.config.metadata.cicdPlatforms).toContain('Jenkins')
-
-      expect(codeReviewExpert.config.metadata.qualityMetrics).toContain('Cyclomatic Complexity')
-      expect(codeReviewExpert.config.metadata.qualityMetrics).toContain('Maintainability Index')
-      expect(codeReviewExpert.config.metadata.qualityMetrics).toContain('Code Coverage')
-      expect(codeReviewExpert.config.metadata.qualityMetrics).toContain('Technical Debt')
+    it('should have proper parameter validation for code analyzer', () => {
+      const toolDefinitions = expert.getToolDefinitions()
+      const analyzerTool = toolDefinitions.find((tool: any) => tool.name === 'automated_code_analyzer')
+      
+      expect(analyzerTool.parameters.properties.analysis_type.enum).toEqual(['full', 'incremental', 'security-focused', 'performance-focused'])
+      expect(analyzerTool.parameters.properties.language.enum).toEqual(['typescript', 'javascript', 'python', 'go'])
+      expect(analyzerTool.parameters.required).toEqual(['source_path', 'language'])
     })
 
-    it('should initialize with all required tools', () => {
-      expect(codeReviewExpert.config.tools).toHaveLength(5)
-      expect(codeReviewExpert.config.tools).toContain('automated_code_analyzer')
-      expect(codeReviewExpert.config.tools).toContain('security_vulnerability_scanner')
-      expect(codeReviewExpert.config.tools).toContain('code_quality_metrics_calculator')
-      expect(codeReviewExpert.config.tools).toContain('pull_request_reviewer')
-      expect(codeReviewExpert.config.tools).toContain('code_style_enforcer')
+    it('should have proper parameter validation for security scanner', () => {
+      const toolDefinitions = expert.getToolDefinitions()
+      const scannerTool = toolDefinitions.find((tool: any) => tool.name === 'security_vulnerability_scanner')
+      
+      expect(scannerTool.parameters.properties.scanners.items.enum).toEqual(['snyk', 'semgrep', 'codeql', 'safety', 'bandit'])
+      expect(scannerTool.parameters.properties.severity_levels.items.enum).toEqual(['critical', 'high', 'medium', 'low', 'info'])
+      expect(scannerTool.parameters.required).toEqual(['source_path', 'scanners'])
     })
   })
 
   describe('Error Handling', () => {
-    it('should handle errors gracefully in code analysis', async () => {
-      // Mock the helper method to throw an error
-      const originalMethod = codeReviewExpert['performCodeAnalysis']
-      codeReviewExpert['performCodeAnalysis'] = jest.fn().mockRejectedValue(new Error('Mocked analysis error'))
-
+    it('should handle code analyzer with missing source path', async () => {
       const params = {
-        project_path: '/mock/project/path',
-        analysis_scope: 'full' as const
+        source_path: '',
+        language: 'typescript'
       }
 
-      const result = await codeReviewExpert['executeAutomatedCodeAnalyzer'](params)
+      const result = await expert.executeAutomatedCodeAnalyzer(params)
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('Code analysis failed')
-      expect(logger.error).toHaveBeenCalled()
-
-      // Restore original method
-      codeReviewExpert['performCodeAnalysis'] = originalMethod
+      expect(result.retries).toBe(0)
+      expect(result.error).toContain('Source path is required')
     })
 
-    it('should handle errors gracefully in security scanning', async () => {
-      // Mock the helper method to throw an error
-      const originalMethod = codeReviewExpert['performSecurityScan']
-      codeReviewExpert['performSecurityScan'] = jest.fn().mockRejectedValue(new Error('Mocked security scan error'))
-
+    it('should handle security scanner with missing parameters', async () => {
       const params = {
-        project_path: '/mock/project/path',
-        scan_type: 'full' as const
+        source_path: './src',
+        scanners: []
       }
 
-      const result = await codeReviewExpert['executeSecurityVulnerabilityScanner'](params)
+      const result = await expert.executeSecurityVulnerabilityScanner(params)
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('Security scan failed')
+      expect(result.retries).toBe(0)
+      expect(result.error).toContain('at least one scanner are required')
+    })
 
-      // Restore original method
-      codeReviewExpert['performSecurityScan'] = originalMethod
+    it('should handle quality metrics with missing metrics types', async () => {
+      const params = {
+        source_path: './src',
+        metrics_types: []
+      }
+
+      const result = await expert.executeCodeQualityMetricsCalculator(params)
+
+      expect(result.success).toBe(false)
+      expect(result.retries).toBe(0)
+      expect(result.error).toContain('metrics types are required')
+    })
+
+    it('should handle PR reviewer with missing required params', async () => {
+      const params = {
+        repository_url: '',
+        review_scope: 'full'
+      }
+
+      const result = await expert.executePullRequestReviewer(params)
+
+      expect(result.success).toBe(false)
+      expect(result.retries).toBe(0)
+      expect(result.error).toContain('Repository URL and review scope are required')
+    })
+
+    it('should handle style enforcer with missing style guide', async () => {
+      const params = {
+        source_path: './src',
+        style_guide: ''
+      }
+
+      const result = await expert.executeCodeStyleEnforcer(params)
+
+      expect(result.success).toBe(false)
+      expect(result.retries).toBe(0)
+      expect(result.error).toContain('style guide are required')
+    })
+  })
+
+  describe('Helper Method Testing', () => {
+    it('should generate correct ESLint configuration', async () => {
+      const params = {
+        language: 'typescript',
+        rule_sets: ['airbnb-base'],
+        exclude_patterns: ['node_modules', 'dist']
+      }
+
+      const config = await expert.generateESLintConfig(params)
+      
+      expect(config.extends).toContain('@typescript-eslint/recommended')
+      expect(config.extends).toContain('airbnb-base')
+      expect(config.parser).toBe('@typescript-eslint/parser')
+      expect(config.ignorePatterns).toEqual(['node_modules', 'dist'])
+      expect(config.rules).toBeDefined()
+    })
+
+    it('should generate correct SonarQube configuration', async () => {
+      const params = {
+        projectKey: 'test-project',
+        sources: './src',
+        language: 'typescript'
+      }
+
+      const config = await expert.generateSonarConfig(params)
+      
+      expect(config['sonar.projectKey']).toBe('test-project')
+      expect(config['sonar.sources']).toBe('./src')
+      expect(config['sonar.sourceEncoding']).toBe('UTF-8')
+      expect(config['sonar.typescript.lcov.reportPaths']).toBeDefined()
+    })
+
+    it('should calculate overall quality score correctly', () => {
+      const results = {
+        eslint: { errors: 5, warnings: 10 },
+        sonarqube: { maintainability_rating: 'B' },
+        typescript: { compilation_errors: 0 }
+      }
+
+      const score = expert.calculateOverallQualityScore(results)
+      
+      expect(score).toEqual(expect.any(Number))
+      expect(score).toBeGreaterThanOrEqual(0)
+      expect(score).toBeLessThanOrEqual(100)
+    })
+
+    it('should generate analysis recommendations', () => {
+      const results = {
+        eslint: { errors: 5, warnings: 10 },
+        sonarqube: { vulnerabilities: 2, coverage: 65 },
+        typescript: { unused_exports: 8 }
+      }
+
+      const recommendations = expert.generateAnalysisRecommendations(results, 'full')
+      
+      expect(recommendations).toEqual(expect.any(Array))
+      expect(recommendations.some(rec => rec.includes('Fix 5 ESLint errors'))).toBe(true)
+      expect(recommendations.some(rec => rec.includes('Address 2 security vulnerabilities'))).toBe(true)
+      expect(recommendations.some(rec => rec.includes('Increase test coverage'))).toBe(true)
+    })
+
+    it('should filter security results by severity', () => {
+      const results = {
+        snyk: {
+          vulnerabilities: [
+            { severity: 'critical', title: 'Critical Issue' },
+            { severity: 'low', title: 'Low Issue' }
+          ]
+        }
+      }
+
+      const filtered = expert.filterBySeverity(results, ['critical', 'high'])
+      
+      expect(filtered.snyk.vulnerabilities).toHaveLength(1)
+      expect(filtered.snyk.vulnerabilities[0].severity).toBe('critical')
+    })
+
+    it('should count vulnerabilities by severity', () => {
+      const results = {
+        snyk: {
+          vulnerabilities: [
+            { severity: 'high' },
+            { severity: 'medium' }
+          ]
+        },
+        semgrep: {
+          findings: [
+            { severity: 'high' }
+          ]
+        }
+      }
+
+      const highCount = expert.countBySeverity(results, 'high')
+      const mediumCount = expert.countBySeverity(results, 'medium')
+      
+      expect(highCount).toBe(2)
+      expect(mediumCount).toBe(1)
+    })
+  })
+
+  describe('Configuration Generation', () => {
+    it('should generate style guide configurations correctly', async () => {
+      const params = {
+        style_guide: 'airbnb',
+        formatting_tools: ['prettier', 'eslint'],
+        custom_rules: { 'max-len': ['error', { code: 120 }] }
+      }
+
+      const configs = await expert.generateStyleConfigurations(params)
+      
+      expect(configs.prettier).toBeDefined()
+      expect(configs.prettier.semi).toBe(true)
+      expect(configs.prettier.singleQuote).toBe(true)
+      
+      expect(configs.eslint).toBeDefined()
+      expect(configs.eslint.extends).toContain('@typescript-eslint/recommended')
+      expect(configs.eslint.rules['max-len']).toEqual(['error', { code: 120 }])
+    })
+
+    it('should generate pre-commit hooks configuration', async () => {
+      const tools = ['prettier', 'eslint']
+      const config = await expert.generatePreCommitHooks(tools)
+      
+      expect(config.repos).toHaveLength(1)
+      expect(config.repos[0].hooks).toHaveLength(2)
+      
+      const prettierHook = config.repos[0].hooks.find(h => h.id === 'prettier')
+      const eslintHook = config.repos[0].hooks.find(h => h.id === 'eslint')
+      
+      expect(prettierHook).toBeDefined()
+      expect(eslintHook).toBeDefined()
+    })
+
+    it('should generate CI configuration for style checks', async () => {
+      const tools = ['prettier', 'eslint']
+      const config = await expert.generateStyleCIConfig(tools)
+      
+      expect(config.name).toBe('Style Check')
+      expect(config.on).toEqual(['push', 'pull_request'])
+      expect(config.jobs.style.steps).toEqual(expect.any(Array))
+      
+      const prettierStep = config.jobs.style.steps.find(step => step.run?.includes('prettier'))
+      const eslintStep = config.jobs.style.steps.find(step => step.run?.includes('eslint'))
+      
+      expect(prettierStep).toBeDefined()
+      expect(eslintStep).toBeDefined()
+    })
+
+    it('should generate IDE configuration', async () => {
+      const tools = ['prettier', 'eslint']
+      const config = await expert.generateIDEConfig(tools)
+      
+      expect(config.vscode).toBeDefined()
+      expect(config.vscode.settings['editor.formatOnSave']).toBe(true)
+      expect(config.vscode.settings['editor.defaultFormatter']).toBe('esbenp.prettier-vscode')
+      expect(config.vscode.settings['editor.codeActionsOnSave']['source.fixAll.eslint']).toBe(true)
+      
+      expect(config.webstorm).toBeDefined()
+      expect(config.webstorm['prettier-on-save']).toBe(true)
+      expect(config.webstorm['eslint-on-save']).toBe(true)
+    })
+  })
+
+  describe('Quality Gates and Metrics', () => {
+    it('should evaluate quality gates correctly', () => {
+      const metrics = {
+        complexity: { cyclomatic_complexity: { average: 8 } },
+        coverage: { line_coverage: 85 },
+        duplication: { duplication_ratio: 3 }
+      }
+      
+      const thresholds = {
+        complexity: 10,
+        coverage: 80,
+        duplication: 5
+      }
+
+      const gates = expert.evaluateQualityGates(metrics, thresholds)
+      
+      expect(gates.gates.complexity_gate).toBe(true)
+      expect(gates.gates.coverage_gate).toBe(true)
+      expect(gates.gates.duplication_gate).toBe(true)
+      expect(gates.all_passed).toBe(true)
+      expect(gates.passed_gates).toBe(5) // All defined gates
+    })
+
+    it('should calculate quality score based on metrics', () => {
+      const metrics = {
+        complexity: { cyclomatic_complexity: { average: 15 } },
+        coverage: { line_coverage: 65 },
+        duplication: { duplication_ratio: 8 }
+      }
+      
+      const thresholds = {
+        complexity: 10,
+        coverage: 80,
+        duplication: 5
+      }
+
+      const score = expert.calculateQualityScore(metrics, thresholds)
+      
+      expect(score).toEqual(expect.any(Number))
+      expect(score).toBeLessThan(100) // Should be penalized for failing thresholds
+    })
+
+    it('should generate quality improvement suggestions', () => {
+      const metrics = {}
+      const gates = {
+        gates: {
+          complexity_gate: false,
+          coverage_gate: false,
+          duplication_gate: false
+        }
+      }
+
+      const suggestions = expert.generateQualityImprovementSuggestions(metrics, gates)
+      
+      expect(suggestions).toEqual(expect.any(Array))
+      expect(suggestions.some(s => s.includes('complex functions'))).toBe(true)
+      expect(suggestions.some(s => s.includes('unit tests'))).toBe(true)
+      expect(suggestions.some(s => s.includes('common code'))).toBe(true)
+    })
+  })
+
+  describe('PR Review and Workflow Generation', () => {
+    it('should generate PR review comments based on analysis', () => {
+      const analysis = {
+        lint_errors: 5,
+        lines_added: 350
+      }
+      
+      const gates = {
+        lint_gate: false,
+        coverage_gate: false,
+        size_gate: false
+      }
+
+      const comments = expert.generatePRReviewComments(analysis, gates, {})
+      
+      expect(comments).toEqual(expect.any(Array))
+      expect(comments.some(c => c.includes('ESLint errors'))).toBe(true)
+      expect(comments.some(c => c.includes('Test coverage'))).toBe(true)
+      expect(comments.some(c => c.includes('Large PR'))).toBe(true)
+    })
+
+    it('should generate GitHub Actions workflow', async () => {
+      const workflow = await expert.generateCIWorkflow('github-actions', {})
+      
+      expect(workflow).toBeDefined()
+      expect(workflow.name).toBe('Code Review')
+      expect(workflow.on).toEqual(['pull_request'])
+      expect(workflow.jobs.review).toBeDefined()
+      expect(workflow.jobs.review.steps).toEqual(expect.any(Array))
+    })
+
+    it('should generate notification payload', () => {
+      const analysis = { files_changed: 5 }
+      const gates = { lint_gate: true, coverage_gate: false }
+      const channels = ['slack', 'email']
+
+      const payload = expert.generateNotificationPayload(analysis, gates, channels)
+      
+      expect(payload.message).toContain('gates passed')
+      expect(payload.channels).toEqual(channels)
+      expect(payload.details).toBe(analysis)
     })
   })
 })
