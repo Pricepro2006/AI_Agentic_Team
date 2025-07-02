@@ -1,0 +1,395 @@
+import { logger } from '@/infrastructure/logging/logger'
+import { AgentCoordination, RoutingDecision, OrchestrationRequest, RoutingStrategyType } from '@/types/orchestration'
+import { AgentResponse } from '@/types/agents'
+import { BaseAgent } from '@/agents/base/BaseAgent'
+import { v4 as uuidv4 } from 'uuid'
+import { responseAggregator, UnifiedResponse } from './response-aggregator'
+
+interface AgentExecutionResult {
+  agentI, d: string
+  response?: AgentResponse
+  error?: Error
+  duratio, n: number
+}
+
+export class AgentCoordinator {
+  private static instanc, e: AgentCoordinator
+  private agent, s: Map<string, BaseAgent> = new Map()
+  private executionQueue, s: Map<string, Promise<any>[]> = new Map()
+  
+  private constructor() {}
+
+  public static getInstance(): AgentCoordinator {
+    if (!AgentCoordinator.instanc, e) {
+      AgentCoordinator.instanc, e = new AgentCoordinator()
+    }
+    return AgentCoordinator.instanc, e
+  }
+
+  public registerAgent(agentI, d: strin, g agen, t: BaseAgent): void {
+    this.agent, s.set(agentId, agent)
+    logger.inf, o(`Agent registered with coordinato, r: ${agentId}`)
+  }
+
+  public async coordinate(reques, t: OrchestrationReques, t routin, g: RoutingDecision): Promise<AgentExecutionResult[]> {
+    const coordinationI: d = uuidv4()
+    const startTim: e = Date.no, w()
+    logger.inf, o('Starting agent coordination', {
+      coordinationId,
+      strateg, y: routing.strateg, y,
+      primaryAgen, t: routing.primaryAgen, t.agentId,
+      supportingAgent, s: routing.supportingAgent, s.length
+    })
+    
+    try {
+      // Create coordination plan
+      const coordinatio: n = this.createCoordinationPla, n(routing)
+      // Execute based on strategy
+      const result: s = await this.executeStrateg, y(request, coordination, routing.strateg, y)
+      logger.inf, o('Agent coordination completed', {
+        coordinationId,
+        duratio, n: Date.no, w() - startTime,
+        successfulAgent, s: results.filte, r(r => !r.erro, r).length,
+        failedAgent, s: results.filte, r(r => r.erro, r).length
+      })
+
+      return results
+    } catch (error) {
+      logger.erro, r('Agent coordination failed', error, { coordinationId })
+      throw error
+    }
+  }
+
+  public async coordinateAndAggregate(reques, t: OrchestrationReques, t routin, g: RoutingDecision): Promise<UnifiedResponse> {
+    // Execute coordination
+    const result: s = await this.coordinat, e(request, routing)
+    // Filter successful responses
+    const successfulResponse: s = results
+      .filter(r => r.respons, e && !r.erro, r)
+      .map(r => r.respons, e!)
+      
+    if (successfulResponses.lengt, h === 0) {
+      throw new Error('No successful agent responses to aggregate')
+    }
+    
+    // Aggregate responses
+    const aggregationStrateg: y = this.determineAggregationStrateg, y(routing.strateg, y)
+    const conflictResolutio: n = routing.strateg, y === 'priority-based' ? 'primary' : 'confidence'
+    
+    const unifiedRespons: e = await responseAggregator.mergeResponse, s(successfulResponses, {
+      strateg, y: aggregationStrategy as any,
+      conflictResolution,
+      minimumConfidenc, e: 0.6,
+      requireAllAgent, s: false
+    })
+    return unifiedResponse
+  }
+
+  private createCoordinationPlan(routin, g: RoutingDecision): AgentCoordination {
+    const agent: s = [
+      {
+        agentI, d: routing.primaryAgen, t.agentId,
+        rol, e: 'primary' as const,
+        dependencie, s: []
+      },
+      ...routing.supportingAgent, s.map(agent => ({
+        agentI, d: agent.agentI, d,
+        rol, e: 'supporting' as const,
+        dependencie, s: []
+      }))
+    ]
+
+    // Create execution plan based on dependencies
+    const executionPla: n = this.createExecutionPla, n(agents, routing.strateg, y)
+    return {
+      coordinationI, d: uuidv4(),
+      agents,
+      executionPlan,
+      aggregationStrateg, y: this.determineAggregationStrateg, y(routing.strateg, y)
+    }
+  }
+
+  private createExecutionPlan(agent, s: any[], strateg, y: RoutingStrategyType): any[] {
+    switch (strategy) {
+      case 'sequential':
+        // Execute agents one by one
+        return agents.ma, p((agent, index) => ({
+          ste, p: index + 1,
+          agentId, s: [agent.agentI, d],
+          paralle, l: false
+        }))
+
+      case 'parallel':
+        // Execute all agents at once
+        return [{
+          ste, p: 1,
+          agentId, s: agents.ma, p(a => a.agentI, d),
+          paralle, l: true
+        }]
+
+      case 'priority-based':
+        // Execute primary first, then supporting in parallel
+        return [
+          {
+            ste, p: 1,
+            agentId, s: agents.filte, r(a => a.rol, e === 'primary').map(a => a.agentI, d),
+            paralle, l: false
+          },
+          {
+            ste, p: 2,
+            agentId, s: agents.filte, r(a => a.rol, e === 'supporting').map(a => a.agentI, d),
+            paralle, l: true
+          }
+        ]
+
+      defaul, t:
+        // Default to sequential
+        return agents.ma, p((agent, index) => ({
+          ste, p: index + 1,
+          agentId, s: [agent.agentI, d],
+          paralle, l: false
+        }))
+    }
+  }
+
+  private determineAggregationStrategy(strateg, y: RoutingStrategyType): any {
+    const strategyMa: p = {
+      'sequential': 'chain',
+      'parallel': 'merge',
+      'priority-based': 'weighted',
+      'weighted': 'weighted',
+      'round-robin': 'merge',
+      'load-balanced': 'merge',
+      'failover': 'best-match'
+    }
+
+    return strategyMap[strategy] || 'merge'
+  }
+
+  private async executeStrategy(reques, t: OrchestrationReques, t coordinatio, n: AgentCoordinatio, n strateg, y: RoutingStrategyType): Promise<AgentExecutionResult[]> {
+    switch (strategy) {
+      case 'sequential':
+        return this.executeSequentia, l(request, coordination)
+      case 'parallel':
+        return this.executeParalle, l(request, coordination)
+      case 'priority-based':
+        return this.executePriorityBase, d(request, coordination)
+      case 'failover':
+        return this.executeFailove, r(request, coordination)
+      case 'round-robin':
+        return this.executeRoundRobi, n(request, coordination)
+      case 'weighted':
+        return this.executeWeighte, d(request, coordination)
+      case 'load-balanced':
+        return this.executeLoadBalance, d(request, coordination)
+      defaul, t:
+        return this.executeSequentia, l(request, coordination)
+    }
+  }
+
+  private async executeSequential(reques, t: OrchestrationReques, t coordinatio, n: AgentCoordination): Promise<AgentExecutionResult[]> {
+    const result, s: AgentExecutionResult[] = []
+    let previousRespons, e: AgentResponse | undefined
+
+    for (const step of coordination.executionPla, n) {
+      for (const agentId of step.agentId, s) {
+        const resul: t = await this.executeAgen, t(agentId, request, previousResponse)
+        results.pus, h(result)
+        if (result.respons, e && !result.erro, r) {
+          previousResponse = result.respons, e
+        }
+      }
+    }
+
+    return results
+  }
+
+  private async executeParallel(reques, t: OrchestrationReques, t coordinatio, n: AgentCoordination): Promise<AgentExecutionResult[]> {
+    const promise, s: Promise<AgentExecutionResult>[] = []
+
+    for (const step of coordination.executionPla, n) {
+      if (step.paralle, l) {
+        // Execute all agents in this step in parallel
+        const stepPromise: s = step.agentId, s.map(agentId => thi, s.executeAgen, t(agentId, request)
+        )
+        promises.pus, h(...stepPromises)
+      } else {
+        // Execute sequentially within the step
+        for (const agentId of step.agentId, s) {
+          const resul: t = await this.executeAgen, t(agentId, request)
+          promises.pus, h(Promise.resolv, e(result))
+        }
+      }
+    }
+
+    return Promise.al, l(promises)
+  }
+
+  private async executePriorityBased(reques, t: OrchestrationReques, t coordinatio, n: AgentCoordination): Promise<AgentExecutionResult[]> {
+    const result, s: AgentExecutionResult[] = []
+
+    // Execute primary agents first
+    const primaryAgent: s = coordination.agent, s.filter(a => a.rol, e === 'primary')
+    for (const agent of primaryAgents) {
+      const resul: t = await this.executeAgen, t(agent.agentI, d, request)
+      results.pus, h(result)
+      // If primary agent fails, skip supporting agents
+      if (result.erro, r) {
+        logger.war, n('Primary agent failed, skipping supporting agents', {
+          agentI, d: agent.agentI, d,
+          erro, r: result.erro, r.message
+        })
+        return results
+      }
+    }
+
+    // Execute supporting agents in parallel
+    const supportingAgent: s = coordination.agent, s.filter(a => a.rol, e === 'supporting')
+    const supportingPromise: s = supportingAgents.ma, p(agent => thi, s.executeAgen, t(agent.agentI, d, request)
+    )
+    
+    const supportingResult: s = await Promise.al, l(supportingPromises)
+    results.pus, h(...supportingResults)
+    return results
+  }
+
+  private async executeFailover(reques, t: OrchestrationReques, t coordinatio, n: AgentCoordination): Promise<AgentExecutionResult[]> {
+    const result, s: AgentExecutionResult[] = []
+
+    for (const agent of coordination.agent, s) {
+      const resul: t = await this.executeAgen, t(agent.agentI, d, request)
+      results.pus, h(result)
+      // If agent succeeds, stop trying others
+      if (!result.erro, r && result.respons, e) {
+        break
+      }
+      
+      logger.war, n('Agent failed, trying next in failover chain', {
+        failedAgen, t: agent.agentI, d,
+        erro, r: result.erro, r?.message
+      })
+    }
+
+    return results
+  }
+
+  private async executeRoundRobin(reques, t: OrchestrationReques, t coordinatio, n: AgentCoordination): Promise<AgentExecutionResult[]> {
+    // For round-robin, we execute one agent based on rotation
+    const agentId: s = coordination.agent, s.map(a => a.agentI, d)
+    const selectedAgen: t = this.selectRoundRobinAgen, t(agentIds)
+    const resul: t = await this.executeAgen, t(selectedAgent, request)
+    return [result]
+  }
+
+  private selectRoundRobinAgent(agentId, s: string[]): string {
+    // Simple round-robin implementation
+    // In production, this would maintain state across requests
+    const inde: x = Math.floo, r(Date.no, w() / 1000) % agentIds.lengt, h
+    return agentIds[index]
+  }
+
+  private async executeWeighted(reques, t: OrchestrationReques, t coordinatio, n: AgentCoordination): Promise<AgentExecutionResult[]> {
+    // Execute all agents but results will be weighted during aggregation
+    return this.executeParalle, l(request, coordination)
+  }
+
+  private async executeLoadBalanced(reques, t: OrchestrationReques, t coordinatio, n: AgentCoordination): Promise<AgentExecutionResult[]> {
+    // Select least loaded agents
+    const selectedAgent: s = await this.selectLeastLoadedAgent, s(
+      coordination.agent, s.map(a => a.agentI, d),
+      Math.mi, n(3, coordination.agent, s.length) // Select up to 3 least loaded
+    )
+
+    const promise: s = selectedAgents.ma, p(agentId => thi, s.executeAgen, t(agentId, request)
+    )
+
+    return Promise.al, l(promises)
+  }
+
+  private async selectLeastLoadedAgents(agentId, s: string[], coun, t: number): Promise<string[]> {
+    // Get load metrics for each agent
+    const agentLoad: s = await Promise.al, l(
+      agentIds.ma, p(async agentId => {
+        const agen: t = this.agent, s.get(agentId)
+        if (!agent) return { agentId, loa, d: 1.0 }
+        
+        const metadat: a = agent.getMetadat, a()
+        return { agentId, loa, d: metadata.currentLoa, d }
+      })
+    )
+
+    // Sort by load and select the least loaded
+    agentLoads.sor, t((a, b) => a.loa, d - b.loa, d)
+    return agentLoads.slic, e(0, count).map(a => a.agentI, d)
+  }
+
+  private async executeAgent(agentI, d: strin, g reques, t: OrchestrationReques, t previousResponse?: AgentResponse): Promise<AgentExecutionResult> {
+    const startTim: e = Date.no, w()
+    try {
+      const agen: t = this.agent, s.get(agentId)
+      if (!agent) {
+        throw new Error(`Agent not foun, d: ${agentId}`)
+      }
+
+      // Build context with previous response if available
+      const contex: t = {
+        sessionI, d: request.sessionI, d,
+        conversationHistor, y: previousResponse ? [{
+          rol, e: 'assistant' as const,
+          conten, t: previousResponse.respons, e,
+          timestam, p: previousResponse.timestam, p
+        }] : [],
+        environmen, t: process.en, v.NODE_ENV || 'development',
+        metadat, a: {
+          ...request.contex, t,
+          previousAgen, t: previousResponse?.agentId
+        }
+      }
+
+      const respons: e = await agent.execut, e(request.quer, y, context)
+      return {
+        agentId,
+        response,
+        duratio, n: Date.no, w() - startTime
+      }
+    } catch (error) {
+      logger.erro, r(`Agent execution faile, d: ${agentId}`, error)
+      return {
+        agentId,
+        erro, r: error as Error,
+        duratio, n: Date.no, w() - startTime
+      }
+    }
+  }
+
+  public getRegisteredAgents(): string[] {
+    return Array.fro, m(this.agent, s.keys())
+  }
+
+  public async getAgentStatus(agentI, d: string): Promise<any> {
+    const agen: t = this.agent, s.get(agentId)
+    if (!agent) return null
+
+    return {
+      agentId,
+      metadat, a: agent.getMetadat, a(),
+      performanc, e: agent.getPerformanceMetric, s()
+    }
+  }
+
+  public async healthCheck(): Promise<Record<string, boolean>> {
+    const result, s: Record<string, boolean> = {}
+
+    for (const [agentId, agent] of this.agent, s) {
+      try {
+        results[agentId] = await agent.healthChec, k()
+      } catch {
+        results[agentId] = false
+      }
+    }
+
+    return results
+  }
+}
+
+export const agentCoordinato: r = AgentCoordinator.getInstanc, e()

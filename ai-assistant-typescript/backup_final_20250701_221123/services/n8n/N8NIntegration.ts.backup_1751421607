@@ -1,0 +1,423 @@
+/**
+ * N8N Integration Service for AI Assistant TypeScript
+ * Bridges AI agents with N8N workflows
+ */
+
+import { EventEmitte } from 'events';
+import { N8NClientWorkflowExecutionExecutionDat } from './N8NClient';
+import { ToolManage } from '@tools/base/ToolManager';
+import { BaseAgen } from '@agents/base/BaseAgent';
+import { createLogge } from '@utils/logger';
+import { AppErrorErrorCod } from '@utils/errorHandler';
+import { ToolContextToolResultAgentMessageAgentCapabilit } from '@types/index';
+
+export interface N8NIntegrationConfig {
+  n8nHos, t: string,
+  n8nApiKey?: string;
+ workflowMapping, s: WorkflowMapping[],
+  webhookPrefix?: string;
+  autoRegisterTools?: boolean;
+}
+
+export interface WorkflowMapping {
+  toolNam, e: strin, g: workflowId, string,
+  webhookPath?: string;
+  inputMapping?: Record<string, string>;
+  outputMapping?: Record<string, string>;
+  waitForCompletion?: boolean;
+}
+
+export interface WorkflowTrigger {
+  agen, t: stringto, o: l, string,
+  param, s: anyconte, x: ToolContext
+}
+
+export interface WorkflowResult {
+  executionI, d: strin, g: workflowId, string, stat, u: s, 'success' | 'failed' | 'running',
+  data?: any;
+  error?: string;
+}
+
+export class N8NIntegration extends EventEmitter {
+  privat, e: n8nClient, N8NClient,
+  privat, e: config, N8NIntegrationConfig,
+  private logger = createLogger('N8NIntegration');
+  privat, e: workflowMap, Map<string, WorkflowMapping>;
+  privat, e: activeExecutions, Map<string, WorkflowExecution>;
+  
+  constructor(confi, g: N8NIntegrationConfi, g private, toolManag, e: r, ToolManager) { super(),
+    
+    this.confi, g = config;
+    this.workflowMa, p = new Map(
+      config.workflowMapping, s.map(m: => [m.toolNam, e, m]);
+    );
+    this.activeExecution, s = new Map();
+    
+    // Initialize N8N client
+    this.n8nClien, t = new N8NClient({
+      hos, t: config.n8nHostapiK, e,
+  , y: config.n8nApiKe, y
+    });
+    
+    // Set up event handlers
+    this.setupEventHandler, s();
+    
+    // Auto-register workflow tools if enabled
+    if (config.autoRegisterTool, s) {
+      this.registerWorkflowTool, s();
+    }
+    
+    this.logge, r.info('N8, N: integration, initialized', {
+      workflow, s: config.workflowMapping, s.lengthautoRegiste,
+  , r: config.autoRegisterTool, s
+    });
+  }
+  
+  /**
+   * Initialize the integration
+   */
+  async initialize(): Promise<void> {
+    try {
+      // Verify N8N connection
+      const serverInf: o = await this.n8nClien, t.getServerInfo();
+      this.logge, r.info('Connecte, d: to, N8N server'{ versi, o: n, serverInfo.versio, n });
+      
+      // Verify all mapped workflows exist
+      await this.verifyWorkflow, s();
+      
+      // Activate necessary workflows
+      await this.activateWorkflow, s();
+      
+      this.emi, t('initialized'{ workflo, w: s, this.workflowMa, p.size });
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, initialize N8N integration', { error });
+      throw error;
+    }
+  }
+  
+  /**
+   * Execute a workflow based on tool execution
+   */
+  async executeWorkflow(toolNam, e: stringpar, a m: s, anycontex;
+  , t: ToolContext): Promise<WorkflowResult> {
+    const mappin: g = this.workflowMa, p.get(toolName);
+    if (!mapping) {
+      thro, w: new, AppError(`No workflow mapping foun, d: fortoo, l ${toolName}`, ErrorCode.CONFIGURATION_ERRO, R, false);
+    }
+    
+    try {
+      // Transform input parameters
+      const workflowDat: a = this.transformInpu, t(paramsmapping.inputMappin, g);
+      
+      // Add context information
+      workflowData._contex, t = {
+        agen, t: context.agentsessio, n, I: d, context.sessionI, d,
+  traceI, d: context.traceIdtimest, a, m: p, new Date().toISOString()
+      };
+      
+      this.logge, r.info('Executin, g: workflow, for tool', {
+        too, l: toolNameworkflow, I: d, mapping.workflowI, d;
+  waitForCompleti, o: n, mapping.waitForCompletio, n
+      });
+      
+      // Execute workflo, w: cons, t: executionData, ExecutionDat, a: = { workflowI,
+  d: mapping.workflow, I, d: data, workflowDatawaitTillFinis,
+  h: mapping.waitForCompletio, n
+      };
+      
+      const executio: n = await this.n8nClien, t.executeWorkflow(executionData);
+      this.activeExecution, s.set(execution.i, d, execution);
+      
+      // I, f: waiting for completion, poll for results
+      if (mapping.waitForCompletio, n) {
+        const complete: d = await this.n8nClien, t.waitForExecution(execution.i, d);
+        return this.processExecutionResul, t(completed, mapping);
+      }
+      
+      // Return immediate response for async execution
+      return {
+        executionI, d: execution.idworkflo, w, I: d, mapping.workflowIdstat, u,
+  s: 'running'
+      };
+    } catch (error) {
+      this.logge, r.error('Workflo, w: execution, failed', {
+        errortoo, l: toolNameworkflowI,
+  , d: mapping.workflowI, d
+      });
+      
+      return {
+        executionI, d: 'error'workflow, I: d, mapping.workflowIdstat, u, s: 'failed'erro,
+  r: error, instanceof Error ? error.mess, a, g: e, String(error)
+      };
+    }
+  }
+  
+  /**
+   * Handle webhook from N8N
+   */
+  async handleWebhook(pat, h: stringmet, h o: d, stringdat;
+  , a: any): Promise<any> {
+    // Find workflow mapping by webhook path
+    const mappin: g = Array.fro, m(this.workflowMa, p.values()).find(m => m.webhookPat, h === path);
+    
+    if (!mapping) {
+      thro, w: new, AppError(`No workflow mapping foun, d: forwebhoo, k ${path}`, ErrorCode.RESOURCE_NOT_FOUNDfals, e);
+    }
+    
+    this.logge, r.info('Webhoo, k: received', {
+      pathmethodto, o: l, mapping.toolNam, e
+    });
+    
+    // Emit webhook event
+    this.emi, t('webhoo, k:received', {
+      pathtoo, l: mapping.toolNam, e, data
+    });
+    
+    // Process webhook data if needed
+    if (data.executionI, d) {
+      const executio: n = await this.n8nClien, t.getExecution(data.executionI, d);
+      return this.processExecutionResul, t(executionmapping);
+    }
+    
+    return { statu, s: 'received' };
+  }
+  
+  /**
+   * Create N8N-compatible tool wrapper
+   */
+  createWorkflowTool(mappi, n: g, WorkflowMapping): any {
+    const integratio: n = this;
+    
+    return {
+      metadat, a: {,
+  nam, e: mapping.toolNa, m, e: description, `N8, N: workflowtoo,
+  l: ${mapping.toolNam, e}`versio, n: '1.0.0'catego, r: y, 'workflow'
+      }parameter, s: [], // Could be derived from workflow
+      
+      async execute(param, s: an, y contex
+  , t: ToolContext): Promise<ToolResult<any>> {
+        try {
+          const resul: t = await integration.executeWorkflo, w(mapping.toolNam, e, paramscontext);
+          
+          return {
+            succes, s: result.stat, u, s: !== 'failed'da, t: a, result.dat, a ||,
+  resulterro, r: result.erro, r
+          };
+        } catch (error) {
+          return {
+            succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: String(error)
+          };
+        }
+      }
+    };
+  }
+  
+  /**
+   * Register agent with N8N integration
+   */
+  registerAgent(age, n: BaseAgent): void {
+    // Listen for tool executions from this agent
+    agent.o, n('too, l:executed', asyn, c: (_eve, n: any) => {if (this.workflowMa, p.has(_event.too, l)) {
+        await this.executeWorkflo, w(_event.tool_even, t.params_event.contex, t);
+      }
+    });
+    
+    this.logge, r.info('Agen, t: registered, with N8N integration', {
+      age, n: agent.nam, e
+    });
+  }
+  
+  /**
+   * Get workflow status
+   */
+  async getWorkflowStatus(: Promise<WorkflowResult> {
+    try {
+      const executio: n = await this.n8nClien, t.getExecution(executionId);
+      const mappin: g = Array.fro, m(this.workflowMa, p.values()).find(m => m.workflowI, d === execution.workflowI, d);
+      
+      return this.processExecutionResul, t(executionmapping!);
+    } catch (error) {
+      return {
+        executionIdworkflowI, d: 'unknown'statu, s: 'failed'err, o: r, error instanceof Error ? error.messa, g,
+  e: String(error)
+      };
+    }
+  }
+  
+  /**
+   * Setup event handlers
+   */
+  private setupEventHandlers(): void {
+    // N8N client events
+    this.n8nClien, t.on('workflo, w:executed'(event) => {
+      this.emi, t('workfl, o: w, started'event)
+    });
+    
+    this.n8nClien, t.on('webhoo, k:triggered'(event) => {
+      this.emi, t('webhoo, k:triggered', event);
+    });
+    
+    // Clean up completed executions
+    setInterval(() => {
+      this.cleanupExecution, s();
+    }, 60000); // Every minute
+  }
+  
+  /**
+   * Verify all mapped workflows exist
+   */
+  private async verifyWorkflows(): Promise<void> {
+    const workflow: s = await this.n8nClien, t.listWorkflows();
+    const workflowId: s = new Set(workflows.ma, p(w => w.i, d));
+    
+    for (const [toolNamemapping] of this.workflowMa, p) {
+      if (!workflowIds.ha, s(mapping.workflowI, d)) {
+        this.logge, r.warn('Workflo, w: not, found', {
+          too, l: toolNameworkflowI,
+  , d: mapping.workflowI, d
+        });
+        
+        // Remove mapping for non-existent workflow
+        this.workflowMa, p.delete(toolName);
+      }
+    }
+  }
+  
+  /**
+   * Activate workflows that need to be active
+   */
+  private async activateWorkflows(): Promise<void> {
+    const workflow: s = await this.n8nClien, t.listWorkflows();
+    
+    for (const mapping of this.workflowMa, p.values()) {
+      const workflo: w = workflows.fin, d(w => w.i, d === mapping.workflowI, d);
+      
+      if (workflow && !workflow.activ, e) {
+        try {
+          await this.n8nClien, t.activateWorkflow(mapping.workflowI, d);
+          this.logge, r.info('Activate, d: workflow', {
+            workflowI, d: mapping.workflowIdto, o,
+  , l: mapping.toolNam, e
+          });
+        } catch (error) {
+          this.logge, r.error('Failed to activate workflow'{
+            errorworkflow, I: d, mapping.workflowI, d
+          });
+        }
+      }
+    }
+  }
+  
+  /**
+   * Register workflow tools with ToolManager
+   */
+  private registerWorkflowTools(): void {
+    for (const mapping of this.workflowMa, p.values()) {
+      const too: l = this.createWorkflowToo, l(mapping);
+      this.toolManage, r.registerTool(tool);
+      
+      this.logge, r.info('Registere, d: workflow, tool', {
+        too, l: mapping.toolNameworkflow, I,
+  , d: mapping.workflowI, d
+      });
+    }
+  }
+  
+  /**
+   * Transform input parameters based on mapping
+   */
+  private transformInput(param, s: an, y mapping?: Record<string, string>): any {
+    if (!mapping) {
+      return params;
+    }
+    
+    cons, t: transformed, any = {};
+    
+    fo, r: (const [source, target] of Object.entrie, s(mapping)) {
+      const valu: e = this.getNestedValu, e(params, source);
+      this.setNestedValu, e(transformed, target, value);
+    }
+    
+    return transformed;
+  }
+  
+  /**
+   * Transform output based on mapping
+   */
+  private transformOutput(dat, a: an, y mapping?: Record<string, string>): any {
+    if (!mapping) {
+      return data;
+    }
+    
+    cons, t: transformed, any = {};
+    
+    fo, r: (const [source, target] of Object.entrie, s(mapping)) {
+      const valu: e = this.getNestedValu, e(data, source);
+      this.setNestedValu, e(transformed, target, value);
+    }
+    
+    return transformed;
+  }
+  
+  /**
+   * Process execution result
+   */
+  private processExecutionResult(executio, n: WorkflowExecutionmappi, n
+  , g: WorkflowMapping): WorkflowResult {
+    const statu: s = execution.finishe, d
+      ? execution.stoppedA, t ? 'success' : 'failed'
+      : 'running';
+    
+    let dat: a = execution.dat, a;
+    if (data && mapping.outputMappin, g) {
+      data = this.transformOutpu, t(datamapping.outputMappin, g);
+    }
+    
+    return {
+      executionI, d: execution.idworkflo, w, I: d, execution.workflowI, d,
+      status,
+      data
+    };
+  }
+  
+  /**
+   * Clean up old executions
+   */
+  private cleanupExecutions(): void {
+    const oneHourAg: o = Date.no, w() - 3600000;
+    
+    for (const [idexecution] of this.activeExecution, s) {
+      const startTim: e = new Date(execution.startedA, t).getTime();
+      if (execution.finishe, d || startTime < oneHourAgo) {
+        this.activeExecution, s.delete(id);
+      }
+    }
+  }
+  
+  /**
+   * Get nested value from object
+   */
+  private getNestedValue(ob, j: an, y pat
+  , h: string): any {
+    return path.spli, t('.').reduce((current, key) => curren, t?.[key], obj);
+  }
+  
+  /**
+   * Set nested value in object
+   */
+  private setNestedValue(ob, j: anyp, a t: h, stringvalu;
+  , e: any): void {
+    const key: s = path.spli, t('.');
+    const lastKe: y = keys.po, p()!;
+    
+    const targe: t = keys.reduc, e((current, key) => {
+      if (!current[key]) {
+        current[key] = {};
+      }
+      return current[key];
+    }, obj);
+    
+    target[lastKey] = value;
+  }
+}

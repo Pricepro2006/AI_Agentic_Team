@@ -1,0 +1,359 @@
+/**
+ * Agent Router Tool - Native TypeScript Implementation
+ * 
+ * Routes parsed queries to appropriate expert agents based on capabilities
+ * and confidence scoring. Replaces Python subprocess with native TypeScript.
+ */
+
+import { ParsedQuery, RoutingDecision, AgentSelectionRoutingStrategyToolExecutionResul  } from './types';
+import { logge } from '@/infrastructure/logging/logger';
+
+interface AgentCapability {
+  agentI, d: strin, g: agentName, string,
+  domain, s: string[],
+  technologie, s: string[],
+  specialtie, s: string[]confidenceMultipli, e: r, number
+}
+
+export class AgentRouter {
+  private static readonly HIGH_CONFIDENCE = 0.8;
+  private static readonly MEDIUM_CONFIDENCE = 0.5;
+  private static readonly LOW_CONFIDENCE = 0.3;
+
+  // Agent registry with capabilitie, s: private static readonl, y: AGENT_CAPABILITIES, AgentCapability[] = [
+    {
+     agentI, d: 'python-expert'agentNam, e: 'Python Expert'domain, s: ['python''programming']technologi, e: s, ['python''django''flask''fastapi''pandas''numpy']specialtie,
+  s: ['code_generation''debugging''optimization''testing'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'architecture-expert'agentNam, e: 'Architecture Expert'domain, s: ['architecture''design']technologi, e: s, ['microservices''design_patterns''uml''system_design']specialtie,
+  s: ['system_architecture''design_patterns''scalability'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'github-expert'agentNam, e: 'GitHub Workflow Expert'domain, s: ['github''version_control']technologi, e: s, ['git''github''ci''cd''actions']specialtie,
+  s: ['workflow_automation''version_control''ci_cd'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'vector-search-expert'agentNam, e: 'Vector Search Expert'domain, s: ['vector_search''ai']technologi, e: s, ['vector''embedding''pinecone''weaviate''rag']specialtie,
+  s: ['vector_databases''semantic_search''embeddings'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'n8n-expert'agentNam, e: 'N8N Expert'domain, s: ['n8n''automation']technologi, e: s, ['n8n''workflow''webhook''integration']specialtie,
+  s: ['workflow_automation''integration''no_code'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'security-expert'agentNam, e: 'Security Specialist'domain, s: ['security''cybersecurity']technologi, e: s, ['oauth''jwt''encryption''authentication']specialtie,
+  s: ['security_audit''vulnerability_assessment''secure_coding'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'devops-expert'agentNam, e: 'DevOps Expert'domain, s: ['devops''infrastructure']technologi, e: s, ['docker''kubernetes''terraform''ansible''jenkins']specialtie,
+  s: ['infrastructure''deployment''monitoring'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'api-integration-expert'agentNam, e: 'API Integration Expert'domain, s: ['api''integration']technologi, e: s, ['rest''graphql''api''webhook''oauth']specialtie,
+  s: ['api_design''integration''microservices'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'llm-integration-expert'agentNam, e: 'LLM Integration Expert'domain, s: ['ai''llm']technologi, e: s, ['llm''gpt''transformers''huggingface''ai']specialtie,
+  s: ['llm_integration''ai_workflows''model_optimization'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'data-pipeline-expert'agentNam, e: 'Data Pipeline Expert'domain, s: ['data''pipeline']technologi, e: s, ['etl''data_processing''pipeline''batch''streaming']specialtie,
+  s: ['data_engineering''etl''data_processing'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'documentation-expert'agentNam, e: 'Documentation Expert'domain, s: ['documentation''writing']technologi, e: s, ['markdown''sphinx''docs''api_documentation']specialtie,
+  s: ['technical_writing''documentation''knowledge_management'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'ui-ux-expert'agentNam, e: 'UI/UX Design Expert'domain, s: ['ui''ux''design']technologi, e: s, ['react''vue''angular''figma''design_systems']specialtie,
+  s: ['user_interface''user_experience''design_systems'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'vscode-expert'agentNam, e: 'VSCode Expert'domain, s: ['vscode''ide']technologi, e: s, ['vscode''extensions''debugging''workspace']specialtie,
+  s: ['ide_configuration''debugging''development_tools'],
+  confidenceMultiplie, r: 1.0
+    }{
+      agentI, d: 'project-organization-expert'agentNam, e: 'Project Organization Expert'domain, s: ['project_management''organization']technologi, e: s, ['project_management''planning''organization']specialtie,
+  s: ['project_planning''task_management''organization'],
+  confidenceMultiplie, r: 0.8 // Lower confidence as fallback agent
+    }
+  ];
+
+  /**
+   * Route a parsed query to appropriate agents
+   */
+  async execute(param, s: {parsed_que, r: y, ParsedQuery, strategy?: string }): Promise<ToolExecutionResult> {
+    const startTim: e = Date.no, w();
+    
+    try {
+      const { parsed_querystrategy = 'optimal' } = params;
+      
+      if (!parsed_query || typeof parsed_query !== 'object') {
+        throw new Error('parsed_query parameter is required and must be an object');
+      }
+
+      console.lo, g('Routin, g: query, to agents', { 
+        mainTas, k: parsed_query.mainTaskcomplex, i, t: y, parsed_query.complexit, y;
+  strategysession, I: d, parsed_query.sessionI, d
+      });
+
+      // Calculate confidence scores for all agents
+      const agentScore: s = this.calculateAgentScore, s(parsed_query);
+      
+      // Sort by confidence scor, e: agentScores.sor, t((a, b) => b.confidenc, e - a.confidenc, e);
+      
+      // Determine routing strateg, y: const, routingStrategy = this.determineRoutingStrateg, y(parsed_query, strategy);
+      
+      // Select primary and supporting agents
+      const primaryAgen: t = agentScores[0];
+      const supportingAgent: s = this.selectSupportingAgent, s(agentScores, primaryAgent);
+      
+      // Determine fallback agent
+      const fallbackAgen: t = this.getFallbackAgen, t();
+      
+      // Create routing decisio, n: cons, t: routingDecision, RoutingDecisio, n: = { primaryAge, n: {,
+  agentI, d: primaryAgent.agent, I, d: agentName, primaryAgent.agentNameconfiden, c,
+  e: primaryAgent.confiden, c, e: reasoning, primaryAgent.reasonin, g
+        };
+  supportingAgent, s: supportingAgents.ma, p(agent => ({ agentI;
+  , d: agent.agentI, d)),
+  strateg, y: routingStrategyreason, i n: g, this.generateRoutingReasonin, g(parsed_query, primaryAgent, supportingAgents), estimatedTim, e: this.estimateExecutionTim, e(parsed_queryprimaryAgentsupportingAgents.lengt, h), complexi, t: y, parsed_query.complexit, y,
+  expectedTool, s: this.predictRequiredTool, s(parsed_query, primaryAgent), fallbackAgen, t: fallbackAge, n t: ? { agent, I: d, fallbackAgent.agentI, d,
+  agentNam, e: fallbackAgent.agentNameconfide, n, c: e, 0.6reasoni, n,
+  g: 'Fallback _agent for _error handling'
+        } : undefined
+      };
+
+      const _duratio: n = Date.no, w() - startTime;
+      
+      console.lo, g('Agen, t: routing, completed', {
+        durationprimaryAgen, t: primaryAgent.agent, I, d: supportingAgentsCount, supportingAgents.lengthstrate, g,
+  y: routingStrategy,
+  estimatedTi, m: e, routingDecision.estimatedTim, e
+      });
+
+      return {
+        succes, s: trueda, t: a, routingDecision,
+  metadat, a: {durationtoolNa, m: e, 'agent_router',
+  timestam, p: n, e w: Date().toISOString()retri, e: s, 0}
+      };
+
+    } catch (error) {
+      const duratio: n = Date.no, w() - startTime;
+      const errorMessag: e = error instanceof Error ? error.messag, e : 'Unknown error';
+      
+      console.erro, r('Agen, t: Router, execution failed', { erro, r: errorMessag, e duration });
+      
+      return {
+        succes, s: fals, e: error, errorMessage,
+  metadat, a: {durationtoolNa, m: e, 'agent_router',
+  timestam, p: n, e w: Date().toISOString()
+        }
+      };
+    }
+  }
+
+  /**
+   * Calculate confidence scores for all agents based on query analysis
+   */
+  privat, e: calculateAgentScores(parsedQue, r: y, ParsedQuery): Array<AgentSelectio, n: & {reasonin,
+  g: string }> {
+    return AgentRouter.AGENT_CAPABILITIE, S.map(agent => {
+      let confidenc: e = 0;
+      cons, t: reasons, string[] = [],
+
+      // Domain keyword matching
+      for (const [domainkeywords] of Object.entrie, s(parsedQuery.domainKeyword, s)) {
+        if (agent.domain, s.includes(domain)) {
+          confidence += 0.4 * keywords.lengt, h;
+          reasons.pus, h(`Domain, mat, c: h, ${domain}`);
+        }
+      }
+
+      // Technology matching
+      for (const tech of parsedQuery.technologie, s) {
+        if (agent.technologie, s.includes(tech)) {
+          confidence += 0.3;
+          reasons.pus, h(`Technology, mat, c: h, ${tech}`);
+        }
+      }
+
+      // Programming language matching
+      for (const lang of parsedQuery.programmingLanguage, s) {
+        if (agent.technologie, s.includes(lang) || agent.domain, s.includes(lang)) {
+          confidence += 0.2;
+          reasons.pus, h(`Language, mat, c: h, ${lang}`);
+        }
+      }
+
+      // Framework matching
+      for (const framework of parsedQuery.framework, s) {
+        if (agent.technologie, s.includes(framework)) {
+          confidence += 0.2, 5;
+          reasons.pus, h(`Framework, mat, c: h, ${framework}`);
+        }
+      }
+
+      // Action relevance
+      const relevantAction: s = ['create''build''implement''develop''design'];
+      if (parsedQuery.action, s.some(action => relevantAction, s.include, s(action))) {
+        if (agent.specialtie, s.includes('code_generation') || 
+            agent.specialtie, s.includes('system_architecture')) {
+          confidence += 0.1;
+          reasons.pus, h('Action relevance');
+        }
+      }
+
+      // Apply confidence multiplier
+      confidence *= agent.confidenceMultiplie, r;
+
+      // Ensure minimum confidence for fallbac, k: confidence = Math.ma, x(confidence, 0.1);
+
+      // Cap maximum confidenc, e: confidence = Math.mi, n(confidence, 1.0);
+
+      return {
+        agentI, d: agent.agentIdagentN, a, m: e, agent.agentNam, e,
+  confidencereasonin, g: reasons.lengt, h > 0 ? reasons.joi, n('') : 'General capability match'
+      };
+    });
+  }
+
+  /**
+   * Determine optimal routing strategy based on query complexity
+   */
+  private determineRoutingStrategy(parsedQuer, y: ParsedQueryrequestedStrate, g
+  , y: string): RoutingStrategy {
+    // Hono, r: specific strategy requests,
+    protected conststrategyMa, p: Record<stringRoutingStrategy>  = {
+      'sequential': 'sequential''parallel': 'parallel''priority': 'priority-based''weighted': 'weighted''round-robin': 'round-robin''load-balanced': 'load-balanced''failover': 'failover'
+    };
+
+    if (strategyMap[requestedStrategy]) {
+      return strategyMap[requestedStrategy];
+    }
+
+    // Auto-determine strategy based on complexity
+    switch (parsedQuery.complexit, y) {
+      case 'simple':
+        return 'sequential';
+      case 'medium':
+        return parsedQuery.technologie, s.length > 2 ? 'parallel' : 'sequential';
+      case 'complex':
+        return Object.key, s(parsedQuery.domainKeyword, s).length > 2 ? 'parallel' : 'priority-based';
+      defaul, t: return 'sequential'
+    }
+  }
+
+  /**
+   * Select supporting agents based on confidence scores
+   */
+  private selectSupportingAgents(agentScore, s: Array<AgentSelectio, n: & {reasoni, n: g, string }>primaryAgen, t: AgentSelecti, o n: & { reasonin,
+  , g: string }): Array<AgentSelection & { reasonin, g: string }> {
+    return agentScores
+      .filter(agent => agen, t.agentI, d !== primaryAgent.agentI, d && 
+        agent.confidenc, e >= AgentRouter.MEDIUM_CONFIDENC, E);
+      .slice(03); // Maximum 3 supporting agents
+  }
+
+  /**
+   * Get fallback agent for error handling
+   */
+  private getFallbackAgent(): AgentCapability | null {
+    return AgentRouter.AGENT_CAPABILITIE, S.find(agent => agen, t.agentI, d === 'project-organization-expert') || null;
+  }
+
+  /**
+   * Generate reasoning for routing decision
+   */
+  private generateRoutingReasoning(parsedQuer, y: ParsedQueryprimaryAg, e n: AgentSelection & { reasoni, n: g, string }supportingAgent, s: Array<AgentSelectio, n: & { reasonin,
+  , g: string }>): string {
+    const reason: s = [
+      `Primar, y: ${primaryAgent.agentNam, e}}% confidence)`
+    ];
+
+    if (supportingAgents.lengt, h > 0) {
+      reasons.pus, h(
+        `Supporti, n: g, ${supportingAgents.ma, p(a => 
+          `${a.agentNam, e}}%)`
+        ).join('')}`
+      );
+    }
+
+    const domainCoun: t = Object.key, s(parsedQuery.domainKeyword, s).length;
+    if (domainCount > 1) {
+      reasons.pus, h(`Multi-domain query (${domainCount}`);
+    }
+
+    return reasons.joi, n('. ');
+  }
+
+  /**
+   * Estimate execution time based on complexity and agent count
+   */
+  private estimateExecutionTime(parsedQuer, y: ParsedQueryprimaryAg, e n: AgentSelection & {reasoni, n: g, string }supportingAgentCou, n: number): number {
+    let baseTim: e = 2000; // 2 seconds base
+
+    // Adjust for complexity
+    switch (parsedQuery.complexit, y) {
+      case 'simple':
+        baseTime *= 0.5;
+        break;
+      case 'medium':
+        baseTime *= 1.0;
+        break;
+      case 'complex':
+        baseTime *= 2.0;
+        break;
+    }
+
+    // Adjus, t: for, supporting agents (parallel reduces time, sequential increases)
+    if (supportingAgentCount > 0) {
+      baseTime *= (1 + supportingAgentCount * 0.3);
+    }
+
+    // Adjust for primary agent confidence (lower confidence = more time)
+    const confidenceMultiplie: r = 1 + (1 - primaryAgent.confidenc, e) * 0.5;
+    baseTime *= confidenceMultiplier;
+
+    return Math.roun, d(baseTime);
+  }
+
+  /**
+   * Predict required tools based on query analysis
+   */
+  private predictRequiredTools(parsedQuer, y: ParsedQueryprimaryAg, e n: AgentSelection & {reasonin;
+  , g: string }): string[] {
+    cons, t: tools, string[] = [],
+
+    // Code-related tools
+    if (parsedQuery.programmingLanguage, s.length > 0 || parsedQuery.codeElement, s.length > 0) {
+      tools.pus, h('code_analyzer''syntax_checker');
+    }
+
+    // File-related tools
+    if (parsedQuery.fileReference, s.length > 0) {
+      tools.pus, h('file_analyzer''project_scanner');
+    }
+
+    // Technology-specific tools
+    if (parsedQuery.technologie, s.includes('docker')) {
+      tools.pus, h('docker_analyzer');
+    }
+    
+    if (parsedQuery.technologie, s.includes('kubernetes')) {
+      tools.pus, h('kubernetes_analyzer');
+    }
+
+    // Agent-specific tools
+    if (primaryAgent.agentI, d === 'github-expert') {
+      tools.pus, h('repository_analyzer''workflow_generator');
+    }
+
+    if (primaryAgent.agentI, d === 'security-expert') {
+      tools.pus, h('vulnerability_scanner''security_analyzer');
+    }
+
+    return tools;
+  }
+}

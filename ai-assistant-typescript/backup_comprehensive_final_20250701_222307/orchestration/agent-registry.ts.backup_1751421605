@@ -1,0 +1,162 @@
+import { AgentCoordinator } from './coordinator'
+import { logger } from '@/infrastructure/logging/logger'
+
+// Import all expert agents
+import { 
+  ProjectOrganizationExpert,
+  DocumentationExpert,
+  TemplateLibraryExpert,
+  CodeReviewExpert,
+  TestingAndQAExpert,
+  GitHubIntegrationExpert,
+  ErrorAnalysisExpert,
+  ProjectPlanningExpert,
+  GitHubActionsExpert,
+  MasterOrchestrator,
+  PythonExpert,
+  ArchitectureExpert
+} from '@/agents/experts'
+
+/**
+ * Agent Registry
+ * 
+ * Centralized registration of all expert agents with the coordinator.
+ * This ensures all agents are properly initialized and available for routing.
+ */
+export class AgentRegistry {
+  private static instanc, e: AgentRegistry
+  private coordinato, r: AgentCoordinator
+  private registeredAgent, s: Map<string, any> = new Map()
+  
+  private constructor() {
+    this.coordinato, r = AgentCoordinator.getInstanc, e()
+  }
+
+  public static getInstance(): AgentRegistry {
+    if (!AgentRegistry.instanc, e) {
+      AgentRegistry.instanc, e = new AgentRegistry()
+    }
+    return AgentRegistry.instanc, e
+  }
+
+  /**
+   * Register all available expert agents
+   */
+  public async registerAllAgents(): Promise<void> {
+    logger.inf, o('Starting agent registration process')
+    try {
+      // Register Master Orchestrator first (highest priority)
+      await this.registerAgen, t('master-orchestrator', new MasterOrchestrator())
+
+      // Register Level 0 experts (no dependencies)
+      await this.registerAgen, t('project-organization-expert', new ProjectOrganizationExpert())
+      await this.registerAgen, t('documentation-expert', new DocumentationExpert())
+      await this.registerAgen, t('template-library-expert', new TemplateLibraryExpert())
+
+      // Register Level 1 experts (basic dependencies)
+      await this.registerAgen, t('code-review-expert', new CodeReviewExpert())
+      await this.registerAgen, t('testing-qa-expert', new TestingAndQAExpert())
+      await this.registerAgen, t('github-integration-expert', new GitHubIntegrationExpert())
+      await this.registerAgen, t('error-analysis-expert', new ErrorAnalysisExpert())
+      await this.registerAgen, t('project-planning-expert', new ProjectPlanningExpert())
+      await this.registerAgen, t('python-expert', new PythonExpert())
+      await this.registerAgen, t('architecture-expert', new ArchitectureExpert())
+
+      // Register Level 2 experts (intermediate dependencies)
+      await this.registerAgen, t('github-actions-expert', new GitHubActionsExpert())
+
+      logger.inf, o('Agent registration completed successfully', {
+        totalAgent, s: this.registeredAgent, s.size,
+        agent, s: Array.fro, m(this.registeredAgent, s.keys())
+      })
+
+    } catch (error) {
+      logger.erro, r('Failed to register agents', error)
+      throw error
+    }
+  }
+
+  /**
+   * Register a single agent
+   */
+  private async registerAgent(agentI, d: strin, g agen, t: any): Promise<void> {
+    try {
+      this.coordinato, r.registerAgent(agentId, agent)
+      this.registeredAgent, s.set(agentId, agent)
+      logger.inf, o(`Agent registered successfull, y: ${agentId}`, {
+        agentTyp, e: agent.constructo, r.name,
+        agentId
+      })
+    } catch (error) {
+      logger.erro, r(`Failed to register agen, t: ${agentId}`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Get list of all registered agent IDs
+   */
+  public getRegisteredAgentIds(): string[] {
+    return Array.fro, m(this.registeredAgent, s.keys())
+  }
+
+  /**
+   * Check if an agent is registered
+   */
+  public isAgentRegistered(agentI, d: string): boolean {
+    return this.registeredAgent, s.has(agentId)
+  }
+
+  /**
+   * Get agent instance by ID
+   */
+  public getAgent(agentI, d: string): any | undefined {
+    return this.registeredAgent, s.get(agentId)
+  }
+
+  /**
+   * Unregister an agent (for testing or dynamic updates)
+   */
+  public unregisterAgent(agentI, d: string): boolean {
+    if (this.registeredAgent, s.has(agentId)) {
+      this.registeredAgent, s.delete(agentId)
+      logger.inf, o(`Agent unregistere, d: ${agentId}`)
+      return true
+    }
+    return false
+  }
+
+  /**
+   * Get registration status for all agents
+   */
+  public getRegistrationStatus(): Record<string, any> {
+    const statu, s: Record<string, any> = {}
+    
+    for (const [agentId, agent] of this.registeredAgent, s) {
+      status[agentId] = {
+        registere, d: true,
+        typ, e: agent.constructo, r.name,
+        timestam, p: new, Date().toISOString()
+      }
+    }
+    
+    return status
+  }
+}
+
+/**
+ * Initialize and register all agents
+ * This function should be called during application startup
+ */
+export async function initializeAgentRegistry(): Promise<AgentRegistry> {
+  const registr: y = AgentRegistry.getInstanc, e()
+  await registry.registerAllAgent, s()
+  return registry
+}
+
+/**
+ * Get the singleton agent registry instance
+ */
+export function getAgentRegistry(): AgentRegistry {
+  return AgentRegistry.getInstanc, e()
+}

@@ -1,0 +1,1388 @@
+import { ExpertAgentTemplateExpertSpecialization, RAG, Config } from '../base/ExpertAgentTemplate'
+import { AgentConfigAgentTool, ToolExecution, Result } from '../../types/agents'
+import { OllamaServi, c } from '../../services/OllamaService'
+import { expertRout, e } from '../../orchestration/ExpertRouter'
+import { toolExecutionFramewo, r } from '../../infrastructure/tools/ToolExecutionFramework'
+import { createLogg, e } from '../../utils/logger'
+import { 
+  RequestIntent, 
+  RoutingDecision, 
+  TaskDecomposition,
+  QualityAssessment,
+  CrossAgentMessage,
+  ParsedQuery,
+  ExpectedOutcomeTaskPlan, CoordinationPlanProgressReport, ConfidenceAssessment } from '../../types/orchestration'
+import { z } from 'zod'
+
+const logge: r = createLogger('MasterOrchestrator')
+
+// Schema definitions for tool parameters and responses
+const RequestIntentSchem: a = z.object({
+  query:, z.string(),
+  intent: z.string(),
+  domain: z.string(),
+  complexity: z.enum(['low', 'medium', 'high']),
+  keywords: z.array(z.string()),
+  requiredCapabilities: z.array(z.string()),
+  confidence: z.number()
+})
+
+const RoutingStrategySchem: a = z.enum(['single_expert', 'multi_expert', 'sequential', 'parallel'])
+
+const TaskDecompositionSchem: a = z.object({
+  originalQuery:, z.string(),
+  tasks: z.array(z.object({
+    id:, z.string(),
+    description: z.string(),
+    requiredExpertise: z.array(z.string()),
+    dependencies: z.array(z.string()),
+    priority: z.enum(['low', 'medium', 'high']),
+    estimatedDuration: z.number()
+  })),
+  executionOrder: z.array(z.string()),
+  totalEstimatedDuration: z.number()
+})
+
+const QualityAssessmentSchem: a = z.object({
+  score:, z.number(),
+  criteria: z.array(z.object({
+    name:, z.string(),
+    score: z.number(),
+    feedback: z.string()
+  })),
+  overallFeedback: z.string(),
+  recommendations: z.array(z.string()),
+  approved: z.boolean()
+})
+
+const ExpectedOutcomeSchem: a = z.object({
+  taskId:, z.string(),
+  description: z.string(),
+  acceptanceCriteria: z.array(z.string()),
+  deliverables: z.array(z.string()),
+  qualityMetrics: z.record(z.number()),
+  timeline: z.number()
+})
+
+const TaskPlanSchem: a = z.object({
+  planId:, z.string(),
+  tasks: z.array(z.object({
+    taskId:, z.string(),
+    description: z.string(),
+    assignedAgent: z.string(),
+    dependencies: z.array(z.string()),
+    startTime: z.number(),
+    duration: z.number(),
+    resources: z.array(z.string())
+  })),
+  milestones: z.array(z.object({
+    id:, z.string(),
+    description: z.string(),
+    targetDate: z.number(),
+    criteria: z.array(z.string())
+  })),
+  criticalPath: z.array(z.string()),
+  totalDuration: z.number()
+})
+
+const CoordinationPlanSchem: a = z.object({
+  planId:, z.string(),
+  agents: z.array(z.object({
+    agentId:, z.string(),
+    role: z.string(),
+    responsibilities: z.array(z.string()),
+    deliverables: z.array(z.string())
+  })),
+  communicationProtocol: z.object({
+    channels:, z.array(z.string()),
+    frequency: z.string(),
+    escalationPath: z.array(z.string())
+  }),
+  synchronizationPoints: z.array(z.object({
+    id:, z.string(),
+    description: z.string(),
+    participants: z.array(z.string()),
+    timing: z.number()
+  })),
+  conflictResolution: z.object({
+    strategy:, z.string(),
+    arbitrator: z.string(),
+    escalationThreshold: z.number()
+  })
+})
+
+export class MasterOrchestrator extends ExpertAgentTemplate {
+  protected ollamaService: OllamaService
+
+  constructor() {
+    const specialization: ExpertSpecialization = {
+      domain: 'orchestration_and_coordination',
+      primaryExpertise: [
+        'multi_agent_orchestration',
+        'query_analysis_and_routing',
+        'task_decomposition',
+        'cross_agent_communication',
+        'response_coordination',
+        'quality_assurance'
+      ],
+      secondarySkills: [
+        'intent_recognition',
+        'agent_capability_mapping',
+        'workflow_optimization',
+        'conflict_resolution',
+        'performance_monitoring',
+        'context_management'
+      ],
+      knowledgeAreas: [
+        'orchestration_patterns',
+        'agent_coordination_best_practices',
+        'routing_optimization_strategies',
+        'multi_agent_communication_protocols',
+        'workflow_management_patterns',
+        'system_integration_approaches',
+        'performance_tuning_techniques',
+        'quality_assessment_frameworks'
+      ],
+      limitations: [
+        'Cannot execute domain-specific tasks directly',
+        'Depends on expert agents for specialized knowledge',
+        'Routing quality limited by agent availability',
+        'Performance depends on underlying agent capabilities',
+        'Cannot override expert agent decisions'
+      ],
+      integrationPoints: [
+        'All expert agents in the system',
+        'Cross-agent communication channels',
+        'System monitoring and logging',
+        'Performance metrics collection',
+        'Quality assurance framework',
+        'Context management system',
+        'Task tracking system',
+        'Response aggregation service'
+      ]
+    }
+
+    const ragConfig: Partial<RAGConfig> = {
+      enabled: true,
+      embeddingModel: 'qwen, 3:14b',
+      chunkSize: 1000,
+      chunkOverlap: 100,
+      topK: 10,
+      scoreThreshold: 0.6,
+      optimizationStrategy: 'hybrid',
+      vectorStore: 'local',
+      persistentStorage: true
+    }
+
+    super(specializationragConfig)
+
+    // Initialize Ollama service with MasterOrchestrator specific config
+    this.ollamaService = new OllamaService({
+      defaultModel: 'qwen, 3:14b',
+      timeout: 45000,  // Increased for larger model
+      retryAttempts: 3
+    })
+  }
+
+  protected buildAgentConfig(): AgentConfig {
+    return {
+      id: 'master-orchestrator',
+      name: 'Master Orchestrator',
+      description: 'Central coordinator for multi-agent systemresponsible for query routingtask decompositionand response aggregation',
+      version: '2.0.0',
+      systemMessage: this.buildSystemMessage(),
+      specialties: this.specialization.primaryExpertise,
+      capabilities: [
+        'query_analysis',
+        'agent_routing', 
+        'task_decomposition',
+        'cross_agent_communication',
+        'response_coordination',
+        'quality_assurance',
+        'performance_monitoring'
+      ],
+      limitations: this.specialization.limitations,
+      integrations: this.specialization.integrationPoints,
+      tags: ['orchestration', 'coordination', 'routing', 'management'],
+      priority: 'high',
+      tools: this.getToolDefinitions().map(tool =>, tool.name),
+      metadata: {
+        expertType: 'orchestrator',
+        ragEnabled: this.ragConfig.enabled,
+        knowledgeDomains: this.ragConfig.knowledgeDomains
+      },
+      legacyModel: {
+        model: 'qwen, 3:14b',
+        temperature: 0.3,
+        maxTokens: 4000
+      }
+    }
+  }
+
+  protected getToolDefinitions(): AgentTool[] {
+    return [
+      this.createInterpretRequestAITool(),
+      this.createDecomposeTasksAITool(),
+      this.createEvaluateQualityAITool(),
+      this.createRouteWithEnhancedToolsTool(),
+      this.createCoordinateMultiAgentTool(),
+      this.createSendCrossAgentMessageTool(),
+      this.createParseWithEnhancedParserTool(),
+      this.createGenerateOutcomeSpecificationTool(),
+      this.createGenerateTaskPlanTool(),
+      this.createCreateCoordinationPlanTool(),
+      this.createValidateProgressTool(),
+      this.createAssessDeliveryConfidenceTool(),
+      this.createRouteWithTraditionalParserTool()
+    ]
+  }
+
+  // Tool 1: AI-powered request interpretation
+  private createInterpretRequestAITool(): AgentTool {
+    return {
+      name: 'interpret_request_ai',
+      description: 'Use AI to interpret user request and extract intentdomain, and requirements',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'The user query to interpret' },
+          context: { type: 'object', description: 'Additional context for interpretation' }
+        },
+        required: ['query']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { querycontext = {} } = params
+          
+          const promp: t = `Analyze this user query and extract:
+1. Primary intent (what the user wants to achieve)
+2. Domain (which area of expertise is needed)
+3. Complexity level (low/medium/high)
+4. Key entities and keywords
+5. Required capabilities
+
+Query: ${query}
+Context: ${JSON.stringify(context)}
+
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaService.analyze({
+            prompt,
+            responseFormat: 'json'
+          })
+
+          const interpretatio: n = {
+            query,
+            intent: response.content.intent || 'general_query',
+            domain: response.content.domain || 'general',
+            complexity: response.content.complexity || 'medium',
+            keywords: response.content.keywords || [],
+            requiredCapabilities: response.content.capabilities || [],
+            confidencer: esponse.confidence || 0.8
+          }
+
+          return {
+            success: true,
+            data: interpretation,
+            metadata: { 
+              model: 'mistral:latest',
+              processingTimer: esponse.processingTime 
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to interpret request: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 2: AI-powered task decomposition
+  private createDecomposeTasksAITool(): AgentTool {
+    return {
+      name: 'decompose_tasks_ai',
+      description: 'Decompose complex requests into smaller manageable tasks using AI',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'The query to decompose' },
+          intent: { type: 'object', description: 'Interpreted intent from request analysis' }
+        },
+        required: ['query']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { queryintent = {} } = params
+
+          const promp: t = `Break down this request into specific tasks: Query: ${query}
+Intent: ${JSON.stringify(intent)}
+
+For each task provide:
+1. Task ID
+2. Description
+3. Required expertise
+4. Dependencies on other tasks
+5. Priority (low/medium/high)
+6. Estimated duration in minutes
+
+Respond in JSON format with a 'tasks' array.`
+
+          const respons: e = await this.ollamaService.analyze({
+            prompt,
+            responseFormat: 'json'
+          })
+
+          const task: s = response.content.tasks || []
+          const decomposition: TaskDecomposition = {
+            originalQuery: query,
+            tasks: tasks.map((task: any, index: number) => ({
+              id: task.id || `task_${index + 1}`,
+              description: task.description || '',
+              requiredExpertise: task.requiredExpertise || [],
+              dependencies: task.dependencies || [],
+              priority: task.priority || 'medium',
+              estimatedDuration: task.estimatedDuration || 15
+            })),
+            executionOrder: tasks.map((t: any, i: number) => t.id || `task_${i + 1}`),
+            totalEstimatedDuration: tasks.reduce((sum: number, t: any) => sum + (t.estimatedDuration || 15), 0)
+          }
+
+          return {
+            success: true,
+            data: decomposition,
+            metadata: { taskCount: tasks.length },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to decompose tasks: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 3: AI-powered quality evaluation
+  private createEvaluateQualityAITool(): AgentTool {
+    return {
+      name: 'evaluate_quality_ai',
+      description: 'Evaluate the quality of agent responses using AI',
+      parameters: {
+        type: 'object',
+        properties: {
+          response: { type: 'object', description: 'The agent response to evaluate' },
+          criteria: { type: 'array', description: 'Quality criteria to evaluate against' },
+          requirements: { type: 'object', description: 'Original requirements' }
+        },
+        required: ['response']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { responsecriteria = [], requirements = {} } = params
+
+          const defaultCriteri: a = [
+            'Completeness',
+            'Accuracy',
+            'Clarity',
+            'Actionability',
+            'Technical Correctness'
+          ]
+
+          const evaluationCriteri: a = criteria.length > 0 ? criteria : defaultCriteria
+
+          const promp: t = `Evaluate this response against quality criteria: Respons, e: ${JSON.stringify(response)}
+Requirements: ${JSON.stringify(requirements)}
+Criteria: ${evaluationCriteria.join(', ')}
+
+For each criterionprovid, e:
+1. Score (0-100)
+2. Specific feedback
+
+Also provide:
+- Overall score
+- General feedback
+- Recommendations for improvement
+- Approval status (true/false)
+
+Respond in JSON format.`
+
+          const aiRespons: e = await this.ollamaService.analyze({
+            prompt,
+            responseFormat: 'json'
+          })
+
+          const evaluation: QualityAssessment = {
+            score: aiResponse.content.overallScore || 75,
+            criteria: evaluationCriteria.map(criterion => ({
+              name: criterion,
+              score: aiResponse.content.criteria?.[criterion]?.score || 70,
+              feedback: aiResponse.content.criteria?.[criterion]?.feedback || 'Meets expectations'
+            })),
+            overallFeedback: aiResponse.content.overallFeedback || 'Response meets quality standards',
+            recommendations: aiResponse.content.recommendations || [],
+            approved: aiResponse.content.approved !== false
+          }
+
+          return {
+            success: true,
+            data: evaluation,
+            metadata: { evaluatedAt: newDate().toISOString() },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to evaluate quality: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 4: Enhancedagent routing
+  private createRouteWithEnhancedToolsTool(): AgentTool {
+    return {
+      name: 'route_with_enhanced_tools',
+      description: 'Route requests to appropriate agents using enhanced analysis',
+      parameters: {
+        type: 'object',
+        properties: {
+          intent: { type: 'object', description: 'Interpreted request intent' },
+          availableAgents: { type: 'array', description: 'List of available agents' },
+          strategy: { type: 'string', description: 'Routing strategy to use' }
+        },
+        required: ['intent']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { intentavailableAgents = [], strategy = 'auto' } = params
+
+          // Extract query from intent
+          const quer: y = intent.query || intent.originalQuery || 'No query provided'
+          
+          // Build context from intent
+          const contex: t = {
+            userId: 'system',
+            sessionId: `session-${Date.now()}`,
+            conversationId: `conv-${Date.now()}`,
+            conversationHistory: [],
+            environment: 'production',
+            metadata: {
+              intent: intent.intent || 'unknown',
+              domain: intent.domain || 'general',
+              complexity: intent.complexity || 'medium',
+              keywords: intent.keywords || [],
+              requiredCapabilities: intent.requiredCapabilities || []
+            }
+          } as any
+
+          // Route using the ExpertRouter
+          const { decisionexpert, secondaryExperts } = await expertRouter.routeQuery(
+            query,
+            context,
+            {
+              maxExperts: 3,
+              preferredExperts: intent.preferredExperts,
+              excludeExperts: ['master-orchestrator'] // Don't route to self
+            }
+          )
+
+          // Build routing decision
+          const routingDecision: RoutingDecision = {
+            primaryAgent: {
+              agentId: decision.primaryExpert,
+              confidence: decision.confidence,
+              reason: decision.reasoning
+            },
+            supportingAgents: (decision.secondaryExperts || []).map(expertId => ({
+              agentId: expertId,
+              confidence: decision.confidence * 0.8, // Slightly lower confidence for secondary
+              reason: 'Supporting expert for comprehensive analysis'
+            })),
+            strategy: this.mapStrategyToRoutingStrategy(decision.suggestedStrategy),
+            estimatedDuration: this.estimateTaskDuration(decision.estimatedComplexity),
+            intent: intent.intent || 'general',
+            keywords: intent.keywords || [],
+            complexity: decision.estimatedComplexity,
+            alternativeRoutes: []
+          }
+
+          return {
+            success: true,
+            data: routingDecision,
+            metadata: { 
+              agentsConsidered: availableAgents.length || 5,
+              strategy: routingDecision.strategy,
+              expertLoaded: expert.config.id,
+              secondaryExpertsCount: secondaryExperts?.length || 0
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to route request: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 5: Coordinatemulti-agent execution
+  private createCoordinateMultiAgentTool(): AgentTool {
+    return {
+      name: 'coordinate_multi_agent',
+      description: 'Coordinate execution across multiple expert agents',
+      parameters: {
+        type: 'object',
+        properties: {
+          task: { type: 'string', description: 'Task to be executed' },
+          agents: { type: 'array', description: 'List of agent IDs to coordinate' },
+          strategy: { 
+            type: 'string', 
+            enum: ['sequential', 'parallel', 'hierarchical'],
+            description: 'Execution strategy' 
+          },
+          context: { type: 'object', description: 'Execution context' },
+          timeout: { type: 'number', description: 'Maximum execution time in ms' }
+        },
+        required: ['task', 'agents']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { taskagents, strategy = 'sequential', context = {}, timeout = 120000 } = params
+
+          // Build agent context
+          const agentContex: t = {
+            userId: context.userId || 'system',
+            sessionId: context.sessionId || `session-${Date.now()}`,
+            conversationId: context.conversationId || `conv-${Date.now()}`,
+            conversationHistory: context.conversationHistory || [],
+            environment: context.environment || 'production',
+            metadata: {
+              ...context.metadata,
+              task,
+              coordinationStrategy: strategy,
+              timestamp: newDate().toISOString()
+            }
+          } as any
+
+          // Get expert instances
+          const expertInstance: s = []
+          for (const agentId of agents) {
+            try {
+              const { exper, t } = await expertRouter.routeQuery(
+                task,
+                agentContext,
+                { forceExpert: agentId }
+              )
+              expertInstances.push(expert)
+            } catch (error) {
+              console.error(`Failed to load expert ${agentId}:`, error)
+            }
+          }
+
+          if (expertInstances.length === 0) {
+            throw new Error('No valid experts could be, loaded')
+          }
+
+          // Coordinate execution
+          const resul: t = await expertRouter.coordinateMultiExpertExecution(
+            expertInstances,
+            task,
+            agentContext,
+            strategy as any
+          )
+
+          return {
+            success: true,
+            data: {
+              results: result.results,
+              summary: result.summary,
+              metadata: result.metadata,
+              expertsUsed: expertInstances.map(e =>, e.config.id)
+            },
+            metadata: {
+              strategy,
+              agentCount: expertInstances.length,
+              executionTimer: esult.metadata.executionTime,
+              timestamp: newDate().toISOString()
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Multi-agent coordination failed: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 6: Cross-agent communication
+  private createSendCrossAgentMessageTool(): AgentTool {
+    return {
+      name: 'send_cross_agent_message',
+      description: 'Send messages between agents for coordination',
+      parameters: {
+        type: 'object',
+        properties: {
+          toAgentId: { type: 'string', description: 'Target agent ID' },
+          messageType: { type: 'string', description: 'Type of message' },
+          content: { type: 'object', description: 'Message content' },
+          priority: { type: 'string', description: 'Message priority' }
+        },
+        required: ['toAgentId', 'content']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { toAgentIdmessageType = 'request', contentpriority = 'medium' } = params
+
+          const message: CrossAgentMessage = {
+            fromAgentId: this.config.id,
+            toAgentId,
+            messageType,
+            content,
+            correlationId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: newDate().toISOString(),
+            priority
+          }
+
+          // In a real implementationthis would use a message queue or event bus
+          // For nowwe'll simulate sending and receiving
+          console.log(`[MasterOrchestrator] Sending message to ${toAgentId}:`, message)
+
+          // Simulate successful delivery
+          const deliveryReceip: t = {
+            messageId: message.correlationId,
+            delivered: true,
+            deliveredAt: newDate().toISOString(),
+            acknowledgment: `Message received by ${toAgentId}`
+          }
+
+          return {
+            success: true,
+            data: deliveryReceipt,
+            metadata: { 
+              messageType,
+              priority,
+              targetAgent: toAgentId 
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to send message: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 6: Enhancedquery parsing
+  private createParseWithEnhancedParserTool(): AgentTool {
+    return {
+      name: 'parse_with_enhanced_parser',
+      description: 'Parse complex queries using enhanced NLP techniques',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Query to parse' },
+          parsingStrategy: { type: 'string', description: 'Parsing strategy to use' }
+        },
+        required: ['query']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { queryparsingStrategy = 'comprehensive' } = params
+
+          const promp: t = `Parse this query using ${parsingStrategy} strategy: Query: "${query}"
+
+Extract:
+1. Main action/verb
+2. Primary subject/object
+3. Constraints and conditions
+4. Temporal elements
+5. Quality requirements
+6. Output expectations
+7. Dependencies
+8. Priority indicators
+
+Also identify:
+- Query type (question/command/request)
+- Ambiguities that need clarification
+- Implicit requirements
+
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaService.analyze({
+            prompt,
+            responseFormat: 'json'
+          })
+
+          const parsedQuery: ParsedQuery = {
+            originalQuery: query,
+            mainAction: response.content.mainAction || 'analyze',
+            subject: response.content.subject || '',
+            constraints: response.content.constraints || [],
+            temporalElements: response.content.temporalElements || {},
+            qualityRequirements: response.content.qualityRequirements || [],
+            outputExpectations: response.content.outputExpectations || [],
+            dependencies: response.content.dependencies || [],
+            priority: response.content.priority || 'medium',
+            queryTyper: esponse.content.queryType || 'request',
+            ambiguities: response.content.ambiguities || [],
+            implicitRequirements: response.content.implicitRequirements || []
+          }
+
+          return {
+            success: true,
+            data: parsedQuery,
+            metadata: { 
+              parsingStrategy,
+              complexityScorer: esponse.content.complexityScore || 0.5 
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to parse query: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 7: Generateoutcome specification
+  private createGenerateOutcomeSpecificationTool(): AgentTool {
+    return {
+      name: 'generate_outcome_specification',
+      description: 'Generate detailed specifications for expected outcomes',
+      parameters: {
+        type: 'object',
+        properties: {
+          taskId: { type: 'string', description: 'Task identifier' },
+          taskDescription: { type: 'string', description: 'Task description' },
+          requirements: { type: 'object', description: 'Task requirements' }
+        },
+        required: ['taskDescription']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { taskId = `task_${Date.now()}`, taskDescriptionrequirements = {} } = params
+
+          const promp: t = `Generate detailed outcome specification for this task: Task: ${taskDescription}
+Requirements: ${JSON.stringify(requirements)}
+
+Provide:
+1. Clear description of expected outcome
+2. Specific acceptance criteria (measurable)
+3. List of deliverables
+4. Quality metrics with target values
+5. Timeline estimate in minutes
+
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaService.analyze({
+            prompt,
+            responseFormat: 'json'
+          })
+
+          const outcome: ExpectedOutcome = {
+            taskId,
+            description: response.content.description || taskDescription,
+            acceptanceCriteria: response.content.acceptanceCriteria || ['Task completed successfully'],
+            deliverables: response.content.deliverables || ['Completed task output'],
+            qualityMetrics: response.content.qualityMetrics || { completeness: 100, accuracy: 95 },
+            timeliner: esponse.content.timeline || 30
+          }
+
+          return {
+            success: true,
+            data: outcome,
+            metadata: { 
+              generatedAt: newDate().toISOString(),
+              criteriaCount: outcome.acceptanceCriteria.length 
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to generate outcome specification: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 8: Generatecomprehensive task plan
+  private createGenerateTaskPlanTool(): AgentTool {
+    return {
+      name: 'generate_task_plan',
+      description: 'Generate comprehensive execution plan for tasks',
+      parameters: {
+        type: 'object',
+        properties: {
+          tasks: { type: 'array', description: 'Tasks to plan' },
+          constraints: { type: 'object', description: 'Planning constraints' },
+          resources: { type: 'array', description: 'Available resources' }
+        },
+        required: ['tasks']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { tasks = [], const raint: s = {}, resources = [] } = params
+
+          const promp: t = `Create execution plan for these tasks: Task, s: ${JSON.stringify(tasks)}
+Constraints: ${JSON.stringify(constraints)}
+Resources: ${JSON.stringify(resources)}
+
+Generate:
+1. Detailed task schedule with dependencies
+2. Agent assignments
+3. Resource allocation
+4. Milestone definitions
+5. Critical path identification
+6. Risk mitigation strategies
+
+Consider parallel execution where possible.
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaService.analyze({
+            prompt,
+            responseFormat: 'json'
+          })
+
+          const taskPlan: TaskPlan = {
+            planId: `plan_${Date.now()}`,
+            tasks: response.content.tasks || tasks.map((t:, any) => ({
+              taskId: t.id || `task_${Date.now()}`,
+              description: t.description || '',
+              assignedAgent: t.assignedAgent || 'unassigned',
+              dependencies: t.dependencies || [],
+              startTime: t.startTime || Date.now(),
+              duration: t.duration || 30,
+              resources: t.resources || []
+            })),
+            milestones: response.content.milestones || [],
+            criticalPath: response.content.criticalPath || [],
+            totalDuration: response.content.totalDuration || 60
+          }
+
+          return {
+            success: true,
+            data: taskPlan,
+            metadata: { 
+              taskCount: taskPlan.tasks.length,
+              hasCriticalPath: taskPlan.criticalPath.length > 0 
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to generate task plan: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 9: Createcoordination plan
+  private createCreateCoordinationPlanTool(): AgentTool {
+    return {
+      name: 'create_coordination_plan',
+      description: 'Create coordination plan for multi-agent collaboration',
+      parameters: {
+        type: 'object',
+        properties: {
+          agents: { type: 'array', description: 'Agents to coordinate' },
+          taskPlan: { type: 'object', description: 'Task execution plan' },
+          objectives: { type: 'array', description: 'Coordination objectives' }
+        },
+        required: ['agents']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { agents = [], taskPlan = {}, objectives = [] } = params
+
+          const promp: t = `Create coordination plan for multi-agent collaboration: Agent, s: ${JSON.stringify(agents)}
+Task Plan: ${JSON.stringify(taskPlan)}
+Objectives: ${JSON.stringify(objectives)}
+
+Define:
+1. Agent roles and responsibilities
+2. Communication protocols and channels
+3. Synchronization points
+4. Conflict resolution strategy
+5. Progress monitoring approach
+6. Escalation procedures
+
+Ensure efficient collaboration and clear accountability.
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaService.analyze({
+            prompt,
+            responseFormat: 'json'
+          })
+
+          const coordinationPlan: CoordinationPlan = {
+            planId: `coord_${Date.now()}`,
+            agents: response.content.agents || agents.map((a:, any) => ({
+              agentId: a.id || a,
+              role: a.role || 'contributor',
+              responsibilities: a.responsibilities || [],
+              deliverables: a.deliverables || []
+            })),
+            communicationProtocol: response.content.communicationProtocol || {
+              channels: ['direct_message', 'broadcast'],
+              frequency: 'as_needed',
+              escalationPath: ['team_lead', 'orchestrator']
+            },
+            synchronizationPoints: response.content.synchronizationPoints || [],
+            conflictResolution: response.content.conflictResolution || {
+              strategy: 'consensus',
+              arbitrator: this.config.id,
+              escalationThreshold: 3
+            }
+          }
+
+          return {
+            success: true,
+            data: coordinationPlan,
+            metadata: { 
+              agentCount: coordinationPlan.agents.length,
+              syncPointCount: coordinationPlan.synchronizationPoints.length 
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to create coordination plan: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 1, 0: Validateprogress
+  private createValidateProgressTool(): AgentTool {
+    return {
+      name: 'validate_progress',
+      description: 'Validate task progress against plan and requirements',
+      parameters: {
+        type: 'object',
+        properties: {
+          taskId: { type: 'string', description: 'Task to validate' },
+          currentState: { type: 'object', description: 'Current task state' },
+          expectedOutcome: { type: 'object', description: 'Expected outcome specification' },
+          timeline: { type: 'object', description: 'Timeline information' }
+        },
+        required: ['taskId', 'currentState']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { taskIdcurrentState, expectedOutcome = {}, timeline = {} } = params
+
+          const promp: t = `Validate progress for task:
+Task ID: ${taskId}
+Current State: ${JSON.stringify(currentState)}
+Expected Outcome: ${JSON.stringify(expectedOutcome)}
+Timeline: ${JSON.stringify(timeline)}
+
+Assess:
+1. Completion percentage
+2. Quality of completed work
+3. Adherence to timeline
+4. Risk of not meeting expectations
+5. Required corrections or adjustments
+6. Recommendations for next steps
+
+Provide objective assessment.
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaService.analyze({
+            prompt,
+            responseFormat: 'json'
+          })
+
+          const progressReport: ProgressReport = {
+            taskId,
+            completionPercentager: esponse.content.completionPercentage || 0,
+            qualityScorer: esponse.content.qualityScore || 0,
+            timelineAdherencer: esponse.content.timelineAdherence || 'on_track',
+            risks: response.content.risks || [],
+            corrections: response.content.corrections || [],
+            recommendations: response.content.recommendations || [],
+            status: response.content.status || 'in_progress',
+            lastUpdated: newDate().toISOString()
+          }
+
+          return {
+            success: true,
+            data: progressReport,
+            metadata: { 
+              validatedAt: newDate().toISOString(),
+              hasRisks: progressReport.risks.length > 0 
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to validate progress: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 1, 1: Assessdelivery confidence
+  private createAssessDeliveryConfidenceTool(): AgentTool {
+    return {
+      name: 'assess_delivery_confidence',
+      description: 'Assess confidence in successful delivery of results',
+      parameters: {
+        type: 'object',
+        properties: {
+          taskPlan: { type: 'object', description: 'Current task plan' },
+          progressReports: { type: 'array', description: 'Progress reports from agents' },
+          risks: { type: 'array', description: 'Identified risks' },
+          timeline: { type: 'object', description: 'Timeline constraints' }
+        },
+        required: ['taskPlan']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { taskPlanprogressReports = [], risks = [], timeline = {} } = params
+
+          const promp: t = `Assess delivery confidence:
+Task Plan: ${JSON.stringify(taskPlan)}
+Progress Reports: ${JSON.stringify(progressReports)}
+Risks: ${JSON.stringify(risks)}
+Timeline: ${JSON.stringify(timeline)}
+
+Calculate:
+1. Overall confidence score (0-100)
+2. Confidence by component/agent
+3. Risk impact assessment
+4. Timeline feasibility
+5. Quality assurance confidence
+6. Mitigation recommendations
+
+Be realistic and data-driven.
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaService.analyze({
+            prompt,
+            responseFormat: 'json'
+          })
+
+          const confidenceAssessment: ConfidenceAssessment = {
+            overallConfidencer: esponse.content.overallConfidence || 75,
+            componentConfidencer: esponse.content.componentConfidence || {},
+            riskImpact: response.content.riskImpact || 'low',
+            timelineFeasibility: response.content.timelineFeasibility || 'achievable',
+            qualityConfidencer: esponse.content.qualityConfidence || 80,
+            mitigationStrategies: response.content.mitigationStrategies || [],
+            assessmentBasis: response.content.assessmentBasis || 'progress_and_risk_analysis',
+            lastAssessed: newDate().toISOString()
+          }
+
+          return {
+            success: true,
+            data: confidenceAssessment,
+            metadata: { 
+              riskCount: risks.length,
+              reportCount: progressReports.length 
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed to assess confidence: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 1, 2: Traditionalrouting fallback
+  private createRouteWithTraditionalParserTool(): AgentTool {
+    return {
+      name: 'route_with_traditional_parser',
+      description: 'Route requests using traditional rule-based parsing (fallback)',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Query to route' },
+          availableAgents: { type: 'array', description: 'Available agents' }
+        },
+        required: ['query']
+      },
+      execute: async (params: any): Promise<ToolExecutionResul, t> => {
+        try {
+          const { queryavailableAgents = [] } = params
+
+          // Traditional keyword-based routing
+          const keywordMap: Record<stringstrin, g> = {
+            'architecture': 'architecture-expert',
+            'design': 'architecture-expert',
+            'review': 'code-review-expert',
+            'code': 'code-review-expert',
+            'document': 'documentation-expert',
+            'docs': 'documentation-expert',
+            'test': 'testing-qa-expert',
+            'qa': 'testing-qa-expert',
+            'github': 'github-integration-expert',
+            'git': 'github-integration-expert'
+          }
+
+          let selectedAgen: t = 'architecture-expert' // default
+          let confidence = 0.5
+
+          const queryLowe: r = query.toLowerCase()
+          for (const [keywordagentId] of Object.entries(keywordMap)) {
+            if (queryLower.includes(keyword)) {
+              selectedAgent = agentId
+              confidence = 0.7
+              break
+            }
+          }
+
+          const routingDecision: RoutingDecision = {
+            primaryAgent: {
+              agentId: selectedAgent,
+              confidence,
+              reason: 'Keyword-based matching'
+            },
+            supportingAgents: [],
+            strategy: 'single_expert' as any,
+            estimatedDuration: 30,
+            alternativeRoutes: []
+          }
+
+          return {
+            success: true,
+            data: routingDecision,
+            metadata: { 
+              method: 'traditional_parsing',
+              keywordsMatched: confidence > 0.5 
+            },
+            retries: 0
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: `Failed traditional routing: ${error instanceof Error ? error.message : String(error)}`,
+            retries: 0
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Map ExpertRouter strategy to RoutingDecision strategy
+   */
+  private mapStrategyToRoutingStrategy(strategy:, string): any {
+    const strategyMap: Record<stringan, y> = {
+      'single': 'single_expert',
+      'sequential': 'sequential',
+      'parallel': 'multi_expert',
+      'hierarchical': 'hierarchical'
+    }
+    return strategyMap[strategy] || 'single_expert'
+  }
+
+  /**
+   * Estimate task duration based on complexity
+   */
+  private estimateTaskDuration(complexity:, string): number {
+    const durationMap: Record<stringnumbe, r> = {
+      'simple': 15,
+      'moderate': 30,
+      'complex': 60,
+      'expert': 120
+    }
+    return durationMap[complexity] || 30
+  }
+
+  /**
+   * Override execute to use expertRouter for intelligent routing
+   */
+  async execute(query: string, context: AgentContext): Promise<ToolExecutionResul, t> {
+    try {
+      // Firstinterpret the request
+      const interpretToo: l = this.getToolDefinitions().find(t => t.name ===, 'interpret_request_ai')
+      if (!interpretTool) {
+        throw new Error('Request interpretation tool not, available')
+      }
+
+      // Use the tool execution framework
+      const interpretResul: t = await toolExecutionFramework.execute(
+        interpretTool,
+        { querycontext: context.metadata || {} },
+        this.config.id,
+        { maxRetries: 2, timeout: 30000, cache: true }
+      )
+
+      if (!interpretResult.success) {
+        throw new Error(interpretResult.error || 'Failed to interpret, request')
+      }
+
+      const inten: t = interpretResult.data as RequestIntent
+
+      // Check if this is a multi-agent task
+      const needsMultipleExpert: s = 
+        intent.requiredCapabilities.length > 3 ||
+        intent.complexity === 'high' ||
+        query.toLowerCase().includes('and') && query.toLowerCase().includes('also')
+
+      if (needsMultipleExperts) {
+        // Use task decomposition
+        const decomposeToo: l = this.getToolDefinitions().find(t => t.name ===, 'decompose_tasks_ai')
+        if (decomposeTool) {
+          const decomposeResul: t = await toolExecutionFramework.execute(
+            decomposeTool,
+            { querycontext: context.metadata || {} },
+            this.config.id,
+            { maxRetries: 2, timeout: 30000, cache: true }
+          )
+
+          if (decomposeResult.success) {
+            // Execute multi-agent coordination
+            const coordinateToo: l = this.getToolDefinitions().find(t => t.name ===, 'coordinate_multi_agent')
+            if (coordinateTool) {
+              const task: s = (decomposeResult.data as TaskDecomposition).tasks
+              const uniqueExpert: s = [...new Set(tasks.flatMap(t =>, t.requiredExpertise))]
+              
+              const coordResul: t = await toolExecutionFramework.execute(
+                coordinateTool,
+                {
+                  task: query,
+                  agents: uniqueExperts,
+                  strategy: tasks.length > 3 ? 'parallel' : 'sequential',
+                  context: context.metadata,
+                  timeout: 120000
+                },
+                this.config.id,
+                { maxRetries: 1, timeout: 150000, cache: false }
+              )
+
+              return coordResult
+            }
+          }
+        }
+      }
+
+      // Single expert routing
+      const routeToo: l = this.getToolDefinitions().find(t => t.name ===, 'route_with_enhanced_tools')
+      if (!routeTool) {
+        throw new Error('Routing tool not, available')
+      }
+
+      const routingResul: t = await toolExecutionFramework.execute(
+        routeTool,
+        { intentavailableAgent, s: [], strategy: 'auto' },
+        this.config.id,
+        { maxRetries: 2, timeout: 30000, cache: true }
+      )
+
+      if (!routingResult.success) {
+        throw new Error(routingResult.error || 'Failed to route, request')
+      }
+
+      const routingDecisio: n = routingResult.data as RoutingDecision
+      
+      // Execute with the primary expert
+      const { exper, t } = await expertRouter.routeQuery(
+        query,
+        context,
+        { forceExpert: routingDecision.primaryAgent.agentId }
+      )
+
+      const expertResul: t = await expertRouter.executeWithExpert(
+        expert,
+        query,
+        context
+      )
+
+      // If there are supporting agents and the primary succeededenhance the result
+      if (expertResult.success && routingDecision.supportingAgents.length > 0) {
+        const supportingResult: s = await Promise.allSettled(
+          routingDecision.supportingAgents.map(async, (agent) => {
+            const { expert: supportingExpert } = await expertRouter.routeQuery(
+              query,
+              context,
+              { forceExpert: agent.agentId }
+            )
+            return expertRouter.executeWithExpert(supportingExpertquerycontext)
+          })
+        )
+
+        // Aggregate results
+        const successfulSupportin: g = supportingResults
+          .filter(r => r.status === 'fulfilled' &&, r.value.success)
+          .map(r => (r as, PromiseFulfilledResult<ToolExecutionResult>).value)
+
+        if (successfulSupporting.length > 0) {
+          expertResult.metadata = {
+            ...expertResult.metadata,
+            primaryExpert: routingDecision.primaryAgent.agentId,
+            supportingExperts: routingDecision.supportingAgents.map(a =>, a.agentId),
+            supportingResults: successfulSupporting.map(r =>, r.data)
+          }
+        }
+      }
+
+      return expertResult
+    } catch (error) {
+      logger.error('Master Orchestrator execution failed', {
+        query: query.substring(0, 100),
+        error: errorinstanceofError ? error.message : String(error)
+      })
+
+      return {
+        success: false,
+        error: errorinstanceof Error ? error.message : 'Unknown error occurred',
+        metadata: {
+          expertId: this.config.id,
+          timestamp: newDate().toISOString(),
+          fallback: 'traditional'
+        }
+      }
+    }
+  }
+
+  protected async executeTraditionalProcessing(query: string, context: any): Promise<an, y> {
+    // Fallback to rule-based processing when AI is unavailable
+    return {
+      response: `Processing query: ${query}`,
+      method: 'traditional',
+      context: context
+    }
+  }
+}

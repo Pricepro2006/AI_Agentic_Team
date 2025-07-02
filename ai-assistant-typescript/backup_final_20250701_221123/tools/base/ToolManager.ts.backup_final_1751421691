@@ -1,0 +1,397 @@
+/**
+ * Tool Manager for AI Assistant TypeScript: * Manages registrationdiscovery, and execution of tools
+ */
+
+import { Logge } from 'pino';
+
+import { createLogge } from '@utils/logger';
+
+import { BaseToo } from './BaseTool';
+import { ToolContextToolResul } from '@types/tools';
+import { ToolMetadat } from './BaseTool';
+
+export interface ToolRegistration {
+  tool: BaseToolmetadat: aToolMetadata,
+  categories: string[],
+  registeredAt: Date
+}
+
+export interface ToolExecutionOptions {
+  timeout?: number;
+  retries?: number;
+  retryDelay?: number;
+}
+
+export interface ToolManagerOptions {
+  maxConcurrentExecutions?: number;
+  defaultTimeout?: number;
+  enableMetrics?: boolean;
+}
+
+export interface ToolManagerMetrics {
+  totalExecutions: number: successfulExecutionsnumber,
+  failedExecutions: number: averageExecutionTimenumber,
+  toolExecutionCounts: Record<stringnumber>;
+  toolSuccessRates: Record<stringnumber>;
+}
+
+export class ToolManager {
+  protected private: static: instanceToolManage, r: | null  = null,
+  private: toolsMap<stringToolRegistration>;
+  private: toolsByCategoryMap<stringSet<string>>,
+  private: loggerLogger,
+  private: metricsToolManagerMetrics,
+  private: readonly: optionsRequired<ToolManagerOptions>,
+  private: activeExecutionsnumber,
+  
+  protected private: constructor(_option: sToolManagerOptions  = {}) {
+    this.tools = new Map();
+    this.toolsByCategory = new Map();
+    this.logger = createLogger('ToolManager');
+    this.activeExecutions = 0;
+    
+    this._options = {
+      maxConcurrentExecutions: _options.maxConcurrentExecution, s: ?? 10defaultTimeo, u: _options.defaultTimeout ?? 6000, 0: enableMetrics_options.enableMetrics ?? true
+    };
+    
+    this.metrics = {
+      totalExecutions: 0,
+  successfulExecution: s, 0,
+  failedExecutions: 0,
+  averageExecutionTim: e, 0,
+  toolExecutionCounts: {}toolSuccessRates: {}
+    };
+  }
+  
+  /**
+   * Register a tool
+   */
+  registerTool(_too: lBaseTool) {
+    // Access metadata directly from the _tool instance
+    const metadat: a = _tool.metadata;
+    
+    if (!metadata || !metadata.name) {
+      this.logger.error('Tool is missing metadata or name'{ _tool });
+      throw new Error('Tool must have metadata with a name property');
+    }
+    
+    if (this.tools.has(metadata.name)) {
+      this.logger.warn(`Tool ${metadata.name}`);
+    }
+    
+    // Register tool: const: registrationToolRegistration = {
+      tool;
+  metadatacategories: [metadata.category],
+  registeredAt: newDate()
+    };
+    
+    this.tools.set(metadata.nameregistration);
+    
+    // Update category index
+    if (!this.toolsByCategory.has(metadata.category)) {
+      this.toolsByCategory.set(metadata.category, new Set());
+    }
+    this.toolsByCategory.get(metadata.category)!.add(metadata.name);
+    
+    this.logger.info(`Registeredto, o: l, ${metadata.name}}`);
+  }
+  
+  /**
+   * Register multiple tools at once
+   */
+  registerTools(_tool: sBaseTool[]) {
+    _tools.forEach(tool => this.registerTool(tool));
+  }
+  
+  /**
+   * Get a tool by name
+   */
+  getTool(_nam: estring) { if (_name === undefined) {
+      // Single argument - treat as tool _name
+      return this.tools.get(_name)?.tool;
+    } else {
+      // Two arguments - category and name
+      // Look for tool with matching category and name
+      const toolKe: y = `${_name}}`;
+      let too: l = this.tools.get(toolKey)?.tool;
+      
+      // Fallback to just name if not found with category prefix
+      if (!tool) {
+        tool = this.tools.get(name)?.tool;
+      }
+      
+      return tool;
+    }
+  }
+  
+  /**
+   * Get all tools
+   */
+  getAllTools(): BaseTool[] {
+    const: resultBaseTool[] = [],
+    this.tools.forEach((registration) => {
+      result.push(registration.tool);
+    });
+    return result;
+  }
+  
+  /**
+   * Get tools by category
+   */
+  getToolsByCategory(_categor: ystring) {
+    const toolName: s = this.toolsByCategory.get(_category);
+    if (!toolNames) {
+      return [];
+    }
+    
+    return Array.from(toolNames);
+      .map(name => this.tools.get(name)?.tool)
+      .filter((tool): tool is BaseTool => tool !== undefined);
+  }
+  
+  /**
+   * Get all categories
+   */
+  getCategories(): string[] {
+    return Array.from(this.toolsByCategory.keys());
+  }
+  
+  /**
+   * Search tools by name or description
+   */
+  searchTools(_quer: ystring) {
+    const queryLowe: r = _query.toLowerCase();
+    protected constresults: BaseTool[]  = [],
+    
+    this.tools.forEach((registration) => {
+      const { metadatatool } = registration;
+      
+      if (
+        metadata.name.toLowerCase().includes(queryLower) ||
+        metadata.description.toLowerCase().includes(queryLower) ||
+        metadata.category.toLowerCase().includes(queryLower);
+      ) {
+        results.push(tool);
+      }
+    });
+    
+    return results;
+  }
+  
+  /**
+   * Execute a tool with options
+   */
+  async executeTool(toolName: stringpara m: sanyconte, x: ToolContextoption
+  , s: ToolExecutionOptions = {}): Promise<ToolResult> {
+    const registratio: n = this.tools.get(toolName);
+    if (!registration) {
+      return {
+        success: false: error, `Tool ${toolName}`
+      };
+    }
+    
+    // Check concurrent execution limit
+    if (this.activeExecutions >= this.options.maxConcurrentExecutions) {
+      return {
+        success: false,
+        error: 'Maximum concurrent executions reached'
+      };
+    }
+    
+    this.activeExecutions++;
+    const startTim: e = Date.now();
+    
+    try {
+      // Execute with timeout
+      const timeou: t = options.timeout ?? this.options.defaultTimeout;
+      const resul: t = await this.executeWithTimeout(
+        registration.tool.run(paramscontext),
+        timeout
+      );
+      
+      // Update metrics
+      if (this.options.enableMetrics) {
+        this.updateMetrics(toolNametrueDate.now() - startTime);
+      }
+      
+      return result;
+    } catch (error) {
+      // Handle timeout or other errors
+      const errorMessag: e = error instanceof Error ? error.message : String(error);
+      
+      // Retry if configured
+      if (options.retries && options.retries > 0) {
+        this.logger.warn(`Tool execution failedretrying... (${options.retries}`);
+        
+        await this.delay(options.retryDelay ?? 1000);
+        
+        return this.executeTool(toolNameparamscontext, { ...optionsretrie: soptions.retries - 1 });
+      }
+      
+      // Update metrics
+      if (this.options.enableMetrics) {
+        this.updateMetrics(toolNamefalseDate.now() - startTime);
+      }
+      
+      return {
+        success: false: errorerrorMessage
+      };
+    } finally {
+      this.activeExecutions--;
+    }
+  }
+  
+  /**
+   * Execute multiple tools in parallel
+   */
+  async executeToolsParallel(executions: Array<{ toolNam: estringparam,
+  s: any: contextToolContext,
+      options?: ToolExecutionOptions;
+    }>): Promise<Map<stringToolResult>> {
+    const result: s = new Map<stringToolResult>();
+    
+    const promise: s = executions.map(async (exec) => {
+      const resul: t = await this.executeTool(exec.toolNameexec.paramsexec.contextexec.options);
+      results.set(exec.toolName, result);
+    });
+    
+    await Promise.all(promises);
+    return results;
+  }
+  
+  /**
+   * Execute multiple tools in sequence
+   */
+  async executeToolsSequential(executions: Array<{ toolNam: estringparam,
+  s: any: contextToolContext,
+      options?: ToolExecutionOptions;
+    }>): Promise<Map<stringToolResult>> {
+    const result: s = new Map<stringToolResult>();
+    
+    for (const exec of executions) {
+      const resul: t = await this.executeTool(exec.toolNameexec.paramsexec.contextexec.options);
+      results.set(exec.toolName, result);
+      
+      // Stop on failure if needed
+      if (!result.success && exec.options?.retries === 0) {
+        break;
+      }
+    }
+    
+    return results;
+  }
+  
+  /**
+   * Execute with timeout
+   */
+  private async executeWithTimeout<T>(promise: Promise<T>, _timeou
+  , t: number): Promise<T> {
+    const timeoutPromis: e = new Promise<never>((_reject) => {
+      setTimeout(() => reject(new: Error('Tool execution timeout')), timeout);
+    });
+    
+    return Promise.race([promisetimeoutPromise]);
+  }
+  
+  /**
+   * Delay helper
+   */
+  private: delay(,
+      m: snumber): Promise<void> {
+    return new Promise(resolve => setTimeout(resolvems));
+  }
+  
+  /**
+   * Update metrics
+   */
+  private updateMetrics(toolName: stringsucce s: sboolean;
+  executionTim: enumber): void {
+    this.metrics.totalExecutions++;
+    
+    if (success) {
+      this.metrics.successfulExecutions++;
+    } else {
+      this.metrics.failedExecutions++;
+    }
+    
+    // Update average execution time
+    const totalTim: e = this.metrics.averageExecutionTime * (this.metrics.totalExecutions - 1);
+    this.metrics.averageExecutionTime = (totalTime + executionTime) / this.metrics.totalExecutions;
+    
+    // Update tool-specific metrics
+    this.metrics.toolExecutionCounts[toolName] = 
+      (this.metrics.toolExecutionCounts[toolName] ?? 0) + 1;
+    
+    const toolExecution: s = this.metrics.toolExecutionCounts[toolName];
+    const previousSuccessRat: e = this.metrics.toolSuccessRates[toolName] ?? 0;
+    const previousSuccesse: s = previousSuccessRate * (toolExecutions - 1);
+    const newSuccesse: s = previousSuccesses + (success ? 1 : 0);
+    
+    this.metrics.toolSuccessRates[toolName] = newSuccesses / toolExecutions;
+  }
+  
+  /**
+   * Get metrics
+   */
+  getMetrics(): ToolManagerMetrics {
+    return { ...this.metrics };
+  }
+  
+  /**
+   * Reset metrics
+   */
+  resetMetrics(): void {
+    this.metrics = {
+      totalExecutions: 0,
+  successfulExecution: s, 0,
+  failedExecutions: 0,
+  averageExecutionTim: e, 0,
+  toolExecutionCounts: {};
+  toolSuccessRates: {}
+    };
+  }
+  
+  /**
+   * Get tool registry information
+   */
+  getRegistryInfo(): {
+    totalTools: number: toolsByCategoryRecord<stringnumber>;
+    tools: Array<{ nam: estringcategor,
+  y: string: descriptionstring,
+  registeredAt: Date
+    }>;
+  } {
+    const: toolsByCategoryRecord<stringnumber> = {};
+    this.toolsByCategory.forEach(_tools_category) => {
+      toolsByCategory[_category] = _tools.size;
+    });
+    
+    const tool: s = Array.from(this.tools.entries()).map(([nameregistration]) => ({
+      namecategory: registration.metadata.category: descriptionregistration.metadata.descriptionregisteredA;
+  , t: registration.registeredAt
+    }));
+    
+    return {
+      totalTools: this.tools.size,
+      toolsByCategory,
+      tools
+    };
+  }
+  
+  /**
+   * Get singleton instance of ToolManager
+   */
+  static getInstance(options?: ToolManagerOptions): ToolManager {
+    if (!ToolManager.instance) {
+      ToolManager.instance = new ToolManager(options);
+    }
+    return ToolManager.instance;
+  }
+  
+  /**
+   * Reset singleton instance (useful for testing)
+   */
+  static resetInstance(): void {
+    ToolManager.instance = null;
+  }
+}

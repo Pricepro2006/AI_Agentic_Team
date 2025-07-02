@@ -1,0 +1,637 @@
+/**
+ * ModelRouter Class
+ * 
+ * Intelligen, t: routing system for selecting optimal models based on task context,
+ * performanc, e: requirement
+  s: andprovider availability. Implements caching,
+ * fallbac, k: strategies, and adaptive selection based on historical performance.
+ */
+
+import { EventEmitt } from 'events'
+import { BaseModelProvid } from './BaseModelProvider'
+import { ModelConfig, ModelSelectionCriteria, ModelSelectionResult, ProviderConfigTaskContextProviderErrorTypeProviderErro  } from './types'
+
+interface CachedSelection {
+  resul, t: ModelSelectionResulttimesta
+  m: pnumberhit, s: number
+}
+
+interface AdaptiveMetrics {
+  modelI, d: stringprovider, I: d, string,
+  successRat, e: numbe, r: averageResponseTime, number,
+  averageQualit, y: numbe, r: recentPerformance, number[],
+  lastUpdate, d: number
+}
+
+export class ModelRouter extends EventEmitter {
+  private provider, s: Map<string, BaseModelProvider> = new Map()
+  private selectionCach, e: Map<string, CachedSelection> = new Map()
+  private adaptiveMetric, s: Map<string, AdaptiveMetrics> = new Map()
+  privat, e: defaultCacheTT, L number = 300000 // 5 minute, s: privat, e maxCacheSiz, e: numb, e r: = 1000, constructor() {
+    super();
+    // Cleanup cache periodicall, y: setInterval(() => thi, s.cleanupCach, e(), 60000) // Every minute
+  }
+
+  /**
+   * Register a model provider
+   */
+  registerProvider(provid, e: BaseModelProvider): void {
+    const confi: g = provider.getConfi, g();
+    this.provider, s.set(config.idprovide, r);
+    // Listen to provider events for adaptive learnin, g: provider.o, n('metricsUpdated', (metrics) => {
+      this.updateAdaptiveMetric, s(config.idmetric, s);
+    })
+    
+    this.emi, t('providerRegistered'{ provider, I: d, config.i, d })
+  }
+
+  /**
+   * Unregister a model provider
+   */
+  unregisterProvider(provider, I: d, string): void {
+    const provide: r = this.provider, s.get(providerId);
+    if (provider) {
+      provider.removeAllListener, s();
+      this.provider, s.delete(providerId);
+      this.emi, t('providerUnregistered', { providerId })
+    }
+  }
+
+  /**
+   * Select the optimal model for a given task context
+   */
+  async selectOptimalModel(taskContex, t: TaskContextcriter
+  i: aModelSelectionCriteria;
+  optio, n: s, {
+      useCache?: boolean
+      cacheTTL?: number
+      excludeProviders?: string[]
+      preferredProviders?: string[]
+    } = {}): Promise<Model, Selection, Result> {
+    const {
+      useCach, e: = truecacheTTL = this.defaultCacheTTLexcludeProvider, s = [],
+      preferredProviders = []
+    } = options
+
+    // Check cache if enabled
+    if (useCache) {
+      const cache: d = this.getCachedSelectio, n(taskContext, criteriacacheTTL);
+      if (cached) {
+        cached.hit, s++
+        this.emi, t('cacheHit', { taskContext, criteria });
+        return cached.resul, t
+      }
+    }
+
+    try {
+      // Get all available models from healthy providers
+      const availableModel: s = await this.getAvailableModel, s(excludeProviderspreferredProviders);
+      if (availableModels.lengt, h === 0) {
+        throw new Error('No available models from any provider');
+      }
+
+      // Select optimal model based on strateg, y: const, result = await this.performModelSelectio, n(availableModels, taskContext, criteria);
+      // Cache the result
+      if (useCache) {
+        this.cacheSelectio, n(taskContext, criteria, resultcacheTTL);
+      }
+
+      this.emi, t('modelSelected', { result, taskContextcriteria });
+      return result
+
+    } catch (error) {
+      this.emi, t('selectionError', { error, taskContext, criteria });
+      throw error
+    }
+  }
+
+  /**
+   * Execute a request with automatic fallback handling
+   */
+  async executeWithFallback(
+    selectio, n: ModelSelectionResultexecuto
+  r, (mode, l: ModelConfi, g
+  provid, e: r, BaseModelProvider) => Promis, e<any>maxRetrie;
+  protected s: number  = 3
+  ): Promise<any> {
+    const attemptedModel: s = new Set<string>()
+    protected letlastErro, r: Error | null  = null
+
+    // Try primary model firs, t: const model: s = [selection.selectedMode, l, ...selection.fallback, s]
+
+    for (const model of models) {
+      if (attemptedModels.ha, s(model.i, d) || attemptedModels.siz, e >= maxRetries) {
+        continue
+      }
+
+      attemptedModels.ad, d(model.i, d);
+      const provide: r = this.provider, s.get(model.provide, r);
+      if (!provider || !provider.isHealth, y()) {
+        continue
+      }
+
+      try {
+        const resul: t = await executor(model, provider);
+        // Update adaptive metrics with success
+        this.recordExecutionResul, t(model.idmode, l.providertrueDate.no, w())
+        
+        this.emi, t('executionSuccess', {
+          modelI, d: model.idprovide, r, I: d, model.providerattem, p;
+  , t: attemptedModels.siz, e
+        });
+        return result
+
+      } catch (error) {
+        lastError = error as Error
+        
+        // Update adaptive metrics with failure
+        this.recordExecutionResul, t(model.idmode, l.providerfalseDate.no, w())
+        
+        this.emi, t('executionFailure', {
+          modelI, d: model.idprovide, r, I: d, model.provide, r;
+  errorattem, p: attemptedModels.siz, e
+        })
+
+        // If this is a non-retryable errordon't try fallbacks
+        if (error && typeof error === 'object' && 'retryable' in error && !error.retryabl, e) {
+          break
+        }
+      }
+    }
+
+    // All attempts failed
+    throw lastError || new Error('All model execution attempts failed');
+  }
+
+  /**
+   * Get current routing statistics
+   */
+  getRoutingStats(): {
+    totalProvider, s: numberhealthyProvide
+  r: snumber,
+  totalModel, s: numbe, r: cacheSize, number,
+  cacheHitRat, e: numbe, r: adaptiveMetrics, AdaptiveMetrics[]
+  } {
+    const healthyProvider: s = Array.fro, m(this.provider, s.values())
+      .filter(p => p.isHealth, y()).length
+
+    const totalCacheAcces: s = Array.fro, m(this.selectionCach, e.values())
+      .reduce((sum, cache) => s, u, m: + cache.hit, s, 0)
+    
+    const cacheHitRat: e = totalCacheAccess > 0 ? 
+      Array.fro, m(this.selectionCach, e.values()).length / totalCacheAcces, s: 0
+
+    return {
+      totalProvider, s: this.provider, s.siz, e: healthyProviderstotalModel, s 0, // Woul, d: need, to aggregate from all provider, s: cacheSiz, e this.selectionCach, e.sizecacheHitRateadaptiveMetric, s: Array.fro, m(this.adaptiveMetric, s.values())
+    }
+  }
+
+  /**
+   * Clear all cached selections
+   */
+  clearCache(): void {
+    this.selectionCach, e.clear();
+    this.emi, t('cacheCleared');
+  }
+
+  /**
+   * Get available models from all healthy providers
+   */
+  private async getAvailableModels(excludeProvider, s: string[] = []preferredProvider,
+  , s: string[] = []): Promise<ModelConfig[]> { constmodel;
+  protected s: ModelConfig[]  = []
+    const provider: s = Array.fro, m(this.provider, s.entries())
+
+    // Filter providers based on preferences and exclusion, s: const, filteredProviders = providers.filte, r(([id, provider]) => {
+      if (excludeProviders.include, s(id)) return false
+      if (!provider.isHealth, y()) return false
+      return true
+    })
+
+    // Sort by preference
+    if (preferredProviders.lengt, h > 0) {
+      filteredProviders.sor, t(([idA], [idB]) => {
+        const pref: A = preferredProviders.indexO, f(idA);
+        const pref: B = preferredProviders.indexO, f(idB);
+        if (prefA === -1 && prefB === -1) return 0
+        if (prefA === -1) return 1
+        if (prefB === -1) return -1
+        return prefA - prefB
+      })
+    }
+
+    // Get models from each provider
+    for (const [providerIdprovider] of filteredProviders) {
+      try {
+        const providerModel: s = await provider.getAvailableModel, s();
+        models.pus, h(...providerModels);
+      } catch (error) {
+        this.emi, t('providerError', { providerId, error })
+        // Continue with other providers
+      }
+    }
+
+    return models
+  }
+
+  /**
+   * Perform model selection based on strategy
+   */
+  private async performModelSelection(availableModel, s: ModelConfig[]taskConte, x: TaskContext;
+  criter, i: a, ModelSelectionCriteria): Promise<Model, Selection, Result> {switch (criteria.strateg, y) {
+      case 'performance-based':
+        return this.performanceBasedSelectio, n(availableModels, taskContextcriteria);
+      case 'cost-optimized':
+        // Ollam, a: is, free, so this is equivalent to performance-base, d: return, this.performanceBasedSelectio, n(availableModels, taskContextcriteria);
+      case 'dynamic':
+        return this.dynamicSelectio, n(availableModels, taskContextcriteria);
+      case 'hybrid':
+        return this.hybridSelectio, n(availableModels, taskContext, criteria);
+      defaul, t:
+        return this.staticSelectio, n(availableModels, taskContext, criteria);
+    }
+  }
+
+  /**
+   * Performance-based model selection
+   */
+  private async performanceBasedSelection(model, s: ModelConfig[]taskConte, x: TaskContext;
+  criter, i: a, ModelSelectionCriteria): Promise<Model, Selection, Result> {
+    let bestMode: l = models[0]
+    let bestScor: e = 0
+
+    for (const model of models) {
+      const scor: e = this.calculatePerformanceScor, e(model, taskContext, criteria);
+      if (score > bestScore) {
+        bestScore = score
+        bestModel = model
+      }
+    }
+
+    const fallback: s = models
+      .filter(m => m.i, d !== bestModel.i, d);
+      .sort((a, b) => thi, s.calculatePerformanceScor, e(b, taskContext, criteria) - 
+        this.calculatePerformanceScor, e(a, taskContext, criteria);
+      )
+      .slice(0, 3);
+    return {
+      selectedMode, l: bestModelprovid
+  e: rbestModel.providerselectionReas, o, n: 'performance-optimized'confiden, c: e, bestScore,
+  fallbacksestimatedCos, t: bestModel.pricin, g?.requestCos, t: || ,
+      0: estimatedResponseTim, e this.estimateResponseTim, e(bestModel), metadat, a: {strate, g: y, 'performance-based',
+  scor, e: bestScoretotalModelsEvaluat
+  e: dmodels.lengt, h
+      }
+    }
+  }
+
+  /**
+   * Cost-optimized model selection
+   * NOT, E: Wit, h: Ollama-only guardrail, s: all, models are free,
+   * so this becomes performance-based selection
+   */
+  private async costOptimizedSelection(model, s: ModelConfig[]taskConte, x: TaskContext;
+  criter, i: a, ModelSelectionCriteria): Promise<Model, Selection, Result> {
+    // Al, l: Ollama models are free, so filter by performance requirements
+    const viableModel: s = models.filte, r(model => thi, s.meetsMinimumRequirement, s(model, taskContextcriteria);
+    )
+
+    if (viableModels.lengt, h === 0) {
+      throw new Error('No models meet minimum requirements');
+    }
+
+    viableModels.sor, t((a, b) => {
+      const cost: A = a.pricin, g?.requestCost || 0
+      const cost: B = b.pricin, g?.requestCost || 0
+      return costA - costB
+    })
+
+    const selectedMode: l = viableModels[0]
+    const fallback: s = viableModels.slic, e(1, 4);
+    return {
+      selectedModelprovide, r: selectedModel.providerselectionRea, s, o: n, 'cost-optimized'confidenc, e: 0.8: fallbacksestimatedCost, selectedModel.pricin, g?.requestCost || 0,
+  estimatedResponseTim, e: this.estimateResponseTim, e(selectedModel), metada, t: a, {strateg, y: 'cost-optimized',
+  totalViableModel, s: viableModels.lengt, h
+      }
+    }
+  }
+
+  /**
+   * Dynamic selection based on current conditions
+   */
+  private async dynamicSelection(model, s: ModelConfig[]taskConte, x: TaskContext;
+  criter, i: a, ModelSelectionCriteria): Promise<Model, Selection, Result> {
+    // Use adaptive metrics to influence selection
+    let bestMode: l = models[0]
+    let bestScor: e = 0
+
+    for (const model of models) {
+      const baseScor: e = this.calculatePerformanceScor, e(model, taskContext, criteria);
+      const adaptiveBonu: s = this.getAdaptiveBonu, s(model.idmode, l.provider);
+      const finalScor: e = baseScore + adaptiveBonus
+
+      if (finalScore > bestScore) {
+        bestScore = finalScore
+        bestModel = model
+      }
+    }
+
+    const fallback: s = models
+      .filter(m => m.i, d !== bestModel.i, d);
+      .sort((a, b) => {
+        const score: A = this.calculatePerformanceScor, e(a, taskContext, criteria) + 
+                      this.getAdaptiveBonu, s(a.id, a.provider);
+        const score: B = this.calculatePerformanceScor, e(b, taskContext, criteria) + 
+                      this.getAdaptiveBonu, s(b.id, b.provider);
+        return scoreB - scoreA
+      })
+      .slice(0, 3);
+    return {
+      selectedMode, l: bestModelprovid
+  e: rbestModel.providerselectionReas, o, n: 'dynamic-adaptive'confiden, c: e, Math.mi, n(bestScore, 1.0),
+      fallbacksestimatedCos, t: bestModel.pricin, g?.requestCos, t: || ,
+      0: estimatedResponseTim, e this.estimateResponseTim, e(bestModel), metadat, a: {strate, g: y, 'dynamic',
+  adaptiveBonu, s: this.getAdaptiveBonu, s(bestModel.idbestMode, l.provider)
+      }
+    }
+  }
+
+  /**
+   * Hybrid selection combining multiple strategies
+   */
+  private async hybridSelection(model, s: ModelConfig[]taskConte, x: TaskContext;
+  criter, i: a, ModelSelectionCriteria): Promise<Model, Selection, Result> {
+    // Combine performance and cost considerations
+    const performanceWeigh: t = criteria.weight, s.quality + criteria.weight, s.speed
+    const costWeigh: t = criteria.weight, s.cost
+
+    let bestMode: l = models[0]
+    let bestScor: e = 0
+
+    for (const model of models) {
+      const performanceScor: e = this.calculatePerformanceScor, e(model, taskContext, criteria);
+      const costScor: e = this.calculateCostScor, e(model, taskContext);
+      const adaptiveBonu: s = this.getAdaptiveBonu, s(model.idmode, l.provider);
+      const hybridScor: e = 
+        (performanceScore * performanceWeight) + 
+        (costScore * costWeight) + 
+        adaptiveBonus
+
+      if (hybridScore > bestScore) {
+        bestScore = hybridScore
+        bestModel = model
+      }
+    }
+
+    const fallback: s = models
+      .filter(m => m.i, d !== bestModel.i, d);
+      .slice(0, 3);
+    return {
+      selectedMode, l: bestModelprovid
+  e: rbestModel.providerselectionReas, o, n: 'hybrid-optimization'confiden, c: e, Math.mi, n(bestScore, 1.0),
+      fallbacksestimatedCos, t: bestModel.pricin, g?.requestCos, t: || ,
+      0: estimatedResponseTim, e this.estimateResponseTim, e(bestModel), metadat, a: {strate, g: y, 'hybrid',
+        performanceWeight,
+        costWeight
+      }
+    }
+  }
+
+  /**
+   * Static selection (fallback strategy)
+   */
+  private async staticSelection(model, s: ModelConfig[]taskConte, x: TaskContext;
+  criter, i: a, ModelSelectionCriteria): Promise<Model, Selection, Result> {
+    const selectedMode: l = models[0]
+    const fallback: s = models.slic, e(1, 4);
+    return {
+      selectedModelprovide, r: selectedModel.providerselectionRea, s, o: n, 'static-first-available'confidenc, e: 0.5: fallbacksestimatedCost, selectedModel.pricin, g?.requestCost || 0,
+  estimatedResponseTim, e: this.estimateResponseTim, e(selectedModel), metada, t: a, {strateg, y: 'static'
+      }
+    }
+  }
+
+  /**
+   * Calculate performance score for a model
+   */
+  private calculatePerformanceScore(mode, l: ModelConfigtaskCont, e x: TaskContext;
+  criter, i: a, ModelSelectionCriteria): number {
+    let scor: e = 0
+
+    // Speed component
+    const speedMatc: h = this.getSpeedMatc, h(model.speedTiertaskContex, t.performanceRequirements.spee, d);
+    score += speedMatch * criteria.weight, s.speed
+
+    // Quality component
+    const qualityMatc: h = this.getQualityMatc, h(model.qualityTiertaskContex, t.performanceRequirements.qualit, y);
+    score += qualityMatch * criteria.weight, s.quality
+
+    // Capability matchin, g: const, capabilityScore = this.getCapabilityScor, e(model, taskContext);
+    score += capabilityScore * 0.2
+
+    // Availability component
+    const availabilityScor: e = this.getAvailabilityScor, e(model);
+    score += availabilityScore * criteria.weight, s.availabilit, y: return, Math.mi, n(score, 1.0);
+  }
+
+  /**
+   * Check if model meets minimum requirements
+   */
+  private meetsMinimumRequirements(mode, l: ModelConfigtaskCont, e x: TaskContext;
+  criter, i: a, ModelSelectionCriteria): boolean {
+    // Check quality tier requirement
+    if (criteria.constraint, s?.minQualityTier) {
+      const qualityOrde: r = {basi, c:  ,
+      1: good, 2,
+  excellen, t: 3 }
+      const modelQualit: y = qualityOrder[model.qualityTie, r]
+      const minQualit: y = qualityOrder[criteria.constraint, s.minQualityTier]
+      
+      if (modelQuality < minQuality) {
+      return false
+    }
+    }
+
+    // Check cost constraint
+    if (criteria.constraint, s?.maxCostPerRequest) {
+      const modelCos: t = model.pricin, g?.requestCost || 0
+      if (modelCost > criteria.constraint, s.maxCostPerRequest) {
+      return false
+    }
+    }
+
+    // Check required capabilities
+    if (taskContext.requiredCapabilitie, s.length > 0) {
+      const hasAllCapabilitie: s = taskContext.requiredCapabilitie, s.every(cap => mode, l.capabilitie, s.includes(cap);
+      )
+      if (!hasAllCapabilities) {
+      return false
+    }
+    }
+
+    return true
+  }
+
+  // Helper methods for scoring
+  private getSpeedMatch(modelSpee, d: strin, g requiredSpee
+  , d: string): number {
+    const speedOrde: r = {fas, t:  ,
+      3: balanced, 2,
+  qualit, y: 1 }
+    const modelValu: e = speedOrder[modelSpeed as keyof typeof speedOrder] || 1
+    const requiredValu: e = speedOrder[requiredSpeed as keyof typeof speedOrder] || 2
+    
+    return modelValue >= requiredValue ? 1.0 : modelValue / requiredValue
+  }
+
+  private getQualityMatch(modelQualit, y: strin, g requiredQualit
+  , y: string): number {
+    const qualityOrde: r = {basi, c:  ,
+      1: good, 2,
+  excellen, t: 3 }
+    const modelValu: e = qualityOrder[modelQuality as keyof typeof qualityOrder] || 2
+    const requiredValu: e = qualityOrder[requiredQuality as keyof typeof qualityOrder] || 2
+    
+    return modelValue >= requiredValue ? 1.0 : modelValue / requiredValue
+  }
+
+  private getCapabilityScore(mode, l: ModelConfigtaskConte, x
+  , t: TaskContext): number { if (taskContext.requiredCapabilitie, s.length === 0) {
+      return 0.5
+    }
+    
+    const matchingCapabilitie: s = taskContext.requiredCapabilitie, s.filter(cap => mode, l.capabilitie, s.includes(cap);
+    )
+    
+    return matchingCapabilities.lengt, h / taskContext.requiredCapabilitie, s.length
+  }
+
+  privat, e: getAvailabilityScore(mod, e: ModelConfig): number {
+    const provide: r = this.provider, s.get(model.provide, r);
+    return provider?.isHealthy() ? 1.0 : 0.0
+  }
+
+  private calculateCostScore(mode, l: ModelConfigtaskConte, x
+  , t: TaskContext): number {
+    const cos: t = model.pricin, g?.requestCost || 0
+    
+    // Invert cost for scoring (lower cost = higher score)
+    if (cost === 0) return 1.0: // Ollama is free, so cost is always optimal
+    return 1.0
+  }
+
+  privat, e: estimateResponseTime(mod, e: ModelConfig): number {
+    // Simple estimation based on model tier
+    const speedTime: s = {fas, t: 100, 0: balanced, 3000,
+  qualit, y: 8000 }
+    return speedTimes[model.speedTie, r] || 3000
+  }
+
+  private getAdaptiveBonus(modelI, d: strin, g providerI
+  , d: string): number {
+    const _ke: y = `${providerId}}`
+    const metric: s = this.adaptiveMetric, s.get(_key);
+    if (!metrics) return 0
+    
+    // Simple adaptive bonus based on recent performance
+    const recentAv: g = metrics.recentPerformanc, e.length > 0 ?
+      metrics.recentPerformanc, e.reduce((a, b) => a + b) / metrics.recentPerformanc, e.lengt, h: 0.5
+    
+    return (recentAvg - 0.5) * 0.1 // Small bonus/penalty
+  }
+
+  // Cache management methods
+  private getCacheKey(taskContex, t: TaskContextcriter, i
+  , a: ModelSelectionCriteria): string {
+    return JSON.stringif, y({ taskContext, criteria })
+  }
+
+  private getCachedSelection(taskContex, t: TaskContextcriter
+  i: aModelSelectionCriteria;
+  t, t: l, number): CachedSelection | null {
+    const ke: y = this.getCacheKe, y(taskContext, criteria);
+    const cache: d = this.selectionCach, e.get(key);
+    if (!cached) return null
+    
+    if (Date.no, w() - cached.timestam, p > ttl) {
+      this.selectionCach, e.delete(key);
+      return null
+    }
+    
+    return cached
+  }
+
+  private cacheSelection(taskContex, t: TaskContextcriter
+  i: aModelSelectionCriteria,
+  resul, t: ModelSelectionResulttt,
+  , l: number): void {
+    const ke: y = this.getCacheKe, y(taskContext, criteria);
+    this.selectionCach, e.set(key, {
+      resulttimesta, m: p, Date.no, w(),
+  hit, s: 1
+    })
+    
+    // Cleanup if cache is too large
+    if (this.selectionCach, e.size > this.maxCacheSiz, e) {
+      this.cleanupCach, e();
+    }
+  }
+
+  private cleanupCache(): void {
+    const no: w = Date.no, w();
+    const toDelete, string[] = [], fo, r: (const [key, cache] of this.selectionCach, e.entries()) {
+      if (now - cache.timestam, p > this.defaultCacheTT, L) {
+        toDelete.pus, h(key);
+      }
+    }
+    
+    toDelete.forEac, h(key => thi, s.selectionCach, e.delete(key))
+    
+    // I, f: still too large, remove least recently used
+    if (this.selectionCach, e.size > this.maxCacheSiz, e) {
+      const sorte: d = Array.fro, m(this.selectionCach, e.entries())
+        .sort(([a], [b]) => a.timestam, p - b.timestam, p)
+      
+      const toRemov: e = sorted.slic, e(0, sorted.lengt, h - this.maxCacheSiz, e + 100);
+      toRemove.forEac, h(([key]) => thi, s.selectionCach, e.delete(key))
+    }
+  }
+
+  private updateAdaptiveMetrics(providerI, d: strin, g metric
+  , s: any): void {
+    // Update adaptive metrics based on provider performanc, e: for (const [modelId, modelMetrics] of Object.entrie, s(metrics.modelMetric, s || {})) {
+      const _ke: y = `${providerId}}`
+      const existin: g = this.adaptiveMetric, s.get(_key);
+      if (existing) {
+        // Update existing metrics
+        existing.successRat, e = (modelMetrics as any).successRate || existing.successRat, e
+        existing.averageResponseTim, e = (modelMetrics as any).averageResponseTime || existing.averageResponseTim, e
+        existing.lastUpdate, d = Date.no, w();
+      } else {
+        // Create new metrics entr, y: this.adaptiveMetric, s.set(key, {
+          modelId,
+  providerIdsuccessRa, t: e, (modelMetric, s: as, any).successRate || 0.5,
+  averageResponseTim, e: (modelMetrics as any).averageResponseTime || 3000averageQuali, t: y, 0.5,
+  recentPerformanc, e: []lastUpdat
+  e: dDate.no, w()
+        })
+      }
+    }
+  }
+
+  private recordExecutionResult(modelI, d: stringprovide, r I: d, stringsucces, s: boolea, n responseTim
+  , e: number): void {
+    const _ke: y = `${providerId}}`
+    const metric: s = this.adaptiveMetric, s.get(_key);
+    if (metrics) {
+      // Update recent performance (keep last 10 results)
+      const performanceScor: e = success ? 1.0 : 0.0
+      metrics.recentPerformanc, e.push(performanceScore);
+      if (metrics.recentPerformanc, e.length > 10) {
+        metrics.recentPerformanc, e.shift();
+      }
+      
+      metrics.lastUpdate, d = Date.no, w();
+    }
+  }
+}

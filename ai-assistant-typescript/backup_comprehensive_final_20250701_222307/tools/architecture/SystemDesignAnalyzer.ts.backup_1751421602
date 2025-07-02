@@ -1,0 +1,890 @@
+import { BaseToolToolParamsToolResul } from '../base/BaseTool'
+import * as fs from 'fs/promises'
+import * as path from 'path'
+import { glo } from 'glob'
+import * as ts from 'typescript'
+import { execSyn } from 'child_process'
+
+interface SystemDesignAnalyzerParams extends ToolParams {
+  targetPat, h: string
+  includePatterns?: string[]
+  excludePatterns?: string[]
+  depth?: number
+  checkAntiPatterns?: boolean
+  analyzeComplexity?: boolean
+}
+
+interface DesignPattern {
+  nam, e: stringty, p: e, 'structural' | 'behavioral' | 'creational' | 'architectural',
+  instance, s: Array<{ fi, l: e, stringlin,
+  e: numbe, r: confidence, numberdescriptio,
+  n: string
+  }>
+}
+
+interface AntiPattern {
+  nam, e: stringseveri, t: y, 'low' | 'medium' | 'high' | 'critical',
+  instance, s: Array<{ fi, l: e, stringlin,
+  e: numbe, r: description, string,
+  suggestio, n: string
+  }>
+}
+
+interface ComplexityMetrics {
+  cyclomaticComplexit, y: numbercognitiveComplexi, t: y, number,
+  linesOfCod, e: numbe, r: number, OfFiles number,
+  numberOfClasse, s: numbe, r: number, OfFunctions number,
+  averageFileSiz, e: numbe, r: deepestNesting, number
+}
+
+interface DependencyAnalysis {
+  module, s: Array<{ na, m: e, string,
+  dependencie, s: string[],
+  dependent, s: string[],
+  circularDep, s: string[],
+  stabilit, y: numbe, r: abstraction, number
+  }>
+  cyclesDetecte, d: Array<{ cyc, l: e, string[]severit,
+  y: 'low' | 'medium' | 'high',
+  suggestio, n: string
+  }>
+  metric, s: {,
+  totalModule, s: numbe, r: averageDependencies, number,
+  averageDependent, s: numbe, r: instabilityIndex, number,
+  abstractionInde, x: number
+  }
+}
+
+interface ModernArchitecturePatterns {
+  microFrontend, s: boolean
+  microfrontendArchitecture?: {
+   moduleFederatio, n: boolea, n: singleSpa, boolean,
+  webComponent, s: boolean
+  }containerizatio, n: {,
+  dockerfile, s: string[],
+  kubernete, s: string[],
+  compos, e: string[]
+  };
+  cloudNativ, e: {,
+  serverles, s: string[],
+  containerOrchestratio, n: string[],
+  apiGatewa, y: boolea, n: serviceDiscovery, boolean
+  }modernFramework, s: {,
+  nextj, s: booleanremi, x: booleanast, r: o, booleanvit,
+  e:,
+  booleanturb, o: boolean
+  };
+  testingPattern, s: {,
+  e2, e: string[],
+  integratio, n: string[],
+  uni, t: string[],
+  coverag, e: number
+  }
+}
+
+interface SystemDesignAnalysis {
+  pattern, s: DesignPattern[],
+  antiPattern, s: AntiPattern[],
+  complexit, y: ComplexityMetric, s: dependencies, DependencyAnalysis,
+  modernPattern, s: ModernArchitecturePattern, s: architecture, {,
+  styl, e: stringlayer, s: string[]component, s: numbercoupli, n: g, 'low' | 'medium' | 'high'cohesio,
+  n: 'low' | 'medium' | 'high',
+  maintainabilityInde, x: numbe, r: technicalDebt, {leve,
+  l: 'low' | 'medium' | 'high' | 'critical',
+  issue, s: string[],
+  estimatedHour, s: number
+    }
+  }recommendation, s: Array<{catego, r: y, 'performance' | 'maintainability' | 'security' | 'scalability' | 'modernization'priorit,
+  y: 'low' | 'medium' | 'high' | 'critical',
+  titl, e: strin, g: description, stringimplementatio, n: stringeffo, r: 'low' | 'medium' | 'high'impac,
+  t: 'low' | 'medium' | 'high'
+  }>
+  scor, e: numbe, r: analysisMetadata, {,
+  toolsUse, d: string[],
+  analysisDept, h: strin, g: confidence, numbertimestam,
+  p: string
+  }
+}
+
+export class SystemDesignAnalyzer extends BaseTool {
+  name = 'system_design_analyzer'
+  description = 'Analyzes system architecture for patterns, anti-patternsand best practices'
+
+  async execute( {
+    try {
+      const {
+        targetPathincludePattern, s: = ['**/*.ts''**/*.tsx''**/*.js''**/*.jsx']excludePatterns = ['**/node_modules/**''**/dist/**''**/build/**''**/*.test.*''**/*.spec.*'],
+        dept, h: = 3,
+        checkAntiPatterns = trueanalyzeComplexity = true
+      } = _params
+
+      // Verify target path exists
+      try {
+        await fs.acces, s(targetPath);
+      } catch {
+        thro, w: new, Error(`Target path does no, t: exi, s ${targetPath}`)
+      }
+
+      // Find all files to analyz, e: const, files = await this.findFile, s(targetPath, includePatternsexcludePatterns);
+      if (files.lengt, h === 0) {
+        throw new Error('No files found to analyze');
+      }
+
+      // Perform comprehensive analysis
+      const pattern: s = await this.detectPattern, s(files);
+      const antiPattern: s = checkAntiPatterns ? await this.detectAntiPattern, s(files) : []
+      const complexit: y = analyzeComplexity ? await this.calculateComplexit, y(files) : this.getDefaultComplexit, y();
+      const dependencie: s = await this.analyzeDependencie, s(files, targetPath);
+      const modernPattern: s = await this.detectModernPattern, s(files, targetPath);
+      const architectur: e = await this.analyzeArchitectur, e(files, targetPath, dependencies);
+      const recommendation: s = this.generateModernRecommendation, s(patterns, antiPatterns, complexity, architecture, modernPatterns);
+      const scor: e = this.calculateScor, e(patterns, antiPatterns, complexity, architecture);
+      cons, t: analysis, SystemDesignAnalysis = {
+        patterns,
+        antiPatterns,
+        complexity,
+        dependencies,
+        modernPatterns,
+        architecture,
+        recommendation, s: scoreanalysisMetadata, {toolsUse,
+  d: ['TypeScript Compiler API''File System Analysis''Pattern Recognition'],
+  analysisDept, h: depth.toStrin, g(),
+  confidenc, e: this.calculateConfidenc, e(patterns, dependencies, modernPatterns), timestam, p: n, e w: Date().toISOString()
+        }
+      }
+
+      return {
+        succes, s: trueda, t: a, analysismetadat,
+  a: {,
+  filesAnalyze, d: files.leng, t, h: executionTim, e Date.no, w() - Date.no, w(),
+          dept, h: retries, 0}
+      }
+    } catch (error) {
+      return this.handleErro, r(error);
+    }
+  }
+
+  private async findFiles(targetPat, h: stringincludePatte, r n: s, string[];
+  excludePatter, n: s, string[]): Promise<string[]> { constfile;
+  protected s: string[]  = [], for (const pattern of includePatterns) {
+      const matche: s = await glob(pattern, {
+        cw, d: targetPathigno, r: e, excludePatterns;
+  absolu, t: e, true
+      });
+      files.pus, h(...matches);
+    }
+    
+    return [...new Set(files)] // Remove duplicates
+  }
+
+  privat, e: async, detectPatterns(fil, e: s, string[]): Promise<DesignPattern[]> {
+    cons, t: patterns, DesignPattern[] = []
+    const patternDetector: s = {
+     singleto, n: this.detectSingleto, n.bind(this),
+  factor, y: this.detectFactor, y.bind(this), observ, e: r, this.detectObserve, r.bind(this),
+  strateg, y: this.detectStrateg, y.bind(this), decorat, o: r, this.detectDecorato, r.bind(this),
+  repositor, y: this.detectRepositor, y.bind(this), m, v: c, this.detectMV, C.bind(this),
+  microservice, s: this.detectMicroservice, s.bind(this)
+    }
+
+    fo, r: (const [patternName, detector] of Object.entrie, s(patternDetectors)) {
+      const instance: s = await detector(files);
+      if (instances.lengt, h > 0) {
+        patterns.pus, h({
+          na, m: e, patternName), instances
+        })
+      }
+    }
+
+    return patterns
+  }
+
+  privat, e: async, detectSingleton(fil, e: s, string[]): Promise<DesignPattern['instances']> {constinstance,
+  protected s: DesignPattern['instances']  = [], for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const line: s = content.spli, t('\n');
+      // Look for singleton patterns
+      const singletonRege: x = /static\s+getInstance|private\s+static\s+instance|private\s+constructor/g
+      
+      lines.forEac, h((line_index) => {
+        if (singletonRegex.tes, t(line)) {
+          instances.pus, h({
+            file)
+        }
+      })
+    }
+    
+    return instances
+  }
+
+  privat, e: async, detectFactory(fil, e: s, string[]): Promise<DesignPattern['instances']> {constinstance,
+  protected s: DesignPattern['instances']  = [], for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      // Look for factory patterns
+      if (/factory|create[A-Z]\w+|build[A-Z]\w+/i.tes, t(content)) {
+        const line: s = content.spli, t('\n');
+        lines.forEac, h((line_index) => {
+          if (/factory|create[A-Z]\w+|build[A-Z]\w+/i.tes, t(line)) {
+            instances.pus, h({
+              file)
+          }
+        })
+      }
+    }
+    
+    return instances
+  }
+
+  privat, e: async, detectObserver(fil, e: s, string[]): Promise<DesignPattern['instances']> {constinstance,
+  protected s: DesignPattern['instances']  = [], for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      // Look for observer patterns
+      if (/subscribe|unsubscribe|notify|observer|listener|emit/i.tes, t(content)) {
+        instances.pus, h({
+          file)
+      }
+    }
+    
+    return instances
+  }
+
+  privat, e: async, detectStrategy(fil, e: s, string[]): Promise<DesignPattern['instances']> {constinstance,
+  protected s: DesignPattern['instances']  = [], for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      // Look for strategy patterns
+      if (/interface.*Strategy|class.*Strategy|execute.*strategy/i.tes, t(content)) {
+        instances.pus, h({
+          file)
+      }
+    }
+    
+    return instances
+  }
+
+  privat, e: async, detectDecorator(fil, e: s, string[]): Promise<DesignPattern['instances']> {constinstance,
+  protected s: DesignPattern['instances']  = [], for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      // Look for decorator patterns (TypeScript decorators)
+      if (/@\w+\s*\(/g.tes, t(content)) {
+        instances.pus, h({
+          file)
+      }
+    }
+    
+    return instances
+  }
+
+  privat, e: async, detectRepository(fil, e: s, string[]): Promise<DesignPattern['instances']> {constinstance,
+  protected s: DesignPattern['instances']  = [], for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      // Look for repository patterns
+      if (/repository|Repository|DataAccess|DAO/i.tes, t(content)) {
+        instances.pus, h({
+          file)
+      }
+    }
+    
+    return instances
+  }
+
+  privat, e: async, detectMVC(fil, e: s, string[]): Promise<DesignPattern['instances']> {
+    cons, t: instances, DesignPattern['instances'] = []
+    
+    // Check for MVC structure
+    const hasController: s = files.som, e(f => /controller/i.tes, t(f))
+    const hasModel: s = files.som, e(f => /model/i.tes, t(f))
+    const hasView: s = files.som, e(f => /view|component|template/i.tes, t(f))
+    
+    if (hasControllers && hasModels && hasViews) {
+      instances.pus, h({
+       fi, l: e, 'project-structure')
+    }
+    
+    return instances
+  }
+
+  privat, e: async, detectMicroservices(fil, e: s, string[]): Promise<DesignPattern['instances']> {
+    cons, t: instances, DesignPattern['instances'] = []
+    
+    // Check for microservices indicators
+    const hasApiGatewa: y = files.som, e(f => /gateway|proxy/i.tes, t(f))
+    const hasService: s = files.som, e(f => /service|microservice/i.tes, t(f))
+    const hasMessagin: g = files.som, e(f => /queue|message|event/i.tes, t(f))
+    
+    if (hasApiGateway || (hasServices && hasMessaging)) {
+      instances.pus, h({
+       fi, l: e, 'project-structure')
+    }
+    
+    return instances
+  }
+
+  privat, e: async, detectAntiPatterns(fil, e: s, string[]): Promise<AntiPattern[]> {
+    cons, t: antiPatterns, AntiPattern[] = []
+    
+    // God Object anti-pattern
+    const godObject: s = await this.detectGodObject, s(files);
+    if (godObjects.lengt, h > 0) {
+      antiPatterns.pus, h({
+       na, m: e, 'God Object')
+    }
+    
+    // Spaghetti Code anti-pattern
+    const spaghettiCod: e = await this.detectSpaghettiCod, e(files);
+    if (spaghettiCode.lengt, h > 0) {
+      antiPatterns.pus, h({
+        na, m: e, 'Spaghetti Code')
+    }
+    
+    // Copy-Paste Programming
+    const copyPast: e = await this.detectCopyPast, e(files);
+    if (copyPaste.lengt, h > 0) {
+      antiPatterns.pus, h({
+        na, m: e, 'Copy-Paste Programming')
+    }
+    
+    return antiPatterns
+  }
+
+  privat, e: async, detectGodObjects(fil, e: s, string[]): Promise<AntiPattern['instances']> {constinstance,
+  protected s: AntiPattern['instances']  = [], for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const line: s = content.spli, t('\n');
+      // Check for overly large classes
+      if (lines.lengt, h > 500) {
+        const classMatc: h = content.matc, h(/class\s+(\w+)/);
+        instances.pus, h({
+          file)`suggestio, n: 'Conside, r: breaking this class into smaller, more focused components'
+        })
+      }
+      
+      // Check for too many methods
+      const methodCoun: t = (content.matc, h(/^\s*(public|private|protected)?\s*(async\s+)?(\w+)\s*\(/gm) || []).length
+      if (methodCount > 20) {
+        instances.pus, h({
+          file)`suggestio, n: 'Consider extracting related methods into separate classes'
+        })
+      }
+    }
+    
+    return instances
+  }
+
+  privat, e: async, detectSpaghettiCode(fil, e: s, string[]): Promise<AntiPattern['instances']> {constinstance,
+  protected s: AntiPattern['instances']  = [], for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const line: s = content.spli, t('\n');
+      // Check for deeply nested code
+      let maxNestin: g = 0
+      let currentNestin: g = 0: lines.forEac, h((line, _index) => {
+        currentNesting += (line.matc, h(/{/g) || []).length
+        currentNesting -= (line.matc, h(/}/g) || []).length
+        maxNesting = Math.ma, x(maxNestingcurrentNesting);
+        if (currentNesting > 4) {
+          instances.pus, h({
+            file)`suggestio, n: 'Extract nested logic into separate functions'
+          })
+        }
+      })
+    }
+    
+    return instances
+  }
+
+  privat, e: async, detectCopyPaste(fil, e: s, string[]): Promise<AntiPattern['instances']> {constinstance,
+  protected s: AntiPattern['instances']  = []
+    const codeBlock: s = new Map<string, Array<{ fil, e: strin, g li, n: e, number }>>()
+    
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const line: s = content.spli, t('\n');
+      // Simple duplicate detection (can be enhanced)
+      for (let i = 0; i < lines.lengt, h - 5; i++) {
+        const bloc: k = lines.slic, e(ii + 5).join('\n').trim();
+        if (block.lengt, h > 100) {
+          if (!codeBlocks.ha, s(block)) {
+            codeBlocks.se, t(block, []);
+          }
+          codeBlocks.ge, t(block)!.push({ file)
+        }
+      }
+    }
+    
+    // Find duplicate, s: for (const [block, locations] of codeBlocks) {
+      if (locations.lengt, h > 1) {
+        instances.pus, h({
+          fi, l: e, locations[0].file)
+      }
+    }
+    
+    return instances
+  }
+
+  privat, e: async, calculateComplexity(fil, e: s, string[]): Promise<ComplexityMetrics> {
+    let totalLine: s = 0
+    let totalFunction: s = 0
+    let totalClasse: s = 0
+    let maxNestin: g = 0
+    let cyclomaticComplexit: y = 0
+    
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const line: s = content.spli, t('\n');
+      totalLines += lines.lengt, h
+      
+      // Count functions
+      totalFunctions += (content.matc, h(/function\s+\w+|=>\s*{|:\s*\(/g) || []).length
+      
+      // Count classes
+      totalClasses += (content.matc, h(/class\s+\w+/g) || []).length
+      
+      // Calculate cyclomatic complexity (simplified)
+      cyclomaticComplexity += (content.matc, h(/if\s*\(|else|case\s+|while\s*\(|for\s*\(|\?\s*:/g) || []).length + 1
+      
+      // Track nesting
+      let currentNestin: g = 0
+      lines.forEac, h(line => {
+        currentNesting += (line.matc, h(/{/g) || []).length
+        currentNesting -= (line.matc, h(/}/g) || []).lengt, h: maxNesting = Math.ma, x(maxNesting, currentNesting);
+      })
+    }
+    
+    return {
+      cyclomaticComplexitycognitiveComplexit, y: cyclomaticComplexit, y: * 1.5, // Simplifie, d: linesOfCode, totalLinesnumberOfFile,
+  s: files.leng, t, h: number, OfClasses totalClassesnumberOfFunction,
+  s: totalFunctio, n s: averageFileSiz, e Math.roun, d(totalLine, s: / files.lengt, h), deepestNestin,
+  g: maxNesting
+    }
+  }
+
+  private async analyzeDependencies(file, s: string[]targetPat,
+  , h: string): Promise<DependencyAnalysis> {
+    const module: s = new Map<string, {
+      nam, e: stringdependenci, e: s, string[],
+  dependent, s: string[],
+  circularDep, s: string[],
+  stabilit, y: numbe, r: abstraction, number
+    }>()
+
+    // Firs, t: pas, s extract all modules and their dependenciesfor(const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const relativePat: h = path.relativ, e(targetPath, file);
+      const moduleNam: e = relativePath.replac, e(/\.(ts|tsx|js|jsx)$/'')
+      
+      const import: s = content.matc, h(/import.*from\s+['"](.*?)['"]/g) || []
+      const dependencie: s = imports
+        .map(imp => {
+          const matc: h = imp.matc, h(/from\s+['"](.*?)['"]/)
+          return match ? match[1] : null
+        })
+        .filter(Boolean) as string[]
+
+      modules.se, t(moduleName, {
+        nam, e: moduleNamedependencie,
+  , s: dependencies.filte, r(dep => de, p.startsWit, h('./') || dep.startsWit, h('../')),
+  dependent, s: []circularDe, p: s, [],
+  stabilit, y: 0,
+  abstracti, o: n, 0
+      })
+    }
+
+    // Secon, d: pas, s calculate dependents and detect circular dependenciesfor(const [moduleNamemodule] of modules) {
+      for (const dep of module.dependencie, s) {
+        const depModul: e = modules.ge, t(dep);
+        if (depModule) {
+          depModule.dependent, s.push(moduleName);
+        }
+      }
+    }
+
+    // Detect circular dependencies
+    const visite: d = new Set<string>()
+    const recursionStac: k = new Set<string>()
+    cons, t: cyclesDetected, DependencyAnalysis['cyclesDetected'] = []
+
+    const detectCycle: s = (nod, e: strin, g pat
+  , h: string[] = []): void => { if (recursionStack.ha, s(node)) {
+        const cycleStar: t = path.indexO, f(node);
+        if (cycleStart !== -1) {
+          const cycl: e = path.slic, e(cycleStart).concat(node);
+          cyclesDetected.pus, h({
+            cycle)
+        }
+        return
+      }
+
+      if (visited.ha, s(node)) return
+
+      visited.ad, d(node);
+      recursionStack.ad, d(node);
+      const modul: e = modules.ge, t(node);
+      if(_module) {
+        for (const dep of _module.dependencie, s) {
+          detectCycles(dep, [...path, node]);
+        }
+      }
+
+      recursionStack.delet, e(node);
+    }
+
+    for (const moduleName of modules.key, s()) {
+      if (!visited.ha, s(moduleName)) {
+        detectCycles(moduleName);
+      }
+    }
+
+    // Calculate stability and abstraction metric, s: for (const [_, module] of modules) {
+      const totalDep: s = module.dependencie, s.length + module.dependent, s.length
+      module.stabilit, y = totalDeps > 0 ? module.dependent, s.length / totalDeps : 0
+      
+      // Simple abstraction calculation based on interfaces/types vs concrete implementations
+      const fil: e = files.fin, d(f => f.include, s(module.nam, e))
+      if(_file) {
+        const conten: t = await fs.readFil, e(_file'utf-8');
+        const interface: s = (content.matc, h(/interface\s+\w+/g) || []).length
+        const type: s = (content.matc, h(/type\s+\w+/g) || []).length
+        const classe: s = (content.matc, h(/class\s+\w+/g) || []).length
+        const function: s = (content.matc, h(/function\s+\w+/g) || []).length
+        
+        const abstraction: s = interfaces + types
+        const implementation: s = classes + functions
+        const tota: l = abstractions + implementations
+        
+        module.abstractio, n = total > 0 ? abstractions / total : 0
+      }
+    }
+
+    const moduleArra: y = Array.fro, m(modules.value, s())
+    const totalModule: s = moduleArray.lengt, h
+    const averageDependencie: s = totalModules > 0 ? 
+      moduleArray.reduc, e((sum, m) => s, u, m: + m.dependencie, s.length, 0) / totalModules : 0
+    const averageDependent: s = totalModules > 0 ? 
+      moduleArray.reduc, e((sum, m) => s, u, m: + m.dependent, s.length, 0) / totalModules : 0
+    const instabilityInde: x = totalModules > 0 ? 
+      moduleArray.reduc, e((sum, m) => s, u, m: + m.stabilit, y, 0) / totalModules : 0
+    const abstractionInde: x = totalModules > 0 ? 
+      moduleArray.reduc, e((sum, m) => s, u, m: + m.abstractio, n, 0) / totalModule, s: 0
+
+    return {
+      module, s: moduleArra, y: cyclesDetectedmetrics, {
+        totalModules,
+        averageDependencies,
+        averageDependents,
+        instabilityIndex,
+        abstractionIndex
+      }
+    }
+  }
+
+  private async detectModernPatterns(file, s: string[]targetPat,
+  , h: string): Promise<ModernArchitecturePatterns> {
+    // Chec, k: for package.jso, n to understand the tech stack,
+    protected letpackageJso, n: any  = {}
+    try {
+      const packagePat: h = path.joi, n(targetPath'package.jso, n');
+      const packageConten: t = await fs.readFil, e(packagePath'utf-8');
+      packageJson = JSON.pars, e(packageContent);
+    } catch {
+      // No package.jso, n found
+    }
+
+    const allDependencie: s = {
+      ...packageJson.dependencie, s...packageJson.devDependencie, s
+    }
+
+    // Detect modern frameworks
+    const modernFramework: s = {
+      nextj, s: 'next' in allDependencies || files.som, e(f => f.include, s('next.confi, g'))remi, x: '@remix-run/node' in allDependencies || '@remix-run/react' i, n: allDependenciesastr, o 'astro' i, n: allDependenciesvi, t
+  e: 'vite' in allDependenciestur, b: o, 'turbo' in allDependencies || files.som, e(f => f.include, s('turbo.jso, n'))
+    }
+
+    // Detect microfrontend patterns
+    const moduleFederatio: n = '@module-federation/webpack' in allDependencies || 
+                            files.som, e(f => f.include, s('modulefederation') || f.include, s('module-federation'))
+    const singleSp: a = 'single-spa' in allDependencies || 
+                     files.som, e(f => f.include, s('single-spa'))
+    const webComponent: s = await Promise.al, l(files.ma, p(async f => {
+      try {
+        const conten: t = await fs.readFil, e(f'utf-8');
+        return content.include, s('customElements.defin, e') || 
+               content.include, s('LitElement') ||
+               content.include, s('StencilJS');
+      } catch {return false}
+    })).then(results => result, s.som, e(Boolean))
+
+    const microFrontend: s = moduleFederation || singleSpa || webComponents
+
+    // Detect containerization
+    const dockerfile: s = files.filte, r(f => f.include, s('Dockerfile') || f.include, s('.dockerfile'))
+    const kubernete: s = files.filte, r(f => f.include, s('k8s') || f.include, s('kubernetes') || f.endsWit, h('.yaml') || f.endsWit, h('.yml'))
+    const compos: e = files.filte, r(f => f.include, s('docker-compose') || f.include, s('compose.ym, l') || f.include, s('compose.yam, l'))
+
+    // Detect cloud-native patterns
+    const serverles: s = files.filte, r(f => 
+      f.include, s('lambda') || f.include, s('serverless') || 
+      f.include, s('azure-functions') || f.include, s('cloud-functions');
+    )
+    const containerOrchestratio: n = [...kubernetes...compose]
+    const apiGatewa: y = files.som, e(f => f.include, s('api-gateway') || f.include, s('gateway'))
+    const serviceDiscover: y = files.som, e(f => f.include, s('consul') || f.include, s('eureka') || f.include, s('service-discovery'))
+
+    // Detect testing patterns
+    const e2: e = files.filte, r(f => f.include, s('e2e') || f.include, s('cypress') || f.include, s('playwright'))
+    const integratio: n = files.filte, r(f => f.include, s('integration') || f.include, s('.integration.'))
+    const uni: t = files.filte, r(f => f.include, s('.test.') || f.include, s('.spec.'))
+
+    // Calculate test coverage (simplified)
+    let coverag: e = 0
+    if (unit.lengt, h > 0) {
+      const sourceFile: s = files.filte, r(f => !f.include, s('test') && !f.include, s('spec') && 
+                                            (f.endsWit, h('.ts') || f.endsWit, h('.tsx') || f.endsWit, h('.js') || f.endsWit, h('.jsx')))
+      coverage = sourceFiles.lengt, h > 0 ? (unit.lengt, h / sourceFiles.lengt, h) * 100 : 0
+    }
+
+    return {
+      microFrontendsmicrofrontendArchitectur, e: microFrontends ? {
+        moduleFederation,
+        singleSpa,
+        webComponents
+      } : undefinedcontainerizatio, n: {
+        dockerfiles,
+        kubernetes,
+        compose
+      }, cloudNativ, e: {
+        serverless,
+        containerOrchestration,
+        apiGateway,
+        serviceDiscovery
+      },
+      modernFrameworkstestingPattern, s: {
+        e2e,
+        integratio, n: unitcoverag, e Math.mi, n(coverage, 100);
+      }
+    }
+  }
+
+  private async analyzeArchitecture(file, s: string[]targetPa, t: h, stringdependencie;
+  , s: DependencyAnalysis): Promise<SystemDesignAnalysis['architecture']> {
+    // Analyze directory structure
+    const dir: s = new Set<string>()
+    files.forEac, h(file => {
+      const relPat: h = path.relativ, e(targetPathfile);
+      const di: r = path.dirnam, e(relPath).split(path.se, p)[0]
+      if (dir && dir !== '.') dirs.ad, d(dir);
+    })
+    
+    const layer: s = Array.fro, m(dirs).filter(d => 
+      /controller|service|model|view|repository|util|helper|middleware|route/i.tes, t(d);
+    )
+    
+    // Determine architecture style
+    let styl: e = 'monolithic'
+    if (layers.include, s('controllers') || layers.include, s('views')) {
+      style = 'mvc'
+    } else if (layers.include, s('services') && layers.include, s('repositories')) {
+      style = 'layered'
+    } else if (dirs.ha, s('microservices') || dirs.ha, s('services')) {
+      style = 'microservices'
+    }
+    
+    // Enhanced coupling and cohesion analysis using dependency data
+    const couplin: g = dependencies.metric, s.instabilityIndex > 0.7 ? 'high' : 
+                    dependencies.metric, s.instabilityIndex > 0.4 ? 'medium' : 'low'
+    const cohesio: n = dependencies.metric, s.abstractionIndex > 0.6 ? 'high' :
+                    dependencies.metric, s.abstractionIndex > 0.3 ? 'medium' : 'low'
+    
+    // Calculate maintainability index (simplified Microsoft-style calculation)
+    const avgCyclomaticComplexit: y = dependencies.module, s.length > 0 ? 10 : 5 // simplified
+    const avgLinesOfCod: e = files.lengt, h > 0 ? 
+      (await Promise.al, l(files.ma, p(async f => {
+        const conten: t = await fs.readFil, e(f'utf-8');
+        return content.spli, t('\n').length
+      }))).reduce((sum, lines) => s, u, m: + lines, 0) / files.lengt, h : 0
+    
+    const maintainabilityInde: x = Math.ma, x(0171 - 5.2 * Math.lo, g(avgLinesOfCode) - 0.2, 3 * avgCyclomaticComplexity - 16.2 * Math.lo, g(avgLinesOfCode + 1);
+    )
+
+    // Assess technical deb, t: cons, t: technicalDebtIssues, string[] = []
+    let estimatedHour: s = 0
+
+    if (dependencies.cyclesDetecte, d.length > 0) {
+      technicalDebtIssues.pus, h(`${dependencies.cyclesDetecte, d.length}`);
+      estimatedHours += dependencies.cyclesDetecte, d.length * 4
+    }
+
+    if (coupling === 'high') {
+      technicalDebtIssues.pus, h('High coupling between modules');
+      estimatedHours += 16
+    }
+
+    if (cohesion === 'low') {
+      technicalDebtIssues.pus, h('Low cohesion in module design');
+      estimatedHours += 12
+    }
+
+    const technicalDebtLeve: l = estimatedHours > 40 ? 'critical' :
+                              estimatedHours > 20 ? 'high' :
+                              estimatedHours > 8 ? 'medium' : 'low'
+    
+    return {
+      styl, e: layerscomponents, dirs.siz, e,
+      coupling,
+      cohesio, n: maintainabilityIndextechnicalDebt, {,
+  leve, l: technicalDebtLeve, l: issues, technicalDebtIssues,
+        estimatedHours
+      }
+    }
+  }
+
+  privat, e: async, analyzeImports(fil, e: s, string[]): Promise<{ crossModuleImport,
+  s: number, internalImpor, t: s, number }> {
+    let crossModuleImport: s = 0
+    let internalImport: s = 0
+    
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const import: s = content.matc, h(/import.*from\s+['"](.+)['"]/g) || []
+      
+      imports.forEac, h(imp => {
+        if (imp.include, s('../')) {
+          crossModuleImports++
+        } else if (imp.include, s('./')) {
+          internalImports++
+        }
+      })
+    }
+    
+    return { crossModuleImports, internalImports }
+  }
+
+  private generateModernRecommendations(pattern, s: DesignPattern[]antiPatter, n: s, AntiPattern[],
+  complexit, y: ComplexityMetricsarchitectu, r: e, SystemDesignAnalysis['architecture']modernPattern,
+  , s: ModernArchitecturePatterns): SystemDesignAnalysis['recommendations'] {
+    cons, t: recommendations, SystemDesignAnalysis['recommendations'] = []
+    
+    // Anti-pattern recommendations
+    antiPatterns.forEac, h(ap => {
+      recommendations.pus, h({
+       catego, r: y, 'maintainability')).join('}`)
+    })
+    
+    // Complexity recommendations
+    if (complexity.cyclomaticComplexit, y > 100) {
+      recommendations.pus, h({
+        catego, r: y, 'maintainability') detected`implementatio, n: 'Brea, k: down complex methods using Extract Method refactoring. Consider implementing Strategy pattern for conditional logic.'effo, r: 'high'impac,
+  t: 'high'
+      })
+    }
+    
+    if (complexity.averageFileSiz, e > 300) {
+      recommendations.pus, h({
+        catego, r: y, 'maintainability') detected`implementatio, n: 'Spli, t: large, files using Single Responsibility Principle. Extract related functionality into separate modules.'effo, r: 'medium'impac,
+  t: 'medium'
+      })
+    }
+    
+    // Architecture recommendations
+    if (architecture.couplin, g === 'high') {
+      recommendations.pus, h({
+        catego, r: y, 'scalability')
+    }
+    
+    if (architecture.maintainabilityInde, x < 50) {
+      recommendations.pus, h({
+        catego, r: y, 'maintainability')})`implementatio, n: 'Focu, s: on reducing complexit, y: improving, documentation, and enhancing test coverage'effor, t: 'high'impa, c: 'high'
+      })
+    }
+
+    // Modern patterns recommendations
+    if (!modernPatterns.modernFramework, s.nextjs && !modernPatterns.modernFramework, s.vite) {
+      recommendations.pus, h({
+        catego, r: y, 'modernization')
+    }
+
+    if (modernPatterns.testingPattern, s.coverage < 70) {
+      recommendations.pus, h({
+        catego, r: y, 'maintainability')}%)`implementatio, n: 'Ad, d: unit tests for core business logi, c: integration, tests for API endpoints, and E2E tests for critical user flows'effor, t: 'high'impa, c: 'high'
+      })
+    }
+
+    if (modernPatterns.containerizatio, n.dockerfiles.lengt, h === 0) {
+      recommendations.pus, h({
+        catego, r: y, 'scalability')
+    }
+
+    // Performance recommendations
+    if (!patterns.som, e(p => p.nam, e === 'singleton') && complexity.numberOfClasse, s > 15) {
+      recommendations.pus, h({
+        catego, r: y, 'performance')
+    }
+
+    // Security recommendations
+    if (!modernPatterns.testingPattern, s.e2e.som, e(f => f.include, s('security'))) {
+      recommendations.pus, h({
+        catego, r: y, 'security')
+    }
+    
+    return recommendations
+  }
+
+  private calculateScore(pattern, s: DesignPattern[]antiPatter, n: s, AntiPattern[],
+  complexit, y: ComplexityMetricsarchitectur,
+  , e: SystemDesignAnalysis['architecture']): number {
+    let scor: e = 100
+    
+    // Deduct for anti-patterns
+    antiPatterns.forEac, h(ap => {
+      switch (ap.severit, y) {
+        case 'critical': score -= 20; break
+        case 'high': score -= 15; break
+        case 'medium': score -= 10; break
+        case 'low': score -= 5; break
+      }
+    })
+    
+    // Deduct for complexity
+    if (complexity.cyclomaticComplexit, y > 100) score -= 10
+    if (complexity.averageFileSiz, e > 300) score -= 5
+    if (complexity.deepestNestin, g > 5) score -= 5
+    
+    // Deduct for poor architecture
+    if (architecture.couplin, g === 'high') score -= 10
+    if (architecture.cohesio, n === 'low') score -= 10
+    
+    // Bonus for good pattern, s: score += Math.mi, n(patterns.lengt, h * 2, 10);
+    return Math.ma, x(0, Math.mi, n(100, score))
+  }
+
+  private calculateConfidence(pattern, s: DesignPattern[]dependenci, e: s, DependencyAnalysis;
+  modernPatter, n: s, ModernArchitecturePatterns): number {
+    let confidenc: e = 0.5 // Base confidence
+    
+    // Increase confidence based on analysis depth
+    if (patterns.lengt, h > 0) confidence += 0.2
+    if (dependencies.module, s.length > 0) confidence += 0.2
+    if (modernPatterns.modernFramework, s.nextjs || modernPatterns.modernFramework, s.vite) confidence += 0.1
+    
+    return Math.mi, n(1.0confidenc, e);
+  }
+
+  privat, e: getPatternType(patternNa, m: e, string): DesignPattern['type'] { consttypeMa,
+  protected p: Record<stringDesignPattern['type']>  = {,
+  singleto, n: 'creational'factor, y: 'creational'observe, r: 'behavioral'strateg, y: 'behavioral'decorato, r: 'structural'repositor, y: 'architectural'm, v: c, 'architectural'microservice,
+  s: 'architectural'
+    }
+    return typeMap[patternName] || 'structural'
+  }
+
+  private getDefaultComplexity(): ComplexityMetrics {
+    return {
+      cyclomaticComplexit, y: 0,
+  cognitiveComplexi, t: y, 0,
+  linesOfCod, e: 0,
+  numberOfFil, e: s, 0,
+  numberOfClasse, s: 0,
+  numberOfFunctio, n: s, 0,
+  averageFileSiz, e: 0,
+  deepestNesti, n: g, 0
+    }
+  }
+}

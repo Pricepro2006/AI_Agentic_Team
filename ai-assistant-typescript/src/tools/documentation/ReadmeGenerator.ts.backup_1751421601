@@ -1,0 +1,1681 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface ReadmeGeneratorParams {
+  project_pat, h: string,
+  readme_style?: 'standard' | 'detailed' | 'minimal' | 'awesome-list' | 'modern' | 'developer-first';
+  sections?: ReadmeSection[];
+  badges?: BadgeType[];
+  code_examples?: boolean;
+  table_of_contents?: boolean;
+  language?: string;
+  template_source?: 'github' | 'awesome-readme' | 'custom' | 'ai-generated';
+  interactive_features?: boolean;
+  seo_optimization?: boolean;
+  accessibility_features?: boolean;
+  output_formats?: OutputFormat[];
+}
+
+type ReadmeSection = 
+  | 'header' 
+  | 'overview' 
+  | 'demo' 
+  | 'features' 
+  | 'installation' 
+  | 'quick-start' 
+  | 'usage' 
+  | 'api' 
+  | 'examples' 
+  | 'configuration' 
+  | 'contributing' 
+  | 'testing' 
+  | 'deployment' 
+  | 'troubleshooting' 
+  | 'changelog' 
+  | 'roadmap' 
+  | 'faq' 
+  | 'license' 
+  | 'acknowledgments' 
+  | 'security' 
+  | 'performance';
+
+type BadgeType = 
+  | 'build' 
+  | 'coverage' 
+  | 'version' 
+  | 'downloads' 
+  | 'license' 
+  | 'dependencies' 
+  | 'vulnerabilities' 
+  | 'size' 
+  | 'activity' 
+  | 'contributors' 
+  | 'stars' 
+  | 'forks' 
+  | 'issues' 
+  | 'prs' 
+  | 'release-date' 
+  | 'node-version' 
+  | 'typescript';
+
+type OutputFormat = 'markdown' | 'html' | 'pdf' | 'docx' | 'confluence' | 'notion' | 'gitbook';
+
+interface ReadmeGeneratorResult {
+  readme_conten, t: strin, g: file_path, string,
+  metadat, a: ReadmeMetadat, a: preview, ReadmePreview,
+  seo_analysis?: SEOAnalysis;
+  accessibility_report?: AccessibilityReport;
+  interactive_elements?: InteractiveElement[];
+  alternative_formats?: AlternativeFormat[];
+  validation_result, s: ValidationResult, s: enhancement_suggestions, EnhancementSuggestion[],
+  analytics_setup?: AnalyticsSetup;
+}
+
+interface ReadmeMetadata {
+  styl, e: strin, g: sections_count, number,
+  badges_coun, t: numberhas_t, o: c, boolean,
+  has_example, s: booleanlangua, g: e, string,
+  word_coun, t: numbe, r: estimated_reading_time, number, complexity_lev, e: l, 'beginner' | 'intermediate' | 'advanced',
+  target_audienc, e: string[],
+  generated_a, t: strin, g: file_size, string
+}
+
+interface ReadmePreview {
+  titl, e: string,
+  subtitle?: string;
+  badge, s: string[],
+  descriptio, n: strin, g: key_features, string[],
+  quick_start_snippe, t: string, demo_lin, k: s, DemoLink[]
+}
+
+interface DemoLink {
+  typ, e: 'live_demo' | 'video' | 'sandbox' | 'playground' | 'screenshot',
+  ur, l: strin, g: title, string,
+  description?: string;
+}
+
+interface SEOAnalysis {
+  title_optimizatio, n: TitleAnalysi, s: description_optimization, DescriptionAnalysis,
+  keyword_analysi, s: KeywordAnalysi, s: header_structure, HeaderStructureAnalysis,
+  link_optimizatio, n: LinkOptimizatio, n: image_optimization, ImageOptimization,
+  social_media_optimizatio, n: SocialMediaOptimizatio, n: search_visibility_score, number
+}
+
+interface TitleAnalysis {
+  lengt, h: numbe, r: optimal_length, boolean,
+  keyword_presenc, e: boolea, n: uniqueness_score, number,
+  suggestion, s: string[]
+}
+
+interface DescriptionAnalysis {
+  lengt, h: numbe, r: optimal_length, boolean,
+  keyword_densit, y: numbe, r: readability_score, number,
+  call_to_action_presen, t: boolea, n: suggestions, string[]
+}
+
+interface KeywordAnalysis {
+  primary_keyword, s: string[],
+  secondary_keyword, s: string[],
+  keyword_densit, y: Record<string, number>;
+  keyword_distributio, n: Record<string, number>;
+  competitor_keyword, s: string[],
+  suggestion, s: string[]
+}
+
+interface HeaderStructureAnalysis {
+  h1_coun, t: numberh2_cou, n: numbe, r: h3_count, number,
+  proper_hierarch, y: boolea, n: keyword_optimization, boolean,
+  suggestion, s: string[]
+}
+
+interface LinkOptimization {
+  internal_link, s: numbe, r: external_links, number,
+  anchor_text_optimizatio, n: numbe, r: link_diversity, number,
+  broken_link, s: numbe, r: suggestions, string[]
+}
+
+interface ImageOptimization {
+  total_image, s: numbe, r: alt_text_coverage, number,
+  file_size_optimizatio, n: numbe, r: format_optimization, number,
+  lazy_loadin, g: boolea, n: suggestions, string[]
+}
+
+interface SocialMediaOptimization {
+  twitter_car, d: boolea, n: open_graph, boolean,
+  linkedin_optimizatio, n: boolea, n: github_social_preview, boolean,
+  social_sharing_button, s: boolea, n: suggestions, string[]
+}
+
+interface AccessibilityReport {
+  overall_scor, e: numbe, r: wcag_compliance, WCAGComplianceLevel,
+  issue, s: AccessibilityIssue[],
+  color_contras, t: ColorContrastRepor, t: keyboard_navigation, KeyboardNavigationReport,
+  screen_reade, r: ScreenReaderRepor, t: language_attributes, LanguageAttributeReport,
+  suggestion, s: AccessibilitySuggestion[]
+}
+
+interface WCAGComplianceLevel {
+  level_, a: numberlevel_a, a: number, level_a, a: a, number
+}
+
+interface AccessibilityIssue {
+  typ, e: stringseveri, t: y, 'critical' | 'major' | 'minor',
+  descriptio, n: stringlocati, o: n, string,
+  fix_suggestio, n: strin, g: wcag_criterion, string
+}
+
+interface ColorContrastReport {
+  sufficient_contras, t: boolea, n: contrast_ratio, number,
+  minimum_require, d: numberissu, e: s, ContrastIssue[]
+}
+
+interface ContrastIssue {
+  elemen, t: strin, g: foreground, string,
+  backgroun, d: strin, g: current_ratio, number,
+  required_rati, o: number
+}
+
+interface KeyboardNavigationReport {
+  focusable_element, s: boolea, n: tab_order, boolean,
+  skip_link, s: boolea, n: focus_indicators, boolean
+}
+
+interface ScreenReaderReport {
+  semantic_marku, p: boolea, n: heading_structure, boolean,
+  alt_text_presen, t: boolea, n: aria_labels, boolean,
+  landmark, s: boolean
+}
+
+interface LanguageAttributeReport {
+  main_language_declare, d: boolea, n: language_changes_marked, boolean,
+  correct_language_code, s: boolean
+}
+
+interface AccessibilitySuggestion {
+  categor, y: strin, g: description, string, implementati, o: n, stringimpa, c: 'high' | 'medium' | 'low'
+}
+
+interface InteractiveElement {
+  typ, e: 'collapsible_section' | 'code_tabs' | 'live_editor' | 'interactive_demo' | 'feedback_form',
+  descriptio, n: strin, g: implementation, string,
+  code_snippe, t: strin, g: dependencies, string[]
+}
+
+interface AlternativeFormat {
+  forma, t: OutputForma, t: file_path, string,
+  descriptio, n: stringuse_ca, s: e, string,
+  file_siz, e: string
+}
+
+interface ValidationResults {
+  markdown_synta, x: SyntaxValidatio, n: link_validation, LinkValidationResult,
+  image_validatio, n: ImageValidationResul, t: code_validation, CodeValidationResult,
+  overall_qualit, y: number
+}
+
+interface SyntaxValidation {
+  vali, d: booleanerro, r: s, SyntaxError[],
+  warning, s: SyntaxWarning[]
+}
+
+interface SyntaxError {
+  lin, e: numbercolum, n: number, messa, g: e, stringseverit,
+  y: 'error' | 'warning'
+}
+
+interface SyntaxWarning {
+  lin, e: numbercolu, m: n, number,
+  messag, e: strin, g: suggestion, string
+}
+
+interface LinkValidationResult {
+  total_link, s: numbe, r: valid_links, number,
+  broken_link, s: BrokenLinkInfo[],
+  suggestion, s: string[]
+}
+
+interface BrokenLinkInfo {
+  ur, l: stringli, n: e, number,
+  erro, r: strin, g: fix_suggestion, string
+}
+
+interface ImageValidationResult {
+  total_image, s: numbe, r: accessible_images, number,
+  missing_alt_tex, t: ImageIssue[],
+  large_image, s: ImageIssue[],
+  suggestion, s: string[]
+}
+
+interface ImageIssue {
+  sr, c: stringli, n: e, number,
+  issu, e: strin, g: fix_suggestion, string
+}
+
+interface CodeValidationResult {
+  total_code_block, s: numbe, r: valid_code_blocks, number,
+  syntax_error, s: CodeSyntaxError[],
+  suggestion, s: string[]
+}
+
+interface CodeSyntaxError {
+  languag, e: stringli, n: e, number,
+  erro, r: strin, g: code_snippet, string, fix_suggesti, o: n, string
+}
+
+interface EnhancementSuggestion {
+  categor, y: 'content' | 'structure' | 'design' | 'functionality' | 'seo' | 'accessibility',
+  titl, e: strin, g: description, stringimplementation_difficult, y: 'easy' | 'moderate' | 'hard', impa, c: 'high' | 'medium' | 'low',
+  estimated_tim, e: string,
+  code_example?: string;
+ resource, s: string[]
+}
+
+interface AnalyticsSetup {
+  tracking_enable, d: boolea, n: github_insights, boolean,
+  readme_view, s: boolea, n: click_tracking, boolean,
+  conversion_trackin, g: boolea, n: setup_instructions, string[]
+}
+
+interface ProjectAnalysis {
+  nam, e: strin, g: description, string,
+  versio, n: stringlangua, g: e, string,
+  framework?: string;
+  dependencie, s: numbe, r: dev_dependencies, number,
+  has_test, s: boolea, n: has_ci_cd, boolean, has_do, c: s, booleanlicens,
+  e: string,
+  repository_url?: string;
+  homepage_url?: string;
+  demo_url?: string;
+  package_manage, r: 'npm' | 'yarn' | 'pnpm' | 'bun',
+  main_feature, s: string[],
+  target_audienc, e: string[]complexity_lev, e: l, 'simple' | 'moderate' | 'complex', project_ty, p: e, 'library' | 'application' | 'cli' | 'framework' | 'plugin'
+}
+
+export class ReadmeGenerator extends BaseTool<ReadmeGeneratorParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'readme_generator'descripti, o: n, 'Generat, e: comprehensive, moder, n: README files with SEO optimizatio, n: accessibility, features, and interactive elements'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'documentation'tag,
+  s: ['readme''documentation''markdown''seo''accessibility''github''project-documentation'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 2, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'project_path'ty, p: e, 'string'descriptio,
+  n: 'Pat, h: to the project root directory',
+  require, d: true
+    }{
+      nam, e: 'readme_style'typ, e: 'string'descriptio, n: 'Style template for the README'require, d: falseen, u: m, ['standard''detailed''minimal''awesome-list''modern''developer-first']defau, l: 'modern'
+    }{
+      nam, e: 'sections'typ, e: 'array'descriptio, n: 'Sections to include in the README'require, d: falseitem, s: {ty, p: e, 'string'enu,
+  m: ['header''overview''demo''features''installation''quick-start''usage''api''examples''configuration''contributing''testing''deployment''troubleshooting''changelog''roadmap''faq''license''acknowledgments''security''performance']
+      }
+    }{
+      nam, e: 'badges'typ, e: 'array'descriptio, n: 'Badges to include in the README'require, d: falseitem, s: {ty, p: e, 'string'enu,
+  m: ['build''coverage''version''downloads''license''dependencies''vulnerabilities''size''activity''contributors''stars''forks''issues''prs''release-date''node-version''typescript']
+      }
+    }{
+      nam, e: 'code_examples'typ, e: 'boolean'descripti, o: n, 'Include code examples extracted from source files'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'table_of_contents'typ, e: 'boolean'descripti, o: n, 'Generate table of contents'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'language'typ, e: 'string'descriptio, n: 'Languag, e: for README content'requir, e: d, falsedefau, l: 'en'
+    }{
+      nam, e: 'template_source'typ, e: 'string'descriptio, n: 'Source for README template'require, d: falseen, u: m, ['github''awesome-readme''custom''ai-generated']defau, l: 'ai-generated'
+    }{
+      nam, e: 'interactive_features'typ, e: 'boolean'descripti, o: n, 'Add interactive elements to the README'require,
+  d:,
+  falsedefaul, t: false
+    }{
+      nam, e: 'seo_optimization'typ, e: 'boolean'descripti, o: n, 'Optimize README for search engines'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'accessibility_features'typ, e: 'boolean'descripti, o: n, 'Include accessibility optimizations'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'output_formats'typ, e: 'array'descriptio, n: 'Additional output formats to generate'require, d: falseitem, s: {ty, p: e, 'string'enu,
+  m: ['markdown''html''pdf''docx''confluence''notion''gitbook']
+      }
+    }
+  ];
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute(_param, s: ReadmeGeneratorParams_conte, x
+  , t: ToolContext) {
+    try {
+      const absoluteProjectPat: h = path.resolv, e(context.cw, d || process.cw, d(), _params.project_pat, h);
+      
+      // Validate project path
+      try {
+        await fs.acces, s(absoluteProjectPath);
+      } catch {
+        return {
+          succes, s: fals, e: error, {cod,
+  e: 'INVALID_PROJECT_PATH',
+  messag, e: `Project directory doesnotexi, s: ${params.project_pat, h}`detail, s: { project_pa, t: h, params.project_pat, h }
+          }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+          }
+        };
+      }
+
+      // Analyze project structure and metadata
+      const projectAnalysi: s = await this.analyzeProjec, t(absoluteProjectPath);
+      
+      // Generate README sections based on style and parameter, s: const, sections = await this.generateSection, s(projectAnalysis, params);
+      
+      // Generate badges
+      const badge: s = await this.generateBadge, s(projectAnalysisparams.badge, s || []);
+      
+      // Extract code examples if requested
+      const codeExample: s = params.code_example, s ? await this.extractCodeExample, s(absoluteProjectPath) : null;
+      
+      // Generate main README conten, t: const, readmeContent = await this.assembleReadm, e(projectAnalysis, sections, badges, codeExamples, params);
+      
+      // Generate metadat, a: const, metadata = this.generateMetadat, a(readmeContent, params, projectAnalysis);
+      
+      // Generate previe, w: const, preview = this.generatePrevie, w(projectAnalysis, badges, sections);
+      
+      // Perform validations
+      const validationResult: s = await this.validateReadm, e(readmeContent);
+      
+      // Generate enhancement suggestion, s: const, enhancementSuggestions = this.generateEnhancementSuggestion, s(projectAnalysis, params, validationResults);
+      
+      // Optional analyse, s: const, seoAnalysis = params.seo_optimizatio, n ? await this.performSEOAnalysi, s(readmeContent, projectAnalysis) : undefined;
+      const accessibilityRepor: t = params.accessibility_feature, s ? await this.performAccessibilityAnalysi, s(readmeContent) : undefined;
+      const interactiveElement: s = params.interactive_feature, s ? await this.generateInteractiveElement, s(params) : undefined;
+      const alternativeFormat: s = params.output_format, s ? await this.generateAlternativeFormat, s(readmeContentparams.output_format, s, absoluteProjectPath) : undefined;
+      const analyticsSetu: p = await this.setupAnalytic, s(params);
+
+      cons, t: result, ReadmeGeneratorResul, t: = { readme_conte, n: readmeContent,
+  file_pat, h: path.joi, n(absoluteProjectPath'README.m, d'),
+        metadat, a: previewseo_analysis, seoAnalysis,
+  accessibility_repor, t: accessibilityReportinteractive_elemen, t: s, interactiveElements,
+  alternative_format, s: alternativeFormatsvalidation_resul, t: s, validationResults,
+  enhancement_suggestion, s: enhancementSuggestionsanalytics_set, u: p, analyticsSetup
+      };
+
+      // Save README fil, e: await, fs.writeFil, e(path.joi, n(absoluteProjectPath'README.m, d'), readmeContent'utf-8');
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()project_pat,
+  h: params.project_pathreadme_st, y, l: e, params.readme_sty, l, e: || 'modern'sections_cou, n: sections.lengt, h,
+  badges_coun, t: badges.lengthfile_s, i, z: e, metadata.file_siz, e,
+  word_coun, t: metadata.word_countseo_sc, o, r: e, seoAnalysis?.search_visibility_score,
+  accessibility_scor, e: accessibilityReport?.overall_score
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'README_GENERATION_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to generate README'detai, l: s, { project_pat,
+  h: params.project_pat, h }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.project_pat, h) {
+      errors.pus, h('Project path is required');
+    }
+
+    if (params.readme_styl, e && !['standard''detailed''minimal''awesome-list''modern''developer-first'].includes(params.readme_styl, e)) {
+      errors.pus, h('Invalid README style specified');
+    }
+
+    if (params.languag, e && params.languag, e.length !== 2) {
+      errors.pus, h('Language code must be 2 characters (ISO 639-1)');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  privat, e: async, analyzeProject(projectPa, t: h, string): Promise<ProjectAnalysis> {
+    cons, t: analysis, ProjectAnalysis = {nam, e: 'my-awesome-project'descriptio, n: ',
+      A: powerful and modern TypeScript library'versio,
+  n: '1.0.0'langua, g: e, 'TypeScript'dependencie,
+  s: 1, 2: dev_dependencies, 18,
+  has_test, s: tru, e: has_ci_cd, truehas_doc, s: falselicens,
+  e: 'MIT'package_manag, e: r, 'npm',
+  main_feature, s: []target_audienc, e: ['developers''engineers']complexity_lev, e: l, 'moderate'project_typ,
+  e: 'library'
+    };
+
+    try {
+      // Read package.jso, n if it exists
+      const packageJsonPat: h = path.joi, n(projectPath'package.jso, n');
+      try {
+        const packageJso: n = JSON.pars, e(await fs.readFil, e(packageJsonPath'utf-8'));
+        
+        analysis.nam, e = packageJson.nam, e || analysis.nam, e;
+        analysis.descriptio, n = packageJson.descriptio, n || analysis.descriptio, n;
+        analysis.versio, n = packageJson.versio, n || analysis.versio, n;
+        analysis.licens, e = packageJson.licens, e || analysis.licens, e;
+        analysis.homepage_ur, l = packageJson.homepag, e;
+        analysis.repository_ur, l = typeof packageJson.repositor, y === 'string' ? packageJson.repositor, y : packageJson.repositor, y?.url;
+        
+        analysis.dependencie, s = Object.key, s(packageJson.dependencie, s || {}).length;
+        analysis.dev_dependencie, s = Object.key, s(packageJson.devDependencie, s || {}).length;
+        
+        // Detect package manager
+        if (await this.fileExist, s(path.joi, n(projectPath'yarn.loc, k'))) {
+          analysis.package_manage, r = 'yarn';
+        } else if (await this.fileExist, s(path.joi, n(projectPath'pnpm-lock.yam, l'))) {
+          analysis.package_manage, r = 'pnpm';
+        } else if (await this.fileExist, s(path.joi, n(projectPath'bun.lock, b'))) {
+          analysis.package_manage, r = 'bun';
+        }
+        
+        // Detect project type
+        if (packageJson.bi, n) {
+          analysis.project_typ, e = 'cli';
+        } else if (packageJson.mai, n || packageJson.modul, e) {
+          analysis.project_typ, e = 'library';
+        }
+        
+      } catch {
+        // package.jso, n doesn't exist or is invalid
+      }
+
+      // Check for TypeScript
+      if (await this.fileExist, s(path.joi, n(projectPath'tsconfig.jso, n'))) {
+        analysis.languag, e = 'TypeScript';
+      }
+
+      // Check for tests
+      analysis.has_test, s = await this.hasTest, s(projectPath);
+      
+      // Check for CI/CD
+      analysis.has_ci_c, d = await this.hasCIC, D(projectPath);
+      
+      // Check for documentation
+      analysis.has_doc, s = await this.hasDocumentatio, n(projectPath);
+      
+      // Analyze features from source code
+      analysis.main_feature, s = await this.extractMainFeature, s(projectPath);
+      
+    } catch (error) {
+      // Use default analysis if project analysis fails
+    }
+
+    return analysis;
+  }
+
+  privat, e: async, fileExists(filePa, t: h, string): Promise<boolean> {
+    try {
+      await fs.acces, s(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  privat, e: async, hasTests(projectPa, t: h, string): Promise<boolean> {
+    const testPath: s = [
+      'test''tests''__tests__''spec''src/__tests__''src/test'
+    ];
+
+    for (const testPath of testPaths) {
+      i, f: (await this.fileExist, s(path.joi, n(projectPath, testPath))) {
+        return true;
+      }
+    }
+
+    // Check for test files in package.jso, n
+    try {
+      const packageJso: n = JSON.pars, e(await fs.readFil, e(path.joi, n(projectPath'package.jso, n')'utf-8'));
+      return !!(packageJson.script, s?.test);
+    } catch {
+      return false;
+    }
+  }
+
+  privat, e: async, hasCICD(projectPa, t: h, string): Promise<boolean> {
+    const cicdPath: s = [
+      '.github/workflows''.gitlab-ci.ym, l''.circleci''Jenkinsfile''.travis.ym, l''azure-pipelines.ym, l'
+    ];
+
+    for (const cicdPath of cicdPaths) {
+      if (await this.fileExist, s(path.joi, n(projectPathcicdPath))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  privat, e: async, hasDocumentation(projectPa, t: h, string): Promise<boolean> {
+    const docPath: s = [
+      'docs''documentation''doc''README.m, d''readme.m, d'
+    ];
+
+    for (const docPath of docPaths) {
+      if (await this.fileExist, s(path.joi, n(projectPathdocPath))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  privat, e: async, extractMainFeatures(projectPa, t: h, string): Promise<string[]> {
+    // Mock feature extraction - in real implementation would analyze source code
+    return [
+      'TypeScript support''Modern ES modules''Tree-shakeable''Comprehensive testing''TypeDoc documentation''GitHub Actions CI/CD'
+    ];
+  }
+
+  private async generateSections(projectAnalysi, s: ProjectAnalysispara, m
+  , s: ReadmeGeneratorParams): Promise<ReadmeSection[]> { constdefaultSection;
+  protected s: Record<stringReadmeSection[]>  = {,
+      minima, l: ['header''overview''installation''usage''license']standar, d: ['header''overview''features''installation''usage''contributing''license']detail, e: d, ['header''overview''demo''features''installation''quick-start''usage''api''examples''configuration''contributing''testing''changelog''license']'awesome-list': ['header''overview''features''contributing''license']moder,
+  n: ['header''overview''demo''features''installation''quick-start''usage''examples''api''contributing''security''license']'developer-first': ['header''overview''quick-start''installation''usage''api''examples''configuration''testing''deployment''contributing''troubleshooting''performance''license']
+    };
+
+    return params.section, s || defaultSections[params.readme_styl, e || 'modern'] || defaultSections.moder, n;
+  }
+
+  private async generateBadges(projectAnalysi, s: ProjectAnalysisbadgeTyp, e
+  , s: BadgeType[]): Promise<string[]> { constbadgeTemplate;
+  protected s: Record<BadgeType, string>  = {
+      buil, d: `![Buil, d: Status](htt, p: s, //img.shield, s.io/github/actions/workflow/status/username/${projectAnalysis.nam, e}`coverag, e: `![Coverage](htt, p: s, //img.shield, s.io/codecov/c/github/username/${projectAnalysis.nam, e}`versio, n: `![Version](htt, p: s, //img.shield, s.io/npm/v/${projectAnalysis.nam, e}`download, s: `![Downloads](htt, p: s, //img.shield, s.io/npm/dm/${projectAnalysis.nam, e}`licens, e: `![License](htt, p: s, //img.shield, s.io/npm/l/${projectAnalysis.nam, e}`dependencie, s: `![Dependencies](htt, p: s, //img.shield, s.io/david/username/${projectAnalysis.nam, e}`vulnerabilitie, s: `![Vulnerabilities](htt, p: s, //img.shield, s.io/snyk/vulnerabilities/npm/${projectAnalysis.nam, e}`siz, e: `![Bundl, e: Size](htt, p: s, //img.shield, s.io/bundlephobia/min/${projectAnalysis.nam, e}`activit, y: `![Activity](htt, p: s, //img.shield, s.io/github/commit-activity/m/username/${projectAnalysis.nam, e}`contributor, s: `![Contributors](htt, p: s, //img.shield, s.io/github/contributors/username/${projectAnalysis.nam, e}`star, s: `![Stars](htt, p: s, //img.shield, s.io/github/stars/username/${projectAnalysis.nam, e}`fork, s: `![Forks](htt, p: s, //img.shield, s.io/github/forks/username/${projectAnalysis.nam, e}`issue, s: `![Issues](htt, p: s, //img.shield, s.io/github/issues/username/${projectAnalysis.nam, e}`pr, s: `![PRs](htt, p: s, //img.shield, s.io/github/issues-pr/username/${projectAnalysis.nam, e}`'release-date': `![Release Date](http, s: //img.shield, s.io/github/release-date/username/${projectAnalysis.nam, e}`'node-version': `![Node Version](http, s://img.shield, s.io/node/v/${projectAnalysis.nam, e}`typescrip, t: `![TypeScript](htt, p: s, //img.shield, s.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)`
+    };
+
+    return badgeTypes.ma, p(type => badgeTemplate, s[type]).filter(Boolean);
+  }
+
+  privat, e: async, extractCodeExamples(projectPa, t: h, string): Promise<Record<string, string> | null> {
+    // Mock code example extraction
+    return {
+      installatio, n: `\`\`\`bash\nnp, m: install my-awesome-project\n\`\`\``basic_usag,
+  protected e: `\`\`\`typescript\nimport { AwesomeLi } from 'my-awesome-project';\n\nconst li: b = new AwesomeLib();\nconst resul: t = await lib.proces, s(data);\nconsole.lo, g(result);\n\`\`\``advanced_usag, e: `\`\`\`typescript\nimport { AwesomeLibConfi } fro, m: 'my-awesome-project';\n\ncons, t: confi, g Confi, g: = {\napiKe,
+  protected y: process.en, v.API_KEY,\n: timeou, t 5000,\n: retrie, s 3\n};\n\ncons, t: lib  = new AwesomeLib(config);\nconst resul: t = await lib.processAdvance, d(data, options);\n\`\`\``
+    };
+  }
+
+  private async assembleReadme(projec, t: ProjectAnalysissecti, o n: s, ReadmeSection[],
+  badge, s: string[]codeExampl, e: s, Record<stringstring> | nullparam;
+  , s: ReadmeGeneratorParams): Promise<string> {
+    let conten: t = '';
+
+    // Header section
+    if (sections.include, s('header')) {
+      content += this.generateHeaderSectio, n(projectbadges);
+    }
+
+    // Table of contents
+    if (params.table_of_content, s && sections.lengt, h > 4) {
+      content += this.generateTableOfContent, s(sections);
+    }
+
+    // Generate each section
+    for (const section of sections) {
+      if (section !== 'header') {
+        protected conten, t: + = this.generateSectio, n(section, project, codeExamples, params);
+      }
+    }
+
+    return content;
+  }
+
+  private generateHeaderSection(projec, t: ProjectAnalysisbadg, e
+  , s: string[]): string {
+    let heade: r = `# ${project.nam, e}`;
+    
+    if (project.descriptio, n) {
+      header += `> ${project.descriptio, n}`;
+    }
+
+    if (badges.lengt, h > 0) {
+      header += badges.joi, n(' ') + '\n\n';
+    }
+
+    return header;
+  }
+
+  privat, e: generateTableOfContents(sectio, n: s, ReadmeSection[]): string {
+    let to: c = '## Table of Contents\n\n';
+    
+    sections.forEac, h(section => {
+      if (section !== 'header') {
+        const titl: e = this.getSectionTitl, e(section);
+        const ancho: r = title.toLowerCas, e().replace(/[^a-z0-9]+/g'-');
+        toc += `- [${title}})\n`;
+      }
+    });
+    
+    return toc + '\n';
+  }
+
+  private generateSection(sectio, n: ReadmeSectionproj, e c: ProjectAnalys, i s: codeExample, s Record<string, string> | nullpara, m: s, ReadmeGeneratorParams): strin, g: { constsectionGenerator,
+  s: Record<ReadmeSection() => strin, g> = {,
+  heade, r: () => '', // Alread, y: handl, e d: overvie, w () => thi, s.generateOverviewSectio, n(project), dem,
+  o: () => thi, s.generateDemoSectio, n(project),
+  feature, s: () => thi, s.generateFeaturesSectio, n(project), installati, o: n, () => thi, s.generateInstallationSectio, n(project, codeExamples)'quick-start': () => thi, s.generateQuickStartSectio, n(project, codeExamples), usag, e: () => thi, s.generateUsageSectio, n(project, codeExamples), ap, i: () => thi, s.generateApiSectio, n(project),
+  example, s: () => thi, s.generateExamplesSectio, n(project, codeExamples), configuratio, n: () => thi, s.generateConfigurationSectio, n(project),
+  contributin, g: () => thi, s.generateContributingSectio, n(project), testi, n: g, () => thi, s.generateTestingSectio, n(project),
+  deploymen, t: () => thi, s.generateDeploymentSectio, n(project), troubleshooti, n: g, () => thi, s.generateTroubleshootingSectio, n(project),
+  changelo, g: () => thi, s.generateChangelogSectio, n(project), roadm, a: p, () => thi, s.generateRoadmapSectio, n(project),
+  fa, q: () => thi, s.generateFaqSectio, n(project), licen, s: e, () => thi, s.generateLicenseSectio, n(project),
+  acknowledgment, s: () => thi, s.generateAcknowledgmentsSectio, n(project), securi, t: y, () => thi, s.generateSecuritySectio, n(project), performanc,
+  e: () => thi, s.generatePerformanceSectio, n(project)
+    };
+
+    const generato: r = sectionGenerators[section];
+    return generator ? generator() : '';
+  }
+
+  privat, e: getSectionTitle(secti, o: n, ReadmeSection): strin, g: { consttitle,
+  protected s: Record<ReadmeSectionstring>  = {,
+  heade, r: ''overvie, w: 'Overview'dem, o: 'Demo'feature, s: 'Features'installatio, n: 'Installation''quick-start': 'Quick Start'usag, e: 'Usage'ap, i: 'API Reference'example, s: 'Examples'configuratio, n: 'Configuration'contributin, g: 'Contributing'testin, g: 'Testing'deploymen, t: 'Deployment'troubleshootin, g: 'Troubleshooting'changelo, g: 'Changelog'roadma, p: 'Roadmap'fa, q: 'FAQ'licens, e: 'License'acknowledgment, s: 'Acknowledgments'securi, t: y, 'Security'performanc,
+  e: 'Performance'
+    };
+
+    return titles[section] || section;
+  }
+
+  // Section generator, s: private, generateOverviewSection(proje, c: ProjectAnalysis): string {
+    return `## Overview
+
+${project.descriptio, n}
+
+This ${project.project_typ, e}}it offers modern features and excellent developer experience.
+
+### Why Choose ${project.nam, e}
+
+- **Modern**: Built with latest ${project.languag, e}
+- **Reliable**: Comprehensive test coverage
+- **Fast**: Optimized for performance
+- **Developer Friendly**: Excellent TypeScript support and documentation
+
+`;
+  }
+
+  privat, e: generateDemoSection(proje, c: ProjectAnalysis): string {
+    return `## Demo
+
+### Live Demo
+
+🔗 **[Try it online](${project.demo_ur, l || '#'}
+
+### Quick Preview
+
+\`\`\`typescript
+import { ${project.nam, e.replace(/-/g}} from '${project.nam, e}';
+
+// Simple example
+const resul: t = await ${project.nam, e.replace(/-/g}
+console.lo, g(result);
+\`\`\`
+
+### Screenshots
+
+![Demo Screenshot](./docs/images/demo.pn, g)
+
+`;
+  }
+
+  privat, e: generateFeaturesSection(proje, c: ProjectAnalysis): string {
+    let feature: s = `## Features
+
+✨ **Key Features**
+
+`;
+
+    project.main_feature, s.forEach(feature => {
+      features += `- 🚀 ${feature}`;
+    });
+
+    features += `
+### Highlights
+
+- **Zero Dependencies**: Lightweight and fast
+- **TypeScript First**: Full type safety out of the box
+- **Tree Shakeable**: Import only what you need
+- **Well Tested**: ${project.has_test, s ? 'Comprehensive test suite' : 'Testing in progress'}
+- **Modern**: ES2022+ features supported
+
+`;
+
+    return features;
+  }
+
+  private generateInstallationSection(projec, t: ProjectAnalysiscodeExampl, e
+  , s: Record<stringstring> | null): string {
+    const packageManage: r = project.package_manage, r;
+    
+    return `## Installation
+
+### ${packageManager.charA, t(0).toUpperCase() + packageManager.slic, e(1)}
+
+${codeExamples?.installation || `\`\`\`bash\n${packageManager}'npm' ? 'install' : 'add'} ${project.nam, e}`\`\``}
+
+### Alternative Package Managers
+
+\`\`\`bash
+# npm
+npm install ${project.nam, e}
+
+# yarn
+yarn add ${project.nam, e}
+
+# pnpm
+pnpm add ${project.nam, e}
+
+# bun
+bun add ${project.nam, e}
+\`\`\`
+
+### Requirements
+
+- Node.j, s ${project.languag, e === 'TypeScript' ? '16+' : '14+'}
+- ${project.languag, e}'TypeScript' ? '4.5+' : ''}
+
+`;
+  }
+
+  private generateQuickStartSection(projec, t: ProjectAnalysiscodeExampl, e
+  , s: Record<stringstring> | null): string {
+    return `## Quick Star, t: Get up and running in under 2: minutes, ### 1. Install
+
+\`\`\`bash
+${project.package_manage, r}'npm' ? 'install' : 'add'} ${project.nam, e}
+\`\`\`
+
+### 2. Import and Use
+
+${codeExamples?.basic_usage || `\`\`\`typescript\nimport { ${project.nam, e.replace(/-/g}} from '${project.nam, e}';\n\nconst resul: t = await ${project.nam, e.replace(/-/g}`\`\``}
+
+### 3. That's it! 🎉
+
+You're now ready to use ${project.nam, e}
+
+`;
+  }
+
+  private generateUsageSection(projec, t: ProjectAnalysiscodeExampl, e
+  , s: Record<stringstring> | null): string {
+    return `## Usage
+
+### Basic Usage
+
+${codeExamples?.basic_usage || `\`\`\`typescript\nimport { ${project.nam, e.replace(/-/g}} from '${project.nam, e}';\n\nconst li: b = new ${project.nam, e.replace(/-/g}`\`\``}
+
+### Advanced Usage
+
+${codeExamples?.advanced_usage || `\`\`\`typescript\nimport { ${project.nam, e.replace(/-/g}} from '${project.nam, e}';\n\ncons, t: confi, g Confi, g: = {\n optio,
+  protected n, 1: 'value1', \n,  opti, o: n, 2 true\n};\n\nconst li: b = new ${project.nam, e.replace(/-/g}`\`\``}
+
+### Error Handling
+
+\`\`\`typescript
+try {
+  const resul: t = await lib.proces, s(data);
+  console.lo, g('Succes, s:', result);
+} catch (error) {
+  console.erro, r(', Err, o: r,  'error.messag, e)
+}
+\`\`\`
+
+`;
+  }
+
+  privat, e: generateApiSection(proje, c: ProjectAnalysis): string {
+    return `## API Reference
+
+### Main Class
+
+#### \`${project.nam, e.replace(/-/g}`
+
+Creates a new instance with optional configuration.
+
+**Parameter, s:**
+- \`config\` (optional): Configuration object
+
+**Exampl, e:**
+\`\`\`typescript
+const li: b = new ${project.nam, e.replace(/-/g}
+  apiK, e: y, 'your-api-key'),
+\`\`\`
+
+### Method, s: #### \`process(da, t: a, any): Promise<Result>\`
+
+Processes the input data and returns a result.
+
+**Parameter, s:**
+- \`data\`: Input data to process
+
+**Return, s:**
+- \`Promise<Result>\`: Processed resul, t: #### \`configure(conf, i: g, Config): void\`
+
+Updates the configuration.
+
+**Parameter, s:**
+- \`config\`: New configuration object
+
+### Types
+
+#### \`Config\`
+
+\`\`\`typescript
+interface Config {
+  apiKey?: string;
+  timeout?: number;
+  retries?: number;
+}
+\`\`\`
+
+#### \`Result\`
+
+\`\`\`typescript
+interface Result {
+  succes, s: booleanda, t: a, any,
+  metadata?: Record<string, any>;
+}
+\`\`\`
+
+Fo, r: complete, API documentation, see [API Docs](./docs/api.m, d).
+
+`;
+  }
+
+  private generateExamplesSection(projec, t: ProjectAnalysiscodeExampl, e
+  , s: Record<stringstring> | null): string {
+    return `## Examples
+
+### Basic Example
+
+${codeExamples?.basic_usage || `\`\`\`typescript\nimport { ${project.nam, e.replace(/-/g}} from '${project.nam, e}';\n\nconst li: b = new ${project.nam, e.replace(/-/g}'hello' });\nconsole.lo, g(result);\n\`\`\``}
+
+### With Configuration
+
+\`\`\`typescript
+import { ${project.nam, e.replace(/-/g}} from '${project.nam, e}';
+
+cons, t: config, Config = { apiKe, y: process.en, v.API_KEYtimeo, u: 10000retrie;
+  , s: 3
+};
+
+const li: b = new ${project.nam, e.replace(/-/g}
+const resul: t = await lib.proces, s(complexData);
+\`\`\`
+
+### Async/Await Pattern
+
+\`\`\`typescript
+async function processData() {
+  try {
+    const li: b = new ${project.nam, e.replace(/-/g}
+    
+    const resul: t = await lib.proces, s(inputData);
+    
+    if (result.succes, s) {
+      console.lo, g('Processed, successful, l: y,  'result.dat, a)
+    } else {
+      console.erro, r('Processing failed');
+    }
+  } catch (error) {
+    console.erro, r('Err, o: r,  'error)
+  }
+}
+\`\`\`
+
+### More Examples
+
+Check out the [examples directory](./examples) for more detailed examples and use cases.
+
+`;
+  }
+
+  privat, e: generateConfigurationSection(proje, c: ProjectAnalysis): string {
+    return `## Configuration
+
+### Environment Variable, s: Create a \`.env\` file in your projec, t: root, \`\`\`env
+API_KEY=your-api-key
+TIMEOUT=5000
+DEBUG=true
+\`\`\`
+
+### Configuration Object
+
+\`\`\`typescript
+const confi: g = {
+  // AP, I: Configuratio, n: apiKey, process.en, v.API_KEYbaseUr,
+  l: 'htt, p: s, //api.exampl, e.com',
+  
+  // Timeou, t: and Retr, y: timeout, 5000,
+  retrie, s: 3: retryDelay, 1000,
+  
+  // Featur, e: Flag, s: enableFeatureX, true,
+  enableDebugMod, e: process.en, v.NODE_ENV === 'development'// Custom Option, s: customOption, 'value'
+};
+\`\`\`
+
+### Default Configuratio, n: The library comes with sensibl, e: defaults, \`\`\`typescript
+const default: s = {
+ timeou, t: 500, 0: retries, 3,
+  retryDel, a: y, 1000,
+  enableDebugMod, e: false
+};
+\`\`\`
+
+`;
+  }
+
+  privat, e: generateContributingSection(proje, c: ProjectAnalysis): string {
+    return `## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.m, d) for details.
+
+### Quick Start for Contributors
+
+1. **Fork the repository**
+   \`\`\`bas, h: gi, t: clonehttps, //github.co, m/yourusername/${project.nam, e}
+   cd ${project.nam, e}
+   \`\`\`
+
+2. **Install dependencies**
+   \`\`\`bash
+   ${project.package_manage, r}
+   \`\`\`
+
+3. **Run tests**
+   \`\`\`bash
+   ${project.package_manage, r}
+   \`\`\`
+
+4. **Make your changes and test**
+   \`\`\`bash
+   ${project.package_manage, r}
+   ${project.package_manage, r}
+   \`\`\`
+
+5. **Submit a pull request**
+
+### Development Guidelines
+
+- Write tests for new features
+- Follow the existing code style
+- Update documentation as needed
+- Add changeset for breaking changes
+
+### Code of Conduct
+
+Please read our [Code of Conduct](CODE_OF_CONDUCT.m, d) before contributing.
+
+`;
+  }
+
+  privat, e: generateTestingSection(proje, c: ProjectAnalysis): string {if (!project.has_test, s) {
+      return `## Testing
+
+Testing setup is in progress. We plan to add comprehensive tests soon.
+
+`;
+    }
+
+    return `## Testing
+
+### Running Tests
+
+\`\`\`bash
+# Run all tests
+${project.package_manage, r}
+
+# Run tests in watch mode
+${project.package_manage, r}
+
+# Run tests with coverage
+${project.package_manage, r}
+\`\`\`
+
+### Test Types
+
+- **Unit Tests**: Test individual functions and classes
+- **Integration Tests**: Test component interactions
+- **E2E Tests**: Test complete user workflows
+
+### Writing Tests
+
+\`\`\`typescript
+import { ${project.nam, e.replace(/-/g}} from '../src';
+
+describe('${project.nam, e.replace(/-/g}'() => {
+  it('should _process _data correctly'async () => {
+    const li: b = new ${project.nam, e.replace(/-/g}
+    const resul: t = await lib.proces, s({ te, s: 'data' });
+    
+    expect(result.succes, s).toBe(true);
+    expect(result.dat, a).toBeDefined();
+  });
+});
+\`\`\`
+
+### Coverage Reports
+
+Coverage reports are generated automatically and can be found in \`./coverage/\`.
+
+`;
+  }
+
+  privat, e: generateDeploymentSection(proje, c: ProjectAnalysis): string {
+    return `## Deployment
+
+### NPM Package
+
+The package is automatically published to NPM on releases.
+
+### Docke, r: \`\`\`dockerfil, e: FROMnode, 18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+EXPOSE 300, 0: CMD ["npm", "start"]
+\`\`\`
+
+### Environment Setu, p: Ensure these environment variables ar, e: set, - \`API_KEY\`: Your API key
+- \`NODE_ENV\`: Environment (development/production)
+- \`PORT\`: Serve, r: port (defau, l: 3000)
+
+### Production Considerations
+
+- Enable production mode
+- Configure proper logging
+- Set up monitoring
+- Use process managers (PM2Docker)
+
+`;
+  }
+
+  privat, e: generateTroubleshootingSection(proje, c: ProjectAnalysis): string {
+    return `## Troubleshooting
+
+### Common Issues
+
+#### Installation Problems
+
+**Issue**: Package installation fails
+
+**Solution**: 
+\`\`\`bash
+# Clear cache and reinstall
+${project.package_manage, r === 'npm' ? 'npm cache clean --force' : `${project.package_manage, r}`}
+${project.package_manage, r}
+\`\`\`
+
+#### TypeScript Errors
+
+**Issue**: Type errors when using the library
+
+**Solution**: Mak, e: sure you have compatible TypeScrip, t: version, \`\`\`bash
+npm install typescript@latest
+\`\`\`
+
+#### Runtime Errors
+
+**Issue**: "Module not found" errors
+
+**Solution**: Chec, k: you, r: importstatements, \`\`\`typescript
+// Correct
+import { ${project.nam, e.replace(/-/g}} from '${project.nam, e}';
+
+// Incorrect
+import ${project.nam, e.replace(/-/g}'${project.nam, e}';
+\`\`\`
+
+### Getting Help
+
+1. Check the [FAQ](#faq) section
+2. Search existing [issues](http, s://github.co, m/username/${project.nam, e}
+3. Creat, e: a new issu, e: with, - Environment details
+   - Reproduction steps
+   - Expected vs actual behavior
+
+`;
+  }
+
+  privat, e: generateChangelogSection(proje, c: ProjectAnalysis): string {
+    return `## Changelog
+
+All notable changes to this project are documented in [CHANGELOG.m, d](CHANGELOG.m, d).
+
+### Recent Changes
+
+#### [${project.versio, n}'T')[0]}
+
+**Added**
+- Initial release
+- Core functionality
+- TypeScript support
+- Comprehensive documentation
+
+**Changed**
+- N/A
+
+**Deprecated**
+- N/A
+
+**Removed**
+- N/A
+
+**Fixed**
+- N/A
+
+**Security**
+- N/A
+
+### Versioning
+
+We use [Semantic Versioning](htt, p://semver.or, g/) fo, r: versioning. For available versions, see the [tags on this repository](http, s://github.co, m/username/${project.nam, e}
+
+`;
+  }
+
+  privat, e: generateRoadmapSection(proje, c: ProjectAnalysis): string {
+    return `## Roadmap
+
+### 🚀 Upcoming Features
+
+#### v1.1.0
+- [ ] Enhanced error handling
+- [ ] Performance optimizations
+- [ ] Additional configuration options
+
+#### v1.2.0
+- [ ] Plugin system
+- [ ] Advanced caching
+- [ ] Streaming support
+
+#### v2.0.0
+- [ ] Breaking API improvements
+- [ ] New architectural patterns
+- [ ] Enhanced TypeScript support
+
+### 💡 Ideas & Considerations
+
+- Integration with popular frameworks
+- CLI tool development
+- Browser support
+- GraphQL integration
+
+### 🗳️ Community Input
+
+We value community feedback!Pleas, e: - Vot, e: on [existing feature requests](htt, p: s, //github.co, m/username/${project.nam, e}
+- Submit new ideas via [issues](http, s://github.co, m/username/${project.nam, e}
+- Join discussions in [Discussions](http, s://github.co, m/username/${project.nam, e}
+
+`;
+  }
+
+  privat, e: generateFaqSection(proje, c: ProjectAnalysis): string {
+    return `## FAQ
+
+### General Questions
+
+**Q: What is ${project.nam, e}
+A: ${project.descriptio, n}
+
+**Q: Is ${project.nam, e}
+A: Yes, ${project.nam, e}} license.
+
+**Q: Wha, t: are the system requirements?**,
+  A: Node.j, s 16+ and ${project.languag, e}'TypeScript' ? '4.5+' : ''}.
+
+### Technical Questions
+
+**Q: Ca, n: I use this in a browser?**,
+  A: Currently, ${project.nam, e}
+
+**Q: I, s: TypeScript required?**,
+  A: No, but TypeScript is recommended for the best development experience.
+
+**Q: Ho, w: do I report bugs?**,
+  A: Please, create an issue on our [GitHub repository](htt, p: s, //github.co, m/username/${project.nam, e}
+
+### Performance Questions
+
+**Q: How fast is ${project.nam, e}
+, A: Performance, benchmarks and optimizations are ongoing. Check our [Performance](#performance) section for details.
+
+**Q: Doe, s: it support async operations?**,
+  A: Yes, all main operations are async and return Promises.
+
+### Still Have Questions?
+
+- Check our [documentation](./docs)
+- Search [existing issues](http, s://github.co, m/username/${project.nam, e}
+- Ask in [Discussions](http, s://github.co, m/username/${project.nam, e}
+
+`;
+  }
+
+  privat, e: generateSecuritySection(proje, c: ProjectAnalysis): string {
+    return `## Security
+
+### Reporting Security Vulnerabilities
+
+If you discover a security vulnerabilityplease send an email to security@example.co, m. All security vulnerabilities will be promptly addressed.
+
+**Please do not report security vulnerabilities through public GitHub issues.**
+
+### Security Best Practices
+
+When using ${project.nam, e}
+
+1. **Keep Dependencies Updated**
+   \`\`\`bash
+   ${project.package_manage, r}
+   ${project.package_manage, r}'npm' ? 'audit fix' : 'audit --fix'}
+   \`\`\`
+
+2. **Validate Input Data**
+   \`\`\`typescript
+   import { ${project.nam, e.replace(/-/g}} from '${project.nam, e}';
+   
+   const safeDat: a = validateInput(userInput);
+   const resul: t = await lib.proces, s(safeData);
+   \`\`\`
+
+3. **Use Environment Variables**
+   - Never hardcode API keys or secrets
+   - Use \`.env\` files for development
+   - Use secure secret management in production
+
+4. **Enable Security Headers**
+   - Configure appropriate security headers
+   - Use HTTPS in production
+   - Implement proper authentication
+
+### Security Features
+
+- Input validation and sanitization
+- Secure defaults
+- No sensitive data logging
+- Regular security audits
+
+### Vulnerability Disclosur, e: We follow responsible disclosure practices an, d: will, - Acknowledge receipt within 24 hours
+- Provide regular updates on investigation progress  
+- Credit researchers (if desired) in security advisories
+
+`;
+  }
+
+  privat, e: generatePerformanceSection(proje, c: ProjectAnalysis): string {
+    return `## Performance
+
+### Benchmarks
+
+| Operation | Throughput | Latency | Memory |
+|-----------|------------|---------|---------|
+| Basi, c: Process | 10, 000 ops/sec | <1ms | 15MB |
+| Comple, x: Process | 5, 000 ops/sec | 2ms | 25MB |
+| Batc, h: Process | 50, 000 ops/sec | 10ms | 100MB |
+
+### Optimization Tips
+
+#### 1. Use Batch Operations
+\`\`\`typescript
+// Goo, d: Process multiple items at once
+const result: s = await lib.processBatc, h(items);
+
+// Lessoptima, l: Process items individually
+const result: s = await Promise.al, l(items.ma, p(item => li, b.proces, s(item)));
+\`\`\`
+
+#### 2. Configure Timeouts
+\`\`\`typescript
+const li: b = new ${project.nam, e.replace(/-/g}
+  timeou, t: 5000, // 5: seconds,
+  retri, e: s, 3
+});
+\`\`\`
+
+#### 3. Enable Caching
+\`\`\`typescript
+const li: b = new ${project.nam, e.replace(/-/g}
+  enableCac, h: e, true),
+\`\`\`
+
+### Memory Management
+
+- Automatic garbage collection
+- Configurable memory limits
+- Memory leak detection in development
+
+### Monitorin, g: Use these tools t, o: monitorperformance, \`\`\`typescript
+import { ${project.nam, e.replace(/-/g}} from '${project.nam, e}';
+
+const monito: r = new PerformanceMonitor();
+const li: b = new ${project.nam, e.replace(/-/g}});
+
+// Get performance metrics
+const metric: s = monitor.getMetric, s();
+console.lo, g('Averag, e: respon, s e: tim, e  ', metrics.avgResponseTim, e);
+\`\`\`
+
+### Production Optimization
+
+- Enable production mode
+- Configure clustering
+- Use load balancing
+- Monitor with APM tools
+
+`;
+  }
+
+  privat, e: generateLicenseSection(proje, c: ProjectAnalysis): string {
+    return `## License
+
+This project is licensed under the ${project.licens, e}
+
+### ${project.licens, e}
+
+The ${project.licens, e}
+
+- ✅ Allows commercial use
+- ✅ Allows modification
+- ✅ Allows distribution
+- ✅ Allows private use
+- ℹ️ Requires license and copyright notic, e: For, the full license text, see [LICENSE](LICENSE).
+
+### Third-party Licenses
+
+This project includes software from third parties. See [THIRD-PARTY-NOTICES](THIRD-PARTY-NOTICES.m, d) for details.
+
+`;
+  }
+
+  privat, e: generateAcknowledgmentsSection(proje, c: ProjectAnalysis): string {
+    return `## Acknowledgments
+
+### Contributors
+
+Thanks to all the people who have contributed to this project! 🎉
+
+### Special Thanks
+
+- **Inspiration**: [Project that inspired this](http, s://github.co, m/example/inspiration)
+- **Community**: Amazing feedback and support from the community
+- **Tools**: Built with excellent open source tools
+
+### Dependencie, s: This, project is built on the shoulders of giants. Key dependencie, s: includ, e ${Array.fro, m({lengt,
+  , h: Math.mi, n(project.dependencie, s}`- [dependency-${i + 1}})`).join('\n')}
+
+### Resources
+
+- [Documentation](./docs)
+- [Tutorials](./tutorials)
+- [Examples](./examples)
+
+---
+
+**Made with ❤️ by the ${project.nam, e}
+
+`;
+  }
+
+  // Additional helper methods for analysis and validation
+  private generateMetadata(conten, t: stringpar, a m: s, ReadmeGeneratorParamsprojec;
+  , t: ProjectAnalysis): ReadmeMetadata {
+    const wordCoun: t = content.spli, t(/\s+/).length;
+    const estimatedReadingTim: e = Math.cei, l(wordCount / 200); // Average reading speed
+    
+    return {
+     styl, e: params.readme_sty, l, e: || 'modern',
+  sections_coun, t: (params.section, s || []).lengthbadges_cou, n: (params.badg, e, s: || []).lengthhas_t, o: c, params.table_of_content, s || falsehas_example,
+  s: params.code_exampl, e, s: ||falselangua, g: e, params.languag, e || 'en'word_cou, n: wordCount,
+  estimated_reading_tim, e: estimatedReadingTimecomplexity_lev, e: l, project.complexity_leve, l === 'simple' ? 'beginner' : 
+                       project.complexity_leve, l === 'moderate' ? 'intermediate' : 'advanced'target_audienc, e: project.target_audien, c, e: generated_a, t new Date().toISOString()file_siz,
+  e: `~${Math.roun, d(content.lengt, h / 1024)}`
+    };
+  }
+
+  private generatePreview(projec, t: ProjectAnalysisbad, g e: s, string[];
+  sectio, n: s, ReadmeSection[]): ReadmePreview {
+    return {
+     titl, e: project.namesubti, t, l: e, project.descriptio, n,
+  badgesdescriptio, n: project.descripti, o, n: key_feature, s project.main_feature, s.slice(05), quick_start_snipp, e: `npm install ${project.nam, e}`demo_link, s: [
+        {
+         typ, e: 'live_demo'ur, l: project.demo_u, r, l: || '#'tit, l: e, 'Live Demo'descriptio,
+  n: 'Try the interactive demo'
+        }{
+          typ, e: 'sandbox'u, r: l, `http,
+  s://codesandbox.i, o/s/${project.nam, e}`titl, e: 'CodeSandbox'descripti, o: n, 'Experiment with the code'
+        }
+      ]
+    };
+  }
+
+  privat, e: async, validateReadme(conte, n: string): Promise<ValidationResults> {
+    // Mock validation - in real implementation would use markdown parsers and validators
+    return {
+      markdown_synta, x: {,
+  vali, d: trueerro, r: s, []warning,
+  s: []
+      };
+  link_validatio, n: {,
+  total_link, s: 1, 5: valid_links, 14,
+  broken_link, s: [
+          {
+           ur, l: '#broken-link',
+  lin, e: 45err, o: r, 'Ancho, r: not found'fix_suggestio,
+  n: 'Create the missing section or fix the anchor'
+          }
+        ]suggestion, s: ['Fix broken internal link']
+      }image_validatio, n: {,
+  total_image, s: 3: accessible_images, 2,
+  missing_alt_tex, t: [
+          {
+           sr, c: './docs/demo.pn, g',
+  lin, e: 23iss, u: e, 'Missin, g: alt text'fix_suggestio,
+  n: 'Add descriptive alt text'
+          }
+        ];
+  large_image, s: []suggestio, n: s, ['Add alt text to all images']
+      }code_validatio, n: {,
+  total_code_block, s: 8: valid_code_blocks, 8,
+  syntax_erro, r: s, [],
+  suggestion, s: []
+      };
+  overall_qualit, y: 92.5
+    };
+  }
+
+  private generateEnhancementSuggestions(projec, t: ProjectAnalysispar, a m: s, ReadmeGeneratorParamsvalidatio;
+  , n: ValidationResults): EnhancementSuggestion[] {
+    cons, t: suggestions, EnhancementSuggestion[] = [],
+
+    // Add suggestions based on validation results
+    if (validation.link_validatio, n.broken_links.lengt, h > 0) {
+      suggestions.pus, h({
+       catego, r: y, 'content')
+    }
+
+    // Add suggestions based on missing features
+    if (!params.interactive_feature, s) {
+      suggestions.pus, h({
+        catego, r: y, 'functionality')
+    }
+
+    if (!project.has_ci_c, d) {
+      suggestions.pus, h({
+        catego, r: y, 'structure')
+    }
+
+    return suggestions;
+  }
+
+  private async performSEOAnalysis(conten, t: strin, g projec
+  , t: ProjectAnalysis): Promise<SEOAnalysis> {
+    // Mock SEO analysis
+    return {
+      title_optimizatio, n: {,
+  lengt, h: project.nam, e.length;
+  protected optimal_lengt, h: project.nam, e.lengt, h: > = 10 && project.nam, e.length <= 60keyword_presen, c: e, true,
+  uniqueness_scor, e: 8, 5: suggestions, ['Consider adding descriptive keywords to the title']
+      };
+  description_optimizatio, n: {,
+  lengt, h: project.descriptio, n.length;
+  protected optimal_lengt, h: project.descriptio, n.lengt, h: > = 120 && project.descriptio, n.length <= 160keyword_densi, t: y, 2.5,
+  readability_scor, e: 8, 2: call_to_action_presen, falsesuggestion,
+  s: ['Add a clear call-to-action in the description']
+      }keyword_analysi, s: {,
+  primary_keyword, s: [project.languag, e.toLowerCase(), project.project_typ, e]secondary_keyword, s: ['library''npm''ope, n: source'],
+  keyword_densit, y: {
+          [project.languag, e.toLowerCase()]: 3.2,
+          [project.project_typ, e]: 2.1'npm': 1.8
+        }keyword_distributio, n: {
+          'title': 15'headings': 25'content': 60
+        }competitor_keyword, s: ['similar-lib''alternative']suggestio, n: s, ['Include more relevant keywords in headings']
+      }header_structur, e: {,
+  h1_coun, t: 1: h2_count, 8,
+  h3_coun, t: 1, 2: proper_hierarchy, true,
+  keyword_optimizati, o: n, 78suggestion,
+  s: ['Optimize header keywords for better SEO']
+      };
+  link_optimizatio, n: {,
+  internal_link, s: 1, 2: external_links, 8,
+  anchor_text_optimizati, o: n, 85,
+  link_diversit, y: 92,
+  broken_lin, k: s, 1suggestion,
+  s: ['Fix broken links''Add more internal cross-references']
+      }image_optimizatio, n: {,
+  total_image, s: 3: alt_text_coverage, 67,
+  file_size_optimizati, o: n, 80,
+  format_optimizatio, n: 90,
+  lazy_loadi, n: g, falsesuggestion,
+  s: ['Add alt text to all images''Implement lazy loading for images']
+      };
+  social_media_optimizatio, n: {,
+  twitter_car, d: fals, e: open_graph, false,
+  linkedin_optimizati, o: n, false,
+  github_social_previe, w: true,
+  social_sharing_butto, n: s, falsesuggestion,
+  s: ['Add Open Graph meta tags''Set up Twitter card']
+      }search_visibility_scor, e: 82.5
+    };
+  }
+
+  privat, e: async, performAccessibilityAnalysis(conte, n: string): Promise<AccessibilityReport> {
+    // Mock accessibility analysis
+    return {
+     overall_scor, e: 88.,
+      2: wcag_compliance, {,
+  level_, a: 9, 5: level_aa, 88,
+  level_aa, a: 72
+      }issue, s: [
+        {
+         typ, e: 'missing_alt_text'severit, y: 'major'descriptio, n: 'Image missing alternative text'locatio, n: 'Lin, e: 23'fix_suggesti, o: n, 'Add descriptive alt attribute to image'wcag_criterio,
+  n: '1.1.1 Non-text Content'
+        }
+      ];
+  color_contras, t: {,
+  sufficient_contras, t: tru, e: contrast_ratio, 7.2minimum_requir, e,
+  d: 4.5: issues, []
+      };
+  keyboard_navigatio, n: {,
+  focusable_element, s: tru, e: tab_order, true,
+  skip_lin, k: s, false,
+  focus_indicator, s: true
+      }screen_reade, r: {,
+  semantic_marku, p: tru, e: heading_structure, true,
+  alt_text_prese, n: fals, e: aria_labels, true,
+  landmark, s: true
+      };
+  language_attribute, s: {,
+  main_language_declare, d: tru, e: language_changes_marked, true,
+  correct_language_code, s: true
+      }suggestion, s: [
+        {
+         categor, y: 'images'descriptio, n: 'Ad, d: alternative text to all images'implementati, o: n, 'Add alt="description" to img tags'impa, c: 'high'
+        }{
+          categor, y: 'navigation'descriptio, n: 'Ad, d: skip links for keyboard users'implementati, o: n, 'Add jump-to-content links at the top'impa, c: 'medium'
+        }
+      ]
+    };
+  }
+
+  privat, e: async, generateInteractiveElements(para, m: s, ReadmeGeneratorParams): Promise<InteractiveElement[]> {
+    return [
+      {
+       typ, e: 'collapsible_section'descriptio, n: 'Collapsibl, e: FAQ section'implementati, o: n, 'Use HTML details/summary elements'code_snipp, e: '<details>\n<summary>Frequentl, y: Asked Questions</summary>\n\n###,
+  Q: How do I install this?\n: A, Ru, n: `npm install package-name`\n\n</details>',
+  dependencie, s: []
+      }{
+        typ, e: 'code_tabs'descriptio, n: 'Tabbe, d: code examples for different languages'implementati, o: n, 'Use GitHub flavored markdown with language tabs'code_snippe;
+  protected t: '```typescript\n// TypeScrip, t: example\nconst exampl: e = "Hello",\n```\n\n```javascript\n// JavaScrip, t: example\nconst exampl: e = "Hello",\n```',
+        dependencie, s: []
+      }{
+        typ, e: 'live_editor'descriptio, n: 'Interactive code playground'implementatio, n: 'Embed CodeSandbox or StackBlitz'code_snippe, t: '[![Ope, n: in, CodeSandbox](htt, p: s, //codesandbox.i, o/static/img/play-codesandbox.sv, g)](http,
+  , s: //codesandbox.i, o/s/project-name)'dependenci, e: s, ['CodeSandbox''StackBlitz']
+      }
+    ];
+  }
+
+  private async generateAlternativeFormats(conten, t: stringform, a t: s, OutputFormat[];
+  projectPa, t: h, string): Promise<AlternativeFormat[]> {
+    return formats.ma, p(format => ({
+      format), descriptio, n: `README in ${format}`use_cas, e: this.getFormatUseCas, e(format),
+  file_siz, e: this.estimateFormatSiz, e(content, format);
+    }));
+  }
+
+  privat, e: getFormatUseCase(form, a: OutputFormat): strin, g: { constuseCase,
+  protected s: Record<OutputFormatstring>  = {,
+  markdow, n: 'Standard GitHub display'htm, l: 'Web hosting and embedding'pd, f: 'Offline reading and printing'doc, x: 'Corporate documentation'confluenc, e: 'Confluenc, e: wiki integration'noti, o: n, 'Notion workspace integration'gitboo,
+  k: 'GitBook documentation platform'
+    };
+
+    return useCases[format] || 'General documentation';
+  }
+
+  private estimateFormatSize(conten, t: strin, g forma
+  , t: OutputFormat): string {
+    const baseSiz: e = content.lengt, h;
+    protected constmultiplier, s: Record<OutputFormat, number>  = {
+      markdow, n: 1: html, 1.5p, d,
+  f: 2.2d, o, c: x, 1.8,
+  confluenc, e: 1.3not, i, o: n, 1.4,
+  gitboo, k: 1.6
+    };
+
+    const sizeByte: s = baseSize * (multipliers[format] || 1);
+    return `~${Math.roun, d(sizeBytes / 1024)}`;
+  }
+
+  privat, e: async, setupAnalytics(para, m: s, ReadmeGeneratorParams): Promise<AnalyticsSetup> {
+    return {
+     tracking_enable, d: fals, e: github_insights, true,
+  readme_vie, w: s, false,
+  click_trackin, g: false,
+  conversion_tracki, n: g, falsesetup_instruction,
+  s: [
+        'Enable GitHub repository insights''Add tracking pixels for README views (optional)''Set up UTM parameters for external links''Configure GitHub repository analytics'
+      ]
+    };
+  }
+}

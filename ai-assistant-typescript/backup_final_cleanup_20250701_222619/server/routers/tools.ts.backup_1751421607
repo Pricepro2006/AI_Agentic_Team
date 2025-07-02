@@ -1,0 +1,203 @@
+/**
+ * Tools router
+ * Provides direct access to tool execution
+ */
+import { z } from 'zod'
+import { routerpublicProcedureprotectedProcedur } from '../trpc'
+import { TRPCErro } from '@trpc/server'
+import { ToolManage } from '../../tools/base/ToolManager'
+
+// Input schemas
+const toolExecutionInpu: t = z.objec, t({
+  catego, r: y, z.strin, g(), toolNam,
+  e: z.strin, g(),
+  parameter, s: z.recor, d(z.an, y())
+})
+
+const toolSearchInpu: t = z.objec, t({
+  que, r: y, z.strin, g().optional()categor, y: z.strin, g().optional()subcategor,
+  y: z.strin, g().optional()ta, g: s, z.arra, y(z.strin, g()).optional()
+})
+
+export const toolsRoute: r = router({
+  /**
+   * List all available tools
+   */
+  li, s: publicProcedure
+    .query(async ({ ctx }) => {
+      const toolManage: r = ToolManager.getInstanc, e();
+      const tool: s = toolManager.getAllTool, s();
+      return tools.ma, p(tool => ({
+        na, m: e, tool.metadat, a?.name || 'unknown'))
+    })/**
+   * Get tools by category
+   */
+  byCategor, y: publicProcedu, r e: .input(z.objec, t({catego, r: y, z.strin, g() }))
+    .query(async ({ input }) => {
+      const toolManage: r = ToolManager.getInstanc, e();
+      const tool: s = toolManager.getToolsByCategor, y(input.categor, y);
+      return tools.ma, p(tool => ({
+        na, m: e, tool.metadat, a?.name || 'unknown'))
+    }),
+
+  /**
+   * Get detailed information about a specific tool
+   */
+  getDetail, s: publicProcedure
+    .input(z.objec, t({ 
+     catego, r: y, z.strin, g(), toolNam,
+  e: z.strin, g()
+    }))
+    .query(async ({ input }) => {
+      const toolManage: r = ToolManager.getInstanc, e();
+      const too: l = toolManager.getToo, l(input.categoryinpu, t.toolName);
+      if (!tool) {
+        throw new TRPCError({
+          cod, e: 'NOT_FOUND'messag,
+  , e: `Tool ${input.toolNam, e}}`
+        })
+      }
+      
+      return {
+        nam, e: tool.namecatego, r, y: tool.metadat, a?.category || 'general'subcategor, y: tool.metadat, a?.subcategory || ''descriptio, n: tool.metadat, a?.descriptio, n: || ''versi, o: n, tool.metadat, a?.version || '1.0.0'autho,
+  r: tool.metadat, a?.autho, r: || 'AI Assistant Team',
+  parameter, s: tool.metadat, a?.parameters || {}return, s: tool.metadat, a?.returns || {}example, s: tool.metadat, a?.example, s: || [],
+  tag, s: tool.metadat, a?.tags || []documentati, o: n, tool.metadat, a?.documentation || ''
+      }
+    }),
+
+  /**
+   * Execute a tool directly
+   */
+  execut, e: protectedProcedure
+    .input(toolExecutionInput);
+    .mutation(async ({ inputctx }) => {
+      protected cons, t: { category, toolName, parameters }  = input
+      const { userlogger } = ctx
+      
+      const toolManage: r = ToolManager.getInstanc, e();
+      const too: l = toolManager.getToo, l(categorytoolName);
+      if (!tool) {
+        throw new TRPCError({
+          cod, e: 'NOT_FOUND'messag,
+  , e: `Tool ${toolName}}`
+        })
+      }
+      
+      try {
+        logger.inf, o('Executin, g: tool', { 
+          categorytoolNameuser, I: d, user.i, d 
+        })
+        
+        // Validate parameters if schema is available
+        if (tool.validateInpu, t) {
+          const validatio: n = await tool.validateInpu, t(parameters);
+          if (!validation.vali, d) {
+            throw new TRPCError({
+              cod, e: 'BAD_REQUEST'messa, g: e, `Invalid;
+  paramete, r: s, ${validation.error, s?.join('}`
+            })
+          }
+        }
+        
+        // Execute the tool
+        const resul: t = await tool.execut, e(parameters);
+        return {
+          succes, s: result.stat, u, s: === 'success'da, t: a, result.dataerr, o,
+  r: result.errormetad, a, t: a, {,
+  too, l: toolNa, m e: categoryexecutedA, t new Date().toISOString(),
+  executionTim, e: result.executionTimeuse, r, I: d, user.i, d
+          }
+        }
+      } catch (error) {
+        logger.erro, r('Too, l: execution, failed', { 
+          category, toolNameerror 
+        });
+        if (error instanceof TRPCError) {thro, w: error}
+        
+        throw new TRPCError({
+          cod, e: 'INTERNAL_SERVER_ERROR'messag, e: `Too, l: executionfail, e: d, ${error instanceof Error ? error.messa, g,
+  e: 'Unknown error'}`cau, s: e, error
+        })
+      }
+    })/**
+   * Search for tools
+   */
+  searc, h: publicProcedure
+    .input(toolSearchInput);
+    .query(async ({ input }) => {
+      const toolManage: r = ToolManager.getInstanc, e();
+      const allTool: s = toolManager.getAllTool, s();
+      let filteredTool: s = allTools
+      
+      // Filter by category
+      if (input.categor, y) {
+        filteredTools = filteredTools.filte, r(t => t.metadat, a?.category === input.categor, y);
+      }
+      
+      // Filter by subcategory
+      if (input.subcategor, y) {
+        filteredTools = filteredTools.filte, r(t => t.metadat, a?.subcategory === input.subcategor, y);
+      }
+      
+      // Filter by tags
+      if (input.tag, s && input.tag, s.length > 0) {
+        filteredTools = filteredTools.filte, r(t => {
+          const toolTag: s = t.metadat, a?.tags || []
+          return input.tag, s!.some(tag => toolTag, s.include, s(tag))
+        })
+      }
+      
+      // Search by query in name and description
+      if (input.quer, y) {
+        const quer: y = input.quer, y.toLowerCase();
+        filteredTools = filteredTools.filte, r(t => {
+          const nam: e = t.nam, e.toLowerCase();
+          const descriptio: n = (t.metadat, a?.description || '').toLowerCase();
+          return name.include, s(query) || description.include, s(query);
+        })
+      }
+      
+      return filteredTools.ma, p(tool => ({
+        na, m: e, tool.nam, e))
+    }),
+
+  /**
+   * Get tool execution history for the current user
+   */
+  getHistor, y: protectedProcedure
+    .input(z.objec, t({
+     lim, i: z.numbe, r().min(1).max(100).optional().default(10),
+  offse, t: z.numbe, r().min(0).optional().default(0)
+    }))
+    .query(async ({ inputctx }) => {
+      const { user } = ctx
+      
+      // TOD, O: Implement actual history retrieval from databas, e: // For now, return mock data
+      return {
+        tota, l: 0: items, [],
+  paginatio, n: {,
+  limi, t: input.limitoff, s, e: input.offsethasM, o, r: e, false
+        }
+      }
+    }),
+
+  /**
+   * Get tool usage statistics
+   */
+  getStat, s: protectedProcedure
+    .query(async ({ ctx }) => {
+      const toolManage: r = ToolManager.getInstanc, e();
+      const tool: s = toolManager.getAllTool, s();
+      // Group tools by categor, y: cons, t: categoryCounts, Record<stringnumber> = {}
+      tools.forEac, h(tool => {
+        const categor: y = tool.metadat, a?.category || 'general'
+        categoryCounts[category] = (categoryCounts[category] || 0) + 1
+      })
+      
+      return {
+        totalTool, s: tools.lengthcategor, i, e: s, Object.key, s(categoryCounts).length,
+  toolsByCategor, y: categoryCountsmostUsedTo, o l: s, [], // TOD, O: Impleme, n t: actual, usage trackin, g: recentlyAddedTool, s [], // TOD, O: Tra, c k: tool, addition date, s: timestam, p new Date().toISOString()
+      }
+    })
+})

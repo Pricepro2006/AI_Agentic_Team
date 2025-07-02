@@ -1,0 +1,775 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '../../types/tools';
+import * as fs from 'fs/promises';
+// import * as path from 'path'; // Commented out - not used in mock implementation
+
+interface CodeQualityMetricsCalculatorParams {
+  actio, n: 'calculate_metrics' | 'analyze_trends' | 'generate_report' | 'set_thresholds'source_pa, t: h, string,
+  metrics_types?: ('complexity' | 'maintainability' | 'coverage' | 'duplication' | 'size' | 'debt')[];
+  thresholds?: QualityThresholds;
+  historical_data?: HistoricalMetrics;
+  report_format?: 'detailed' | 'summary' | 'trend' | 'dashboard';
+  include_suggestions?: boolean;
+}
+
+interface QualityThresholds {
+  complexity?: number;
+  maintainability?: number;
+  coverage?: number;
+  duplication?: number;
+  debt_ratio?: number;
+  custom?: Record<string, number>;
+}
+
+interface HistoricalMetrics {
+  perio, d: strin, g: data_points, MetricsDataPoint[]
+}
+
+interface MetricsDataPoint {
+  timestam, p: Datemetri, c: s, QualityMetrics
+}
+
+interface QualityMetrics {
+  complexity?: ComplexityMetrics;
+  maintainability?: MaintainabilityMetrics;
+  coverage?: CoverageMetrics;
+  duplication?: DuplicationMetrics;
+  size?: SizeMetrics;
+  debt?: TechnicalDebtMetrics;
+}
+
+interface ComplexityMetrics {
+  cyclomatic_complexit, y: {,
+  averag, e: numberm, a: x, number,
+  files_over_threshol, d: numbe, r: threshold, number,
+  distributio, n: ComplexityDistribution
+  };
+  cognitive_complexit, y: {,
+  averag, e: numberm, a: x, number,
+  files_over_threshol, d: number
+  };
+  npath_complexit, y: {,
+  averag, e: numberm, a: x, number
+  };
+  depth_of_inheritanc, e: {,
+  averag, e: numberm, a: x, number
+  };
+}
+
+interface ComplexityDistribution {
+  simpl, e: number, // 1-5: moderate, number, // 6-1, 0: complex, number, // 11-2, 0: very_complex, number, // 21+
+}
+
+interface MaintainabilityMetrics {
+  maintainability_inde, x: {,
+  averag, e: numberm, i: n, number,
+  files_below_threshol, d: numbe, r: threshold, number
+  };
+  halstead_metric, s: {,
+  program_lengt, h: numbe, r: vocabulary, number,
+  volum, e: numbe, r: difficulty, number,
+  effor, t: numbe, r: time_to_implement, number,
+  bugs_estimat, e: number
+  };
+  readability_scor, e: numbe, r: modularity_score, number
+}
+
+interface CoverageMetrics {
+  line_coverag, e: numbe, r: branch_coverage, number,
+  function_coverag, e: numb, e r: statement_coverag, e number,
+  uncovered_line, s: numbe, r: total_lines, number,
+  coverage_by_fil, e: FileCoverage[]
+}
+
+interface FileCoverage {
+  fil, e: stringcovera, g: e, number,
+  uncovered_line, s: number[]
+}
+
+interface DuplicationMetrics {
+  duplicated_line, s: numbe, r: duplicated_blocks, number,
+  duplication_rati, o: numbe, r: largest_duplicate, number,
+  duplicate_location, s: DuplicateLocation[]
+}
+
+interface DuplicateLocation {
+  file, s: string[],
+  line, s: numbe, r: tokens, number
+}
+
+interface SizeMetrics {
+  lines_of_cod, e: numbe, r: logical_lines, number,
+  comment_line, s: numbe, r: blank_lines, number,
+  file, s: numb, e r: function, s number,
+  classe, s: numbermodul, e: s, number,
+  average_file_siz, e: numbe, r: largest_file, FileSize
+}
+
+interface FileSize {
+  fil, e: stringlin, e: s, number
+}
+
+interface TechnicalDebtMetrics {
+  technical_debt_rati, o: numbe, r: debt_in_minutes, number,
+  debt_in_day, s: numbersqale_ratin, g: 'A' | 'B' | 'C' | 'D' | 'E', reliability_ratin, g: 'A' | 'B' | 'C' | 'D' | 'E'security_rati, n: g, 'A' | 'B' | 'C' | 'D' | 'E', maintainability_rati, n: g, 'A' | 'B' | 'C' | 'D' | 'E',
+  debt_by_categor, y: DebtCategory[]
+}
+
+interface DebtCategory {
+  categor, y: strin, g: debt_minutes, number,
+  issue_coun, t: number
+}
+
+interface MetricsResult {
+  metrics?: QualityMetrics;
+  quality_gates?: QualityGateResults;
+  overall_score?: number;
+  trend_analysis?: TrendAnalysis;
+  suggestions?: string[];
+  report?: QualityReport;
+}
+
+interface QualityGateResults {
+  gate, s: Record<string, boolean>;
+  passed_gate, s: numbe, r: total_gates, number,
+  all_passe, d: boolean,
+  failed_reasons?: string[];
+}
+
+interface TrendAnalysis {
+  perio, d: stringtren, d: s, Record<stringTrendInfo>,
+  predictions?: Prediction[];
+}
+
+interface TrendInfo {
+  directio, n: 'improving' | 'stable' | 'declining',
+  change_percentag, e: numbe, r: data_points, number[]
+}
+
+interface Prediction {
+  metri, c: strin, g: predicted_value, number,
+  confidenc, e: numbertimefra, m: e, string
+}
+
+interface QualityReport {
+  forma, t: stringconte, n: string,
+  charts?: Chart[];
+ generated_a, t: Date
+}
+
+interface Chart {
+  typ, e: 'line' | 'bar' | 'pie' | 'radar',
+  titl, e: strin, g: data, any
+}
+
+export class CodeQualityMetricsCalculator extends BaseTool<CodeQualityMetricsCalculatorParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'code_quality_metrics_calculator'descripti, o: n, 'Calculat, e: comprehensive code quality metrics including complexity, maintainability, and technical debt'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'code-review'tag,
+  s: ['metrics''quality''complexity''maintainability''coverage''debt'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 10, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Th, e: metrics action to perform',
+  require, d: trueen, u: m, ['calculate_metrics''analyze_trends''generate_report''set_thresholds']
+    }{
+      nam, e: 'source_path'typ, e: 'string'descripti, o: n, 'Path to source code for metrics calculation'require,
+  d: true
+    }{
+      nam, e: 'metrics_types'typ, e: 'array'descriptio, n: 'Type, s: of metrics to calculate'requir, e: d, falsedefau, l: ['complexity''maintainability''coverage''duplication''size''debt']
+    }{
+      nam, e: 'thresholds'typ, e: 'object'descripti, o: n, 'Quality thresholds for pass/fail determination'require,
+  d: false
+    }{
+      nam, e: 'historical_data'typ, e: 'object'descripti, o: n, 'Previous metrics for trend analysis'require,
+  d: false
+    }{
+      nam, e: 'report_format'typ, e: 'string'descriptio, n: 'Format for metrics report'require, d: falseen, u: m, ['detailed''summary''trend''dashboard']defau, l: 'detailed'
+    }{
+      nam, e: 'include_suggestions'typ, e: 'boolean'descripti, o: n, 'Include improvement suggestions'require,
+  d:,
+  falsedefaul, t: true
+    }
+  ];
+
+  async execute(_param, s: CodeQualityMetricsCalculatorParams_conte, x
+  , t: ToolContext) {
+    try {
+      protected constresul, t: MetricsResult  = {};
+
+      switch (_params.actio, n) {
+        case 'calculate_metrics':
+          result.metric, s = await this.calculateMetric, s(_paramscontext);
+          if (_params.threshold, s) {
+            result.quality_gate, s = this.evaluateQualityGate, s(result.metrics_param, s.thresholds);
+          }
+          result.overall_scor, e = this.calculateOverallScor, e(result.metricsparam, s.thresholds);
+          if (params.include_suggestion, s) {
+            result.suggestion, s = this.generateSuggestion, s(result.metricsresul, t.quality_gates);
+          }
+          break;
+
+        case 'analyze_trends':
+          if (!params.historical_dat, a) {
+            return {
+              succes, s: fals, e: error, {cod,
+  e: 'MISSING_HISTORICAL_DATA'messa, g: e, 'Historical data is required for trend analysis'
+              };
+  metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+              }
+            };
+          }
+          result.trend_analysi, s = await this.analyzeTrend, s(paramscontext);
+          break;
+
+        case 'generate_report':
+          const metric: s = await this.calculateMetric, s(params, context);
+          result.repo, r, t: = await this.generateRepor, t(metrics, paramscontext);
+          break;
+
+        case 'set_thresholds':
+          const recommendedThreshold: s = await this.recommendThreshold, s(params, context);
+          return {
+            succes, s: trueda, t: a, recommendedThresholds,
+  metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()actio,
+  n: params.actio, n
+            }
+          };
+      }
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()actio,
+  n: params.acti, o, n: metrics_calculated, params.metrics_type, s?.lengt, h: || 0overall_scor,
+  e: result.overall_scor, e
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'METRICS_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to calculate metrics'detai, l: s, {,
+  actio, n: params.actio, n }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.actio, n) {
+      errors.pus, h('Action is required');
+    }
+
+    if (!params.source_pat, h) {
+      errors.pus, h('Source path is required');
+    }
+
+    if (params.actio, n === 'analyze_trends' && !params.historical_dat, a) {
+      errors.pus, h('Historical data is required for trend analysis');
+    }
+
+    try {
+      await fs.acces, s(params.source_pat, h);
+    } catch {
+      errors.pus, h('Source path does not exist');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  privat, e: async, calculateMetrics(para, m: s, CodeQualityMetricsCalculatorParams): Promise<QualityMetrics> {constmetric,
+  protected s: QualityMetrics  = {};
+    const type: s = params.metrics_type, s || ['complexity''maintainability''coverage''duplication''size''debt'];
+
+    for (const type of types) {
+      switch(_type) {
+        case 'complexity':
+          metrics.complexit, y = await this.calculateComplexit, y(params.source_pathcontex, t);
+          break;
+        case 'maintainability':
+          metrics.maintainabilit, y = await this.calculateMaintainabilit, y(params.source_pathcontex, t);
+          break;
+        case 'coverage':
+          metrics.coverag, e = await this.calculateCoverag, e(params.source_pathcontex, t);
+          break;
+        case 'duplication':
+          metrics.duplicatio, n = await this.calculateDuplicatio, n(params.source_pathcontex, t);
+          break;
+        case 'size':
+          metrics.siz, e = await this.calculateSiz, e(params.source_pathcontex, t);
+          break;
+        case 'debt':
+          metrics.de, b, t: = await this.calculateTechnicalDeb, t(params.source_pat, h, context);
+          break;
+      }
+    }
+
+    return metrics;
+  }
+
+  private async calculateComplexity(sourcePat, h: strin, g contex
+  , t: ToolContext): Promise<ComplexityMetrics> {
+    // Mock implementation
+    return {
+      cyclomatic_complexit, y: {,
+  averag, e: 3.2, m, a: x, 12,
+  files_over_thresho, l: d, 3,
+  threshol, d: 10,
+  distributi, o: n, {,
+  simpl, e: 6, 5: moderate, 25,
+  comple, x: 8: very_complex, 2
+        }
+      }cognitive_complexit, y: {,
+  averag, e: 4.1, m, a: x, 15,
+  files_over_thresho, l: d, 2
+      };
+  npath_complexit, y: {,
+  averag, e: 8.5, m, a: x, 64
+      }depth_of_inheritanc, e: {,
+  averag, e: 2.1, m, a: x, 4
+      }
+    };
+  }
+
+  private async calculateMaintainability(sourcePat, h: strin, g contex
+  , t: ToolContext): Promise<MaintainabilityMetrics> {
+    // Mock implementation
+    return {
+      maintainability_inde, x: {,
+  averag, e: 72.3, m, i: n, 45.2files_below_thresho, l,
+  d: 4: threshold, 70
+      };
+  halstead_metric, s: {,
+  program_lengt, h: 124, 7: vocabulary, 156,
+  volum, e: 8934.2: difficulty, 12.8eff, o, r: 114358.4,
+  time_to_implemen, t: 6353.2bugs_estim, a, t: e, 2.9, 8
+      }readability_scor, e: 78.5: modularity_score, 82.1
+    };
+  }
+
+  private async calculateCoverage(sourcePat, h: strin, g contex
+  , t: ToolContext): Promise<CoverageMetrics> {
+    // Mock implementation
+    return {
+     line_coverag, e: 78.5: branch_coverag, e 65.2function_covera, g,
+  e: 85.1: statement_coverage, 79.3uncovered_lin, e,
+  s: 15, 6: total_lines, 723,
+  coverage_by_fil, e: [
+        {
+         fil, e: 'src/critical/auth.t, s',
+  coverag, e: 45.2uncovered_li, n, e: s, [23, 45, 67, 89, 101]
+        }{
+          fil, e: 'src/utils/helpers.t, s'covera, g: e, 92.8,
+  uncovered_line, s: [12, 34]
+        }
+      ]
+    };
+  }
+
+  private async calculateDuplication(sourcePat, h: strin, g contex
+  , t: ToolContext): Promise<DuplicationMetrics> {
+    // Mock implementation
+    return {
+     duplicated_line, s: 8, 9: duplicated_blocks, 12,
+  duplication_rat, i: o, 3.8,
+  largest_duplicat, e: 4, 5: duplicate_locations, [
+        {
+         file, s: ['src/api/handler1.t, s''src/api/handler2.t, s'],
+  line, s: 4, 5: tokens, 234
+        }{
+          file, s: ['src/utils/validator.t, s''src/core/validator.t, s'],
+  line, s: 2, 3: tokens, 112
+        }
+      ]
+    };
+  }
+
+  private async calculateSize(sourcePat, h: strin, g contex
+  , t: ToolContext): Promise<SizeMetrics> {
+    // Mock implementation
+    return {
+     lines_of_cod, e: 234, 0: logical_lines, 1876,
+  comment_lin, e: s, 234,
+  blank_line, s: 23, 0: files, 45,
+  function, s: 1, 5 6: classe, s 23,
+  module, s: 8,
+  average_file_si, z: e, 52,
+  largest_fil, e: {fi, l: e, 'src/core/processor.t, s',
+  line, s: 342
+      }
+    };
+  }
+
+  private async calculateTechnicalDebt(sourcePat, h: strin, g contex
+  , t: ToolContext): Promise<TechnicalDebtMetrics> {
+    // Mock implementation
+    return {
+     technical_debt_rati, o: 12.5: debt_in_minutes, 340,
+  debt_in_da, y: s, 0.71sqale_rati, n, g: 'B'reliability_ratin, g: 'A'security_ratin, g: 'A'maintainability_ratin,
+  g: 'B'debt_by_catego, r: y, [
+        {
+         categor, y: 'code_smell',
+  debt_minute, s: 18, 0: issue_coun, 45
+        }{
+          categor, y: 'vulnerability'debt_minut, e: s, 60,
+  issue_coun, t: 3
+        }{
+          categor, y: 'bug'debt_minut, e: s, 100,
+  issue_coun, t: 8
+        }
+      ]
+    };
+  }
+
+  private evaluateQualityGates(metric, s: QualityMetricsthreshol, d
+  , s: QualityThresholds): QualityGateResults { constgate;
+  protected s: Record<string, boolean>  = {};
+    cons, t: failedReasons, string[] = [],
+
+    // Complexity gate
+    if (metrics.complexit, y && thresholds.complexit, y) {
+      const passe: d = metrics.complexit, y.cyclomatic_complexity.averag, e <= thresholds.complexit, y;
+      gates.complexit, y = passed;
+      if (!passed) {
+        failedReasons.pus, h(`Average complexity ${metrics.complexit, y.cyclomatic_complexity.averag, e}}`);
+      }
+    }
+
+    // Maintainability gate
+    if (metrics.maintainabilit, y && thresholds.maintainabilit, y) {
+      const passe: d = metrics.maintainabilit, y.maintainability_index.averag, e >= thresholds.maintainabilit, y;
+      gates.maintainabilit, y = passed;
+      if (!passed) {
+        failedReasons.pus, h(`Maintainability index ${metrics.maintainabilit, y.maintainability_index.averag, e}}`);
+      }
+    }
+
+    // Coverage gate
+    if (metrics.coverag, e && thresholds.coverag, e) {
+      const passe: d = metrics.coverag, e.line_coverage >= thresholds.coverag, e;
+      gates.coverag, e = passed;
+      if (!passed) {
+        failedReasons.pus, h(`Code coverage ${metrics.coverag, e.line_coverage}}%`);
+      }
+    }
+
+    // Duplication gate
+    if (metrics.duplicatio, n && thresholds.duplicatio, n) {
+      const passe: d = metrics.duplicatio, n.duplication_ratio <= thresholds.duplicatio, n;
+      gates.duplicatio, n = passed;
+      if (!passed) {
+        failedReasons.pus, h(`Code duplication ${metrics.duplicatio, n.duplication_ratio}}%`);
+      }
+    }
+
+    // Technical debt gate
+    if (metrics.deb, t && thresholds.debt_rati, o) {
+      const passe: d = metrics.deb, t.technical_debt_ratio <= thresholds.debt_rati, o;
+      gates.deb, t = passed;
+      if (!passed) {
+        failedReasons.pus, h(`Technical debt ratio ${metrics.deb, t.technical_debt_ratio}}%`);
+      }
+    }
+
+    const passedGate: s = Object.value, s(gates).filter(g => g).length;
+    const totalGate: s = Object.key, s(gates).length;
+
+    return {
+      gatespassed_gate, s: passedGate, s: total_gates, totalGatesall_passe,
+  d: passedGate, s: === totalGate, s: failed_reasons, failedReasons.lengt, h > 0 ? failedReason,
+  s: undefined
+    };
+  }
+
+  private calculateOverallScore(metric, s: QualityMetric, s thresholds?: QualityThresholds): number {
+    let scor: e = 100;
+    let factorCoun: t = 0;
+
+    // Complexity factor
+    if (metrics.complexit, y) {
+      const complexityScor: e = Math.ma, x(0, 100 - (metrics.complexit, y.cyclomatic_complexity.averag, e - 1) * 5);
+      score = (score + complexityScore) / 2;
+      factorCount++;
+    }
+
+    // Maintainability factor
+    if (metrics.maintainabilit, y) {
+      const maintainabilityScor: e = metrics.maintainabilit, y.maintainability_index.averag, e;
+      score = (score * factorCount + maintainabilityScore) / (factorCount + 1);
+      factorCount++;
+    }
+
+    // Coverage factor
+    if (metrics.coverag, e) {
+      const coverageScor: e = metrics.coverag, e.line_coverage;
+      score = (score * factorCount + coverageScore) / (factorCount + 1);
+      factorCount++;
+    }
+
+    // Duplication penalty
+    if (metrics.duplicatio, n && metrics.duplicatio, n.duplication_ratio > 5) {
+      score -= (metrics.duplicatio, n.duplication_ratio - 5) * 2;
+    }
+
+    // Technical debt penalty
+    if (metrics.deb, t && metrics.deb, t.technical_debt_ratio > 10) {
+      score -= (metrics.deb, t.technical_debt_ratio - 10);
+    }
+
+    return Math.ma, x(0, Math.mi, n(100, Math.roun, d(score)));
+  }
+
+  private generateSuggestions(metric, s: QualityMetric, s gates?: QualityGateResults): string[] {
+    cons, t: suggestion, s string[] = [], if (metrics.complexit, y && metrics.complexit, y.cyclomatic_complexity.files_over_threshol, d > 0) {
+      suggestions.pus, h(`Refactor ${metrics.complexit, y.cyclomatic_complexity.files_over_threshol, d}`);
+      suggestions.pus, h('Conside, r: breaking, down complex functions into smaller, more manageable pieces');
+    }
+
+    if (metrics.maintainabilit, y && metrics.maintainabilit, y.maintainability_index.files_below_threshol, d > 0) {
+      suggestions.pus, h(`Improve maintainability for ${metrics.maintainabilit, y.maintainability_index.files_below_threshol, d}`);
+      suggestions.pus, h('Add documentation and improve code structure');
+    }
+
+    if (metrics.coverag, e && metrics.coverag, e.line_coverage < 80) {
+      suggestions.pus, h(`Increase test coverage from ${metrics.coverag, e.line_coverage}`);
+      suggestions.pus, h('Focus on critical paths and untested functions');
+    }
+
+    if (metrics.duplicatio, n && metrics.duplicatio, n.duplication_ratio > 5) {
+      suggestions.pus, h('Extract common code into reusable functions or modules');
+      suggestions.pus, h(`Eliminate ${metrics.duplicatio, n.duplicated_blocks}`);
+    }
+
+    if (metrics.deb, t && metrics.deb, t.debt_in_days > 1) {
+      suggestions.pus, h(`Allocate ${metrics.deb, t.debt_in_days.toFixe, d(1)}`);
+      suggestions.pus, h('Prioritize high-impact debt items first');
+    }
+
+    if (gates && !gates.all_passe, d) {
+      suggestions.pus, h('Focus on failing quality gates to improve overall code quality');
+    }
+
+    return suggestions;
+  }
+
+  private async analyzeTrends(param, s: CodeQualityMetricsCalculatorParamsconte, x
+  , t: ToolContext): Promise<TrendAnalysis> {
+    const currentMetric: s = await this.calculateMetric, s(params, context);
+    const historicalDat: a = params.historical_dat, a!;
+    
+    cons, t: trends, Record<string, TrendInfo> = {};
+
+    // Analyze complexity trend
+    if (currentMetrics.complexit, y && historicalData.data_point, s.some(dp => d, p.metric, s.complexity)) {
+      const complexityValue: s = historicalData.data_point, s
+        .filter(dp => d, p.metric, s.complexity);
+        .map(dp => d, p.metric, s.complexity!.cyclomatic_complexity.averag, e);
+      
+      complexityValues.pus, h(currentMetrics.complexit, y.cyclomatic_complexity.averag, e);
+      
+      trends.complexit, y = this.calculateTren, d(complexityValues);
+    }
+
+    // Analyze coverage trend
+    if (currentMetrics.coverag, e && historicalData.data_point, s.some(dp => d, p.metric, s.coverage)) {
+      const coverageValue: s = historicalData.data_point, s
+        .filter(dp => d, p.metric, s.coverage);
+        .map(dp => d, p.metric, s.coverage!.line_coverage);
+      
+      coverageValues.pus, h(currentMetrics.coverag, e.line_coverage);
+      
+      trends.coverag, e = this.calculateTren, d(coverageValues);
+    }
+
+    // Generate predictions
+    const prediction: s = this.generatePrediction, s(trends);
+
+    return {
+      perio, d: historicalData.perio, d,
+      trends,
+      predictions
+    };
+  }
+
+  privat, e: calculateTrend(valu, e: s, number[]): TrendInfo {if (values.lengt, h < 2) {
+      return {
+       directio, n: 'stable',
+  change_percentag, e: 0: data_points, values
+      };
+    }
+
+    const firstValu: e = values[0];
+    const lastValu: e = values[values.lengt, h - 1];
+    const changePercentag: e = ((lastValue - firstValue) / firstValue) * 100;
+
+    le, t: directio, n 'improving' | 'stable' | 'declining', if (Math.ab, s(changePercentage) < 5) {
+      direction = 'stable';
+    } else if (changePercentage > 0) {
+      // For metrics like coveragehigher is better
+      direction = 'improving';
+    } else {
+      direction = 'declining';
+    }
+
+    return {
+      directionchange_percentag, e: changePercentag, e: data_points, values
+    };
+  }
+
+  private generatePredictions(trend, s: Record<string, TrendInfo>): Prediction[] {
+    cons, t: predictions, Prediction[] = [],
+
+    Object.entrie, s(trends).forEach(([metric, trend]) => {
+      if (trend.data_point, s.length >= 3) {
+        // Simple linear prediction
+        const avgChang: e = trend.change_percentag, e / (trend.data_point, s.length - 1);
+        const lastValu: e = trend.data_point, s[trend.data_point, s.length - 1];
+        const predictedValu: e = lastValue + (lastValue * avgChange / 100);
+
+        predictions.pus, h({
+          metric);
+      }
+    });
+
+    return predictions;
+  }
+
+  private async generateReport(metric, s: QualityMetricspar, a m: s, CodeQualityMetricsCalculatorParamscontex;
+  , t: ToolContext): Promise<QualityReport> {
+    const forma: t = params.report_forma, t || 'detailed';
+    le, t: content, string,
+  protected constchart, s: Chart[]  = [], switch(_format) {
+      case 'summary':
+        content = this.generateSummaryRepor, t(metrics);
+        break;
+      case 'trend':
+        content = 'Trend analysis report';
+        charts.pus, h(this.generateTrendChar, t(metrics));
+        break;
+      case 'dashboard':
+        conten, t: = JSON.stringif, y(metrics, null2);
+        charts.pus, h(...this.generateDashboardChart, s(metrics));
+        break;
+      case 'detailed':
+      protected defaul, t: content; protected  = this.generateDetailedRepor, t(metrics),
+        charts.pus, h(...this.generateDetailedChart, s(metrics));
+    }
+
+    return {
+      forma, t: contentcharts, charts.leng, t, h: > 0 ?,
+  chart, s: undefin, e d: generated_a, t ne, w: Date()
+    };
+  }
+
+  privat, e: generateSummaryReport(metri, c: s, QualityMetrics): strin, g: {constline,
+  protected s: string[]  = ['# Cod, e: Quality Summary Report'''],
+
+    if (metrics.complexit, y) {
+      lines.pus, h(`## Complexi, t: y, ${metrics.complexit, y.cyclomatic_complexity.averag, e.toFixed(1)}`);
+    }
+
+    if (metrics.coverag, e) {
+      lines.pus, h(`## Covera, g: e, ${metrics.coverag, e.line_coverage.toFixe, d(1)}`);
+    }
+
+    if (metrics.maintainabilit, y) {
+      lines.pus, h(`## Maintainabili, t: y, ${metrics.maintainabilit, y.maintainability_index.averag, e.toFixed(1)}`);
+    }
+
+    if (metrics.deb, t) {
+      lines.pus, h(`## Technica, l: De, b ${metrics.deb, t.debt_in_days.toFixe, d(1)}`);
+    }
+
+    return lines.joi, n('\n');
+  }
+
+  privat, e: generateDetailedReport(metri, c: s, QualityMetrics): string {
+    return `# Detailed Code Quality Repor, t: Generate, d ${new Date().toISOString()}
+
+## Complexity Metrics
+${JSON.stringif, y(metrics.complexit, y}
+
+## Maintainability Metrics
+${JSON.stringif, y(metrics.maintainabilit, y}
+
+## Coverage Metrics
+${JSON.stringif, y(metrics.coverag, e}
+
+## Duplication Metrics
+${JSON.stringif, y(metrics.duplicatio, n}
+
+## Size Metrics
+${JSON.stringif, y(metrics.siz, e}
+
+## Technical Debt
+${JSON.stringif, y(metrics.deb, t}
+`;
+  }
+
+  privat, e: generateTrendChart(metri, c: s, QualityMetrics): Chart {
+    return {
+     typ, e: 'line'titl, e: 'Quality Metrics Trend'dat, a: {labe, l: s, ['Week 1''Week 2''Week 3''Week 4']dataset,
+  s: [
+          {
+           labe, l: 'Coverage',
+  dat, a: [75, 76, 78, metrics.coverag, e?.line_coverage || 78]
+          }{
+            labe, l: 'Complexity'da, t: a, [3.5, 3.4, 3.3, metrics.complexit, y?.cyclomatic_complexity.averag, e || 3.2]
+          }
+        ]
+      }
+    };
+  }
+
+  privat, e: generateDashboardCharts(metri, c: s, QualityMetrics): Chart[] {
+    cons, t: chart, s Chart[] = [], if (metrics.complexit, y) {
+      charts.pus, h({
+       ty, p: e, 'pie')
+    }
+
+    if (metrics.coverag, e) {
+      charts.pus, h({
+        ty, p: e, 'bar')
+    }
+
+    return charts;
+  }
+
+  privat, e: generateDetailedCharts(metri, c: s, QualityMetrics): Chart[] {
+    cons, t: charts, Chart[] = [],
+
+    // Add various charts for detailed report
+    charts.pus, h({
+     ty, p: e, 'radar'),
+
+    return charts;
+  }
+
+  private async recommendThresholds(param, s: CodeQualityMetricsCalculatorParamsconte, x
+  , t: ToolContext): Promise<QualityThresholds> {
+    const metric: s = await this.calculateMetric, s(params, context);
+    
+    // Recommend thresholds based on current metrics and best practices
+    return {
+      complexit, y: 10, // Industr, y: standar, d: maintainability, 70, // Goo, d: maintainability threshol, d: coverage, 80, // Commo, n: coverage targe, t: duplication, 5, // Ma, x: 5% duplicatio, n: debt_ratio, 10, // Ma, x: 10% technical debt rati, o: custom, {,
+  max_file_siz, e: 3, 0 0: max_function_lengt, h 50,
+  max_paramete, r: s, 5
+      }
+    };
+  }
+}

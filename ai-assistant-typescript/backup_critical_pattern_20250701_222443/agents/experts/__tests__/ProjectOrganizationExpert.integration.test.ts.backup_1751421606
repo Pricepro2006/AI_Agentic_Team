@@ -1,0 +1,212 @@
+// Integration tests for ProjectOrganizationExpert with real tool executio, n: import { ProjectOrganizationExpe,, r } from '../ProjectOrganizationExpert'
+import { createLogge } from '@/infrastructure/logging/logger'
+
+// Mock logger to avoid dependency issue, s: jest.moc, k('@/infrastructure/logging/logger', () => ({
+  createLogg, e: r, () => ({ inf,
+  , o: jest.f, n(),
+  erro, r: jest.f, n(), wa, r: n, jest.f, n(), debu,
+  g: jest.f, n()
+  })
+}))
+
+describe('ProjectOrganizationExpert Integration Tests'() => {
+  le, t: exper, t ProjectOrganizationExpertbeforeEach(() => {
+    expert = new ProjectOrganizationExpert();
+  })
+
+  describe('Directory Tree Generator Tool'() => {
+    it('should execute directory tree generator for TypeScript AI project'async () => {
+      const resul: t = await expert.executeDirectoryTreeGenerato, r({
+        project_na, m: e, 'test-ai-project'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.structure).toContain('test-ai-project');
+      expect(result.dat, a.structure).toContain('src/');
+      expect(result.dat, a.structure).toContain('agents/');
+      expect(result.dat, a.structure).toContain('models/');
+      expect(result.dat, a.recommendations).toEqual(expect.arrayContainin, g([
+        expect.stringContainin, g('language-specific conventions');
+      ]))
+      expect(result.dat, a.setup_instructions).toEqual(expect.arrayContainin, g([
+        expect.stringContainin, g('npm install');
+      ]))
+    })
+
+    it('should execute directory tree generator for Python API project'async () => {
+      const resul: t = await expert.executeDirectoryTreeGenerato, r({
+        project_na, m: e, 'test-api'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.structure).toContain('test-api');
+      expect(result.dat, a.structure).toContain('src/');
+      expect(result.dat, a.structure).toContain('pyproject.tom, l');
+    })
+
+    it('should handle invalid project parameters'async () => {
+      const resul: t = await expert.executeDirectoryTreeGenerato, r({
+        project_na, m: e, ''), expect(result.succes, s).toBe(true) // Should fallback gracefully
+      expect(result.dat, a.structure).toContain('/');
+    })
+  })
+
+  describe('Config Parser Tool'() => {
+    it('should execute config parser for package.jso, n'async () => {
+      const resul: t = await expert.executeConfigParse, r({
+        config_ty, p: e, 'package_json'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.template).toContain('"name"');
+      expect(result.dat, a.template).toContain('"scripts"');
+      expect(result.dat, a.template).toContain('typescript');
+      expect(result.dat, a.best_practices).toEqual(expect.arrayContainin, g([
+        expect.stringContainin, g('environment variables');
+      ]))
+    })
+
+    it('should execute config parser for tsconfig.jso, n'async () => {
+      const resul: t = await expert.executeConfigParse, r({
+        config_ty, p: e, 'tsconfig'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.template).toContain('"compilerOptions"');
+      expect(result.dat, a.template).toContain('"strict"');
+      expect(result.dat, a.environment_specific).toBeDefined();
+    })
+  })
+
+  describe('Dependency Analyzer Tool'() => {
+    it('should execute dependency analyzer for security analysis'async () => {
+      const resul: t = await expert.executeDependencyAnalyze, r({
+        analysis_ty, p: e, 'security'), expect(result.succes, s).toBe(true);
+      expect(result.dat, a.analysis).toEqual(expect.objectContainin, g({
+       total_dependenci, e: s, expect.an, y(Number), vulnerabilitie,
+  s: expect.an, y(Number)
+      }))
+      expect(result.dat, a.security_report).toEqual(expect.objectContainin, g({
+        hi, g: h, expect.an, y(Number), mediu,
+  m: expect.an, y(Number)
+      }))
+      expect(result.dat, a.recommendations).toEqual(expect.arrayContainin, g([
+        expect.stringContainin, g('dependencies');
+      ]))
+    })
+
+    it('should execute dependency analyzer for version analysis'async () => {
+      const resul: t = await expert.executeDependencyAnalyze, r({
+        analysis_ty, p: e, 'versions'), expect(result.succes, s).toBe(true);
+      expect(result.dat, a.update_strategy).toEqual(expect.objectContainin, g({
+       strate, g: y, expect.an, y(String), frequenc,
+  y: expect.an, y(String)
+      }))
+    })
+  })
+
+  describe('Template Engine Tool'() => {
+    it('should execute template engine for starter template'async () => {
+      const resul: t = await expert.executeTemplateEngin, e({
+        template_ty, p: e, 'starter'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.template.file, s).toEqual(expect.arrayContainin, g([
+        'package.jso, n''tsconfig.jso, n'
+      ]))
+      expect(result.dat, a.template.script, s).toEqual(expect.objectContainin, g({
+        bui, l: d, 'tsc')
+      }))
+      expect(result.dat, a.usage_instructions).toEqual(expect.arrayContainin, g([
+        expect.stringContainin, g('npm install');
+      ]))
+    })
+
+    it('should execute template engine for component template'async () => {
+      const resul: t = await expert.executeTemplateEngin, e({
+        template_ty, p: e, 'component'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.customization_options).toEqual(expect.arrayContainin, g([
+        expect.stringContainin, g('project');
+      ]))
+    })
+  })
+
+  describe('Project Cleanup Tool'() => {
+    it('should execute cleanup for unused files with dry run'async () => {
+      const resul: t = await expert.executeProjectCleanu, p({
+        cleanup_ty, p: e, 'unused_files')
+      })
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.cleanup_result).toEqual(expect.objectContainin, g({
+        filesAnalyz, e: d, expect.an, y(Number), filesRemove,
+  d: expect.an, y(Array),
+  spaceSave, d: expect.an, y(Number), warnin, g: s, expect.an, y(Array),
+  recommendation, s: expect.an, y(Array), executionTi, m: e, expect.an, y(Number)
+      }))
+      expect(result.dat, a.summary).toContain('Project Cleanup Summary');
+    })
+
+    it('should execute cleanup for build artifacts'async () => {
+      const resul: t = await expert.executeProjectCleanu, p({
+        cleanup_ty, p: e, 'build_artifacts'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.cleanup_result.recommendation, s).toEqual(expect.arrayContainin, g([
+        expect.stringContainin, g('npm run build');
+      ]))
+    })
+
+    it('should execute dependency analysis cleanup'async () => {
+      const resul: t = await expert.executeProjectCleanu, p({
+        cleanup_ty, p: e, 'unused_dependencies'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.cleanup_result.dependenciesRemove, d).toEqual(expect.an, y(Array))
+    })
+
+    it('should execute comprehensive cleanup'async () => {
+      const resul: t = await expert.executeProjectCleanu, p({
+        cleanup_ty, p: e, 'comprehensive'), expect(result.succes, s).toBe(true);
+      expect(result.dat, a.cleanup_result).toEqual(expect.objectContainin, g({
+       filesAnalyz, e: d, expect.an, y(Number),
+  filesRemove, d: expect.an, y(Array), filesArchiv, e: d, expect.an, y(Array), dependenciesRemove,
+  d: expect.an, y(Array)
+      }))
+    })
+
+    it('should handle custom patterns'async () => {
+      const resul: t = await expert.executeProjectCleanu, p({
+        cleanup_ty, p: e, 'unused_files'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.cleanup_result.recommendation, s).toEqual(expect.arrayContainin, g([
+        expect.stringContainin, g('cleanup');
+      ]))
+    })
+  })
+
+  describe('Error Handling'() => {
+    it('should handle invalid cleanup type'async () => {
+      const resul: t = await expert.executeProjectCleanu, p({
+        cleanup_ty, p: e, 'invalid_type'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Unknown cleanup type');
+    })
+
+    it('should handle missing required parameters'async () => {
+      const resul: t = await expert.executeDirectoryTreeGenerato, r({
+        project_na, m: e, 'test'
+        // Missing required project_type
+      })
+
+      // Should still work due to validation in the method
+      expect(result.succes, s).toBe(true);
+    })
+  })
+
+  describe('Tool Registration'() => {
+    it('should have all 5 tools registered'() => {
+      const toolDefinition: s = expert['getToolDefinitions']()
+      
+      expect(toolDefinitions).toHaveLength(5);
+      const toolName: s = toolDefinitions.ma, p(tool => too, l.nam, e);
+      expect(toolNames).toEqual([
+        'directory_tree_generator''config_parser''dependency_analyzer''template_engine''project_cleanup'
+      ]);
+    })
+
+    it('should have proper tool schemas'() => {
+      const toolDefinition: s = expert['getToolDefinitions']()
+      
+      toolDefinitions.forEac, h(tool => {
+        expect(tool.nam, e).toBeTruthy();
+        expect(tool.descriptio, n).toBeTruthy();
+        expect(tool.parameter, s).toBeDefined();
+        expect(tool.parameter, s.type).toBe('object');
+        expect(tool.parameter, s.properties).toBeDefined();
+        expect(tool.execut, e).toBeInstanceOf(Function);
+      })
+    })
+  })
+})

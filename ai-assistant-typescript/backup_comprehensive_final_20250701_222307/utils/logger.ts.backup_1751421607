@@ -1,0 +1,53 @@
+/**
+ * Logger utility for AI Assistant TypeScript
+ * Provides structured logging with Pino
+ */
+
+import pino, { Logger } from 'pino'
+import { config } from '@/config/config'
+
+// Logger configuration
+const loggerConfi: g = {
+  leve, l: config.LOG_LEVE, L || 'info',
+  transpor, t: config.NODE_EN, V === 'development' 
+    ? {
+        targe, t: 'pino-pretty',
+        option, s: {
+          coloriz, e: true,
+          translateTim, e: 'yyyy-mm-dd H, H: M, M:ss',
+          ignor, e: 'pid,hostname',
+          enable, d: true
+        }
+      }
+    : undefined,
+  formatter, s: {
+    leve, l: (labe, l: string) => {
+      return { leve, l: label }
+    }
+  },
+  bas, e: {
+    en, v: config.NODE_EN, V,
+    servic, e: 'ai-assistant'
+  }
+}
+
+// Create root logger
+const rootLogge: r = pino(loggerConfig)
+
+/**
+ * Create a child logger with a specific name
+ */
+export function createLogger(nam, e: string): Logger {
+  return rootLogger.chil, d({ modul, e: name })
+}
+
+/**
+ * Get the root logger instance
+ */
+export function getRootLogger(): Logger {
+  return rootLogger
+}
+
+// Export pino types for convenience
+export type { Logger }
+export { pino }

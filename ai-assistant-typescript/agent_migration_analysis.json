@@ -1,0 +1,878 @@
+{
+  "summary": {
+    "timestamp": "2025-06-29T06:49:56.042311",
+    "migrated_to_expert": [
+      "CodeReviewExpert",
+      "TemplateLibraryExpert",
+      "APIIntegrationExpert",
+      "TestingAndQAExpert",
+      "AutomationIntegrationExpert",
+      "MasterOrchestrator",
+      "DataPipelineExpert",
+      "GitHubIntegrationExpert",
+      "DocumentationExpert"
+    ],
+    "needs_migration": [
+      "N8NIntegrationExpert",
+      "GitHubActionsExpert",
+      "UIUXDesignExpert",
+      "ErrorAnalysisExpert",
+      "SprintManager",
+      "MultiProjectManager",
+      "VectorSearchExpert",
+      "SecuritySpecialist",
+      "ProjectOrganizationExpert",
+      "ArchitectureExpert",
+      "LLMIntegrationExpert",
+      "MCPIntegrationExpert",
+      "PowerAutomateExpert",
+      "PythonExpert",
+      "PerformanceOptimizationExpert",
+      "TestExpert",
+      "VersionControlExpert",
+      "ProjectPlanningExpert",
+      "VSCodeExpert",
+      "RiskManagementExpert"
+    ],
+    "migration_priority": [
+      {
+        "rank": 1,
+        "agent": "ErrorAnalysisExpert",
+        "priority_score": 45,
+        "tools": 1,
+        "real_implementations": 2,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 2,
+        "agent": "ProjectPlanningExpert",
+        "priority_score": 45,
+        "tools": 1,
+        "real_implementations": 2,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 3,
+        "agent": "SecuritySpecialist",
+        "priority_score": 60,
+        "tools": 1,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 4,
+        "agent": "ArchitectureExpert",
+        "priority_score": 60,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 5,
+        "agent": "LLMIntegrationExpert",
+        "priority_score": 60,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 6,
+        "agent": "PythonExpert",
+        "priority_score": 60,
+        "tools": 1,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 7,
+        "agent": "GitHubActionsExpert",
+        "priority_score": 95,
+        "tools": 1,
+        "real_implementations": 2,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 8,
+        "agent": "ProjectOrganizationExpert",
+        "priority_score": 95,
+        "tools": 1,
+        "real_implementations": 3,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 9,
+        "agent": "TestExpert",
+        "priority_score": 95,
+        "tools": 0,
+        "real_implementations": 2,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 10,
+        "agent": "N8NIntegrationExpert",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 11,
+        "agent": "UIUXDesignExpert",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 12,
+        "agent": "SprintManager",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 13,
+        "agent": "MultiProjectManager",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 14,
+        "agent": "VectorSearchExpert",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 15,
+        "agent": "MCPIntegrationExpert",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 16,
+        "agent": "PowerAutomateExpert",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 17,
+        "agent": "PerformanceOptimizationExpert",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 18,
+        "agent": "VersionControlExpert",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 19,
+        "agent": "VSCodeExpert",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      },
+      {
+        "rank": 20,
+        "agent": "RiskManagementExpert",
+        "priority_score": 110,
+        "tools": 0,
+        "real_implementations": 0,
+        "dependencies": 0,
+        "compilation_ready": false
+      }
+    ],
+    "tool_implementation_status": {
+      "CodeReviewExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": true
+      },
+      "TemplateLibraryExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": true
+      },
+      "N8NIntegrationExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "GitHubActionsExpert": {
+        "total_tools": 1,
+        "tool_names": [
+          "workflow_generator"
+        ],
+        "has_real_implementations": true
+      },
+      "index": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "APIIntegrationExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": true
+      },
+      "UIUXDesignExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "TestingAndQAExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "ErrorAnalysisExpert": {
+        "total_tools": 1,
+        "tool_names": [
+          "log_pattern_analyzer"
+        ],
+        "has_real_implementations": true
+      },
+      "SprintManager": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "AutomationIntegrationExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": true
+      },
+      "MultiProjectManager": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "VectorSearchExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "SecuritySpecialist": {
+        "total_tools": 1,
+        "tool_names": [
+          "vulnerability_scanner"
+        ],
+        "has_real_implementations": false
+      },
+      "ProjectOrganizationExpert": {
+        "total_tools": 1,
+        "tool_names": [
+          "directory_tree_generator"
+        ],
+        "has_real_implementations": true
+      },
+      "ArchitectureExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "LLMIntegrationExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "MCPIntegrationExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "PowerAutomateExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "MasterOrchestrator": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": true
+      },
+      "PythonExpert": {
+        "total_tools": 1,
+        "tool_names": [
+          "code_quality_analyzer"
+        ],
+        "has_real_implementations": false
+      },
+      "PerformanceOptimizationExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "TestExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": true
+      },
+      "VersionControlExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "ProjectPlanningExpert": {
+        "total_tools": 1,
+        "tool_names": [
+          "markdown_generator"
+        ],
+        "has_real_implementations": true
+      },
+      "VSCodeExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "DataPipelineExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": true
+      },
+      "GitHubIntegrationExpert": {
+        "total_tools": 1,
+        "tool_names": [
+          "repository_manager"
+        ],
+        "has_real_implementations": true
+      },
+      "RiskManagementExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": false
+      },
+      "DocumentationExpert": {
+        "total_tools": 0,
+        "tool_names": [],
+        "has_real_implementations": true
+      }
+    }
+  },
+  "agents": {
+    "CodeReviewExpert": {
+      "name": "CodeReviewExpert",
+      "extends_expert_template": true,
+      "extends_base_agent": false,
+      "has_rag_config": true,
+      "has_specialization": true,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 2,
+      "has_ollama_integration": false,
+      "compilation_ready": true,
+      "dependencies": []
+    },
+    "TemplateLibraryExpert": {
+      "name": "TemplateLibraryExpert",
+      "extends_expert_template": true,
+      "extends_base_agent": false,
+      "has_rag_config": true,
+      "has_specialization": true,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 2,
+      "has_ollama_integration": false,
+      "compilation_ready": true,
+      "dependencies": []
+    },
+    "N8NIntegrationExpert": {
+      "name": "N8NIntegrationExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "GitHubActionsExpert": {
+      "name": "GitHubActionsExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 1,
+        "names": [
+          "workflow_generator"
+        ]
+      },
+      "real_implementations": 2,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "index": {
+      "name": "index",
+      "extends_expert_template": false,
+      "extends_base_agent": false,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": true,
+      "dependencies": [
+        "ProjectOrganizationExpert",
+        "DocumentationExpert",
+        "TemplateLibraryExpert",
+        "CodeReviewExpert",
+        "TestingAndQAExpert",
+        "GitHubIntegrationExpert",
+        "ErrorAnalysisExpert",
+        "ProjectPlanningExpert",
+        "GitHubActionsExpert",
+        "MasterOrchestrator",
+        "APIIntegrationExpert",
+        "ArchitectureExpert",
+        "AutomationIntegrationExpert",
+        "DataPipelineExpert",
+        "LLMIntegrationExpert",
+        "MCPIntegrationExpert",
+        "PerformanceOptimizationExpert",
+        "PowerAutomateExpert",
+        "PythonExpert",
+        "RiskManagementExpert",
+        "SecuritySpecialist",
+        "UIUXDesignExpert",
+        "VectorSearchExpert",
+        "VersionControlExpert",
+        "VSCodeExpert"
+      ]
+    },
+    "APIIntegrationExpert": {
+      "name": "APIIntegrationExpert",
+      "extends_expert_template": true,
+      "extends_base_agent": false,
+      "has_rag_config": true,
+      "has_specialization": true,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 3,
+      "has_ollama_integration": false,
+      "compilation_ready": true,
+      "dependencies": []
+    },
+    "UIUXDesignExpert": {
+      "name": "UIUXDesignExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "TestingAndQAExpert": {
+      "name": "TestingAndQAExpert",
+      "extends_expert_template": true,
+      "extends_base_agent": false,
+      "has_rag_config": true,
+      "has_specialization": true,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": true,
+      "dependencies": []
+    },
+    "ErrorAnalysisExpert": {
+      "name": "ErrorAnalysisExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 1,
+        "names": [
+          "log_pattern_analyzer"
+        ]
+      },
+      "real_implementations": 2,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "SprintManager": {
+      "name": "SprintManager",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "AutomationIntegrationExpert": {
+      "name": "AutomationIntegrationExpert",
+      "extends_expert_template": true,
+      "extends_base_agent": false,
+      "has_rag_config": true,
+      "has_specialization": true,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 3,
+      "has_ollama_integration": false,
+      "compilation_ready": true,
+      "dependencies": []
+    },
+    "MultiProjectManager": {
+      "name": "MultiProjectManager",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "VectorSearchExpert": {
+      "name": "VectorSearchExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "SecuritySpecialist": {
+      "name": "SecuritySpecialist",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 1,
+        "names": [
+          "vulnerability_scanner"
+        ]
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "ProjectOrganizationExpert": {
+      "name": "ProjectOrganizationExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 1,
+        "names": [
+          "directory_tree_generator"
+        ]
+      },
+      "real_implementations": 3,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "ArchitectureExpert": {
+      "name": "ArchitectureExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "LLMIntegrationExpert": {
+      "name": "LLMIntegrationExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "MCPIntegrationExpert": {
+      "name": "MCPIntegrationExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "PowerAutomateExpert": {
+      "name": "PowerAutomateExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "MasterOrchestrator": {
+      "name": "MasterOrchestrator",
+      "extends_expert_template": true,
+      "extends_base_agent": false,
+      "has_rag_config": true,
+      "has_specialization": true,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 4,
+      "has_ollama_integration": true,
+      "compilation_ready": true,
+      "dependencies": []
+    },
+    "PythonExpert": {
+      "name": "PythonExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 1,
+        "names": [
+          "code_quality_analyzer"
+        ]
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "PerformanceOptimizationExpert": {
+      "name": "PerformanceOptimizationExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "TestExpert": {
+      "name": "TestExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 2,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "VersionControlExpert": {
+      "name": "VersionControlExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "ProjectPlanningExpert": {
+      "name": "ProjectPlanningExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 1,
+        "names": [
+          "markdown_generator"
+        ]
+      },
+      "real_implementations": 2,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "VSCodeExpert": {
+      "name": "VSCodeExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "DataPipelineExpert": {
+      "name": "DataPipelineExpert",
+      "extends_expert_template": true,
+      "extends_base_agent": false,
+      "has_rag_config": true,
+      "has_specialization": true,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 2,
+      "has_ollama_integration": false,
+      "compilation_ready": true,
+      "dependencies": []
+    },
+    "GitHubIntegrationExpert": {
+      "name": "GitHubIntegrationExpert",
+      "extends_expert_template": true,
+      "extends_base_agent": false,
+      "has_rag_config": true,
+      "has_specialization": true,
+      "tools": {
+        "count": 1,
+        "names": [
+          "repository_manager"
+        ]
+      },
+      "real_implementations": 3,
+      "has_ollama_integration": false,
+      "compilation_ready": true,
+      "dependencies": []
+    },
+    "RiskManagementExpert": {
+      "name": "RiskManagementExpert",
+      "extends_expert_template": false,
+      "extends_base_agent": true,
+      "has_rag_config": false,
+      "has_specialization": false,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 0,
+      "has_ollama_integration": false,
+      "compilation_ready": false,
+      "dependencies": []
+    },
+    "DocumentationExpert": {
+      "name": "DocumentationExpert",
+      "extends_expert_template": true,
+      "extends_base_agent": false,
+      "has_rag_config": true,
+      "has_specialization": true,
+      "tools": {
+        "count": 0,
+        "names": []
+      },
+      "real_implementations": 2,
+      "has_ollama_integration": false,
+      "compilation_ready": true,
+      "dependencies": []
+    }
+  }
+}

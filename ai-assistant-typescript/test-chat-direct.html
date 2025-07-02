@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Chat Test - AI Assistant</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 12px 12px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #111827;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .message {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .user .avatar {
+            background: #3b82f6;
+            color: white;
+        }
+        .assistant .avatar {
+            background: #10b981;
+            color: white;
+        }
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: #f3f4f6;
+        }
+        .user .message-content {
+            background: #3b82f6;
+            color: white;
+        }
+        .assistant .message-content {
+            background: #f3f4f6;
+            color: #111827;
+        }
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 0 0 12px 12px;
+        }
+        .input-container {
+            display: flex;
+            gap: 12px;
+        }
+        .input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input:focus {
+            border-color: #3b82f6;
+        }
+        .send-button {
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .send-button:hover {
+            background: #2563eb;
+        }
+        .send-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .code-block {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 16px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Assistant Chat Test</h1>
+            <p>Test the Documentation Expert with live query execution</p>
+        </div>
+        
+        <div class="chat-area" id="chatArea">
+            <div class="status info" id="status">
+                🔍 Connecting to AI Assistant API...
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <div class="input-container">
+                <input 
+                    type="text" 
+                    class="input" 
+                    id="messageInput" 
+                    placeholder="Type your message..."
+                    value="I need to set up automated documentation generation for this TypeScript project with GitHub Actions CI/CD integration. The project uses TypeDoc for API docs and I want it to automatically generate and deploy documentation to GitHub Pages whenever we push to the main branch."
+                >
+                <button class="send-button" id="sendButton" onclick="sendMessage()">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        const chatArea = document.getElementById('chatArea');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const statusEl = document.getElementById('status');
+
+        // Check API connection on load
+        checkAPIConnection();
+
+        async function checkAPIConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus(`✅ Connected to API (${data.status})`, 'success');
+                } else {
+                    updateStatus('❌ API server not responding', 'error');
+                }
+            } catch (error) {
+                updateStatus('❌ Failed to connect to API server', 'error');
+            }
+        }
+
+        function updateStatus(message, type = 'info') {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = isUser ? 'U' : 'AI';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            // Parse content for code blocks
+            if (!isUser && content.includes('```')) {
+                contentDiv.innerHTML = parseCodeBlocks(content);
+            } else {
+                contentDiv.textContent = content;
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function parseCodeBlocks(content) {
+            return content.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                return `<div class="code-block">${escapeHtml(code.trim())}</div>`;
+            }).replace(/\n/g, '<br>');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Disable input while processing
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            
+            // Add user message
+            addMessage(message, true);
+            
+            // Clear input
+            messageInput.value = '';
+            
+            // Show loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message assistant';
+            loadingDiv.innerHTML = '<div class="avatar">AI</div><div class="message-content"><div class="loading"></div></div>';
+            chatArea.appendChild(loadingDiv);
+
+            try {
+                // Call the orchestrator API
+                const response = await fetch(`${API_BASE}/api/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'dev_key'
+                    },
+                    body: JSON.stringify({
+                        query: message,
+                        context: {},
+                        model: 'ollama:mistral:latest'
+                    })
+                });
+
+                // Remove loading
+                chatArea.removeChild(loadingDiv);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Add response
+                    addMessage(data.response);
+                    
+                    // Show which agent responded
+                    updateStatus(`Response from: ${data.agent || 'Master Orchestrator'}`, 'success');
+                    
+                } else {
+                    const error = await response.json();
+                    addMessage(`Error: ${error.detail || 'Failed to get response'}`, false);
+                    updateStatus('Failed to process query', 'error');
+                }
+                
+            } catch (error) {
+                // Remove loading
+                if (chatArea.contains(loadingDiv)) {
+                    chatArea.removeChild(loadingDiv);
+                }
+                
+                addMessage(`Error: ${error.message}`, false);
+                updateStatus('Network error', 'error');
+            } finally {
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Allow Enter key to send
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

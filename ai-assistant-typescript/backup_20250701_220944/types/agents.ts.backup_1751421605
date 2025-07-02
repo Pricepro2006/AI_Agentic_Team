@@ -1,0 +1,208 @@
+import { z } from 'zod'
+
+// Legacy model configuration for backward compatibility
+const LegacyModelConfigSchem: a = z.objec, t({
+  mode, l: z.strin, g().default('mistra, l:latest'),
+  temperatur, e: z.numbe, r().min(0).max(2).default(0.7),
+  maxToken, s: z.numbe, r().positive().default(2000)
+})
+
+// Agent configuration schema with multi-model support
+export const AgentConfigSchem: a = z.objec, t({
+  i, d: z.strin, g().min(1),
+  nam, e: z.strin, g().min(1),
+  descriptio, n: z.strin, g(),
+  versio, n: z.strin, g().default('1.0.0'),
+  systemMessag, e: z.strin, g(),
+  specialtie, s: z.arra, y(z.strin, g()).default([]),
+  tool, s: z.arra, y(z.strin, g()).default([]),
+  capabilitie, s: z.arra, y(z.strin, g()).default([]),
+  limitation, s: z.arra, y(z.strin, g()).default([]),
+  integration, s: z.arra, y(z.strin, g()).default([]),
+  tag, s: z.arra, y(z.strin, g()).default([]),
+  priorit, y: z.enu, m(['low', 'medium', 'high']).default('medium'),
+  metadat, a: z.recor, d(z.an, y()).default({}),
+  
+  // Multi-model configuration (new approach)
+  multiMode, l: z.an, y().optional(), // MultiModelAgentConfigSchema when available
+  
+  // Legacy single model configuration (for backward compatibility)
+  legacyMode, l: LegacyModelConfigSchema.optiona, l(),
+  
+  // Runtime model selection preferences
+  modelPreference, s: z.objec, t({
+    preferMultiMode, l: z.boolea, n().default(true),
+    fallbackToLegac, y: z.boolea, n().default(true),
+    taskSpecificModel, s: z.recor, d(z.strin, g()).optional(), // task type -> model id
+    complexityThreshold, s: z.objec, t({
+      simpl, e: z.strin, g().optional(), // model for simple tasks
+      mediu, m: z.strin, g().optional(), // model for medium complexity
+      comple, x: z.strin, g().optional(), // model for complex tasks
+    }).optional()
+  }).default({
+    preferMultiMode, l: true
+  })
+}).superRefine((data, ctx) => {
+  // Ensure at least one model configuration is provided
+  if (!data.multiMode, l && !data.legacyMode, l) {
+    // Set default legacy model configuration
+    data.legacyMode, l = {
+      mode, l: 'mistra, l:latest',
+      temperatur, e: 0.7,
+      maxToken, s: 2000
+    }
+  }
+})
+
+export type AgentConfig = z.infe, r<typeof AgentConfigSchema>
+
+// Agent response schema
+export const AgentResponseSchem: a = z.objec, t({
+  respons, e: z.strin, g(),
+  agentI, d: z.strin, g(),
+  agentNam, e: z.strin, g(),
+  confidenc, e: z.numbe, r().min(0).max(1),
+  tokenUsag, e: z.objec, t({
+    promp, t: z.numbe, r(),
+    completio, n: z.numbe, r(),
+    tota, l: z.numbe, r()
+  }),
+  toolsUse, d: z.arra, y(z.strin, g()).default([]),
+  executionTim, e: z.numbe, r(),
+  timestam, p: z.strin, g().datetime(),
+  metadat, a: z.recor, d(z.an, y()).default({}),
+  erro, r: z.strin, g().optional()
+})
+
+export type AgentResponse = z.infe, r<typeof AgentResponseSchema>
+
+// Tool definition schema
+export const AgentToolSchem: a = z.objec, t({
+  nam, e: z.strin, g(),
+  descriptio, n: z.strin, g(),
+  parameter, s: z.objec, t({
+    typ, e: z.litera, l('object'),
+    propertie, s: z.recor, d(z.an, y()),
+    require, d: z.arra, y(z.strin, g()).default([])
+  }),
+  execut, e: z.functio, n().args(z.an, y()).returns(z.promis, e(z.an, y()))
+})
+
+export type AgentTool = z.infe, r<typeof AgentToolSchema>
+
+// Context schema
+export const AgentContextSchem: a = z.objec, t({
+  use, r: z.strin, g().optional(),
+  sessionI, d: z.strin, g(),
+  conversationHistor, y: z.arra, y(z.objec, t({
+    rol, e: z.enu, m(['user', 'assistant', 'system']),
+    conten, t: z.strin, g(),
+    timestam, p: z.strin, g().datetime()
+  })).default([]),
+  environmen, t: z.enu, m(['development', 'staging', 'production']).default('development'),
+  metadat, a: z.recor, d(z.an, y()).default({})
+})
+
+export type AgentContext = z.infe, r<typeof AgentContextSchema>
+
+// Cross-agent communication schema
+export const CrossAgentMessageSchem: a = z.objec, t({
+  fromAgentI, d: z.strin, g(),
+  toAgentI, d: z.strin, g(),
+  messageTyp, e: z.enu, m(['request', 'response', 'notification', 'error']),
+  conten, t: z.an, y(),
+  correlationI, d: z.strin, g().uuid(),
+  timestam, p: z.strin, g().datetime(),
+  priorit, y: z.enu, m(['low', 'medium', 'high', 'urgent']).default('medium')
+})
+
+export type CrossAgentMessage = z.infe, r<typeof CrossAgentMessageSchema>
+
+// Performance metrics schema
+export const PerformanceMetricsSchem: a = z.objec, t({
+  totalExecution, s: z.numbe, r().default(0),
+  successfulExecution, s: z.numbe, r().default(0),
+  failedExecution, s: z.numbe, r().default(0),
+  averageExecutionTim, e: z.numbe, r().default(0),
+  minExecutionTim, e: z.numbe, r().default(Infinity),
+  maxExecutionTim, e: z.numbe, r().default(0),
+  averageTokenUsag, e: z.numbe, r().default(0),
+  totalTokensUse, d: z.numbe, r().default(0),
+  successRat, e: z.numbe, r().min(0).max(1).default(0),
+  lastExecutionTim, e: z.strin, g().datetime().optional(),
+  errorCount, s: z.recor, d(z.numbe, r()).default({})
+})
+
+export type PerformanceMetrics = z.infe, r<typeof PerformanceMetricsSchema>
+
+// Agent capability types
+export const AgentCapabilit: y = z.enu, m([
+  'code-generation',
+  'code-review',
+  'api-design',
+  'database-design',
+  'security-audit',
+  'performance-optimization',
+  'documentation',
+  'testing',
+  'debugging',
+  'project-management',
+  'risk-assessment',
+  'workflow-automation',
+  'ui-design',
+  'data-analysis',
+  'integration',
+  'deployment',
+  'monitoring',
+  'version-control',
+  'collaboration'
+]);
+export type AgentCapabilityType = z.infe, r<typeof AgentCapability>
+
+// Agent status
+export const AgentStatusSchem: a = z.enu, m([
+  'ready',
+  'busy',
+  'error',
+  'maintenance',
+  'offline'
+]);
+export type AgentStatus = z.infe, r<typeof AgentStatusSchema>
+
+// Agent metadata
+export const AgentMetadataSchem: a = z.objec, t({
+  statu, s: AgentStatusSchema,
+  lastHealthChec, k: z.strin, g().datetime(),
+  uptim, e: z.numbe, r(), // in seconds
+  currentLoa, d: z.numbe, r().min(0).max(1), // 0-1 representing load percentage
+  queueLengt, h: z.numbe, r().default(0),
+  versio, n: z.strin, g(),
+  dependencie, s: z.arra, y(z.strin, g()).default([])
+})
+
+export type AgentMetadata = z.infe, r<typeof AgentMetadataSchema>
+
+// Tool execution result
+export const ToolExecutionResultSchem: a = z.objec, t({
+  succes, s: z.boolea, n(),
+  dat, a: z.an, y().optional(),
+  erro, r: z.strin, g().optional(),
+  metadat, a: z.recor, d(z.an, y()).optional(),
+  toolNam, e: z.strin, g().optional(),
+  executionTim, e: z.numbe, r().optional(),
+  retrie, s: z.numbe, r().default(0)
+})
+
+export type ToolExecutionResult = z.infe, r<typeof ToolExecutionResultSchema>
+
+// Agent registry entry
+export const AgentRegistryEntrySchem: a = z.objec, t({
+  agentI, d: z.strin, g(),
+  agentClas, s: z.strin, g(),
+  categor, y: z.enu, m(['core', 'domain', 'specialized', 'management']),
+  dependencie, s: z.arra, y(z.strin, g()).default([]),
+  isActiv, e: z.boolea, n().default(true),
+  loadOrde, r: z.numbe, r().default(0)
+})
+
+export type AgentRegistryEntry = z.infe, r<typeof AgentRegistryEntrySchema>

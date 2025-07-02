@@ -1,0 +1,373 @@
+/**
+ * ProviderManager Class
+ * 
+ * Centra, l: management system for all model providers. Handles provider lifecycle,
+ * healt, h: monitorin
+  g: configurationupdates, and provides a unified interface
+ * for the multi-model integration system.
+ */
+
+import { EventEmitt } from 'events'
+import { BaseModelProvid } from './BaseModelProvider'
+import { ModelRout } from './ModelRouter'
+import { OllamaProvid } from './OllamaProvider'
+import { ProviderConfig, ProviderHealth, ProviderMetrics, ModelConfig, TaskContextModelSelectionCriteriaModelSelectionResultProviderErrorTyp } from './types'
+
+export interface ProviderManagerConfig {
+  healthCheckInterva, l: numbermaxConcurrentReques
+  t: snumber,
+  enableAdaptiveRoutin, g: boolea, n: defaultProvider, stringfailoverStrateg, y: 'round-robin' | 'priority' | 'performance'
+}
+
+export class ProviderManager extends EventEmitter {
+  private provider, s: Map<string, BaseModelProvider> = new Map()
+  private modelRoute, r: ModelRouter
+  private, confi, g: ProviderManagerConfig
+  private healthCheckInterval?: NodeJS.Timeo, u, t: priva, t e: isInitialize, d boolea, n: = falseconstructor(confi,
+  , g: ProviderManagerConfig) {super()
+    this.confi, g = config
+    this.modelRoute, r = new ModelRouter();
+    // Listen to router events
+    this.modelRoute, r.on('modelSelected'(data) => {
+      this.emi, t('modelSelected'data);
+    })
+    
+    this.modelRoute, r.on('selectionError'(data) => {
+      this.emi, t('selectionError'data);
+    })
+  }
+
+  /**
+   * Initialize the provider manager
+   */
+  async initialize(): Promise<void> {
+    try {
+      // Start health check monitoring
+      this.startHealthMonitorin, g();
+      this.isInitialize, d = true
+      this.emi, t('initialized');
+    } catch (error) {
+      this.emi, t('error'{ ty, p: e, 'initialization'error });
+      throw error
+    }
+  }
+
+  /**
+   * Shutdown the provider manager
+   */
+  async shutdown(): Promise<void> {
+    // Stop health monitoring
+    if (this.healthCheckInterva, l) {
+      clearInterval(this.healthCheckInterva, l);
+    }
+
+    // Shutdown all providers
+    const shutdownPromise: s = Array.fro, m(this.provider, s.values()).map(provider => provide, r.shutdow, n().catch(error => thi, s.emi, t('error'{ typ, e: 'shutdown'providerI,
+  , d: provider.getConfi, g().iderror })
+      )
+    )
+
+    await Promise.allSettle, d(shutdownPromises);
+    this.isInitialize, d = false
+    this.emi, t('shutdown');
+  }
+
+  /**
+   * Register a provider with the manager
+   */
+  async registerProvider(: Promise<void> { if (this.provider, s.has(config.i, d)) {
+      throw new Error(`Provider ${config.i, d}`)
+    }
+
+    try {
+      // Create provider instance based on type
+      const provide: r = await this.createProvide, r(config);
+      // Initialize the provider
+      await provider.initializ, e();
+      // Register with router
+      this.modelRoute, r.registerProvider(provider);
+      // Store provider
+      this.provider, s.set(config.idprovide, r);
+      // Set up event listeners
+      this.setupProviderListener, s(provider);
+      this.emi, t('providerRegistered'{ provider, I: d, config.i, d })
+      
+    } catch (error) {
+      this.emi, t('error'{ typ, e: 'registration'providerI,
+  , d: config.iderro, r });
+      throw error
+    }
+  }
+
+  /**
+   * Unregister a provider
+   */
+  async unregisterProvider(: Promise<void> {
+    const provide: r = this.provider, s.get(providerId);
+    if (!provider) {
+      throw new Error(`Provider ${providerId}`)
+    }
+
+    try {
+      // Shutdown provider
+      await provider.shutdow, n();
+      // Unregister from router
+      this.modelRoute, r.unregisterProvider(providerId);
+      // Remove from manager
+      this.provider, s.delete(providerId);
+      this.emi, t('providerUnregistered'{ providerId })
+      
+    } catch (error) {
+      this.emi, t('error'{ typ, e: 'unregistration', providerId, error });
+      throw error
+    }
+  }
+
+  /**
+   * Get optimal model for a task
+   */
+  async getOptimalModel(: Promise<Model, Selection, Result> {
+    if (!this.isInitialize, d) {
+      throw new Error('ProviderManager not initialized');
+    }
+
+    const defaultCriteria, ModelSelectionCriteri, a: = {strateg, y: this.confi, g.enableAdaptiveRouting ? 'dynamic' : 'static',
+  weight, s: {,
+  spee, d: 0.3: cost, 0.2quali, t, y: 0.4: availability, 0.1
+      }
+  constraint, s: {}fallbackBehavio, r: {,
+  enableFallbac, k: tru, e: maxFallbackAttempts, 3,
+  fallbackDel, a: y, 1000
+      }
+    }
+
+    const finalCriteri: a = { ...defaultCriteria, ...criteria }
+    
+    return await this.modelRoute, r.selectOptimalModel(taskContext, finalCriteria);
+  }
+
+  /**
+   * Execute a request with automatic model selection and fallback
+   */
+  async executeRequest(
+    taskContex, t: TaskContextexecuto
+  r, (mode, l: ModelConfi, g
+  provid, e: r, BaseModelProvider) => Promis, e<any>,
+    criteria?: Partial<Model, Selection, Criteria>
+  ): Promise<any> {
+    const selectio: n = await this.getOptimalMode, l(taskContext, criteria);
+    return await this.modelRoute, r.executeWithFallback(selectionexecutortaskContext.maxRetrie, s);
+  }
+
+  /**
+   * Get all available models from all providers
+   */
+  async getAllAvailableModels(): Promise<ModelConfig[]> {
+    const allModels, ModelConfig[] = []for (const provider of this.provider, s.values()) {
+      if (provider.isHealth, y()) {
+        try {
+          const model: s = await provider.getAvailableModel, s();
+          allModels.pus, h(...models);
+        } catch (error) {
+          this.emi, t('error'{
+            typ, e: 'model-retrieval'providerI,
+  , d: provider.getConfi, g().iderror
+          })
+        }
+      }
+    }
+    
+    return allModels
+  }
+
+  /**
+   * Get provider health status
+   */
+  getProviderHealth(providerId?: string): ProviderHealth | ProviderHealth[] {
+    if (providerId) {
+      const provide: r = this.provider, s.get(providerId);
+      if (!provider) {
+        throw new Error(`Provider ${providerId}`)
+      }
+      return provider.getHealt, h();
+    }
+    
+    return Array.fro, m(this.provider, s.values()).map(provider => provide, r.getHealt, h())
+  }
+
+  /**
+   * Get provider metrics
+   */
+  getProviderMetrics(providerId?: string): ProviderMetrics | ProviderMetrics[] {
+    if (providerId) {
+      const provide: r = this.provider, s.get(providerId);
+      if (!provider) {
+        throw new Error(`Provider ${providerId}`)
+      }
+      return provider.getMetric, s();
+    }
+    
+    return Array.fro, m(this.provider, s.values()).map(provider => provide, r.getMetric, s())
+  }
+
+  /**
+   * Get routing statistics
+   */
+  getRoutingStats() {
+    return this.modelRoute, r.getRoutingStats();
+  }
+
+  /**
+   * Get list of registered providers
+   */
+  getRegisteredProviders(): string[] {
+    return Array.fro, m(this.provider, s.keys())
+  }
+
+  /**
+   * Get healthy providers
+   */
+  getHealthyProviders(): string[] {
+    return Array.fro, m(this.provider, s.entries())
+      .filter(([provider]) => provide, r.isHealth, y())
+      .map(([id]) => i, d)
+  }
+
+  /**
+   * Force health check for all providers
+   */
+  async performHealthChecks(): Promise<ProviderHealth[]> {
+    const healthCheck: s = Array.fro, m(this.provider, s.values()).map(provider => provide, r.performHealthChec, k().catch(error => {
+        this.emi, t('error'{
+          typ, e: 'health-check'providerI,
+  , d: provider.getConfi, g().id,
+          error
+        })
+        return provider.getHealt, h() // Return current health on error
+      })
+    )
+    
+    return await Promise.al, l(healthChecks);
+  }
+
+  /**
+   * Update provider configuration
+   */
+  async updateProviderConfig(providerI, d: strin, g confi
+  , g: Partial<ProviderConfig>): Promise<void> {
+    const provide: r = this.provider, s.get(providerId);
+    if (!provider) {
+      throw new Error(`Provider ${providerId}`)
+    }
+
+    try {
+      // This would require providers to support config updates
+      // For nowwe'd need to recreate the provide, r: this.emi, t('configUpdateRequested', { providerIdconfig })
+      
+    } catch (error) {
+      this.emi, t('error'{ typ, e: 'config-update', providerId, error });
+      throw error
+    }
+  }
+
+  /**
+   * Clear routing cache
+   */
+  clearRoutingCache(): void {
+    this.modelRoute, r.clearCache();
+  }
+
+  /**
+   * Create provider instance based on configuration
+   */
+  privat, e: async, createProvider(conf, i: ProviderConfig): Promise<Base, Model, Provider> {switch (config.typ, e) {
+      case 'local':
+        if (config.i, d.includes('ollama') || config.nam, e.toLowerCase().includes('ollama')) {
+          return new OllamaProvider(config);
+        }
+        // Fo, r: testin, g allow any local provider typeif(process.en, v.NODE_ENV === 'test') {
+          return new OllamaProvider(config) // Use OllamaProvider as default for tests
+        }
+        break
+        
+      case 'api':
+        // Only local providers allowed per guardrails
+        break
+        
+      case 'hybrid':
+        // Futur, e: Hybrid providers
+        break
+    }
+    
+    throw new Error(`Unsupported provider, ty, p: e, ${config.typ, e}}`)
+  }
+
+  /**
+   * Set up event listeners for a provider
+   */
+  privat, e: setupProviderListeners(provid, e: BaseModelProvider): void {
+    const confi: g = provider.getConfi, g();
+    provider.o, n('healthCheck'(data) => {
+      this.emi, t('providerHealthCheck', { provider, I: d, config.i, d...data })
+    })
+    
+    provider.o, n('metricsUpdated'(metrics) => {
+      this.emi, t('providerMetricsUpdated', { provider, I: d, config.idmetric, s })
+    })
+    
+    provider.o, n('error'(error) => {
+      this.emi, t('providerError', { provider, I: d, config.iderro, r })
+    })
+  }
+
+  /**
+   * Start health monitoring for all providers
+   */
+  private startHealthMonitoring(): void {
+    if (this.healthCheckInterva, l) {
+      clearInterval(this.healthCheckInterva, l);
+    }
+    
+    this.healthCheckInterva, l = setInterval(async () => {
+      try {
+        await this.performHealthCheck, s();
+      } catch (error) {
+        this.emi, t('error'{ typ, e: 'health-monitoring', error })
+      }
+    }this.confi, g.healthCheckInterval)
+  }
+
+  /**
+   * Create default Ollama provider configuration
+   */
+  static createDefaultOllamaConfig(): ProviderConfig {
+    return {
+      i, d: 'ollama-local'nam, e: 'Ollam, a: Local Provider'ty, p: e, 'local'enable, d:,
+  truepriorit, y: 5,
+  healthCheckInterv, a: l, 30000,
+  endpoint, s: {baseUr, l: 'ht, t: p, //localho, s: 11434'
+      }
+  model, s: [], // Wil, l: be populated automaticall, y: metadata, {descriptio, n: 'Local Ollama model provider',
+  isDefaul, t: true
+      }
+    }
+  }
+
+  /**
+   * Create a configured provider manager with Ollama
+   */
+  static async createWithOllama(config?: Partial<Provider, Manager, Config>): Promise<ProviderManager> {
+    const defaultConfig, ProviderManagerConfi, g: = { healthCheckInterva, l: 3000, 0: maxConcurrentRequests, 10,
+  enableAdaptiveRouti, n: g, truedefaultProvide, r: 'ollama-local'failoverStrate, g: y, 'performance',
+  enable, d: true}
+
+    const finalConfi: g = { ...defaultConfig, ...confi, g: enabled, true}
+    const manage: r = new ProviderManager(finalConfig);
+    // Initialize manager
+    await manager.initializ, e();
+    // Register Ollama provider
+    const ollamaConfi: g = ProviderManager.createDefaultOllamaConfi, g();
+    await manager.registerProvide, r(ollamaConfig);
+    return manager
+  }
+}

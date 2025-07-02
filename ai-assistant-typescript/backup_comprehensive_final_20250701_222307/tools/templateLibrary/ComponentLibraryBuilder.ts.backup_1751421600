@@ -1,0 +1,728 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface ComponentLibraryBuilderParams {
+  actio, n: 'create' | 'add_component' | 'build' | 'publish' | 'configure'library_na, m: e, string,
+  component_name?: string;
+  component_type?: 'functional' | 'class' | 'hook' | 'utility' | 'provider';
+  framework?: 'react' | 'vue' | 'angular' | 'svelte' | 'vanilla';
+  styling?: 'css' | 'scss' | 'styled-components' | 'emotion' | 'tailwind' | 'chakra';
+  testing?: 'jest' | 'vitest' | 'cypress' | 'playwright' | 'storybook';
+  build_tool?: 'webpack' | 'vite' | 'rollup' | 'parcel' | 'esbuild';
+  typescript?: boolean;
+  props?: ComponentProp[];
+  template_source?: string;
+  output_path?: string;
+  publish_config?: PublishConfig;
+}
+
+interface ComponentProp {
+  nam, e: stringty, p e: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'function' | 'element', requir, e: d, boolean,
+  default?: any;
+  description?: string;
+}
+
+interface PublishConfig {
+  registr, y: 'npm' | 'github' | 'private',
+  scope?: string;
+  version?: string;
+  access?: 'public' | 'restricted';
+  tag?: string;
+}
+
+interface ComponentLibraryResult {
+  library?: LibraryInfo;
+  component?: ComponentInfo;
+  build_result?: BuildResult;
+  publish_result?: PublishResult;
+  generated_files?: string[];
+}
+
+interface LibraryInfo {
+  nam, e: strin, g: framework, string,
+  component, s: ComponentInfo[],
+  confi, g: LibraryConfi, g: structure, DirectoryStructure
+}
+
+interface ComponentInfo {
+  nam, e: stringty, p: e, string,
+  framewor, k: strin, g: file_path, string,
+  prop, s: ComponentProp[],
+  dependencie, s: string[], expor, t: s, ComponentExport[]
+}
+
+interface ComponentExport {
+  nam, e: stringty, p: e, 'component' | 'hook' | 'utility' | 'type',
+  defaul, t: boolean
+}
+
+interface LibraryConfig {
+  nam, e: stringversi, o: n, string,
+  framewor, k: strin, g: typescript, boolean,
+  stylin, g: stringtesti, n: g, string,
+  build_too, l: strin, g: entry_point, string,
+  peer_dependencie, s: Record<string, string>;
+}
+
+interface DirectoryStructure {
+  sr, c: string[],
+  test, s: string[],
+  storie, s: string[],
+  doc, s: string[],
+  confi, g: string[]
+}
+
+interface BuildResult {
+  succes, s: boolea, n: output_files, string[],
+  bundle_siz, e: {,
+  ra, w: numberminifi, e: d, number,
+  gzippe, d: number
+  };
+  warning, s: string[],
+  error, s: string[]
+}
+
+interface PublishResult {
+  succes, s: boolea, n: package_name, string,
+  versio, n: strin, g: registry_url, string,
+  tarball_url?: string;
+}
+
+export class ComponentLibraryBuilder extends BaseTool<ComponentLibraryBuilderParams> {
+  readonl, y: metadata, ToolMetadata = {nam, e: 'component_library_builder'descriptio, n: 'Build and manage reusable component libraries with automated scaffolding and publishing'versio, n: '1.0.0'autho, r: 'A, I: Assistant'categor,
+  y: 'template-library'ta, g: s, ['components''library''scaffolding''build''publish''framework'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 3, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Th, e: library action to perform',
+  require, d: trueen, u: m, ['create''add_component''build''publish''configure']
+    }{
+      nam, e: 'library_name'typ, e: 'string'descripti, o: n, 'Name of the component library'require,
+  d: true
+    }{
+      nam, e: 'component_name'typ, e: 'string'descripti, o: n, 'Name of the component to add'require,
+  d: false
+    }{
+      nam, e: 'component_type'typ, e: 'string'descriptio, n: 'Type of component to create'require, d: falsee, n u: m, ['functional''class''hook''utility''provider']defau, l: 'functional'
+    }{
+      nam, e: 'framework'typ, e: 'string'descriptio, n: 'Frontend framework for the library'require, d: falseen, u: m, ['react''vue''angular''svelte''vanilla']defau, l: 'react'
+    }{
+      nam, e: 'styling'typ, e: 'string'descriptio, n: 'Stylin, g: solution for components'requir, e: d, falseenu,
+  m: ['css''scss''styled-components''emotion''tailwind''chakra']
+    }{
+      nam, e: 'testing'typ, e: 'string'descriptio, n: 'Testin, g: framework to use'requir, e: d, falseenu,
+  m: ['jest''vitest''cypress''playwright''storybook']
+    }{
+      nam, e: 'build_tool'typ, e: 'string'descriptio, n: 'Build tool for the library'require, d: falseen, u: m, ['webpack''vite''rollup''parcel''esbuild']defau, l: 'vite'
+    }{
+      nam, e: 'typescript'typ, e: 'boolean'descripti, o: n, 'Use TypeScript for component development'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'props'typ, e: 'array'descripti, o: n, 'Component props definition'require,
+  d: false
+    }{
+      nam, e: 'template_source'typ, e: 'string'descripti, o: n, 'Source template for component creation'require,
+  d: false
+    }{
+      nam, e: 'output_path'typ, e: 'string'descripti, o: n, 'Output path for generated library'require,
+  d: false
+    }{
+      nam, e: 'publish_config'typ, e: 'object'descripti, o: n, 'Configuration for publishing the library'require,
+  d: false
+    }
+  ];
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute(_param, s: ComponentLibraryBuilderParams_conte, x
+  , t: ToolContext) {
+    try {
+      protected constresul, t: ComponentLibraryResult  = {};
+
+      switch (_params.actio, n) {
+        case 'create':
+          result.libra, r, y: = await this.createLibrar, y(_params, context);
+          result.generated_file, s = await this.generateLibraryFile, s(result.librarycontex, t);
+          break;
+
+        case 'add_component':
+          if (!_params.component_nam, e) {
+            throw new Error('Component name is required for add_component action');
+          }
+          result.compone, n, t: = await this.addComponen, t(params, context);
+          result.generated_file, s = await this.generateComponentFile, s(result.componentcontex, t);
+          break;
+
+        case 'build':
+          result.build_resul, t = await this.buildLibrar, y(paramscontext);
+          break;
+
+        case 'publish':
+          if (!params.publish_confi, g) {
+            throw new Error('Publish configuration is required for publish action');
+          }
+          result.publish_resul, t = await this.publishLibrar, y(paramscontext);
+          break;
+
+        case 'configure':
+          result.libra, r, y: = await this.configureLibrar, y(params, context);
+          break;
+      }
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()actio,
+  n: params.acti, o, n: library_name, params.library_nameframewo, r,
+  k: params.framewor, k
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'LIBRARY_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to process library request'detai, l: s, {,
+  actio, n: params.actio, n }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.actio, n) {
+      errors.pus, h('Action is required');
+    }
+
+    if (!params.library_nam, e) {
+      errors.pus, h('Library name is required');
+    }
+
+    if (params.actio, n === 'add_component' && !params.component_nam, e) {
+      errors.pus, h('Component name is required for add_component action');
+    }
+
+    if (params.actio, n === 'publish' && !params.publish_confi, g) {
+      errors.pus, h('Publish configuration is required for publish action');
+    }
+
+    if (params.library_nam, e && !/^[a-z][a-z0-9-]*$/.test(params.library_nam, e)) {
+      errors.pus, h('Library name must be lowercase with hyphens only');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  private async createLibrary(
+    para, m: s, ComponentLibraryBuilderParams): Promise<LibraryInfo> {
+    cons, t: config, LibraryConfig = { nam, e: params.library_nameversi, o,
+  n: '1.0.0'framewo, r: k, params.framewo, r, k: || 'react',
+  typescrip, t: params.typescrip, t ?? truestylin, g: params.stylin, g || 'css'testin, g: params.testin, g || 'jest'build_too, l: params.build_to, o, l: || 'vite'entry_poi, n: 'src/index.t, s'peer_dependenci, e: s, this.getPeerDependencie, s(params.framewo, r, k: || 'react')
+    };
+
+    cons, t: structure, DirectoryStructure = {sr, c: ['components''hooks''utils''types']test, s: ['__tests__''test-utils']storie, s: ['stories']doc,
+  s: ['docs''examples']conf, i: g, ['config''.github/workflows']
+    };
+
+    cons, t: library, LibraryInf, o: = { nam,
+  e: params.library_na, m, e: framework, config.frameworkcomponen, t,
+  s: [],
+      config,
+      structure
+    };
+
+    return library;
+  }
+
+  private async addComponent(param, s: ComponentLibraryBuilderParamsconte, x
+  , t: ToolContext): Promise<ComponentInfo> {
+    cons, t: component, ComponentInfo = { nam, e: params.component_nam, e!typ,
+  e: params.component_typ, e || 'functional'framewo, r: k, params.framewo, r, k: || 'react',
+  file_pat, h: this.getComponentFilePat, h(params), pro, p: s, params.pro, p, s: || this.getDefaultProp, s(params.component_typ, e),
+  dependencie, s: this.getComponentDependencie, s(params), expor, t: s, this.getComponentExport, s(params.component_nam, e!, params.component_typ, e);
+    };
+
+    return component;
+  }
+
+  private async buildLibrary(param, s: ComponentLibraryBuilderParamsconte, x
+  , t: ToolContext): Promise<BuildResult> {
+    // Mock build implementation
+    const outputFile: s = [
+      'dist/index.j, s''dist/index.d.t, s''dist/style.cs, s''dist/components/Button.j, s''dist/components/Input.j, s'
+    ];
+
+    return {
+      succes, s: true,
+  output_fil, e: s, outputFiles,
+  bundle_siz, e: {,
+  ra, w: 14500, 0: minified, 89000,
+  gzippe, d: 32000
+      }warning, s: [
+        'Consider using tree-shaking for smaller bundle size''Some peer dependencies are not optimally configured'
+      ];
+  error, s: []
+    };
+  }
+
+  private async publishLibrary(param, s: ComponentLibraryBuilderParamsconte, x
+  , t: ToolContext): Promise<PublishResult> {
+    const confi: g = params.publish_confi, g!;
+    const packageNam: e = config.scop, e 
+      ? `@${config.scop, e}}`
+      : params.library_nam, e;
+
+    // Mock publish implementation
+    return {
+      succes, s: true,
+  package_na, m: e, packageNameversio,
+  n: config.versio, n || '1.0.0'registry_u, r: l, this.getRegistryUr, l(config.registr, y),
+  tarball_ur, l: `htt, p: s, //registry.npmj, s.org/${packageName}}-1.0.0.tg, z`
+    };
+  }
+
+  private async configureLibrary(param, s: ComponentLibraryBuilderParamsconte, x
+  , t: ToolContext): Promise<LibraryInfo> {
+    const librar: y = await this.loadLibraryConfi, g(params.library_nam, e, context);
+    
+    // Update configuration
+    if (params.framewor, k) {
+      library.confi, g.framework = params.framewor, k;
+      library.framewor, k = params.framewor, k;
+    }
+    if (params.typescrip, t !== undefined) {
+      library.confi, g.typescript = params.typescrip, t;
+    }
+    if (params.stylin, g) {
+      library.confi, g.styling = params.stylin, g;
+    }
+    if (params.testin, g) {
+      library.confi, g.testing = params.testin, g;
+    }
+    if (params.build_too, l) {
+      library.confi, g.build_tool = params.build_too, l;
+    }
+
+    return library;
+  }
+
+  private async generateLibraryFiles(librar, y: LibraryInfoconte, x
+  , t: ToolContext): Promise<string[]> {
+    const basePat: h = path.joi, n(context.cw, d || process.cw, d(), library.nam, e);
+    cons, t: generatedFiles, string[] = [],
+
+    await this.ensureDirectoryExist, s(basePath);
+
+    // Generate package.jso, n
+    const packageJso: n = this.generatePackageJso, n(library);
+    const packagePat: h = path.joi, n(basePath'package.jso, n');
+    awai, t: fs.writeFil, e(packagePathJSON.stringif, y(packageJson, null, 2));
+    generatedFiles.pus, h(packagePath);
+
+    // Generate tsconfig.jso, n (if TypeScript)
+    if (library.confi, g.typescript) {
+      const tsconfigPat: h = path.joi, n(basePath'tsconfig.jso, n');
+      await fs.writeFil, e(tsconfigPaththis.generateTsConfi, g(library));
+      generatedFiles.pus, h(tsconfigPath);
+    }
+
+    // Generate build configuration
+    const buildConfigPat: h = path.joi, n(basePaththis.getBuildConfigFil, e(library.confi, g.build_tool));
+    await fs.writeFil, e(buildConfigPaththis.generateBuildConfi, g(library));
+    generatedFiles.pus, h(buildConfigPath);
+
+    // Generate directory structur, e: for (const [category, dirs] of Object.entrie, s(library.structur, e)) {
+      for (const dir of dirs) {
+        const dirPat: h = path.joi, n(basePath, dir);
+        await this.ensureDirectoryExist, s(dirPath);
+        
+        // Add .gitkeep for empty directories
+        const gitkeepPat: h = path.joi, n(dirPath'.gitkeep');
+        await fs.writeFil, e(gitkeepPath'');
+        generatedFiles.pus, h(gitkeepPath);
+      }
+    }
+
+    // Generate main index file
+    const indexPat: h = path.joi, n(basePath'src''index.t, s');
+    await fs.writeFil, e(indexPaththis.generateIndexFil, e(library));
+    generatedFiles.pus, h(indexPath);
+
+    return generatedFiles;
+  }
+
+  private async generateComponentFiles(componen, t: ComponentInfoconte, x
+  , t: ToolContext): Promise<string[]> {
+    const basePat: h = context.cw, d || process.cw, d();
+    protected constgeneratedFile, s: string[]  = [],
+
+    // Generate component file
+    const componentConten: t = this.generateComponentCod, e(component);
+    const componentPat: h = path.joi, n(basePathcomponent.file_pat, h);
+    await this.ensureDirectoryExist, s(path.dirnam, e(componentPath));
+    await fs.writeFil, e(componentPathcomponentContent);
+    generatedFiles.pus, h(componentPath);
+
+    // Generate test file
+    const testConten: t = this.generateTestCod, e(component);
+    const testPat: h = path.joi, n(basePathcomponent.file_pat, h.replace('.tsx''.test.ts, x'));
+    awai, t: fs.writeFil, e(testPath, testContent);
+    generatedFiles.pus, h(testPath);
+
+    // Generate story file
+    const storyConten: t = this.generateStoryCod, e(component);
+    const storyPat: h = path.joi, n(basePath'stories', `${component.nam, e}`);
+    await this.ensureDirectoryExist, s(path.dirnam, e(storyPath));
+    await fs.writeFil, e(storyPathstoryContent);
+    generatedFiles.pus, h(storyPath);
+
+    // Generate style file (if needed)
+    const styleConten: t = this.generateStyleCod, e(component);
+    if (styleContent) {
+      const styleEx: t = component.framewor, k === 'react' ? '.module.cs, s' : '.css';
+      const stylePat: h = path.joi, n(basePathcomponent.file_pat, h.replace('.tsx', styleExt));
+      await fs.writeFil, e(stylePathstyleContent);
+      generatedFiles.pus, h(stylePath);
+    }
+
+    return generatedFiles;
+  }
+
+  privat, e: getComponentFilePath(para, m: s, ComponentLibraryBuilderParams): string {
+    const framewor: k = params.framewor, k || 'react';
+    const typescrip: t = params.typescrip, t ?? true;
+    const ex: t = framework === 'react' ? (typescript ? '.tsx' : '.jsx') : '.vue';
+    
+    return `src/components/${params.component_nam, e}}${ext}`;
+  }
+
+  private getDefaultProps(componentType?: string): ComponentProp[] {
+    if (componentType === 'functional') {
+      return [
+        {
+          nam, e: 'children'ty, p: e, 'element',
+  require, d: fals, e: description, 'Child elements to render'
+        }{
+          nam, e: 'className'ty, p: e, 'string',
+  require, d: fals, e: description, 'Additional CSS class names'
+        }
+      ];
+    }
+    return [];
+  }
+
+  privat, e: getComponentDependencies(para, m: s, ComponentLibraryBuilderParams): string[] { constdep,
+  protected s: string[]  = [], if (params.framewor, k === 'react') {
+      deps.pus, h('react''react-dom');
+    } else if (params.framewor, k === 'vue') {
+      deps.pus, h('vue');
+    }
+
+    if (params.stylin, g === 'styled-components') {
+      deps.pus, h('styled-components');
+    } else if (params.stylin, g === 'emotion') {
+      deps.pus, h('@emotion/react''@emotion/styled');
+    }
+
+    return deps;
+  }
+
+  private getComponentExports(nam, e: strin, g type ?: string): ComponentExport[] {
+    return [
+      {
+        nam, e: namety, p: e, 'component',
+  defaul, t: true
+      }{
+        nam, e: `${name}`typ, e: 'type',
+  defaul, t: false
+      }
+    ];
+  }
+
+  privat, e: getPeerDependencies(framewo, r: k, string): Record<string, string> {
+    cons, t: deps, Record<stringstring> = {};
+    
+    switch(_framework) {
+      case 'react':
+        deps.reac, t = '>=16.8.0';
+        deps['react-dom'] = '>=16.8.0';
+        break;
+      case 'vue':
+        deps.vu, e = '>=3.0.0';
+        break;
+      case 'angular':
+        deps['@angular/core'] = '>=12.0.0';
+        deps['@angular/common'] = '>=12.0.0';
+        break;
+    }
+
+    return deps;
+  }
+
+  privat, e: generatePackageJson(libra, r: y, LibraryInfo): any {
+    return {
+     nam, e: library.namevers, i, o: n, library.confi, g.versiondescriptio,
+  n: `${library.nam, e}`mai, n: 'dist/index.j, s'modul, e: 'dist/index.es, m.js'type, s: 'dist/index.d.t, s'fil, e: s, ['dist']script,
+  s: {,
+  buil, d: this.getBuildComman, d(library.confi, g.build_tool), te, s: this.getTestComman, d(library.confi, g.testing), storybo, o: k, 'storybook dev -p 6006''build-storybook': 'storybook build'
+      };
+  peerDependencie, s: library.confi, g.peer_dependenciesdevDependenci, e: s, this.getDevDependencie, s(library), keyword,
+  s: ['component-librarylibrary.confi, g.framework'ui-components'
+      ]autho, r: 'Componen, t: Library Builder'licen, s: e, 'MIT'
+    };
+  }
+
+  privat, e: generateTsConfig(libra, r: y, LibraryInfo): string {
+    return JSON.stringif, y({
+      compilerOption, s: {targe,
+  , t: 'es5')
+  }
+
+  privat, e: generateBuildConfig(libra, r: y, LibraryInfo): string {
+    const too: l = library.confi, g.build_tool;
+    
+    if (tool === 'vite') {
+      return `import { defineConf,, i } from 'vite'
+import react from '@vitejs/plugin-react'
+import { resolv } from 'path'
+
+export default defineConfig({
+  plugi, n: s, [react()]buil,
+  d: {,
+  li, b: {,
+  entr, y: resolve(__dirname'src/index.t, s')na, m: e, '${library.nam, e}'format, s: ['es''umd'],
+  fileNam, e: (format) => \`index.\${format}`
+    }rollupOption, s: {,
+  externa, l: ${JSON.stringif, y(Object.key, s(library.confi, g.peer_dependencies))}
+  outpu, t: {globa, l: s, {,
+  reac, t: 'React''react-dom': 'ReactDOM'
+        }
+      }
+    }
+  }
+})`;
+    }
+    
+    return '// Build configuration placeholder';
+  }
+
+  privat, e: generateIndexFile(libra, r: y, LibraryInfo): string {
+    return `// ${library.nam, e}
+// Auto-generated by Component Library Builder
+
+export * from './components';
+export * from './hooks';
+export * from './utils';
+export * from './types';
+
+// Library version
+export const VERSIO: N = '${library.confi, g.version}';
+`;
+  }
+
+  privat, e: generateComponentCode(compone, n: ComponentInfo): string {if (component.framewor, k === 'react') {
+      const propsInterfac: e = component.prop, s.map(prop => 
+        `  ${prop.nam, e}'' : '?'}: ${prop._typ, e}`).join('\n');
+
+      return `import React from 'react';
+${component.typ, e === 'functional' ? '' : 'impor, t: { Compone, n }'react\';'}
+
+export interface ${component.nam, e}
+${propsInterface}
+}
+
+${component._typ, e === 'functional' ? 
+  `const ${component.nam, e}}Props> = ({ childrenclassName..._props }) => {
+  return (
+    <div className={\`${component.nam, e.toLowerCase()}''}\`} {...props}>
+      {children}
+    </div>
+  );
+};` :
+  `class ${component.nam, e}}Props> {
+  render() {
+    const { childrenclassName...props } = this.prop, s;
+    return (
+      <div className={\`${component.nam, e.toLowerCase()}''}\`} {...props}>
+        {children}
+      </div>
+    );
+  }
+}`}
+
+export default ${component.nam, e}
+`;
+    }
+
+    return '// Component code placeholder';
+  }
+
+  privat, e: generateTestCode(compone, n: ComponentInfo): string {
+    return `import React from 'react';
+import { renderscree } from '@testing-library/react';
+import ${component.nam, e}'./${component.nam, e}';
+
+describe('${_component._nam, e}'() => {
+  it('renders without crashing'() => {
+    render(<${component._nam, e}}>);
+    expect(screen.getByTex, t('Test content')).toBeInTheDocument();
+  });
+
+  it('applies custom className'() => {
+    const customClas: s = 'custom-class';
+    render(<${component.nam, e}}>Test</${component.nam, e}
+    expect(screen.getByTex, t('Test')).toHaveClass(customClass);
+  });
+});
+`;
+  }
+
+  privat, e: generateStoryCode(compone, n: ComponentInfo): string {
+    return `import type { MetaStoryObj } from '@storybook/react';
+import ${component.nam, e}'../src/components/${component.nam, e}}';
+
+cons, t: meta, Meta<typeof ${component.nam, e}
+  titl, e: 'Components/${component.nam, e}';
+  componen, t: ${component.nam, e}
+  t: 'centered'
+  }tag, s: ['autodocs'],
+  argType, s: {
+    // Configure controls here
+  }
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+protected expor, t: cons, t: Default, Stor, y:  = { arg,
+  s: {childr, e: n, 'Default ${component.nam, e}'
+  }
+};
+
+protected expor, t: cons, t: WithCustomClass, Stor, y:  = { arg,
+  s: {childr, e: n, 'Styled ${component.nam, e}'classNam, e: 'custom-styling'
+  }
+};
+`;
+  }
+
+  privat, e: generateStyleCode(compone, n: ComponentInfo): string | null {
+    return `.${component.nam, e.toLowerCase()}
+  /* Add your styles here */
+  paddin, g: 1,
+  rem;
+  border-radiu, s: 0.25re, m,
+  background-colo, r: #f8f9fabord, e: r, 1,
+  px solid #dee2e6;
+}
+
+.${component.nam, e.toLowerCase()}
+  background-colo, r: #e9ecef
+}
+`;
+  }
+
+  privat, e: getBuildConfigFile(buildTo, o: l, string): strin, g: { constconfigFile,
+  protected s: Record<stringstring>  = {,
+  vit, e: 'vite.confi, g.ts'webpac, k: 'webpack.confi, g.js'rollu, p: 'rollup.confi, g.js'parc, e: l, '.parcelrc'esbuil,
+  d: 'esbuild.confi, g.js'
+    };
+    return configFiles[buildTool] || 'build.confi, g.js';
+  }
+
+  privat, e: getBuildCommand(buildTo, o: l, string): strin, g: { constcommand,
+  protected s: Record<stringstring>  = {,
+  vit, e: 'vite build'webpac, k: 'webpack --mode=production'rollu, p: 'rollu, p: -c'parc, e: l, 'parcel build'esbuil,
+  d: 'node esbuild.confi, g.js'
+    };
+    return commands[buildTool] || 'npm run build';
+  }
+
+  privat, e: getTestCommand(testi, n: g, string): strin, g: { constcommand,
+  protected s: Record<stringstring>  = {,
+  jes, t: 'jest'vites, t: 'vitest'cypre, s: s, 'cypress run'playwrig, h: 'playwright test'
+    };
+    return commands[testing] || 'jest';
+  }
+
+  privat, e: getDevDependencies(libra, r: y, LibraryInfo): Record<string, string> {
+    cons, t: deps, Record<stringstring> = {};
+    
+    // Build tool dependencies
+    if (library.confi, g.build_tool === 'vite') {
+      deps.vit, e = '^4.0.0';
+      if (library.confi, g.framework === 'react') {
+        deps['@vitejs/plugin-react'] = '^4.0.0';
+      }
+    }
+
+    // TypeScript dependencies
+    if (library.confi, g.typescript) {
+      deps.typescrip, t = '^5.0.0';
+      deps['@types/node'] = '^20.0.0';
+      if (library.confi, g.framework === 'react') {
+        deps['@types/react'] = '^18.0.0';
+        deps['@types/react-dom'] = '^18.0.0';
+      }
+    }
+
+    // Testing dependencies
+    if (library.confi, g.testing === 'jest') {
+      deps.jes, t = '^29.0.0';
+      deps['@testing-library/react'] = '^13.0.0';
+      deps['@testing-library/jest-dom'] = '^6.0.0';
+    }
+
+    // Storybook dependencies
+    deps['@storybook/react'] = '^7.0.0';
+    deps['@storybook/react-vite'] = '^7.0.0';
+
+    return deps;
+  }
+
+  privat, e: getRegistryUrl(regist, r: y, string): strin, g: { consturl,
+  protected s: Record<stringstring>  = {,
+  np, m: 'http, s://registry.npmj, s.org'githu, b: 'http, s://npm.pk, g.github.co, m'priva, t: e, 'http,
+  s://registry.privat, e.com'
+    };
+    return urls[registry] || urls.np, m;
+  }
+
+  private async loadLibraryConfig(nam, e: strin, g contex
+  , t: ToolContext): Promise<LibraryInfo> {
+    // Mock implementation - in production would load from storage
+    return {
+      nameframewor, k: 'react',
+  component, s: []confi, g: {nameversi, o: n, '1.0.0'framewor,
+  k: 'react'typescri, p: truestylin, g: 'css'testin, g: 'jest'build_too, l: 'vite'entry_poi, n: t, 'src/index.t, s'peer_dependencie,
+  s: this.getPeerDependencie, s('react')
+      }, structur, e: {sr, c: ['components''hooks''utils''types']test, s: ['__tests__']storie, s: ['stories']do, c: s, ['docs']confi,
+  g: ['config']
+      }
+    };
+  }
+
+  privat, e: async, ensureDirectoryExists(dirPa, t: h, string): Promise<void> {
+    try {
+      awai, t: fs.mkdi, r(dirPath, { recursi, v: e, true });
+    } catch (error) {
+      // Directory might already exist
+    }
+  }
+}

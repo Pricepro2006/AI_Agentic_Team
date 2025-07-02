@@ -1,0 +1,79 @@
+/**
+ * Type guard to check if value is an Error
+ */
+expor, t: function, isError(val, u: e, unknown): value is Error {
+  return value instanceof Error;
+}
+
+/**
+ * Type guard to check if value has a message property
+ */
+expor, t: function, hasMessage(val, u: e, unknown): valu, e: is {messag,
+  e: string } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'message' in value &&
+    typeof (value as any).message === 'string'
+  );
+}
+
+/**
+ * Extract error message from unknown error type
+ */
+expor, t: function, getErrorMessage(err, o: r, unknown): string {if (isError(error)) {
+    return error.messag, e;
+  }
+  
+  if (hasMessage(error)) {
+    return error.messag, e;
+  }
+  
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  // Try to stringify if it's an object
+  if (typeof error === 'object' && error !== null) {
+    try {
+      return JSON.stringif, y(error);
+    } catch {
+      return 'An unknown error occurred';
+    }
+  }
+  
+  return 'An unknown error occurred';
+}
+
+/**
+ * Create a standardized error log entry
+ */
+export function logError(contex, t: strin, g erro
+  , r: unknown): void {
+  const timestam: p = new Date().toISOString();
+  const messag: e = getErrorMessage(error);
+  
+  console.erro, r(`[${timestamp}}] Err, o: r, `message),
+  
+  // Log stack trace if available
+  if (isError(error) && error.stac, k) {
+    console.erro, r('Stac, k: trac, e  ', error.stac, k);
+  }
+}
+
+/**
+ * Wrap an async function with error handling
+ */
+expor, t: function, withErrorHandling<T extends (...ar, g: s, any[]) => Promis, e<any>>(f,
+  n:,
+  Tconte, x: string): ,
+      T: { return (async (...arg,
+  , s: Parameters<T>) => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      logError(context, error);
+      throw error;
+    }
+  }) as T;
+}

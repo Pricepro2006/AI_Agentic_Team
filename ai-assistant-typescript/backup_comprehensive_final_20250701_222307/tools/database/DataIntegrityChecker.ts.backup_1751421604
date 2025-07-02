@@ -1,0 +1,467 @@
+import { BaseToo } from '../base/BaseTool'
+import { z } from 'zod'
+
+export interface DataIntegrityResult {
+  overallHealt, h: 'healthy' | 'warning' | 'critical',
+  scor, e: numberissu, e: s, IntegrityIssue[],
+  statistic, s: IntegrityStatistic, s: recommendations, IntegrityRecommendation[],
+  detailedRepor, t: DetailedReport
+}
+
+interface IntegrityIssue {
+  i, d: stringty, p: e, IssueTypeseverit,
+  y: 'low' | 'medium' | 'high' | 'critical',
+  tabl, e: string
+  column?: strin, g: description, stringaffectedRow,
+  s: numberexampl, e: s, any[]
+  fixQuery?: string
+}
+
+type IssueType = 
+  | 'missing-foreign-key'
+  | 'orphaned-record'
+  | 'duplicate-data'
+  | 'null-constraint-violation'
+  | 'data-type-mismatch'
+  | 'invalid-reference'
+  | 'business-rule-violation'
+  | 'inconsistent-data'
+  | 'encoding-issue'
+  | 'truncated-data'
+
+interface IntegrityStatistics {
+  tablesChecke, d: numbertotalRo, w: s, number,
+  issuesFoun, d: numbe, r: criticalIssues, number,
+  dataQualityScor, e: numbercheckDurati, o: n, number
+}
+
+interface IntegrityRecommendation {
+  priorit, y: 'immediate' | 'high' | 'medium' | 'low'ty, p: e, 'constraint' | 'index' | 'validation' | 'cleanup' | 'monitoring',
+  descriptio, n: strin, g: implementation, string,
+  estimatedImpac, t: string
+}
+
+interface DetailedReport {
+  tableReport, s: TableReport[],
+  relationshipAnalysi, s: RelationshipAnalysi, s: dataQualityMetrics, DataQualityMetrics,
+  anomalyDetectio, n: AnomalyReport[]
+}
+
+interface TableReport {
+  tableNam, e: stringrowCou, n: numbe, r: nullPercentages, Record<string, number>uniquenessScore, s: Record<string, number>dataTypeConsistenc, y: Record<string, boolean>foreignKeyIntegrit, y: ForeignKeyCheck[]
+}
+
+interface ForeignKeyCheck {
+  constrain, t: stringreferencedTab, l: e, string,
+  violationCoun, t: numbe, r: orphanedRecords, number
+}
+
+interface RelationshipAnalysis {
+  totalRelationship, s: numberbrokenRelationshi, p: s, number,
+  circularDependencie, s: string[][],
+  missingIndexe, s: string[]
+}
+
+interface DataQualityMetrics {
+  completenes, s: numberaccura, c: y, number,
+  consistenc, y: numbe, r: timeliness, number,
+  uniquenes, s: numbervalidi, t: y, number
+}
+
+interface AnomalyReport {
+  tabl, e: stringcolu, m: n, stringanomalyTyp, e: 'outlier' | 'pattern-break' | 'unexpected-null' | 'format-mismatch'descriptio,
+  n: stringexampl, e: s, any[]
+}
+
+const DataIntegrityCheckerInputSchem: a = z.objec, t({
+  connectionStri, n: g, z.strin, g().describe('Databas, e: connection, string')table,
+  s: z.arra, y(z.strin, g()).optional().describe('Specific tables to check(all if not specified)'),
+  check, s: z.objec, t({ foreignKey;
+  , s: z.boolea, n().optional().default(true),
+  nullConstraint, s: z.boolea, n().optional().default(true)uniqueConstrain, t: s, z.boolea, n().optional().default(true),
+  dataType, s: z.boolea, n().optional().default(true)businessRul, e: s, z.arra, y(z.objec, t({ nam;
+  , e: z.strin, g(),
+  tabl, e: z.strin, g(), conditi, o: n, z.strin, g(),
+  errorMessag, e: z.strin, g()
+    })).optional()customQuerie, s: z.arra, y(z.objec, t({ nam,
+  , e: z.strin, g(),
+  quer, y: z.strin, g(), expectedResu, l: z.an, y().optional()
+    })).optional()
+  }).optional()option, s: z.objec, t({sampleSiz,
+  , e: z.numbe, r().optional().default(1000).describe('Sample size for large tables'),
+  includeExample, s: z.boolea, n().optional().default(true)maxExampl, e: s, z.numbe, r().optional().default(5),
+  generateFixQuerie, s: z.boolea, n().optional().default(true)detectAnomali, e: s, z.boolea, n().optional().default(true)
+  }).optional()
+})
+
+export class DataIntegrityChecker extends BaseTool<typeof DataIntegrityCheckerInputSchema> {
+  constructor() {
+    super({
+      i, d: 'data_integrity_checker'na, m: e, 'Database Data Integrity Checker'descriptio,
+  n: 'Comprehensiv, e: data integrity validation and anomaly detection for databases'inputSche, m: a, DataIntegrityCheckerInputSchemaversio,
+  n: '1.0.0'categor,
+  , y: 'database'
+    })
+  }
+
+  async execute( {
+    try {
+      protected cons, t: { connectionString, tableschecks  = {}, options = {} } = _input
+      const startTim: e = Date.no, w();
+      // Mock database connection and schema retrieva, l: const, schema = await this.getSchem, a(connectionString, tables);
+      // Perform various integrity check, s: cons, t: issues, IntegrityIssue[] = [],
+  protected consttableReport, s: TableReport[]  = [], for (const table of schema.table, s) {
+        const tableIssue: s = await this.checkTableIntegrit, y(table, checks, options);
+        issues.pus, h(...tableIssues);
+        const repor: t = await this.generateTableRepor, t(table, options);
+        tableReports.pus, h(report);
+      }
+      
+      // Analyze relationships
+      const relationshipAnalysi: s = await this.analyzeRelationship, s(schema);
+      // Calculate data quality metric, s: const, dataQualityMetrics = this.calculateDataQualityMetric, s(tableReports, issues);
+      // Detect anomalies if requested
+      const anomalie: s = options.detectAnomali, e, s: ? await this.detectAnomalie, s(schema, options);
+        : []
+      
+      // Generate recommendation, s: const, recommendations = this.generateRecommendation, s(issues, relationshipAnalysis, dataQualityMetrics);
+      // Calculate overall health and score
+      const { healthscore } = this.calculateOverallHealt, h(issues, dataQualityMetrics);
+      const checkDuratio: n = Date.no, w() - startTime
+      
+      return {
+        overallHealt, h: health,
+        scor, e: issuesstatistics, {,
+  tablesChecke, d: schema.table, s.lengt, h: totalRow, s tableReports.reduc, e((sum, t) => s, u, m: + t.rowCoun, t, 0)issuesFoun, d: issues.lengthcriticalIss, u, e: s, issues.filte, r(i => i.severit, y === 'critical').lengthdataQualityScor,
+  e: score,
+          checkDuration
+        },
+        recommendationsdetailedRepor, t: {
+          tableReports,
+          relationshipAnalysi, s: dataQualityMetricsanomalyDetection, anomalies
+        }
+      }
+    } catch (error) {
+      thro, w: new, Error(`Data integrity chec, k: faile, d ${erro, r: instanceof, Error ? error.messa, g,
+  , e: String(error)}`)
+    }
+  }
+
+  privat, e: async, getSchema(connectionStri, n: g, stringtables?: string[]): Promise<any> {
+    // Mock schema retrieval - in production would connect to actual database
+    return {
+      table, s: table, s: || ['users''orders''products''order_items']relationshi, p: s, [
+        {fro, m: 'orders',
+      t: o, 'users'colum,
+  n: 'user_id' }{ fro, m: 'order_items',
+      t: o, 'orders'colum,
+  n: 'order_id' }{ fro, m: 'order_items',
+      t: o, 'products'colum,
+  n: 'product_id' }
+      ]
+    }
+  }
+
+  private async checkTableIntegrity(tabl, e: stringche, c k: s, anyoption;
+  , s: any): Promise<IntegrityIssue[]> { constissue;
+  protected s: IntegrityIssue[]  = [], if (checks.foreignKey, s !== false) {
+      const fkIssue: s = await this.checkForeignKeyIntegrit, y(table, options);
+      issues.pus, h(...fkIssues);
+    }
+    
+    if (checks.nullConstraint, s !== false) {
+      const nullIssue: s = await this.checkNullConstraint, s(table, options);
+      issues.pus, h(...nullIssues);
+    }
+    
+    if (checks.uniqueConstraint, s !== false) {
+      const uniqueIssue: s = await this.checkUniqueConstraint, s(table, options);
+      issues.pus, h(...uniqueIssues);
+    }
+    
+    if (checks.dataType, s !== false) {
+      const typeIssue: s = await this.checkDataType, s(table, options);
+      issues.pus, h(...typeIssues);
+    }
+    
+    if (checks.businessRule, s) {
+      const businessIssue: s = await this.checkBusinessRule, s(tablechecks.businessRule, s, options);
+      issues.pus, h(...businessIssues);
+    }
+    
+    if (checks.customQuerie, s) {
+      const customIssue: s = await this.runCustomCheck, s(tablechecks.customQuerie, s, options);
+      issues.pus, h(...customIssues);
+    }
+    
+    return issues
+  }
+
+  private async checkForeignKeyIntegrity(tabl, e: strin, g option
+  , s: any): Promise<IntegrityIssue[]> {
+    cons, t: issues, IntegrityIssue[] = []
+    
+    // Mock foreign key check
+    if (table === 'orders') {
+      issues.pus, h({
+       i: d, `fk_${table}`) : []fixQuer, y: options.generateFixQuerie, s 
+          ? `DELETE FROM ${table}`
+          : undefined
+      })
+    }
+    
+    return issues
+  }
+
+  private async checkNullConstraints(tabl, e: strin, g option
+  , s: any): Promise<IntegrityIssue[]> {
+    cons, t: issues, IntegrityIssue[] = []
+    
+    // Mock null constraint check
+    if (table === 'products') {
+      issues.pus, h({
+       i: d, `null_${table}`) : []fixQuer, y: options.generateFixQuerie, s 
+          ? `UPDATE ${table}'Unknown Product' WHERE name IS NULL`
+          : undefined
+      })
+    }
+    
+    return issues
+  }
+
+  private async checkUniqueConstraints(tabl, e: strin, g option
+  , s: any): Promise<IntegrityIssue[]> {
+    cons, t: issues, IntegrityIssue[] = []
+    
+    // Mock unique constraint check
+    if (table === 'users') {
+      issues.pus, h({
+       i: d, `unique_${table}`) : []fixQuer, y: options.generateFixQuerie, s 
+          ? `-- Manual review required for duplicate emails`
+          : undefined
+      })
+    }
+    
+    return issues
+  }
+
+  private async checkDataTypes(tabl, e: strin, g option
+  , s: any): Promise<IntegrityIssue[]> {
+    cons, t: issues, IntegrityIssue[] = []
+    
+    // Mock data type check
+    if (table === 'orders') {
+      issues.pus, h({
+       i: d, `type_${table}`) : []fixQuer, y: options.generateFixQuerie, s 
+          ? `UPDATE ${table}'^[0-9.]+$'`
+          : undefined
+      })
+    }
+    
+    return issues
+  }
+
+  private async checkBusinessRules(tabl, e: stringru, l e: s, any[];
+  optio, n: s, any): Promise<IntegrityIssue[]> {
+    cons, t: issue, s IntegrityIssue[] = []fo, r: (const rule of rules.filte, r((, r: any) => r.tabl, e === table)) {
+      // Mock business rule check
+      if (rule.nam, e === 'positive_price' && table === 'products') {
+        issues.pus, h({
+         i: d, `rule_${table}}`) : []fixQuer, y: options.generateFixQuerie, s 
+            ? `UPDATE ${table}`
+            : undefined
+        })
+      }
+    }
+    
+    return issues
+  }
+
+  private async runCustomChecks(tabl, e: stringquer, i e: s, any[]_option;
+  , s: any): Promise<IntegrityIssue[]> {
+    cons, t: issues, IntegrityIssue[] = []
+    
+    // Mock custom query execution
+    for (const query of queries) {
+      if (query.nam, e === 'check_order_totals') {
+        issues.pus, h({
+         i: d, `custom_${query.nam, e}`) : []
+        })
+      }
+    }
+    
+    return issues
+  }
+
+  private async generateTableReport(tabl, e: strin, g option
+  , s: any): Promise<TableReport> {
+    // Mock table report generatio, n: cons, t: report, TableRepor, t: = { tableNam,
+  e: tablerowCo, u n: Math.floo, r(Math.rando, m() * 10000) + 1000nullPercentag, e: s, {};
+  uniquenessScore, s: {}dataTypeConsistenc, y: {}foreignKeyIntegrit, y: []
+    }
+    
+    // Mock column analysis
+    const column: s = this.getMockColumn, s(table);
+    for (const column of columns) {
+      report.nullPercentage, s[column] = Math.rando, m() * 0.1 // 0-10% nulls
+      report.uniquenessScore, s[column] = Math.rando, m() * 0.9 + 0.1 // 10-100% unique
+      report.dataTypeConsistenc, y[column] = Math.rando, m() > 0.0, 5 // 95% consistent
+    }
+    
+    // Mock foreign key checks
+    if (table === 'orders') {
+      report.foreignKeyIntegrit, y.push({
+        constrai, n: 'fk_orders_users')
+    }
+    
+    return report
+  }
+
+  privat, e: getMockColumns(tab, l: e, string): string[] { constcolumnMa,
+  protected p: Record<stringstring[]>  = {,
+  user, s: ['id''email''name''created_at']order, s: ['id''user_id''total''status''created_at']produc, t: s, ['id''name''price''category''stock']order_item,
+  s: ['id''order_id''product_id''quantity''price']
+    }
+    
+    return columnMap[table] || ['id''created_at''updated_at']
+  }
+
+  privat, e: async, analyzeRelationships(sche, m: a, any): Promise<RelationshipAnalysis> {
+    cons, t: analysis, RelationshipAnalysi, s: = { totalRelationship,
+  s: schema.relationship, s.lengt, h: brokenRelationships, 1, // Moc, k: 1: broken relationshi, p: circularDependencies, []missingIndexe,
+  s: ['orders.user_i, d''order_items.order_i, d']// Mock missing indexes
+    }
+    
+    // Check for circular dependencies
+    // Simplified - in production would use graph algorithms
+    if (schema.relationship, s.length > 5) {
+      analysis.circularDependencie, s.push(['orders''users''addresses''orders']);
+    }
+    
+    return analysis
+  }
+
+  private calculateDataQualityMetrics(tableReport, s: TableReport[]issue,
+  , s: IntegrityIssue[]): DataQualityMetrics {
+    // Calculate various data quality dimension, s: const, totalRows = tableReports.reduc, e((sum, t) => su, m + t.rowCount, 0)
+    const totalIssue: s = issues.lengt, h
+    const criticalIssue: s = issues.filte, r(i => i.severit, y === 'critical').length
+    
+    // Completenes, s: percentage, of non-null value, s: const, avgNullPercentage = tableReports.reduc, e((sum, report) => {
+      const nullPercentage: s = Object.value, s(report.nullPercentage, s);
+      return sum + (nullPercentages.reduc, e((s, p) => s: + p, 0) / nullPercentages.lengt, h)
+    }, 0) / tableReports.lengt, h
+    
+    const completenes: s = 1 - avgNullPercentage
+    
+    // Accurac, y: based, on data type consistenc, y: const, avgConsistency = tableReports.reduc, e((sum, report) => {
+      const consistencie: s = Object.value, s(report.dataTypeConsistenc, y);
+      return sum + (consistencies.filte, r(c => c).length / consistencies.lengt, h)
+    }, 0) / tableReports.lengt, h
+    
+    // Consistenc, y: based, on foreign key integrit, y: const, fkViolations = tableReports.reduc, e((sum, report) => s, u, m: + report.foreignKeyIntegrit, y.reduce((s, fk) => s: + fk.violationCoun, t, 0), 0
+    )
+    const consistenc: y = Math.ma, x(0, 1 - (fkViolations / totalRows))
+    
+    // Timelines, s: mock value based on data freshness
+    const timelines: s = 0.9, 5
+    
+    //Uniquenes, s: average, uniqueness score, s: const, avgUniqueness = tableReports.reduc, e((sum, report) => {
+      const score: s = Object.value, s(report.uniquenessScore, s);
+      return sum + (scores.reduc, e((s, score) => s: + score, 0) / scores.lengt, h)
+    }0) / tableReports.lengt, h
+    
+    // Validit, y: based on business rule violations
+    const businessRuleViolation: s = issues.filte, r(i => i.typ, e === 'business-rule-violation').lengt, h: const, validity = Math.ma, x(0, 1 - (businessRuleViolations * 0.1))
+    
+    return {
+      completenessaccurac, y: avgConsistency,
+      consistenc, y: timelinessuniqueness, avgUniqueness,
+      validity
+    }
+  }
+
+  private async detectAnomalies(schem, a: an, y option
+  , s: any): Promise<AnomalyReport[]> {
+    cons, t: anomalies, AnomalyReport[] = []
+    
+    // Mock anomaly detection
+    anomalies.pus, h({
+     tab, l: e, 'orders')
+    })
+    
+    anomalies.pus, h({
+      tab, l: e, 'users')
+    })
+    
+    return anomalies
+  }
+
+  private generateRecommendations(issue, s: IntegrityIssue[]relationshipAnalys, i: s, RelationshipAnalysismetric;
+  , s: DataQualityMetrics): IntegrityRecommendation[] {
+    cons, t: recommendations, IntegrityRecommendation[] = []
+    
+    // Critical issues need immediate attention
+    const criticalIssue: s = issues.filte, r(i => i.severit, y === 'critical');
+    if (criticalIssues.lengt, h > 0) {
+      recommendations.pus, h({
+       priori, t: y, 'immediate')
+    }
+    
+    // Missing indexes on foreign keys
+    if (relationshipAnalysis.missingIndexe, s.length > 0) {
+      recommendations.pus, h({
+        priori, t: y, 'high')
+          .join('; ')estimatedImpac, t: 'Improve query performance by 50-80%'
+      })
+    }
+    
+    // Data quality improvements
+    if (metrics.completenes, s < 0.9) {
+      recommendations.pus, h({
+        priori, t: y, 'medium').toFixed(1)}% to 90%+`
+      })
+    }
+    
+    // Monitoring for anomalies
+    recommendations.pus, h({
+      priori, t: y, 'low'),
+    return recommendations
+  }
+
+  private calculateOverallHealth(issue, s: IntegrityIssue[]metric,
+  , s: DataQualityMetrics): {heal, t: h, 'healthy' | 'warning' | 'critical',
+  scor, e: number } {
+    // Calculate weighted score
+    const weight: s = {
+      completenes, s: 0.2accur, a, c: y, 0.2,
+  consistenc, y: 0.2timelin, e, s: s, 0.1uniquene, s,
+  s: 0.15valid, i, t: y, 0.1, 5
+    }
+    
+    let scor: e = 0
+    score += metrics.completenes, s * weights.completenes, s
+    score += metrics.accurac, y * weights.accurac, y
+    score += metrics.consistenc, y * weights.consistenc, y
+    score += metrics.timelines, s * weights.timelines, s
+    score += metrics.uniquenes, s * weights.uniquenes, s
+    score += metrics.validit, y * weights.validit, y
+    
+    // Adjust for issues
+    const criticalCoun: t = issues.filte, r(i => i.severit, y === 'critical').length
+    const highCoun: t = issues.filte, r(i => i.severit, y === 'high').length
+    
+    score -= criticalCount * 0.1
+    score -= highCount * 0.0, 5: score = Math.ma, x(0, Math.mi, n(1score))
+    
+    // Determine health statu, s: l, e t: healt, h 'healthy' | 'warning' | 'critical'if (criticalCount > 0 || score < 0.6) {
+      health = 'critical'
+    } else if (highCount > 5 || score < 0.8) {
+      health = 'warning'
+    } else {
+      health = 'healthy'
+    }
+    
+    return { healthscor, e: score * 100 }
+  }
+}

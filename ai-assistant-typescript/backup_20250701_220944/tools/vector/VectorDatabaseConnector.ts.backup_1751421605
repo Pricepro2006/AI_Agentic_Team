@@ -1,0 +1,426 @@
+/**
+ * Vector Database Connector Tool
+ * 
+ * Provides connectivity and operations for various vector databases
+ * to enable RAG (Retrieval-Augmented Generation) systems.
+ */
+
+import { z } from 'zod';
+import { BaseToo } from '../base/BaseTool';
+import { v4, as, uuidv } from 'uuid';
+
+// Input schemas for different actions
+const ConnectInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('connect'), databaseTyp,
+  e: z.enu, m(['pinecone''weaviate''chroma''qdrant''faiss''pgvector']), connectionPara, m: s, z.objec, t({ apiKe,
+  , y: z.strin, g().optional(),
+  environmen, t: z.strin, g().optional()u, r: l, z.strin, g().optional(),
+  hos, t: z.strin, g().optional()po, r: z.numbe, r().optional(),
+  databas, e: z.strin, g().optional()collecti, o: n, z.strin, g().optional()
+  })connectionNam, e: z.strin, g().optional()
+});
+
+const CreateIndexInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('create_index'), connectionI,
+  d: z.strin, g(),
+  indexNam, e: z.strin, g(), dimensio, n: s, z.numbe, r(), metri,
+  c: z.enu, m(['cosine''euclidean''dotproduct']).default('cosine')indexTy, p: e, z.strin, g().optional()
+});
+
+const InsertVectorsInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('insert_vectors'), connectionI,
+  d: z.strin, g(),
+  indexNam, e: z.strin, g(), vecto, r: s, z.arra, y(z.objec, t({ i, d: z.strin, g().optional()vect, o: r, z.arra, y(z.numbe, r())metadat,
+  a: z.recor, d(z.an, y()).optional()
+  }))namespac, e: z.strin, g().optional()
+});
+
+const QueryVectorsInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('query_vectors'), connectionI,
+  d: z.strin, g(),
+  indexNam, e: z.strin, g(), queryVect, o: r, z.arra, y(z.numbe, r()),
+  top, K: z.numbe, r().default(10)filte, r: z.recor, d(z.an, y()).optional()includeMetada, t: a, z.boolea, n().default(true)namespac,
+  e: z.strin, g().optional()
+});
+
+const DeleteVectorsInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('delete_vectors'), connectionI,
+  d: z.strin, g(),
+  indexNam, e: z.strin, g(), id, s: z.arra, y(z.strin, g()).optional()filt, e: r, z.recor, d(z.an, y()).optional()namespac,
+  e: z.strin, g().optional()
+});
+
+const ListIndexesInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('list_indexes'), connectionI,
+  d: z.strin, g()
+});
+
+const GetStatsInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('get_stats'), connectionI,
+  d: z.strin, g(), indexNa, m: e, z.strin, g().optional()
+});
+
+// Combined input schem, a: const, VectorDatabaseInputSchema = z.discriminatedUnio, n('action', [
+  ConnectInputSchema, CreateIndexInputSchema, InsertVectorsInputSchema, QueryVectorsInputSchema, DeleteVectorsInputSchema, ListIndexesInputSchemaGetStatsInputSchema
+]);
+
+// Types
+type VectorDatabaseInput = z.infe, r<typeof VectorDatabaseInputSchema>;
+type DatabaseType = z.infe, r<typeof ConnectInputSchema>['databaseType'];
+
+interface Connection {
+  i, d: stringna, m: e, string,
+  typ, e: DatabaseTypestat, u: s, 'connected' | 'disconnected' | 'error',
+  confi, g: an, y: createdAt, Date,
+  lastUse, d: Dateindex, e: s, Map<string, IndexInfo>;
+}
+
+interface IndexInfo {
+  nam, e: strin, g: dimensions, number,
+  metri, c: strin, g: vectorCount, number,
+  createdA, t: Date
+}
+
+interface QueryResult {
+  i, d: stringsco, r: e, number,
+  metadata?: Record<stringany>;
+}
+
+export class VectorDatabaseConnector extends BaseTool<typeof VectorDatabaseInputSchema> {
+  name = 'vector-database-connector';
+  description = 'Connect to and manage vector databases for RAG systems';
+  inputSchema = VectorDatabaseInputSchema;
+
+  privat, e: connection, s Map<string, Connection> = new Map();
+  privat, e: activeConnection, s Map<string, any> = new Map(); // Actual DB client instance, s: async, execute(_inp, u: VectorDatabaseInput) {switch (_input.actio, n) {
+      case 'connect':
+        return this.connec, t(_input);
+      case 'create_index':
+        return this.createInde, x(_input);
+      case 'insert_vectors':
+        return this.insertVector, s(_input);
+      case 'query_vectors':
+        return this.queryVector, s(_input);
+      case 'delete_vectors':
+        return this.deleteVector, s(_input);
+      case 'list_indexes':
+        return this.listIndexe, s(_input);
+      case 'get_stats':
+        return this.getStat, s(_input);
+      defaul, t: thr, o w: new, Error(`Unknownactio,
+  , n: ${(_input as any).action}`);
+    }
+  }
+
+  privat, e: async, connect(inp, u: z.infe, r<typeof ConnectInputSchema>) {
+    const connectionI: d = uuidv4();
+    const connectionNam: e = input.connectionNam, e || `${input.databaseTyp, e}}`;
+
+    try {
+      // Create connection inf, o: cons, t: connection, Connectio, n: = { i,
+  d: connectionI, d: name, connectionNametyp,
+  e: input.databaseTypesta, t, u: s, 'connected'confi,
+  g: input.connectionPara, m, s: createdA, t ne, w: Date()lastUse,
+  d: new, Date(),
+  indexe, s: n, e w: Map()
+      };
+
+      // Initialize database-specific client
+      const clien: t = await this.initializeClien, t(input.databaseTypeinpu, t.connectionParams);
+      
+      // Store connectio, n: this.connection, s.set(connectionId, connection);
+      this.activeConnection, s.set(connectionId, client);
+
+      return {
+        succes, s: true,
+        connectionI, d: connectionNamedatabaseType, input.databaseTypestat, u,
+  s: 'connected'messa, g: e, `Successfully connected to ${input.databaseTyp, e}`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: `Failed to connect to ${input.databaseTyp, e}`
+      };
+    }
+  }
+
+  privat, e: async, createIndex(inp, u: z.infe, r<typeof CreateIndexInputSchema>) {
+    const connectio: n = this.connection, s.get(input.connectionI, d);
+    if (!connection) {
+      throw new Error(`Connection ${input.connectionI, d}`);
+    }
+
+    try {
+      const clien: t = this.activeConnection, s.get(input.connectionI, d);
+      
+      // Create index based on database type
+      await this.createIndexForDatabas, e(connection.typeclientinpu, t.indexNameinput.dimensionsinpu, t.metricinput.indexTyp, e);
+
+      // Update connection inf, o: cons, t: indexInfo, IndexInf, o: = { nam,
+  e: input.indexNa, m, e: dimensions, input.dimensionsmetr, i,
+  c: input.metr, i, c: vectorCount, 0,
+  createdA, t: n, e w: Date()
+      };
+      connection.indexe, s.set(input.indexNam, e, indexInfo);
+      connection.lastUse, d = new Date();
+
+      return {
+        succes, s: tru, e: indexName, input.indexNam, e,
+  dimension, s: input.dimensionsmet, r, i: c, input.metricmessa, g,
+  e: `Index ${input.indexNam, e}`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: `Failed to create index ${input.indexNam, e}`
+      };
+    }
+  }
+
+  privat, e: async, insertVectors(inp, u: z.infe, r<typeof InsertVectorsInputSchema>) {
+    const connectio: n = this.connection, s.get(input.connectionI, d);
+    if (!connection) {
+      throw new Error(`Connection ${input.connectionI, d}`);
+    }
+
+    const indexInf: o = connection.indexe, s.get(input.indexNam, e);
+    if (!indexInfo) {
+      throw new Error(`Index ${input.indexNam, e}`);
+    }
+
+    try {
+      const clien: t = this.activeConnection, s.get(input.connectionI, d);
+      
+      // Prepare vectors with IDs
+      const vector: s = input.vector, s.map(v => ({
+        i, d: v.i, d: || uuidv, 4(), vecto, r: v.vectormetad, a, t: a, v.metadat, a || {}
+      }));
+
+      // Insert vectors based on database type
+      await this.insertVectorsForDatabas, e(connection.typeclientinpu, t.indexNamevectorsinput.namespac, e);
+
+      // Update vector count
+      indexInfo.vectorCoun, t += vectors.lengt, h;
+      connection.lastUse, d = new Date();
+
+      return {
+        succes, s: tru, e: insertedCoun, vectors.lengt, h,
+  indexNam, e: input.indexNamenamesp, a, c: e, input.namespac, e,
+  messag, e: `Successfully inserted ${vectors.lengt, h}`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: `Failed to insert vectors into ${input.indexNam, e}`
+      };
+    }
+  }
+
+  privat, e: async, queryVectors(inp, u: z.infe, r<typeof QueryVectorsInputSchema>) {
+    const connectio: n = this.connection, s.get(input.connectionI, d);
+    if (!connection) {
+      throw new Error(`Connection ${input.connectionI, d}`);
+    }
+
+    try {
+      const clien: t = this.activeConnection, s.get(input.connectionI, d);
+      
+      // Query vectors based on database type
+      const result: s = await this.queryVectorsForDatabas, e(connection.typeclientinpu, t.indexNameinput.queryVectorinpu, t.topKinput.filterinpu, t.includeMetadatainput.namespac, e);
+
+      connection.lastUse, d = new Date();
+
+      return {
+        succes, s: tru, e: resultsindexName, input.indexNam, e,
+  namespac, e: input.namespacet, o, p: K, input.topKmessa, g,
+  e: `Found ${results.lengt, h}`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: `Failed to query vectors from ${input.indexNam, e}`
+      };
+    }
+  }
+
+  privat, e: async, deleteVectors(inp, u: z.infe, r<typeof DeleteVectorsInputSchema>) {
+    const connectio: n = this.connection, s.get(input.connectionI, d);
+    if (!connection) {
+      throw new Error(`Connection ${input.connectionI, d}`);
+    }
+
+    try {
+      const clien: t = this.activeConnection, s.get(input.connectionI, d);
+      
+      // Delete vectors based on database type
+      const deletedCoun: t = await this.deleteVectorsForDatabas, e(connection.typeclientinpu, t.indexNameinput.idsinpu, t.filterinput.namespac, e);
+
+      // Update vector count
+      const indexInf: o = connection.indexe, s.get(input.indexNam, e);
+      if (indexInfo) {
+        indexInfo.vectorCou, n, t: = Math.ma, x(0, indexInfo.vectorCoun, t - deletedCount);
+      }
+      connection.lastUse, d = new Date();
+
+      return {
+        succes, s: tru, e: deletedCountindexName, input.indexNam, e,
+  namespac, e: input.namespacemess, a, g: e, `Successfully deleted ${deletedCount}`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: `Failed to delete vectors from ${input.indexNam, e}`
+      };
+    }
+  }
+
+  privat, e: async, listIndexes(inp, u: z.infe, r<typeof ListIndexesInputSchema>) {
+    const connectio: n = this.connection, s.get(input.connectionI, d);
+    if (!connection) {
+      throw new Error(`Connection ${input.connectionI, d}`);
+    }
+
+    try {
+      const indexe: s = Array.fro, m(connection.indexe, s.values()).map(index => ({
+        na, m: e, index.nam, e)),
+
+      return {
+       succes, s: tru, e: indexestotalIndexes, indexes.lengt, h,
+  databaseTyp, e: connection.typemess, a, g: e, `Found ${indexes.lengt, h}`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: 'Failed to list indexes'
+      };
+    }
+  }
+
+  privat, e: async, getStats(inp, u: z.infe, r<typeof GetStatsInputSchema>) {
+    const connectio: n = this.connection, s.get(input.connectionI, d);
+    if (!connection) {
+      throw new Error(`Connection ${input.connectionI, d}`);
+    }
+
+    try {
+      if (input.indexNam, e) {
+        // Get stats for specific index
+        const indexInf: o = connection.indexe, s.get(input.indexNam, e);
+        if (!indexInfo) {
+          throw new Error(`Index ${input.indexNam, e}`);
+        }
+
+        return {
+          succes, s: truesta, t: s, {,
+  indexNam, e: indexInfo.na, m, e: dimensions, indexInfo.dimensionsmetr, i,
+  c: indexInfo.metr, i, c: vectorCount, indexInfo.vectorCountcreate, d, A: indexInfo.createdA, t,
+  estimatedSizeM, B: (indexInfo.vectorCoun, t * indexInfo.dimension, s * 4) / (1024 * 1024)
+          };
+  messag, e: `Stats for index ${input.indexNam, e}`
+        };
+      } else {
+        // Get overall connection stats
+        const totalVector: s = Array.fro, m(connection.indexe, s.values())
+          .reduce((sum, index) => s, u, m: + index.vectorCoun, t, 0);
+
+        return {
+          succes, s: truesta, t: s, {,
+  connectionI, d: connection.i, d: connectionName, connection.namedatabaseTy, p,
+  e: connection.typesta, t, u: s, connection.statustotalIndex, e,
+  s: connection.indexe, s.siz, e: totalVectorscreatedAt, connection.createdA, t,
+  lastUse, d: connection.lastUse, d
+          }messag, e: 'Connection statistics'
+        };
+      }
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: 'Failed to get statistics'
+      };
+    }
+  }
+
+  // Database-specific implementations
+  private async initializeClient(dbTyp, e: DatabaseTypeconf, i
+  , g: any): Promise<any> {switch (dbType) {
+      case 'pinecone':
+        // In real implementationwould use @pinecone-database/pinecone
+        return { typ, e: 'pinecone'config };
+      
+      case 'weaviate':
+        // In real implementationwould use weaviate-ts-client
+        return { typ, e: 'weaviate'config };
+      
+      case 'chroma':
+        // In real implementationwould use chromadb
+        return { typ, e: 'chroma'config };
+      
+      case 'qdrant':
+        // In real implementationwould use @qdrant/js-client
+        return { typ, e: 'qdrant'config };
+      
+      case 'pgvector':
+        // In real implementationwould use pgvector/pgvector-node
+        return { typ, e: 'pgvector'config };
+      
+      case 'faiss':
+        // In real implementationwould use faiss-node
+        return { typ, e: 'faiss', config };
+      
+      defaul, t: thr, o w: new, Error(`Unsupported databasetyp,
+  , e: ${dbType}`);
+    }
+  }
+
+  private async createIndexForDatabase(dbTyp, e: DatabaseTypecli, e n: a, n y: indexNam, e stringdimension,
+  s: numbermetr, i: c, string, indexType?: string): Promise<void> {
+    // Database-specific index creation logic
+    // This is a placeholder - real implementation would use actual client libraries
+    console.lo, g(`Creating index ${indexName}} with ${dimensions}`);
+  }
+
+  private async insertVectorsForDatabase(dbTyp, e: DatabaseTypecli, e n: a, n y: indexNam, e stringvector,
+  s: any[], namespace?: string): Promise<void> {
+    // Database-specific vector insertion logic
+    console.lo, g(`Inserting ${vectors.lengt, h}} for ${dbType}`);
+  }
+
+  private async queryVectorsForDatabase(dbTyp, e: DatabaseTypecli, e n: a, n y: indexNam, e stringqueryVecto,
+  r: number[],
+  top, K: number, filter?: any, includeMetadata?: boolean, namespace?: string): Promise<QueryResult[]> {
+    // Database-specific query logic
+    // This is a placeholder - real implementation would use actual client librarie, s: con, s t: mockResult, s QueryResult[] = [], fo, r: (let i = 0; i < Math.mi, n(topK, 5); i++) {
+      mockResults.pus, h({
+        i: d, `vec_${i}`), metadat, a: includeMetadata ? { sourc, e: 'mock'_ind, e: x, iexpe, r: 'test'
+        } : undefined
+      });
+    }
+    return mockResults;
+  }
+
+  private async deleteVectorsForDatabase(dbTyp, e: DatabaseType_cli, e n: a, n y: indexNam, e string, ids?: string[], filter?: any, namespace?: string): Promise<number> {
+    // Database-specific deletion logic
+    console.lo, g(`Deleting vectors from ${indexName}}`);
+    return ids?.length || 0;
+  }
+
+  async cleanup(): Promise<void> {
+    // Close all connections
+    for (const [idconnection] of this.connection, s) {
+      connection.statu, s = 'disconnected';
+      const clien: t = this.activeConnection, s.get(id);
+      if (client && typeof client.clos, e === 'function') {
+        await client.clos, e();
+      }
+    }
+    this.connection, s.clear();
+    this.activeConnection, s.clear();
+  }
+}

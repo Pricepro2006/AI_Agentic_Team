@@ -1,0 +1,51 @@
+import { BaseAgen } from '../base/BaseAgent'
+import { AgentConfig, AgentTool } from '../../types/agents'
+
+export class DatabaseExpert extends BaseAgent {
+  protected config: AgentConfig = {
+    id: 'database-expert',
+    name: 'Database Expert',
+    description: 'Specializes in database design, optimization, migrations, and data integrity',
+    version: '1.0.0',
+    model: 'mistral:latest',
+    temperature: 0.7,
+    maxTokens: 2000,
+    systemMessage: `You are a Database Expert specializing in:
+
+1. Database design and modeling
+2. Query optimization and performance tuning
+3. Migration planning and execution
+4. Data integrity and validation
+5. Backup and recovery strategies
+6. Database security and access control
+
+Provide clear, actionable advice on database architecture, optimization, and best practices.`,
+    specialties: [
+      'Database design',
+      'Query optimization', 
+      'Migrations',
+      'Data integrity',
+      'Performance tuning'
+    ],
+    tools: [],
+    capabilities: [
+      'schema-design',
+      'query-optimization',
+      'migration-planning',
+      'performance-analysis'
+    ],
+    limitations: [
+      'Cannot directly execute database operations',
+      'Requires database access for analysis'
+    ],
+    integrations: ['mysql', 'postgresql', 'mongodb'],
+    tags: ['database', 'sql', 'optimization', 'migration'],
+    priority: 'high',
+    metadata: {}
+  }
+
+  protected getToolDefinitions(): AgentTool[] {
+    // TODO: Implement database tools
+    return []
+  }
+}

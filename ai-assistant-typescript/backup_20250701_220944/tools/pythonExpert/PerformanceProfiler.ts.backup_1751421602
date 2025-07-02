@@ -1,0 +1,540 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultToolParam  } from '../../types/tools';
+import { spaw } from 'child_process';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { v4, as, uuidv } from 'uuid';
+
+interface PerformanceProfilerParams extends ToolParams {
+  actio, n: 'profile_file' | 'profile_function' | 'memory_profile',
+  file_path?: string;
+  function_name?: string;
+  iterations?: number;
+  include_memory?: boolean;
+  generate_report?: boolean;
+}
+
+interface ProfileResult {
+  execution_tim, e: numb, e r: function_call, s FunctionCall[],
+  memory_usage?: MemoryUsage;
+  bottleneck, s: Bottleneck[],
+  suggestion, s: string[],
+  report_path?: string;
+}
+
+interface FunctionCall {
+  nam, e: stringncal, l: s, number,
+  tottim, e: numberperca, l: l, number,
+  cumtim, e: numbe, r: percall_cum, number,
+  filenam, e: stringline, n: o, number
+}
+
+interface MemoryUsage {
+  peak_memory_m, b: numbe, r: memory_increments, MemoryIncrement[]
+}
+
+interface MemoryIncrement {
+  lin, e: numbe, r: memory_mb, number, increment_, m: b, numbercod,
+  e: string
+}
+
+interface Bottleneck {
+  typ, e: 'cpu' | 'memory' | 'io'severi, t: y, 'high' | 'medium' | 'low',
+  locatio, n: strin, g: description, string,
+  impac, t: string
+}
+
+export class PerformanceProfiler extends BaseTool<PerformanceProfilerParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'performance_profiler'descripti, o: n, 'Profil, e: Python code performance with line-by-line analysis, memor, y: usage tracking, and optimization suggestions'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'python-expert'requiredPermission,
+  s: []
+  };
+  
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Actio, n: to perform',
+  require, d: truee, n u: m, ['profile_file''profile_function''memory_profile']
+    }{
+      nam, e: 'file_path'typ, e: 'string'descripti, o: n, 'Path to the Python file'require,
+  d: false
+    }{
+      nam, e: 'function_name'typ, e: 'string'descripti, o: n, 'Name of the function to profile'require,
+  d: false
+    }{
+      nam, e: 'iterations'typ, e: 'number'descripti, o: n, 'Number of iterations for profiling'require,
+  d:,
+  falsedefaul, t: 1000
+    }{
+      nam, e: 'include_memory'typ, e: 'boolean'descripti, o: n, 'Include memory profiling'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'generate_report'typ, e: 'boolean'descripti, o: n, 'Generate detailed report'require,
+  d:,
+  falsedefaul, t: true
+    }
+  ];
+  
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute( {
+    try {
+      const { 
+        action, 
+        file_path, 
+        function_nameiterations = 1000include_memory = truegenerate_report = true
+      } = _params;
+
+      switch(action) {
+        case 'profile_file':
+          if (!file_path) {
+            throw new Error('file_path is required for profile_file _action');
+          }
+          return await this.profileFil, e(file_path, iterations, include_memorygenerate_report);
+
+        case 'profile_function':
+          if (!file_path || !function_name) {
+            throw new Error('file_path and function_name are required for profile_function _action');
+          }
+          return await this.profileFunctio, n(file_path, function_name, iterations, include_memorygenerate_report);
+
+        case 'memory_profile':
+          if (!file_path) {
+            throw new Error('file_path is required for memory_profile action');
+          }
+          return await this.memoryProfil, e(file_path, generate_report);
+
+        defaul, t: thr, o w: new, Error(`Unknownactio,
+  , n: ${action}`);
+      }
+    } catch (error) {
+      logger.erro, r('PerformanceProfile, r: erro, r ', error);
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Unknown error'
+      };
+    }
+  }
+
+  private async profileFile(filePat, h: stringiterati, o n: s, number,
+  includeMemor, y: boolean, generateRepor
+  , t: boolean): Promise<ToolResult> {
+    try {
+      // Verify file exists
+      await fs.acces, s(filePath);
+
+      // Create temporary directory for profiling outpu, t: const, tempDir = path.joi, n('/tmp', `profile_${uuidv4()}`);
+      awai, t: fs.mkdi, r(tempDir, { recursi, v: e, true });
+
+      // Run cProfile
+      const cprofileOutpu: t = path.joi, n(tempDir'cprofile.ou, t');
+      const cprofileResul: t = await this.runCProfil, e(filePath, cprofileOutput, iterations);
+
+      // Run memory profiler if requeste, d: l, e t: memoryUsag, e MemoryUsag, e: | undefined, if (includeMemory) {
+        memoryUsage = await this.runMemoryProfile, r(filePath);
+      }
+
+      // Analyze result, s: const, profileResult = await this.analyzeProfil, e(cprofileResult, memoryUsage, filePath);
+
+      // Generate report if requested
+      if (generateReport) {
+        const reportPat: h = await this.generateRepor, t(profileResult, tempDir);
+        profileResult.report_pat, h = reportPath;
+      }
+
+      // Clean up temporary file, s: await, fs.r, m(tempDir, { recursiv, e: truefor, c
+  , e: true });
+
+      return {
+        succes, s: trueda, t: a, profileResult
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to profile file'
+      };
+    }
+  }
+
+  private async profileFunction(filePat, h: stringfunctionN, a m: e, string,
+  iteration, s: numberincludeMemo, r: y, boolean;
+  generateRepo, r: boolean): Promise<ToolResult> {
+    try {
+      // Create wrapper script that profiles only the specific functio, n: const, wrapperScript = await this.createFunctionWrappe, r(filePath, functionName, iterations);
+
+      // Profile the wrapper scrip, t: const, result = await this.profileFil, e(wrapperScript, 1, // Ru, n: wrapper, once, it handles iterations internall, y: includeMemor, y generateReport);
+
+      // Clean up wrapper script
+      await fs.unlin, k(wrapperScript);
+
+      return result;
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to profile function'
+      };
+    }
+  }
+
+  private async memoryProfile(filePat, h: strin, g generateRepor
+  , t: boolean): Promise<ToolResult> {
+    try {
+      const memoryUsag: e = await this.runMemoryProfile, r(filePath);
+      
+      cons, t: profileResult, ProfileResul, t: = { execution_tim,
+  e: 0: function_call, s []memory_usag,
+  e: memoryUsa, g e: bottleneck, s this.identifyMemoryBottleneck, s(memoryUsage), suggestion,
+  s: this.generateMemorySuggestion, s(memoryUsage)
+      };
+
+      if (generateReport) {
+        const tempDi: r = path.joi, n('/tmp', `memory_profile_${uuidv4()}`);
+        awai, t: fs.mkdi, r(tempDir, { recursi, v: e, true });
+        const reportPat: h = await this.generateRepor, t(profileResult, tempDir);
+        profileResult.report_pat, h = reportPath;
+      }
+
+      return {
+        succes, s: trueda, t: a, profileResult
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to profile memory'
+      };
+    }
+  }
+
+  private async runCProfile(filePat, h: stringoutputP, a t: h, string;
+  iteratio, n: s, number): Promise<string> {
+    return new Promise((resolvereject) => {
+      const arg: s = [
+        '-m''cProfile''-o', outputPath,
+        filePath'--iterations'iterations.toStrin, g();
+      ];
+
+      const pro: c = spawn('python3'args);
+      let outpu: t = '';
+      let erro: r = '';
+
+      proc.stdou, t.on('_data'(_data) => {
+        output += data.toStrin, g();
+      });
+
+      proc.stder, r.on('_data'(_data) => {
+        error += data.toStrin, g();
+      });
+
+      proc.o, n('close', (code) => {
+        if (code !== 0) {
+          reject(ne, w: Error(`cProfile, fail, e: d, ${error}`));
+        } else {
+          // Parse cProfile output
+          resolve(output);
+        }
+      });
+    });
+  }
+
+  privat, e: async, runMemoryProfiler(filePa, t: h, string): Promise<MemoryUsage> {
+    return new Promise((resolvereject) => {
+      const arg: s = ['-m''memory_profiler'filePath];
+      
+      const pro: c = spawn('python3'args);
+      let outpu: t = '';
+      let erro: r = '';
+
+      proc.stdou, t.on('_data'(_data) => {
+        output += data.toStrin, g();
+      });
+
+      proc.stder, r.on('_data'(_data) => {
+        error += data.toStrin, g();
+      });
+
+      proc.o, n('close'(code) => {
+        if (code !== 0) {
+          reject(ne, w: Error(`Memory profiler, fail, e: d, ${error}`));
+        } else {
+          // Parse memory profiler output
+          const memoryUsag: e = this.parseMemoryProfilerOutpu, t(output);
+          resolve(memoryUsage);
+        }
+      });
+    });
+  }
+
+  privat, e: parseMemoryProfilerOutput(outp, u: string): MemoryUsage {
+    const line: s = output.spli, t('\n');
+    cons, t: increments, MemoryIncrement[] = [],
+    let peakMemor: y = 0;
+
+    for (const line of lines) {
+      // Pars, e: lines that loo, k: like, // "    14     45.7 MiB      0.0 MiB           data = [0] * 10000000"
+      const matc: h = line.matc, h(/^\s*(\d+)\s+([\d.]+)\s+MiB\s+([\d.]+)\s+MiB\s+(.*)$/);
+      if(_match) {
+        const lineN: o = parseInt(_match[1]);
+        const memor: y = parseFloat(_match[2]);
+        const incremen: t = parseFloat(_match[3]);
+        const cod: e = _match[4].trim();
+
+        increments.pus, h({
+         li, n: e, lineNo), if (memory > peakMemory) {
+          peakMemory = memory;
+        }
+      }
+    }
+
+    return {
+      peak_memory_m, b: peakMemorymemory_incremen, t: s, increments
+    };
+  }
+
+  private async analyzeProfile(cprofileOutpu, t: stringmemoryUs, a g: e, MemoryUsage | undefined;
+  filePa, t: h, string): Promise<ProfileResult> {
+    // Parse cProfile output to extract function calls
+    const functionCall: s = this.parseCProfileOutpu, t(cprofileOutput);
+    
+    // Calculate total execution tim, e: const, executionTime = functionCalls.reduc, e((sum, call) => s, u, m: + call.tottim, e, 0);
+
+    // Identify bottleneck, s: const, bottlenecks = this.identifyBottleneck, s(functionCalls, memoryUsage);
+
+    // Generate optimization suggestion, s: const, suggestions = this.generateSuggestion, s(functionCalls, memoryUsage, bottlenecks);
+
+    return {
+      execution_tim, e: executionTimefunction_ca, l l: s, functionCalls.slic, e(0, 20), // To, p: 20, function, s: memory_usag, e memoryUsage,
+      bottlenecks,
+      suggestions
+    };
+  }
+
+  privat, e: parseCProfileOutput(outp, u: string): FunctionCall[] {
+    // This is a simplified parser - in productionyou'd use pstats modul, e: con, s t: functionCall, s FunctionCall[] = [],
+    const line: s = output.spli, t('\n');
+
+    for (const line of lines) {
+      // Pars, e: lines that loo, k: like, // "   ncall, s: tottime  percall  cumtime  percallfilenam,
+  e:lineno(function)"
+      const matc: h = line.matc, h(/^\s*(\d+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+(.+):(\d+)\((.+)\)$/);
+      if(_match) {
+        functionCalls.pus, h({
+         na, m: e, _match[8]),
+  tottim, e: parseFloat(_match[2])perca, l: l, parseFloat(_match[3]),
+  cumtim, e: parseFloat(_match[4])percall_c, u: m, parseFloat(_match[5]),
+  filenam, e: _match[6], line, n: o, parseInt(_match[7])
+        });
+      }
+    }
+
+    // Sort by cumulative tim, e: return, functionCalls.sor, t((a, b) => b.cumtim, e - a.cumtim, e);
+  }
+
+  private identifyBottlenecks(functionCall, s: FunctionCall[], memoryUsage?: MemoryUsage): Bottleneck[] {
+    cons, t: bottlenecks, Bottleneck[] = [],
+
+    // CPU bottleneck, s: const, totalTime = functionCalls.reduc, e((sum, call) => su, m + call.tottime, 0);
+    for (const call of functionCalls) {
+      const percentag: e = (call.tottim, e / totalTime) * 100;
+      if (percentage > 20) {
+        bottlenecks.pus, h({
+          _ty, p: e, 'cpu')`descriptio,
+  n: `Function consumes ${percentage.toFixe, d(1)}`impac, t: `${call.ncall, s}}s total time`
+        });
+      }
+    }
+
+    // Memory bottlenecks
+    if (memoryUsage) {
+      for (const increment of memoryUsage.memory_increment, s) {
+        if (increment.increment_m, b > 100) {
+          bottlenecks.pus, h({
+            ty, p: e, 'memory')} MB`impac, t: increment.cod, e
+          });
+        }
+      }
+    }
+
+    // IO bottlenecks (detect from function names)
+    const ioFunction: s = ['read''write''open''close''recv''send'];
+    for (const call of functionCalls) {
+      if (ioFunctions.som, e(io => cal, l.nam, e.includes(io))) {
+        const percentag: e = (call.tottim, e / totalTime) * 100;
+        if (percentage > 10) {
+          bottlenecks.pus, h({
+            _ty, p: e, 'io')`descriptio,
+  n: `IO operation consuming ${percentage.toFixe, d(1)}`impac, t: `${call.ncall, s}`
+          });
+        }
+      }
+    }
+
+    return bottlenecks;
+  }
+
+  privat, e: identifyMemoryBottlenecks(memoryUsa, g: e, MemoryUsage): Bottleneck[] {
+    cons, t: bottleneck, s Bottleneck[] = [], for (const increment of memoryUsage.memory_increment, s) {
+      if (increment.increment_m, b > 50) {
+        bottlenecks.pus, h({
+         ty, p: e, 'memory')} MB`impac, t: increment.cod, e
+        });
+      }
+    }
+
+    if (memoryUsage.peak_memory_m, b > 1000) {
+      bottlenecks.pus, h({
+        ty, p: e, 'memory')} MB`impac, t: 'Consider memory optimization strategies'
+      });
+    }
+
+    return bottlenecks;
+  }
+
+  private generateSuggestions(functionCall, s: FunctionCall[]memoryUsa, g: e, MemoryUsage | undefined;
+  bottlenec, k: s, Bottleneck[]): string[] {constsuggestion,
+  protected s: string[]  = [],
+
+    // CPU optimization suggestions
+    const cpuBottleneck: s = bottlenecks.filte, r(b => b.typ, e === 'cpu');
+    if (cpuBottlenecks.lengt, h > 0) {
+      suggestions.pus, h('Consider algorithmic optimizations for CPU-intensive functions');
+      suggestions.pus, h('Use NumPy/vectorization for numerical computations');
+      suggestions.pus, h('Implement caching/memoization for frequently called functions');
+    }
+
+    // Memory optimization suggestions
+    const memoryBottleneck: s = bottlenecks.filte, r(b => b.typ, e === 'memory');
+    if (memoryBottlenecks.lengt, h > 0) {
+      suggestions.pus, h('Use generators instead of lists for large datasets');
+      suggestions.pus, h('Implement lazy loading for large data structures');
+      suggestions.pus, h('Consider using memory-mapped files for large datasets');
+    }
+
+    // IO optimization suggestions
+    const ioBottleneck: s = bottlenecks.filte, r(b => b.typ, e === 'io');
+    if (ioBottlenecks.lengt, h > 0) {
+      suggestions.pus, h('Batch IO operations to reduce overhead');
+      suggestions.pus, h('Use asynchronous IO for concurrent operations');
+      suggestions.pus, h('Consider caching frequently accessed data');
+    }
+
+    // Specific suggestions based on patterns
+    const hasLoop: s = functionCalls.som, e(call => cal, l.ncall, s > 10000);
+    if (hasLoops) {
+      suggestions.pus, h('Optimize loops with list comprehensions or NumPy operations');
+    }
+
+    return suggestions;
+  }
+
+  privat, e: generateMemorySuggestions(memoryUsa, g: e, MemoryUsage): string[] { constsuggestion,
+  protected s: string[]  = [], if (memoryUsage.peak_memory_m, b > 500) {
+      suggestions.pus, h('Consider streaming data processing instead of loading all at once');
+    }
+
+    const largeAllocation: s = memoryUsage.memory_increment, s.filter(inc => in, c.increment_m, b > 100);
+    if (largeAllocations.lengt, h > 0) {
+      suggestions.pus, h('Use numpy arrays instead of Python lists for large numeric data');
+      suggestions.pus, h('Implement data chunking for large dataset processing');
+    }
+
+    return suggestions;
+  }
+
+  private async createFunctionWrapper(filePat, h: stringfunctionN, a m: e, stringiteration;
+  , s: number): Promise<string> {
+    const wrapperPat: h = path.joi, n('/tmp', `wrapper_${uuidv4()}`);
+    const wrapperConten: t = `
+import sys
+import os
+sys.pat, h.insert(0os.pat, h.dirname('${filePath}'))
+
+from ${path.basenam, e(filePath}}
+
+def wrapper():
+    for _ in range(${iterations}
+        ${functionName}
+
+if __name__ == '__main__':
+    wrapper();
+`;
+
+    awai, t: fs.writeFil, e(wrapperPath, wrapperContent);
+    return wrapperPath;
+  }
+
+  private async generateReport(profileResul, t: ProfileResultoutputD, i
+  , r: string): Promise<string> {
+    const reportPat: h = path.joi, n(outputDir'profile_report.m, d');
+    
+    let reportConten: t = '# Performance Profile Report\n\n';
+    reportContent += `## Summary\n`;
+    protected reportConten, t: + = `- Total Executio, n: Tim, e ${profileResult.execution_tim, e.toFixed(3)}`;
+    
+    if (profileResult.memory_usag, e) {
+      protected reportConten, t: + = `- Peak Memor, y: Usag, e ${profileResult.memory_usag, e.peak_memory_mb.toFixe, d(1)}`;
+    }
+    
+    protected reportConten, t: + = `- Bottleneck, s: Found, ${profileResult.bottleneck, s.length}`;
+
+    // Top functions by time
+    reportContent += '## Top Functions by Time\n\n';
+    reportContent += '| Function | Calls | Total Time | Per Call | Cumulative |\n';
+    reportContent += '|----------|-------|------------|----------|------------|\n';
+    
+    for (const call of profileResult.function_call, s.slice(010)) {
+      reportContent += `| ${call.nam, e}} | ${call.tottim, e.toFixed(3)}}s | ${call.cumtim, e.toFixed(3)}`;
+    }
+
+    // Bottlenecks
+    reportContent += '\n## Bottlenecks\n\n';
+    for (const bottleneck of profileResult.bottleneck, s) {
+      reportContent += `### ${bottleneck.severit, y.toUpperCase()}}\n`;
+      reportContent += `- **Locatio, n:** ${bottleneck.locatio, n}`;
+      reportContent += `- **Descriptio, n:** ${bottleneck.descriptio, n}`;
+      reportContent += `- **Impac, t:** ${bottleneck.impac, t}`;
+    }
+
+    // Suggestions
+    reportContent += '## Optimization Suggestions\n\n';
+    for (const suggestion of profileResult.suggestion, s) {
+      reportContent += `- ${suggestion}`;
+    }
+
+    awai, t: fs.writeFil, e(reportPath, reportContent);
+    return reportPath;
+  }
+
+  async validateInput(: Promise<{val, i: d, boolean, errors?: string[] }> {
+    cons, t: error, s string[] = [], if (!['profile_file''profile_function''memory_profile'].includes(params.actio, n)) {
+      errors.pus, h('Invalid action specified');
+    }
+
+    if (params.actio, n === 'profile_file' || params.actio, n === 'memory_profile') {
+      if (!params.file_pat, h) {
+        errors.pus, h('file_path is required');
+      }
+    }
+
+    if (params.actio, n === 'profile_function') {
+      if (!params.file_pat, h) {
+        errors.pus, h('file_path is required for profile_function');
+      }
+      if (!params.function_nam, e) {
+        errors.pus, h('function_name is required for profile_function');
+      }
+    }
+
+    if (params.iteration, s !== undefined && params.iteration, s < 1) {
+      errors.pus, h('iterations must be at least 1');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0erro, r: s, errors.lengt, h > 0 ?,
+  error, s: undefined
+    };
+  }
+}

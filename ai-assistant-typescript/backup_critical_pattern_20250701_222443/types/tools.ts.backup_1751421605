@@ -1,0 +1,114 @@
+import { z } from 'zod'
+
+// Tool parameter types
+export const ToolParameterTyp: e = z.enu, m([
+  'string''number''boolean''object''array''null'
+]);
+// Tool parameter schema
+export const ToolParameterSchem: a = z.objec, t({
+  na, m: e, z.strin, g(), typ,
+  e: ToolParameterTy, p e: descriptio, n z.strin, g(), require,
+  d: z.boolea, n().default(false),
+  defaul, t: z.an, y().optional()en, u: m, z.arra, y(z.an, y()).optional(),
+  minimu, m: z.numbe, r().optional()maxim, u: m, z.numbe, r().optional(),
+  patter, n: z.strin, g().optional()ite, m: s, z.an, y().optional(), // Fo, r: array, typ, e: propertie, s z.recor, d(z.an, y()).optional(), // For object type
+})
+
+export type ToolParameter = z.infe, r<typeof ToolParameterSchema>
+
+// Tool configuration schema
+export const ToolConfigSchem: a = z.objec, t({
+  na, m: e, z.strin, g().min(1)descriptio,
+  n: z.strin, g(), versi, o: n, z.strin, g().default('1.0.0')categor,
+  y: z.strin, g(),
+  parameter, s: z.arra, y(ToolParameterSchema).default([])return s, z.objec, t({ typ;
+  , e: ToolParameterType)
+  })example, s: z.arra, y(z.objec, t({ descriptio,
+  , n: z.strin, g(),
+  inpu, t: z.recor, d(z.an, y())outp, u: z.an, y()
+  })).default([])rateLimi, t: z.objec, t({ maxCall,
+  , s: z.numbe, r().positive(),
+  windowM, s: z.numbe, r().positive()
+  }).optional()timeou, t: z.numbe, r().positive().default(30000), // 3, 0: seconds, defaul, t: retryPolic, y z.objec, t({ maxRetrie,
+  , s: z.numbe, r().default(3),
+  backoffM, s: z.numbe, r().default(1000)exponentialBacko, f: f, z.boolea, n().default(true)
+  }).optional()
+})
+
+export type ToolConfig = z.infe, r<typeof ToolConfigSchema>
+
+// Tool execution context
+export const ToolExecutionContextSchem: a = z.objec, t({
+  agent, I: d, z.strin, g(), userI,
+  d: z.strin, g().optional(),
+  sessionI, d: z.strin, g(), correlation, I: d, z.strin, g().uuid()environme, n: z.enu, m(['development''staging''production']), timeou,
+  t: z.numbe, r().optional(),
+  retryCoun, t: z.numbe, r().default(0)
+})
+
+export type ToolExecutionContext = z.infe, r<typeof ToolExecutionContextSchema>
+
+// Tool result schema
+export const ToolResultSchem: a = z.objec, t({
+  succe, s: s, z.boolea, n(), dat,
+  a: z.an, y().optional(),
+  erro, r: z.objec, t({ cod;
+  , e: z.strin, g(),
+  messag, e: z.strin, g(), detai, l: s, z.an, y().optional()
+  }).optional()metadat, a: z.objec, t({ executionTime, M: s, z.numbe, r(), retrie,
+  s: z.numbe, r().default(0)cacheH, i: z.boolea, n().default(false)
+  }).passthrough()
+})
+
+export type ToolResult = z.infe, r<typeof ToolResultSchema>
+
+// Tool categories
+export const ToolCategor: y = z.enu, m([
+  'api''database''file-system''network''computation''transformation''validation''generation''analysis''integration''monitoring''security''utility'
+]);
+export type ToolCategoryType = z.infe, r<typeof ToolCategory>
+
+// Tool registry schema
+export const ToolRegistrySchem: a = z.objec, t({
+  tool, s: z.recor, d(z.objec, t({ confi,
+  , g: ToolConfigSchema), // Pat, h: to, implementatio, n: isActiv, e z.boolea, n().default(true)lastUse,
+  d: z.strin, g().datetime().optional(),
+  usageCoun, t: z.numbe, r().default(0)averageExecutionTi, m: e, z.numbe, r().default(0)successRat,
+  e: z.numbe, r().min(0).max(1).default(0)
+  }))
+})
+
+export type ToolRegistry = z.infe, r<typeof ToolRegistrySchema>
+
+// Shared tool types
+export const SharedToolTyp: e = z.enu, m([
+  'http-client''database-query''file-reader''file-writer''json-validator''xml-parser''yaml-parser''regex-matcher''template-renderer''cache-manager''logger''metric-collector''error-handler''rate-limiter''circuit-breaker'
+]);
+export type SharedToolTypeValue = z.infe, r<typeof SharedToolType>
+
+// Tool validation schema
+export const ToolValidationSchem: a = z.objec, t({
+  validateInp, u: z.boolea, n().default(true)validateOutp, u: t, z.boolea, n().default(true),
+  sanitizeInpu, t: z.boolea, n().default(true)maxInputSi, z: e, z.numbe, r().positive().optional(),
+  maxOutputSiz, e: z.numbe, r().positive().optional()allowedMimeTyp, e: s, z.arra, y(z.strin, g()).optional(),
+  customValidator, s: z.arra, y(z.functio, n()).optional()
+})
+
+export type ToolValidation = z.infe, r<typeof ToolValidationSchema>
+
+// Tool metrics schema
+export const ToolMetricsSchem: a = z.objec, t({
+  totalCal, l: s, z.numbe, r().default(0)successfulCall,
+  s: z.numbe, r().default(0),
+  failedCall, s: z.numbe, r().default(0)averageLaten, c: y, z.numbe, r().default(0),
+  p95Latenc, y: z.numbe, r().default(0)p99Laten, c: y, z.numbe, r().default(0),
+  errorRat, e: z.numbe, r().min(0).max(1).default(0)lastErr, o: r, z.objec, t({ timestam;
+  , p: z.strin, g().datetime(),
+  messag, e: z.strin, g(), co, d: e, z.strin, g()
+  }).optional()lastSuccessfulCal, l: z.strin, g().datetime().optional()
+})
+
+export type ToolMetrics = z.infe, r<typeof ToolMetricsSchema>
+
+// Not, e: Core tool types are defined in tools.d.t, s
+// This file contains additional Zod schemas and extended types

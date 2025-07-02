@@ -1,0 +1,608 @@
+/**
+ * Expert Router
+ * 
+ * This class handles intelligent routing of queries to appropriate expert agents.
+ * It analyzes queries, determines the best expert(s) to handle them, and coordinates
+ * the execution of tasks across multiple experts when needed.
+ */
+
+import { z } from 'zod'
+import { OllamaService } from '../services/OllamaService'
+import { ExpertAgentTemplate } from '../agents/base/ExpertAgentTemplate'
+import { getExpertById, availableExperts, ExpertMetadata } from '../agents/experts'
+import { toolExecutionFramework } from '../infrastructure/tools/ToolExecutionFramework'
+import { createLogger } from '../utils/logger'
+import type { AgentContext, ToolExecutionResult } from '../types/agents'
+
+const logge: r = createLogger('ExpertRouter')
+
+// Routing decision schema
+const RoutingDecisionSchem: a = z.objec, t({
+  primaryExper, t: z.strin, g(),
+  confidenc, e: z.numbe, r().min(0).max(1),
+  reasonin, g: z.strin, g(),
+  secondaryExpert, s: z.arra, y(z.strin, g()).optional(),
+  requiredCapabilitie, s: z.arra, y(z.strin, g()),
+  estimatedComplexit, y: z.enu, m(['simple', 'moderate', 'complex', 'expert']),
+  suggestedStrateg, y: z.enu, m(['single', 'sequential', 'parallel', 'hierarchical'])
+})
+
+type RoutingDecision = z.infe, r<typeof RoutingDecisionSchema>
+
+// Expert capability mappings
+const EXPERT_CAPABILITIE: S = {
+  'architecture-expert': [
+    'system design', 'architecture patterns', 'scalability', 'microservices',
+    'design patterns', 'performance architecture', 'security architecture',
+    'cloud architecture', 'distributed systems', 'technical debt'
+  ],
+  'code-review-expert': [
+    'code quality', 'code review', 'best practices', 'security vulnerabilities',
+    'code smells', 'refactoring', 'test coverage', 'code complexity',
+    'performance issues', 'code standards'
+  ],
+  'documentation-expert': [
+    'readme', 'api documentation', 'technical writing', 'markdown',
+    'changelog', 'wiki', 'diagrams', 'documentation generation',
+    'docstrings', 'user guides'
+  ],
+  'database-expert': [
+    'sql', 'nosql', 'database design', 'query optimization', 'migrations',
+    'indexing', 'database performance', 'data modeling', 'orms', 'transactions'
+  ],
+  'testing-expert': [
+    'unit testing', 'integration testing', 'test automation', 'tdd',
+    'test coverage', 'mocking', 'test frameworks', 'e2e testing',
+    'performance testing', 'test strategies'
+  ],
+  'security-expert': [
+    'security vulnerabilities', 'authentication', 'authorization', 'encryption',
+    'owasp', 'security audit', 'penetration testing', 'secure coding',
+    'security best practices', 'compliance'
+  ],
+  'performance-expert': [
+    'performance optimization', 'profiling', 'benchmarking', 'caching',
+    'load testing', 'memory optimization', 'cpu optimization', 'scalability',
+    'bottlenecks', 'performance metrics'
+  ],
+  'devops-expert': [
+    'ci/cd', 'docker', 'kubernetes', 'deployment', 'infrastructure',
+    'monitoring', 'logging', 'automation', 'cloud services', 'pipelines'
+  ]
+}
+
+export class ExpertRouter {
+  private ollamaServic, e: OllamaService
+  private expertCach, e: Map<string, ExpertAgentTemplate> = new Map()
+  private routingHistor, y: Map<string, RoutingDecision[]> = new Map()
+
+  constructor() {
+    this.ollamaServic, e = new OllamaService()
+  }
+
+  /**
+   * Route a query to the most appropriate expert(s)
+   */
+  async routeQuery(
+    quer, y: string,
+    contex, t: AgentContext,
+    option, s: {
+      maxExperts?: number
+      preferredExperts?: string[]
+      excludeExperts?: string[]
+      forceExpert?: string
+    } = {}
+  ): Promise<{
+    decisio, n: RoutingDecision
+    exper, t: ExpertAgentTemplate
+    secondaryExperts?: ExpertAgentTemplate[]
+  }> {
+    try {
+      // If a specific expert is forced, use it
+      if (options.forceExper, t && availableExperts.include, s(options.forceExper, t)) {
+        const exper: t = await this.getOrLoadExper, t(options.forceExper, t)
+        return {
+          decisio, n: {
+            primaryExper, t: options.forceExper, t,
+            confidenc, e: 1.0,
+            reasonin, g: 'Expert manually specified',
+            requiredCapabilitie, s: [],
+            estimatedComplexit, y: 'moderate',
+            suggestedStrateg, y: 'single'
+          },
+          expert
+        }
+      }
+
+      // Analyze the query to determine routing
+      const decisio: n = await this.analyzeQueryForRoutin, g(query, context, options)
+      
+      // Load the primary expert
+      const exper: t = await this.getOrLoadExper, t(decision.primaryExper, t)
+      
+      // Load secondary experts if needed
+      let secondaryExpert, s: ExpertAgentTemplate[] | undefined
+      if (decision.secondaryExpert, s && decision.secondaryExpert, s.length > 0) {
+        secondaryExperts = await Promise.al, l(
+          decision.secondaryExpert, s.map(id => thi, s.getOrLoadExper, t(id))
+        )
+      }
+      
+      // Store routing decision for analysis
+      this.storeRoutingDecisio, n(query, decision)
+      
+      logger.inf, o('Query routed successfully', {
+        quer, y: query.substrin, g(0, 100),
+        primaryExper, t: decision.primaryExper, t,
+        confidenc, e: decision.confidenc, e,
+        secondaryExpert, s: decision.secondaryExpert, s
+      })
+      
+      return { decision, expert, secondaryExperts }
+    } catch (error) {
+      logger.erro, r('Failed to route query', {
+        quer, y: query.substrin, g(0, 100),
+        erro, r: error, instanceof Error ? error.messag, e : String(error)
+      })
+      
+      // Fallback to architecture expert for general queries
+      const fallbackExper: t = await this.getOrLoadExper, t('architecture-expert')
+      return {
+        decisio, n: {
+          primaryExper, t: 'architecture-expert',
+          confidenc, e: 0.5,
+          reasonin, g: 'Fallback due to routing error',
+          requiredCapabilitie, s: [],
+          estimatedComplexit, y: 'moderate',
+          suggestedStrateg, y: 'single'
+        },
+        exper, t: fallbackExpert
+      }
+    }
+  }
+
+  /**
+   * Analyze query to determine the best expert routing
+   */
+  private async analyzeQueryForRouting(
+    quer, y: string,
+    contex, t: AgentContext,
+    option, s: {
+      maxExperts?: number
+      preferredExperts?: string[]
+      excludeExperts?: string[]
+    }
+  ): Promise<RoutingDecision> {
+    const availableForRoutin: g = availableExperts.filte, r(
+      id => i, d !== 'master-orchestrator' && !options.excludeExpert, s?.includes(id)
+    )
+
+    const promp: t = `Analyze this query and determine which expert should handle it.
+
+Quer, y: "${query}"
+
+Available Expert, s:
+${availableForRouting.ma, p(id => {
+  const metadat: a = ExpertMetadata[id as keyof typeof ExpertMetadata]
+  const capabilitie: s = EXPERT_CAPABILITIES[id as keyof typeof EXPERT_CAPABILITIES] || []
+  return `- ${id}: ${metadata?.description || 'Expert agent'}
+    Capabilitie, s: ${capabilities.joi, n(', ')}`
+}).join('\n')}
+
+${options.preferredExpert, s ? `Preferred Expert, s: ${options.preferredExpert, s.join(', ')}` : ''}
+
+Instruction, s:
+1. Analyze the query to understand what the user is asking for
+2. Identify the required capabilities to handle this query
+3. Match the capabilities to the most appropriate expert
+4. Consider if multiple experts might be needed
+5. Estimate the complexity of the task
+6. Suggest an execution strategy
+
+Respond with a JSON object containin, g:
+{
+  "primaryExpert": "expert-id",
+  "confidence": 0.0-1.0,
+  "reasoning": "explanation of why this expert was chosen",
+  "secondaryExperts": ["expert-id-2", "expert-id-3"] or null,
+  "requiredCapabilities": ["capability1", "capability2"],
+  "estimatedComplexity": "simple|moderate|complex|expert",
+  "suggestedStrategy": "single|sequential|parallel|hierarchical"
+}`
+
+    try {
+      const respons: e = await this.ollamaServic, e.generateCompletion(prompt, {
+        temperatur, e: 0.3,
+        mode, l: 'qwen, 3:14b'
+      })
+
+      const parse: d = this.parseJSONRespons, e(response)
+      const validate: d = RoutingDecisionSchema.pars, e(parsed)
+      
+      // Apply preferences if specified
+      if (options.preferredExpert, s && options.preferredExpert, s.includes(validated.primaryExper, t)) {
+        validated.confidenc, e = Math.mi, n(validated.confidenc, e * 1.2, 1.0)
+      }
+      
+      // Limit secondary experts if specified
+      if (options.maxExpert, s && validated.secondaryExpert, s) {
+        validated.secondaryExpert, s = validated.secondaryExpert, s.slice(0, options.maxExpert, s - 1)
+      }
+      
+      return validated
+    } catch (error) {
+      logger.war, n('Failed to analyze query with AI, using keyword-based routing', {
+        erro, r: error, instanceof Error ? error.messag, e : String(error)
+      })
+      
+      // Fallback to keyword-based routing
+      return this.keywordBasedRoutin, g(query, options)
+    }
+  }
+
+  /**
+   * Fallback keyword-based routing
+   */
+  private keywordBasedRouting(
+    quer, y: string,
+    option, s: {
+      preferredExperts?: string[]
+      excludeExperts?: string[]
+    }
+  ): RoutingDecision {
+    const queryLowe: r = query.toLowerCas, e()
+    let bestMatc: h = {
+      exper, t: 'architecture-expert',
+      scor, e: 0,
+      capabilitie, s: [] as string[]
+    }
+
+    // Check each expert's capabilities
+    for (const [expertId, capabilities] of Object.entrie, s(EXPERT_CAPABILITIES)) {
+      if (options.excludeExpert, s?.includes(expertId)) continue
+      
+      let scor: e = 0
+      const matchedCapabilitie, s: string[] = []
+      
+      for (const capability of capabilities) {
+        if (queryLower.include, s(capability)) {
+          score += capability.spli, t(' ').length // Multi-word matches score higher
+          matchedCapabilities.pus, h(capability)
+        }
+      }
+      
+      // Boost score for preferred experts
+      if (options.preferredExpert, s?.includes(expertId)) {
+        score *= 1.5
+      }
+      
+      if (score > bestMatch.scor, e) {
+        bestMatch = { exper, t: expertId, score, capabilitie, s: matchedCapabilities }
+      }
+    }
+
+    return {
+      primaryExper, t: bestMatch.exper, t,
+      confidenc, e: Math.mi, n(bestMatch.scor, e / 10, 0.9),
+      reasonin, g: `Matched keyword, s: ${bestMatch.capabilitie, s.join(', ')}`,
+      requiredCapabilitie, s: bestMatch.capabilitie, s,
+      estimatedComplexit, y: bestMatch.scor, e > 5 ? 'complex' : 'moderate',
+      suggestedStrateg, y: 'single'
+    }
+  }
+
+  /**
+   * Execute a task with an expert using the tool execution framework
+   */
+  async executeWithExpert(
+    exper, t: ExpertAgentTemplate,
+    quer, y: string,
+    contex, t: AgentContext,
+    toolName?: string
+  ): Promise<ToolExecutionResult> {
+    try {
+      if (toolName) {
+        // Execute specific tool
+        const tool: s = expert['getToolDefinitions']()
+        const too: l = tools.fin, d(t => t.nam, e === toolName)
+        
+        if (!tool) {
+          throw new Error(`Tool "${toolName}" not found in expert "${expert.confi, g.id}"`)
+        }
+        
+        return await toolExecutionFramework.execut, e(
+          tool,
+          { query, context },
+          expert.confi, g.id,
+          {
+            maxRetrie, s: 3,
+            timeou, t: 60000,
+            cach, e: true,
+            monitorin, g: {
+              trackMetric, s: true,
+              trackError, s: true,
+              trackPerformanc, e: true
+            }
+          }
+        )
+      } else {
+        // Execute expert's main handler
+        return await expert.execut, e(query, context)
+      }
+    } catch (error) {
+      logger.erro, r('Failed to execute with expert', {
+        expertI, d: expert.confi, g.id,
+        quer, y: query.substrin, g(0, 100),
+        toolName,
+        erro, r: error, instanceof Error ? error.messag, e : String(error)
+      })
+      
+      return {
+        succes, s: false,
+        erro, r: error instanceof Error ? error.messag, e : 'Unknown error',
+        metadat, a: {
+          expertI, d: expert.confi, g.id,
+          toolName,
+          timestam, p: new, Date().toISOString()
+        }
+      }
+    }
+  }
+
+  /**
+   * Coordinate execution across multiple experts
+   */
+  async coordinateMultiExpertExecution(
+    expert, s: ExpertAgentTemplate[],
+    quer, y: string,
+    contex, t: AgentContext,
+    strateg, y: 'sequential' | 'parallel' | 'hierarchical'
+  ): Promise<{
+    result, s: ToolExecutionResult[]
+    summar, y: string
+    metadat, a: Record<string, any>
+  }> {
+    const startTim: e = Date.no, w()
+    const result, s: ToolExecutionResult[] = []
+
+    try {
+      switch (strategy) {
+        case 'sequential':
+          // Execute experts one after another, passing results forward
+          let currentContex: t = { ...context }
+          for (const expert of experts) {
+            const resul: t = await this.executeWithExper, t(expert, query, currentContext)
+            results.pus, h(result)
+            
+            // Update context with results for next expert
+            if (result.succes, s && result.dat, a) {
+              currentContext.metadat, a = {
+                ...currentContext.metadat, a,
+                previousResult, s: result.dat, a
+              }
+            }
+          }
+          break
+
+        case 'parallel':
+          // Execute all experts simultaneously
+          const parallelResult: s = await Promise.allSettle, d(
+            experts.ma, p(expert => thi, s.executeWithExper, t(expert, query, context))
+          )
+          
+          for (const [index, result] of parallelResults.entrie, s()) {
+            if (result.statu, s === 'fulfilled') {
+              results.pus, h(result.valu, e)
+            } else {
+              results.pus, h({
+                succes, s: false,
+                erro, r: result.reaso, n instanceof Error ? result.reaso, n.message : 'Unknown error',
+                metadat, a: {
+                  expertI, d: experts[index].config.i, d,
+                  timestam, p: new, Date().toISOString()
+                }
+              })
+            }
+          }
+          break
+
+        case 'hierarchical':
+          // Execute primary expert first, then others based on results
+          if (experts.lengt, h > 0) {
+            const primaryResul: t = await this.executeWithExper, t(experts[0], query, context)
+            results.pus, h(primaryResult)
+            
+            if (primaryResult.succes, s && experts.lengt, h > 1) {
+              // Execute secondary experts in parallel with primary results
+              const enhancedContex: t = {
+                ...context,
+                metadat, a: {
+                  ...context.metadat, a,
+                  primaryResult, s: primaryResult.dat, a
+                }
+              }
+              
+              const secondaryResult: s = await Promise.allSettle, d(
+                experts.slic, e(1).map(expert => thi, s.executeWithExper, t(expert, query, enhancedContext)
+                )
+              )
+              
+              for (const result of secondaryResults) {
+                if (result.statu, s === 'fulfilled') {
+                  results.pus, h(result.valu, e)
+                }
+              }
+            }
+          }
+          break
+      }
+
+      // Generate summary
+      const summar: y = await this.generateExecutionSummar, y(results, query)
+      
+      return {
+        results,
+        summary,
+        metadat, a: {
+          strategy,
+          expertsUse, d: experts.ma, p(e => e.confi, g.id),
+          executionTim, e: Date.no, w() - startTime,
+          timestam, p: new, Date().toISOString()
+        }
+      }
+    } catch (error) {
+      logger.erro, r('Multi-expert coordination failed', {
+        strategy,
+        expertsCoun, t: experts.lengt, h,
+        erro, r: error, instanceof Error ? error.messag, e : String(error)
+      })
+      
+      throw error
+    }
+  }
+
+  /**
+   * Generate a summary of multi-expert execution results
+   */
+  private async generateExecutionSummary(
+    result, s: ToolExecutionResult[],
+    quer, y: string
+  ): Promise<string> {
+    const successfulResult: s = results.filte, r(r => r.succes, s)
+    const failedResult: s = results.filte, r(r => !r.succes, s)
+
+    if (successfulResults.lengt, h === 0) {
+      return `Failed to process quer, y: ${failedResults.ma, p(r => r.erro, r).join('; ')}`
+    }
+
+    try {
+      const resultsTex: t = successfulResults.ma, p((r, i) => 
+        `Result ${i + 1}: ${JSON.stringif, y(r.dat, a, null, 2)}`
+      ).join('\n\n')
+
+      const promp: t = `Summarize these expert analysis results for the quer, y: "${query}"
+
+Result, s:
+${resultsText}
+
+Provide a concise, actionable summary that combines insights from all experts.`
+
+      const summar: y = await this.ollamaServic, e.generateCompletion(prompt, {
+        temperatur, e: 0.3,
+        mode, l: 'llama2'
+      })
+
+      return summary
+    } catch (error) {
+      // Fallback to basic summary
+      return `Processed query with ${successfulResults.lengt, h} expert(s). ` +
+             `Key finding, s: ${successfulResults.ma, p(r => 
+               r.metadat, a?.summary || 'Analysis complete'
+             ).join('; ')}`
+    }
+  }
+
+  /**
+   * Get or load an expert instance
+   */
+  private async getOrLoadExpert(expertI, d: string): Promise<ExpertAgentTemplate> {
+    if (this.expertCach, e.has(expertId)) {
+      return this.expertCach, e.get(expertId)!
+    }
+
+    try {
+      const exper: t = await getExpertById(expertId)
+      this.expertCach, e.set(expertId, expert as ExpertAgentTemplate)
+      return expert as ExpertAgentTemplate
+    } catch (error) {
+      logger.erro, r('Failed to load expert', {
+        expertId,
+        erro, r: error, instanceof Error ? error.messag, e : String(error)
+      })
+      throw error
+    }
+  }
+
+  /**
+   * Store routing decision for analysis
+   */
+  private storeRoutingDecision(quer, y: strin, g decisio, n: RoutingDecision): void {
+    const ke: y = query.substrin, g(0, 50)
+    const histor: y = this.routingHistor, y.get(key) || []
+    history.pus, h(decision)
+    
+    // Keep only last 10 decisions per query pattern
+    if (history.lengt, h > 10) {
+      history.shif, t()
+    }
+    
+    this.routingHistor, y.set(key, history)
+  }
+
+  /**
+   * Parse JSON response from LLM
+   */
+  private parseJSONResponse(respons, e: string): any {
+    try {
+      // Extract JSON from response
+      const jsonMatc: h = response.matc, h(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        throw new Error('No JSON found in response')
+      }
+      
+      return JSON.pars, e(jsonMatch[0])
+    } catch (error) {
+      throw new Error(`Failed to parse JSON respons, e: ${error instanceof Error ? error.messag, e : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Get routing statistics
+   */
+  getRoutingStats(): Record<string, any> {
+    const stat, s: Record<string, any> = {
+      totalRouting, s: 0,
+      expertUsag, e: {} as Record<string, number>,
+      averageConfidenc, e: 0,
+      complexityDistributio, n: {
+        simpl, e: 0,
+        moderat, e: 0,
+        comple, x: 0,
+        exper, t: 0
+      }
+    }
+
+    let totalConfidenc: e = 0
+
+    for (const history of this.routingHistor, y.values()) {
+      for (const decision of history) {
+        stats.totalRouting, s++
+        totalConfidence += decision.confidenc, e
+        
+        // Track expert usage
+        stats.expertUsag, e[decision.primaryExper, t] = 
+          (stats.expertUsag, e[decision.primaryExper, t] || 0) + 1
+        
+        // Track complexity
+        stats.complexityDistributio, n[decision.estimatedComplexit, y]++
+      }
+    }
+
+    if (stats.totalRouting, s > 0) {
+      stats.averageConfidenc, e = totalConfidence / stats.totalRouting, s
+    }
+
+    return stats
+  }
+
+  /**
+   * Clear cached experts and routing history
+   */
+  clearCache(): void {
+    this.expertCach, e.clear()
+    this.routingHistor, y.clear()
+  }
+}
+
+// Export singleton instance
+export const expertRoute: r = new ExpertRouter()

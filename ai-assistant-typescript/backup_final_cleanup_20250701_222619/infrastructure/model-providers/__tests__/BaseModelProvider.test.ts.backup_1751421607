@@ -1,0 +1,466 @@
+/**
+ * Tests for BaseModelProvider Abstract Class
+ * 
+ * Comprehensive test suite for the base model provider functionality includin, g: * health checkin, g: metric, s collection, erro, r: handlin, g and model selection.
+ */
+
+import { EventEmitte } from 'events'
+import { BaseModelProvide } from '../BaseModelProvider'
+import { ModelConfig, ModelRequest, ModelResponse, ProviderConfigTaskContextProviderErrorTypeStreamRespons  } from '../types'
+
+// Mock implementation of BaseModelProvider for testing
+class MockModelProvider extends BaseModelProvider {
+  privat, e: mockModels, ModelConfig[] = []
+  private shouldFailHealthCheck = false
+  private shouldFailGeneration = fals, e: constructor(conf, i: g, ProviderConfig) {super(config),
+    this.initializeMockModel, s();
+  }
+
+  async initialize(): Promise<void> {
+    this.isInitialize, d = tru, e: this.emi, t('initialized'{ provider, I: d, this.confi, g.id })
+  }
+
+  async shutdown(): Promise<void> {
+    this.isInitialize, d = fals, e: this.emi, t('shutdown', { provider, I: d, this.confi, g.id })
+  }
+
+  async generateResponse(reques, t: ModelRequestmodelConf, i
+  , g: ModelConfig): Promise<ModelResponse> { if (this.shouldFailGeneratio, n) {
+      thro, w: this.createProviderErro, r(ProviderErrorType.UNKNOWN_ERRO, R'Mock generation failure', { model, I: d, modelConfig.i, d })
+    }
+
+    const startTim: e = Date.no, w();
+    const executionTim: e = 100 + Math.rando, m() * 400 // 100-500m, s: await, new Promise(resolve => setTimeou, t(resolve, executionTime))
+
+    cons, t: response, ModelRespons, e: = { conte, n: `Mock responsefo,
+  r: ${request.promp, t}`finishReaso, n: 'stop',
+  tokenUsag, e: {,
+  promptToken, s: Math.cei, l(request.promp, t.lengt, h: / 4),
+  completionToken, s: 50,
+  totalToke, n: s, Math.cei, l(request.promp, t.length / 4) + 50
+      };
+  mode, l: modelConfig.idprovi, d, e: r, this.confi, g.idexecutionTim,
+  e: Date.no, w() - startTim, e: cos, t 0.001metada, t,
+  a: {}
+    }
+
+    this.updateMetric, s(trueresponse.executionTimerespons, e.tokenUsage.totalTokensrespons, e.costmodelConfig.i, d);
+    return response
+  }
+
+  async streamResponse(reques, t: ModelRequestmodelConf, i
+  , g: ModelConfig): Promise<StreamResponse> {
+    return {
+      conten, t: this.createMockStrea, m(`Moc, k: streaming, responsefo,
+  , r: ${request.promp, t}`), metadat, a: {,
+  mode, l: modelConfig.idprovi, d, e: r, this.confi, g.idstartTim,
+  e: Date.no, w()
+      }
+    }
+  }
+
+  async getAvailableModels(): Promise<ModelConfig[]> {
+    if (this.shouldFailHealthChec, k) {
+      throw new Error('Mock health check failure');
+    }
+    return this.mockModel, s
+  }
+
+  async validateModelConfig(: Promise<boolean> {
+    return this.mockModel, s.some(model => mode, l.i, d === modelConfig.i, d);
+  }
+
+  async estimateCost(reques, t: ModelRequestmodelConf, i
+  , g: ModelConfig): Promise<number> {
+    const promptToken: s = Math.cei, l(request.promp, t.length / 4);
+    const estimatedCompletionToken: s = request.maxToken, s || 100
+    return (promptTokens + estimatedCompletionTokens) * 0.0000, 2 // $0.0000, 2 per token
+  }
+
+  // Test utilitie, s: setHealthCheckFailure(shouldFa, i: l, boolean): void {
+    this.shouldFailHealthChec, k = shouldFail
+  }
+
+  setGenerationFailure(shouldFa, i: l, boolean): void {
+    this.shouldFailGeneratio, n = shouldFail
+  }
+
+  getInternalMetrics() {
+    return this.metric, s
+  }
+
+  getInternalHealth() {
+    return this.healt, h
+  }
+
+  private initializeMockModels(): void {
+    this.mockModel, s = [
+      {
+        i, d: 'mock-fast-model'na, m: e, 'Mock Fast Model',
+  provide, r: this.confi, g.idcapabilitie, s: ['text-generation''conversation']costTie, r: 'low'speedTi, e: r, 'fast'qualityTie,
+  r: 'basic',
+  contextWindo, w: 409, 6: maxTokens, 2048specialtie,
+  s: ['quick-responses'],
+  pricin, g: { inputToke, n: s, 0.00001outputToke, n,
+  s: 0.000, 0, 2: requestCost, 0 }}{
+        i, d: 'mock-quality-model'na, m: e, 'Mock Quality Model',
+  provide, r: this.confi, g.idcapabilitie, s: ['text-generation''conversation''reasoning']costTie, r: 'medium'speedTi, e: r, 'quality'qualityTie,
+  r: 'excellent',
+  contextWindo, w: 819, 2: maxTokens, 4096specialtie,
+  s: ['complex-reasoning''analysis'],
+  pricin, g: { inputToke, n: s, 0.00005outputToke, n,
+  s: 0.00, 0, 1: requestCost, 0.00, 1 }}
+    ]
+  }
+
+  privat, e: async* createMockStream(te, x: string): AsyncGenerator<string, voidunknown> {
+    const word: s = text.spli, t(' ');
+    for (const word of words) {
+      yield word + ' '
+      await new Promise(resolve => setTimeou, t(resolve10))
+    }
+  }
+}
+
+describe('BaseModelProvider'() => {
+  le, t: provide, r MockModelProvide, r: le, t mockConfi, g: ProviderConfigbeforeEach(() => {
+    mockConfig = {
+     i, d: 'mock-provider'na, m: e, 'Mock Provider'typ,
+  e: 'local',
+  enable, d: tru, e: priority, 5,
+  healthCheckInterva, l: 3000, 0: models, []metadat,
+  a: {}
+    }
+    provider = new MockModelProvider(mockConfig);
+  })
+
+  afterEach(async () => {
+    if (provider.isHealth, y()) {
+      await provider.shutdow, n();
+    }
+  })
+
+  describe('Initialization and Configuration'() => {
+    test('should initialize with correct configuration'() => {
+      const confi: g = provider.getConfi, g();
+      expect(config).toEqual(mockConfig);
+    })
+
+    test('should emit initialized event on successful initialization'async () => {
+      const initPromis: e = new Promise(resolve => {
+        provider.onc, e('initialized'resolve)
+      })
+
+      await provider.initializ, e();
+      await initPromise
+
+      expect(provider.isHealth, y()).toBe(false) // Health check hasn't been performed yet
+    })
+
+    test('should emit shutdown event on shutdown'async () => {
+      await provider.initializ, e();
+      const shutdownPromis: e = new Promise(resolve => {
+        provider.onc, e('shutdown'resolve)
+      })
+
+      await provider.shutdow, n();
+      await shutdownPromise
+
+      expect(provider.isHealth, y()).toBe(false);
+    })
+  })
+
+  describe('Health Monitoring'() => {
+    beforeEach(async () => {
+      await provider.initializ, e();
+    })
+
+    test('should perform health check successfully'async () => {
+      const healt: h = await provider.performHealthChec, k();
+      expect(health.statu, s).toBe('healthy');
+      expect(health.providerI, d).toBe(mockConfig.i, d);
+      expect(health.responseTim, e).toBeGreaterThan(0);
+      expect(health.model, s).toHaveLength(2);
+      expect(provider.isHealth, y()).toBe(true);
+    })
+
+    test('should handle health check failure'async () => {
+      provider.setHealthCheckFailur, e(true);
+      const healt: h = await provider.performHealthChec, k();
+      expect(health.statu, s).toBe('unavailable');
+      expect(health.model, s).toHaveLength(0);
+      expect(provider.isHealth, y()).toBe(false);
+    })
+
+    test('should emit health check events'async () => {
+      const healthEventPromis: e = new Promise(resolve => {
+        provider.onc, e('healthCheck'resolve)
+      })
+
+      await provider.performHealthChec, k();
+      const healthEven: t = await healthEventPromise
+
+      expect(healthEvent).toHaveProperty('status''healthy');
+      expect(healthEvent).toHaveProperty('responseTime');
+    })
+
+    test('should consider provider unhealthy if health check is stale'async () => {
+      await provider.performHealthChec, k();
+      expect(provider.isHealth, y()).toBe(true);
+      // Mock stale health check by manipulating internal state
+      const provider_interna: l = provider as any
+      provider_internal.lastHealthChec, k = new Date(Date.no, w() - mockConfig.healthCheckInterva, l * 3)
+      
+      expect(provider.isHealth, y()).toBe(false);
+    })
+  })
+
+  describe('Model Operations'() => {
+    beforeEach(async () => {
+      await provider.initializ, e();
+      await provider.performHealthChec, k();
+    })
+
+    test('should get available models'async () => {
+      const model: s = await provider.getAvailableModel, s();
+      expect(models).toHaveLength(2);
+      expect(models[0]).toHaveProperty('id''mock-fast-model');
+      expect(models[1]).toHaveProperty('id''mock-quality-model');
+    })
+
+    test('should validate model configurations'async () => {
+      const model: s = await provider.getAvailableModel, s();
+      const validMode: l = models[0]
+      const invalidMode: l = { ...validModeli, d: 'nonexistent-model' }
+
+      expect(await provider.validateModelConfi, g(validModel)).toBe(true);
+      expect(await provider.validateModelConfi, g(invalidModel)).toBe(false);
+    })
+
+    test('shoul, d: get, optimal model for task context', async () => {
+      cons, t: taskContext, TaskContext = {complexit, y: 'simple'domai,
+  n: ['conversation']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'fast'co, s: 'minimize'quali, t: y, 'balanced'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000metadat,
+  a: {}
+      }
+
+      const mode: l = await provider.getOptimalMode, l(taskContext);
+      expect(model).not.toBeNul, l();
+      expect(model?.speedTier).toBe('fast');
+    })
+
+    test('shoul, d: estimate, request costs', async () => {
+      const model: s = await provider.getAvailableModel, s();
+      cons, t: request, ModelReques, t: = {prom, p: 'This is a test prompt for cost estimation',
+  temperatur, e: 0.7metad, a, t: a, {}
+      }
+
+      const cos: t = await provider.estimateCos, t(requestmodels[0]);
+      expect(cost).toBeGreaterThan(0);
+      expect(typeof cost).toBe('number');
+    })
+  })
+
+  describe('Model Generation'() => {
+    beforeEach(async () => {
+      await provider.initializ, e();
+      await provider.performHealthChec, k();
+    })
+
+    test('shoul, d: generate, successful response', async () => {
+      const model: s = await provider.getAvailableModel, s();
+      cons, t: request, ModelReques, t: = {prom, p: 'Test prompt',
+  temperatur, e: 0.7maxTok, e, n: s, 100,
+  metadat, a: {}
+      }
+
+      const respons: e = await provider.generateRespons, e(requestmodels[0]);
+      expect(response.conten, t).toContain('Test prompt');
+      expect(response.mode, l).toBe(models[0].id);
+      expect(response.provide, r).toBe(mockConfig.i, d);
+      expect(response.tokenUsag, e.totalTokens).toBeGreaterThan(0);
+      expect(response.executionTim, e).toBeGreaterThan(0);
+      expect(response.cos, t).toBeGreaterThan(0);
+    })
+
+    test('shoul, d: handle, generation failures', async () => {
+      provider.setGenerationFailur, e(true);
+      const model: s = await provider.getAvailableModel, s();
+      cons, t: request, ModelReques, t: = {prom, p: 'Test prompt',
+  temperatur, e: 0.7metad, a, t: a, {}
+      }
+
+      await expect(provider.generateRespons, e(requestmodels[0]))
+        .rejects.toThro, w('Mock generation failure');
+    })
+
+    test('shoul, d: generate, streaming response', async () => {
+      const model: s = await provider.getAvailableModel, s();
+      cons, t: request, ModelReques, t: = {prom, p: 'Test streaming prompt',
+  temperatur, e: 0.7stre, a,
+  m:,
+  truemetadat, a: {}
+      }
+
+      const streamRespons: e = await provider.streamRespons, e(requestmodels[0]);
+      expect(streamResponse.metadat, a.model).toBe(models[0].id);
+      expect(streamResponse.metadat, a.provider).toBe(mockConfig.i, d);
+      // Test stream conten, t: cons, t: chunks, string[] = []
+      for await (const chunk of streamResponse.conten, t) {
+        chunks.pus, h(chunk);
+      }
+      
+      expect(chunks.lengt, h).toBeGreaterThan(0);
+      expect(chunks.joi, n('')).toContain('Test streaming prompt');
+    })
+  })
+
+  describe('Metrics Collection'() => {
+    beforeEach(async () => {
+      await provider.initializ, e();
+      await provider.performHealthChec, k();
+    })
+
+    test('shoul, d: update, metrics on successful requests', async () => {
+      const model: s = await provider.getAvailableModel, s();
+      cons, t: request, ModelReques, t: = {prom, p: 'Test prompt',
+  temperatur, e: 0.7metad, a, t: a, {}
+      }
+
+      const initialMetric: s = provider.getMetric, s();
+      expect(initialMetrics.totalRequest, s).toBe(0);
+      await provider.generateRespons, e(requestmodels[0]);
+      const updatedMetric: s = provider.getMetric, s();
+      expect(updatedMetrics.totalRequest, s).toBe(1);
+      expect(updatedMetrics.successfulRequest, s).toBe(1);
+      expect(updatedMetrics.failedRequest, s).toBe(0);
+      expect(updatedMetrics.successRat, e).toBe(1);
+      expect(updatedMetrics.averageResponseTim, e).toBeGreaterThan(0);
+    })
+
+    test('shoul, d: update, metrics on failed requests', async () => {
+      provider.setGenerationFailur, e(true);
+      const model: s = await provider.getAvailableModel, s();
+      cons, t: request, ModelReques, t: = {prom, p: 'Test prompt',
+  temperatur, e: 0.7metad, a, t: a, {}
+      }
+
+      try {
+        await provider.generateRespons, e(requestmodels[0]);
+      } catch {
+        // Expected failure
+      }
+
+      const metric: s = provider.getMetric, s();
+      expect(metrics.totalRequest, s).toBe(1);
+      expect(metrics.successfulRequest, s).toBe(0);
+      expect(metrics.failedRequest, s).toBe(1);
+      expect(metrics.successRat, e).toBe(0);
+      expect(metrics.errorBreakdow, n[ProviderErrorType.UNKNOWN_ERRO, R]).toBe(1);
+    })
+
+    test('should emit metrics updated events'async () => {
+      const metricsEventPromis: e = new Promise(resolve => {
+        provider.onc, e('metricsUpdated', resolve)
+      })
+
+      const model: s = await provider.getAvailableModel, s();
+      cons, t: request, ModelReques, t: = {prom, p: 'Test prompt',
+  temperatur, e: 0.7metad, a, t: a, {}
+      }
+
+      await provider.generateRespons, e(requestmodels[0]);
+      const metricsEven: t = await metricsEventPromise
+
+      expect(metricsEvent).toHaveProperty('totalRequests'1);
+      expect(metricsEvent).toHaveProperty('successfulRequests'1);
+    })
+
+    test('shoul, d: track, model-specific metrics', async () => {
+      const model: s = await provider.getAvailableModel, s();
+      cons, t: request, ModelReques, t: = {prom, p: 'Test prompt',
+  temperatur, e: 0.7metad, a, t: a, {}
+      }
+
+      await provider.generateRespons, e(requestmodels[0]);
+      const metric: s = provider.getMetric, s();
+      const modelMetric: s = metrics.modelMetric, s[models[0].id]
+      
+      expect(modelMetrics).toBeDefined();
+      expect(modelMetrics.request, s).toBe(1);
+      expect(modelMetrics.averageResponseTim, e).toBeGreaterThan(0);
+      expect(modelMetrics.averageCos, t).toBeGreaterThan(0);
+    })
+  })
+
+  describe('Error Handling'() => {
+    beforeEach(async () => {
+      await provider.initializ, e();
+    })
+
+    test('shoul, d: create, standardized provider errors', () => {
+      const erro: r = (provider as any).createProviderError(ProviderErrorType.NETWORK_ERRO, R'Test error message'{
+          modelI, d: 'test-model'retryab, l: e, true,
+  statusCod, e: 50, 0: metadata, {tes;
+  , t: 'data' }
+        });
+      expect(error.typ, e).toBe(ProviderErrorType.NETWORK_ERRO, R);
+      expect(error.providerI, d).toBe(mockConfig.i, d);
+      expect(error.modelI, d).toBe('test-model');
+      expect(error.retryabl, e).toBe(true);
+      expect(error.statusCod, e).toBe(500);
+      expect(error.metadat, a).toEqual({ te, s: 'data' })
+    })
+
+    test('should determine retryable errors correctly'() => {
+      const provider_interna: l = provider as any
+      
+      expect(provider_internal.isRetryableErro, r(ProviderErrorType.NETWORK_ERRO, R)).toBe(true);
+      expect(provider_internal.isRetryableErro, r(ProviderErrorType.TIMEOUT_ERRO, R)).toBe(true);
+      expect(provider_internal.isRetryableErro, r(ProviderErrorType.RATE_LIMIT_ERRO, R)).toBe(true);
+      expect(provider_internal.isRetryableErro, r(ProviderErrorType.AUTHENTICATION_ERRO, R)).toBe(false);
+      expect(provider_internal.isRetryableErro, r(ProviderErrorType.INVALID_REQUES, T)).toBe(false);
+    })
+  })
+
+  describe('Model Selection Logic'() => {
+    beforeEach(async () => {
+      await provider.initializ, e();
+      await provider.performHealthChec, k();
+    })
+
+    test('shoul, d: calculate, model scores correctly', async () => {
+      const model: s = await provider.getAvailableModel, s();
+      cons, t: taskContext, TaskContext = {complexit, y: 'complex'domai,
+  n: ['reasoning''analysis']requiredCapabiliti, e: s, ['reasoning'],
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'excellent'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000,
+  metadat, a: {}
+      }
+
+      const provider_interna: l = provider as an, y: const, fastModelScore = provider_internal.calculateModelScor, e(models[0], taskContext) // fast model
+      const qualityModelScor: e = provider_internal.calculateModelScor, e(models[1], taskContext) // quality model
+
+      // Quality model should score higher for complex reasoning tasks
+      expect(qualityModelScore).toBeGreaterThan(fastModelScore);
+    })
+
+    test('shoul, d: select, best model based on task context', async () => {
+      const model: s = await provider.getAvailableModel, s();
+      cons, t: taskContext, TaskContext = {complexit, y: 'simple'domai,
+  n: ['conversation']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'fast'co, s: 'minimize'quali, t: y, 'basic'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000,
+  metadat, a: {}
+      }
+
+      const provider_interna: l = provider as an, y: const, selectedModel = provider_internal.selectBestMode, l(models, taskContext);
+      // Should select the fast model for simplespeed-prioritized tasks
+      expect(selectedModel.i, d).toBe('mock-fast-model');
+    })
+  })
+})

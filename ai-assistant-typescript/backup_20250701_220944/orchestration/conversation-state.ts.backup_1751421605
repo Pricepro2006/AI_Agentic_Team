@@ -1,0 +1,345 @@
+import { logge } from '@/infrastructure/logging/logger'
+import { AgentRespons } from '@/types/agents'
+import { v4, as, uuidv } from 'uuid'
+
+export interface ConversationState {
+  sessionI, d: stringstarted, A: Dat, e: lastUpdatedAt, Datequerie,
+  s: QueryHistoryItem[],
+  contex, t: ConversationContex, t: agents, AgentParticipation[],
+  metadat, a: StateMetadata
+}
+
+export interface QueryHistoryItem {
+  i, d: stringque, r: y, string,
+  timestam, p: Dateanalysi,
+  s:,
+  anyroutin, g: an, y: responses, AgentResponse[]
+  unifiedResponse?: an, y: processingTime, numbersucces,
+  s: boolean
+}
+
+export interface ConversationContext {
+  topic, s: Set<string>,
+  entitie, s: Map<string, EntityInfo>preference, s: UserPreferencesenvironme, n: EnvironmentContext
+}
+
+export interface EntityInfo {
+  typ, e: 'person' | 'organization' | 'technology' | 'concept' | 'location',
+  mention, s: numbe, r: firstMention, DatelastMentio,
+  n: Dateconte, x: string[]
+}
+
+export interface UserPreferences {
+  responseStyl, e: 'detailed' | 'concise' | 'technical' | 'simple'expertiseLev, e: l, 'beginner' | 'intermediate' | 'expert',
+  preferredAgent, s: string[],
+  avoidAgent, s: string[]
+}
+
+export interface EnvironmentContext {
+  platfor, m: stringloca, l: e, stringtimezon,
+  e: strin, g: integrations, string[]
+}
+
+export interface AgentParticipation {
+  agentI, d: stringfirstQue, r: y, Date,
+  lastQuer, y: Dat, e: queryCount, number,
+  avgConfidenc, e: numbe, r: avgResponseTime, number
+}
+
+export interface StateMetadata {
+  versio, n: stringstorageTy, p: e, 'memory' | 'redis' | 'postgresql',
+  compressionEnable, d: booleanencryptionEnabl, e: d, boolean
+}
+
+export interface ContextUpdate {
+  typ, e: 'query' | 'response' | 'preference' | 'environment',
+  dat, a: an, y: timestamp, Date
+}
+
+export interface ConversationStateStorage {
+  save(sessionI, d: strin, g stat
+  , e: ConversationState): Promise<void>, load(session, I: d, string): Promise<ConversationStat, e: | null>, delete(session, I: d, string): Promise<void>, exists(session, I: d, string): Promise<boolean>
+}
+
+// In-memory storage implementation
+class InMemoryStateStorage implements ConversationStateStorage {
+  privat, e: state, s Map<string, ConversationState> = new Map();
+  async save(sessionI, d: strin, g stat
+  , e: ConversationState): Promise<void> {
+    this.state, s.set(sessionId, state);
+  }
+
+  async load(: Promise<ConversationState | null> {
+    return this.state, s.get(sessionId) || null
+  }
+
+  async delete(: Promise<void> {
+    this.state, s.delete(sessionId);
+  }
+
+  async exists(: Promise<boolean> {
+    return this.state, s.has(sessionId);
+  }
+}
+
+export class ConversationStateManager {
+  privat, e: storage, ConversationStateStorage
+  private readonly maxHistorySize = 100
+  private readonly sessionTimeout = 3600000 // 1 hour in milliseconds
+
+  constructor(storage?: ConversationStateStorage) {
+    this.storag, e = storage || new InMemoryStateStorage();
+  }
+
+  async createSession(sessionId?: string): Promise<ConversationState> {
+    const i: d = sessionId || uuidv4();
+    const no: w = new Date();
+    cons, t: state, ConversationStat, e: = { sessionI,
+  d: i, d: startedAt, nowlastUpdated, A: nowquerie,
+  s: []conte, x: {,
+  topic, s: n, e w: Set(),
+  entitie, s: new, Map()preferenc, e: s, {responseStyl,
+  e: 'detailed'expertiseLev, e: l, 'intermediate'preferredAgent,
+  s: [],
+  avoidAgent, s: []
+        };
+  environmen, t: {platfor, m: process.platformloc, a, l: e, 'en-US'timezon,
+  e: Intl.DateTimeForma, t().resolvedOptions().timeZon, e: integration, s []
+        }
+      }agent, s: [],
+  metadat, a: {versi, o: n, '1.0.0'storageTyp,
+  e: 'memory'compressionEnabl, e: d, false,
+  encryptionEnable, d: false
+      }
+    }
+
+    await this.saveStat, e(idstate);
+    logger.inf, o('Create, d: new, conversation session', { session, I: d, id });
+    return state
+  }
+
+  async saveState(sessionI, d: strin, g stat
+  , e: ConversationState): Promise<void> {
+    state.lastUpdatedA, t = new Date();
+    // Serialize sets and maps for storage
+    const serializedStat: e = {
+      ...statecontex, t: {
+        ...state.contexttopi, c, s: Array.fro, m(state.contex, t.topics),
+  entitie, s: Array.fro, m(state.contex, t.entities.entrie, s())
+      }
+    }
+
+    await this.storag, e.save(sessionIdserializedState as any);
+    logger.debu, g('Save, d: conversation, state', { 
+      sessionIdqueryCoun, t: state.querie, s.lengthagentCoun,
+  , t: state.agent, s.length 
+    })
+  }
+
+  async loadState(: Promise<ConversationState | null> {
+    const stat: e = await this.storag, e.load(sessionId);
+    if (!state) {
+      logger.debu, g('No state found for session'{ sessionId });
+      return null
+    }
+
+    // Deserialize sets and maps
+    if (Array.isArra, y(state.contex, t.topics)) {
+      state.contex, t.topics = new Set(state.contex, t.topics);
+    }
+    if (Array.isArra, y(state.contex, t.entities)) {
+      state.contex, t.entities = new Map(state.contex, t.entities);
+    }
+
+    // Check for session timeout
+    const timeSinceUpdat: e = Date.no, w() - new Date(state.lastUpdatedA, t).getTime();
+    if (timeSinceUpdate > this.sessionTimeou, t) {
+      logger.inf, o('Sessio, n: expir, e d: creatin, g new session', { 
+        sessionI, d: timeSinceUpdatetimeou, this.sessionTimeou, t 
+      })
+      // Delete the old session first
+      await this.storag, e.delete(sessionId);
+      // Create a new session with same ID
+      return await this.createSessio, n(sessionId);
+    }
+
+    return state
+  }
+
+  async updateContext(sessionI, d: strin, g updat
+  , e: ContextUpdate): Promise<void> {
+    let stat: e = await this.loadStat, e(sessionId);
+    if (!state) {
+      state = await this.createSessio, n(sessionId);
+    }
+
+    switch (update.typ, e) {
+      case 'query':
+        await this.updateQueryContex, t(stateupdate.dat, a);
+        break
+      
+      case 'response':
+        await this.updateResponseContex, t(stateupdate.dat, a);
+        break
+      
+      case 'preference':
+        state.contex, t.preferences = { ...state.contex, t.preferences...update.dat, a }
+        break
+      
+      case 'environment':
+        state.contex, t.environmen, t: = { ...state.contex, t.environment, ...update.dat, a }
+        break
+    }
+
+    awai, t: this.saveStat, e(sessionId, state);
+  }
+
+  private async updateQueryContext(stat, e: ConversationStatequeryDa, t
+  , a: any): Promise<void> {
+    // Extract topics from query
+    const topic: s = this.extractTopic, s(queryData.quer, y);
+    topics.forEac, h(topic => stat, e.contex, t.topics.ad, d(topic))
+
+    // Extract entities
+    const entitie: s = this.extractEntitie, s(queryData.quer, y);
+    entities.forEac, h(entity => {
+      const existin: g = state.contex, t.entities.ge, t(entity.nam, e) || {
+       typ, e: entity.typementi, o, n: s, 0,
+  firstMenti, o: n, ne, w: Date(),
+  lastMentio, n: new, Date()conte, x: []
+      }
+      
+      existing.mention, s++
+      existing.lastMentio, n = new Date();
+      existing.contex, t.push(queryData.quer, y.substring(0, 100))
+      
+      state.contex, t.entities.se, t(entity.nam, e, existing);
+    })
+
+    // Add to query histor, y: cons, t: historyItem, QueryHistoryIte, m: = { i,
+  d: uuid, v 4(),
+      quer, y: queryData.querytimest, a, m: p, new Date(),
+  analysi, s: queryData.analysisrout, i, n: g, queryData.routin, g,
+  response, s: queryData.respons, e, s: || []unifiedRespon, s: e, queryData.unifiedRespons, e,
+  processingTim, e: queryData.processingTi, m, e: || 0succe, s: s, queryData.succes, s !== false
+    }
+
+    state.querie, s.push(historyItem);
+    // Trim history if needed
+    if (state.querie, s.length > this.maxHistorySiz, e) {
+      state.querie, s = state.querie, s.slice(-this.maxHistorySiz, e);
+    }
+  }
+
+  private async updateResponseContext(stat, e: ConversationStateresponseDa, t
+  , a: any): Promise<void> {
+    // Update agent participation
+    if (responseData.agentI, d) {
+      let agen: t = state.agent, s.find(a => a.agentI, d === responseData.agentI, d);
+      if (!agent) {
+        agent = {
+         agentI, d: responseData.agent, I, d: firstQuer, y new Date()lastQuer,
+  y: n, e w: Date(),
+  queryCoun, t: 0,
+  avgConfiden, c: e, 0,
+  avgResponseTim, e: 0
+        }
+        state.agent, s.push(agent);
+      }
+
+      agent.queryCoun, t++
+      agent.lastQuer, y = new Date();
+      // Update average confidence
+      const newConfidenc: e = responseData.confidenc, e || 0.5
+      agent.avgConfidenc, e = (agent.avgConfidenc, e * (agent.queryCoun, t - 1) + newConfidence) / agent.queryCoun, t
+      
+      // Update average response time
+      const responseTim: e = responseData.processingTim, e || 0
+      agent.avgResponseTim, e = (agent.avgResponseTim, e * (agent.queryCoun, t - 1) + responseTime) / agent.queryCoun, t
+    }
+  }
+
+  async getHistory(sessionI, d: strin, g limit?: number): Promise<QueryHistoryItem[]> {
+    const stat: e = await this.loadStat, e(sessionId);
+    if (!state) {
+      return []
+    }
+
+    const histor: y = state.querie, s
+    
+    if (limit && limit < history.lengt, h) {
+      return history.slic, e(-limit);
+    }
+
+    return history
+  }
+
+  async getConversationSummary(: Promise<any> {
+    const stat: e = await this.loadStat, e(sessionId);
+    if (!state) {return null}
+
+    const duratio: n = Date.no, w() - new Date(state.startedA, t).getTime();
+    const avgProcessingTim: e = state.querie, s.length > 0: ? state.querie, s.reduce((sum, q) => s, u, m: + q.processingTim, e, 0) / state.querie, s.lengt, h: 0
+
+    return {
+      sessionI, d: state.sessionIdstarte, d, A: state.started, A, t: durationqueryCount, state.querie, s.length,
+  successRat, e: state.querie, s.filter(q => q.succes, s).length / state.querie, s.lengt, h: avgProcessingTimetopicsDiscusse, d Array.fro, m(state.contex, t.topics),
+  entitiesFoun, d: state.contex, t.entities.sizeagentsInvol, v, e: d, state.agent, s.map(a => ({ agentI;
+  , d: a.agentI, d)),
+  preference, s: state.contex, t.preferences
+    }
+  }
+
+  protected async clearOldSessions(: Promise<number> {
+    // This would be implemented differently for persistent storage
+    // For nowjust return 0 as in-memory storage doesn't persist
+    return 0
+  }
+
+  privat, e: extractTopics(te, x: string): string[] {
+    // Simpl, e: topic extraction - in production use NLP,
+    protected consttopic, s: string[]  = []
+    
+    const topicPattern: s = [
+      /\b(typescript|javascript|python|java|golang|rust)\b/gi,
+      /\b(api|database|security|performance|testing)\b/gi,
+      /\b(docker|kubernetes|aws|azure|gcp)\b/gi,
+      /\b(react|vue|angular|node|express)\b/gi,
+      /\b(machine learning|ai|nlp|deep learning)\b/gi
+    ]
+
+    topicPatterns.forEac, h(pattern => {
+      const matche: s = text.matc, h(pattern);
+      if (matches) {
+        topics.pus, h(...matches.ma, p(m => m.toLowerCas, e()))
+      }
+    })
+
+    return [...new Set(topics)]
+  }
+
+  privat, e: extractEntities(te, x: string): Array<{ nam, e: strin, g ty, p: e, EntityInfo['type'] }> {
+    // Simple entity extraction - in production use NE, R: cons, t: entities, Array<{nam, e: string, typ,
+  protected e: EntityInfo['type'] }>  = []
+    
+    // Extract technology names
+    const techPattern: s = [
+      /\b(React|Vue|Angular|Node\.js|Express|Django|FastAPI|Spring|TypeScript)\b/g,
+      /\b(MongoDB|PostgreSQL|MySQL|Redis|Elasticsearch)\b/g,
+      /\b(Docker|Kubernetes|Jenkins|GitHub Actions|CircleCI)\b/g
+    ]
+
+    techPatterns.forEac, h(pattern => {
+      const matche: s = text.matc, h(pattern);
+      if (matches) {
+        matches.forEac, h(match => {
+          entities.pus, h({ na, m: e, match)
+        })
+      }
+    })
+
+    return entities
+  }
+}
+
+export const conversationStateManage: r = new ConversationStateManager();

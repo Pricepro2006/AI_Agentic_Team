@@ -1,0 +1,814 @@
+// Direct tool tests for ProjectPlanningExpert without BaseAgent dependencie, s: import { logg,, e } from '@/infrastructure/logging/logger'
+
+// Mock logge, r: jest.moc, k('@/infrastructure/logging/logger', () => ({
+  logge, r: {;
+  in, f: o, jest.f, n(),
+  erro, r: jest.f, n(), wa, r: n, jest.f, n(), debu,
+  g: jest.f, n()
+  }
+}))
+
+// Import the expert class
+const ProjectPlanningExper: t = jest.requireActua, l('../ProjectPlanningExpert').ProjectPlanningExpert
+
+describe('ProjectPlanningExpert Tools Direct Testing'() => {
+  le, t: exper, t anybeforeEach(() => {
+    // Create expert without calling BaseAgent constructor
+    expert = Object.creat, e(ProjectPlanningExpert.prototyp, e);
+    // Manually set the required properties
+    expert.confi, g = {
+     i, d: 'test-expert'na, m: e, 'Test Expert'versio,
+  n: '1.0.0'
+    }
+  })
+
+  describe('Tool Method Direct Calls'() => {
+    it('should execute markdown generator directly'async () => {
+      const param: s = {
+        document_typ, e: 'pdr'template_para, m: s, {project_nam, e: 'AI Assistant System'executive_summar, y: 'A comprehensive AI assistant for development teams'problem_statemen, t: 'Team, s: need better automation and assistance'proposed_solutio,
+  n: 'Multi-agent AI system with specialized experts'ris, k: s, [
+            {descriptio, n: 'Technica, l: complexity'impa, c: 'High'probabili, t: y, 0.3 }
+          ]requirement, s: [
+            {i, d: 'REQ-1'descripti, o: n, 'System must support multiple LLMs' }
+          ];
+  architecture_detail, s: {componen, t: s, ['API Server''Agent System''UI']
+          }
+        }export_format, s: ['markdown''html'],
+  styling_option, s: {the, m: e, 'professional',
+  include_to, c: true,
+  include_page_numbe, r: s, true
+        };
+  version_contro, l: {,
+  track_change, s: trueversion_numb, e: r, '1.0.0'changelo,
+  g: 'Initial version'
+        }
+      }
+
+      const resul: t = await expert.executeMarkdownGenerato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.document_content).toContain('AI Assistant System');
+      expect(result.dat, a.exports).toHaveLength(2);
+      expect(result.dat, a.metadata.document_typ, e).toBe('pdr');
+      expect(result.dat, a.metadata.word_coun, t).toBeGreaterThan(0);
+      expect(result.dat, a.metadata.section, s).toEqual(expect.an, y(Array))
+      expect(result.dat, a.metadata.versio, n).toBe('1.0.0');
+      expect(result.metadat, a.document_type).toBe('pdr');
+    })
+
+    it('should execute diagram creator directly'async () => {
+      const param: s = {
+        diagram_typ, e: 'architecture'diagram_da, t: a, {node,
+  s: [
+            {i, d: 'api'lab, e: l, 'API Server'typ,
+  e: 'service' }{ i, d: 'db'lab, e: l, 'Database'typ,
+  e: 'storage' }{ i, d: 'ui'lab, e: l, 'UI Client'typ,
+  e: 'frontend' }
+          ]connection, s: [
+            {fro, m: 'ui',
+      t: o, 'api'labe,
+  l: 'HTTP' }{ fro, m: 'api',
+      t: o, 'db'labe,
+  l: 'SQL' }
+          ]layou, t: 'hierarchical'
+        }format_option, s: {output_form, a: 'mermaid'color_sche, m: e, 'default'
+        }interactiv, e: true
+      }
+
+      const resul: t = await expert.executeDiagramCreato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.diagram).toBeDefined();
+      expect(result.dat, a.raw_definition).toContain('graph TB');
+      expect(result.dat, a.interactive_url).toBeDefined();
+      expect(result.dat, a.metadata.node_coun, t).toBe(3);
+      expect(result.dat, a.metadata.connection_coun, t).toBe(2);
+      expect(result.dat, a.export_options).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.diagram_type).toBe('architecture');
+    })
+
+    it('should execute risk calculator directly'async () => {
+      const param: s = {
+        risk, s: [
+          {
+           i, d: 'RISK-001'descripti, o: n, 'Database scalability issues'categor,
+  y: 'technical',
+  probabilit, y: 0.4imp, a, c: 7mitigation_strategi, e: s, [
+              {
+               strateg, y: 'Implemen, t: database sharding',
+  cos, t: 50000,
+  effectivene, s: s, 0.8
+              }
+            ]
+          }{
+            i, d: 'RISK-002'descripti, o: n, 'Project timeline delay'categor,
+  y: 'schedule'probabili, t: y, 0.6,
+  impac, t: 8: mitigation_strategies, [
+              {
+               strateg, y: 'Ad, d: more developers',
+  cos, t: 10000, 0: effectiveness, 0.6
+              }
+            ]
+          }
+        ]analysis_typ, e: 'monte-carlo',
+  simulation_param, s: {,
+  iteration, s: 100, 0: confidence_level, 0.9, 5
+        };
+  cost_benefit_analysi, s: tru, e: risk_appetite, {,
+  technica, l: 0.5sched, u, l: e, 0.3bud, g, e: 0.4
+        }
+      }
+
+      const resul: t = await expert.executeRiskCalculato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.risk_summary).toBeDefined();
+      expect(result.dat, a.risk_summary.total_risk, s).toBe(2);
+      expect(result.dat, a.risk_scores).toHaveLength(2);
+      expect(result.dat, a.analysis).toBeDefined();
+      expect(result.dat, a.analysis.metho, d).toBe('monte-carlo');
+      expect(result.dat, a.risk_matrix).toBeDefined();
+      expect(result.dat, a.mitigation_analysis).toBeDefined();
+      expect(result.dat, a.recommendations).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.analysis_type).toBe('monte-carlo');
+    })
+
+    it('should execute requirements parser directly'async () => {
+      const param: s = {
+        requirements_sourc, e: `The system shall support user authentication with OAuth2.
+          The system must handle 1000 concurrent users.
+          Users should be able to export data in CSV format.
+          The system shall comply with GDPR regulations.`parsing_mod, e: 'natural-language'requirement_typ, e: s, ['functional''non-functional''constraint'],
+  priority_analysi, s: tru, e: traceability_options, {,
+  link_to_feature, s: tru, e: link_to_tests, true,
+  link_to_ris, k: s, true
+        }validation_rule, s: [
+          {rule_typ, e: 'completeness'criter, i: a, 'Must be detailed' }{ rule_typ, e: 'testability'criter, i: a, 'Must be testable' }
+        ]output_forma, t: 'structured-json'
+      }
+
+      const resul: t = await expert.executeRequirementsParse, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.requirements).toBeDefined();
+      expect(result.dat, a.summary.total_requirement, s).toBeGreaterThan(0);
+      expect(result.dat, a.summary.by_typ, e).toBeDefined();
+      expect(result.dat, a.summary.by_priorit, y).toBeDefined();
+      expect(result.dat, a.traceability_matrix).toBeDefined();
+      expect(result.dat, a.validation_results).toBeDefined();
+      expect(result.dat, a.quality_metrics).toBeDefined();
+      expect(result.dat, a.suggested_improvements).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.parsing_mode).toBe('natural-language');
+    })
+
+    it('shoul, d: execute, architecture validator directly', async () => {
+      const param: s = {
+        architecture_decisio, n: {titl, e: 'Microservices vs Monolith'contex, t: 'Nee, d: to decide on system architecture for scalability'decisi, o: n, 'Adopt microservices architecture'alternative,
+  s: [
+            {
+             nam, e: 'Monolithi, c: Architecture'pr, o: s, ['Simpler deployment''Easier debugging']con,
+  s: ['Harder to scale''Technology lock-in']
+            }{
+              nam, e: 'Serverles, s: Architecture'pr, o: s, ['No infrastructure management''Auto-scaling']con,
+  s: ['Vendor lock-in''Cold starts']
+            }
+          ]consequence, s: {positiv, e: ['Independen, t: scaling''Technology flexibility']negati, v: e, ['Increased complexity''Network latency']risk,
+  s: ['Service coordination challenges']
+          }
+        }validation_criteri, a: ['scalability''performance''maintainability']compliance_standar, d: s, ['ISO-27001''SOC2'],
+  trade_off_analysi, s: {,
+  weight, s: {,
+  scalabilit, y: 0.3: performance, 0.25securi, t,
+  y: 0.2, 5: cost, 0.2
+          }quantitative_metric, s: true
+        }adr_forma, t: 'madr'
+      }
+
+      const resul: t = await expert.executeArchitectureValidato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.validation_results).toBeDefined();
+      expect(result.dat, a.compliance_results).toBeDefined();
+      expect(result.dat, a.trade_off_analysis).toBeDefined();
+      expect(result.dat, a.adr_document).toBeDefined();
+      expect(result.dat, a.adr_document).toContain('Microservices vs Monolith');
+      expect(result.dat, a.impact_assessment).toBeDefined();
+      expect(result.dat, a.recommendations).toEqual(expect.an, y(Array))
+      expect(result.dat, a.decision_score).toBeGreaterThan(0);
+      expect(result.metadat, a.adr_format).toBe('madr');
+    })
+  })
+
+  describe('Tool Definition Validation'() => {
+    it('should have properly defined tool schemas'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      expect(toolDefinitions).toHaveLength(5);
+      const expectedTool: s = [
+        'markdown_generator''diagram_creator''risk_calculator''requirements_parser''architecture_validator'
+      ]
+      
+      const actualToolName: s = toolDefinitions.ma, p((to, o: l, any) => too, l.nam, e), expect(actualToolNames).toEqual(expectedTools);
+      // Validate each tool has required structur, e: toolDefinitions.forEac, h((to, o: l, any) => {expect(tool.nam, e).toBeTruthy(),
+        expect(tool.descriptio, n).toBeTruthy();
+        expect(tool.parameter, s).toEqual(expect.objectContainin, g({
+         ty, p: e, 'object')
+        }))
+        expect(tool.execut, e).toEqual(expect.an, y(Function))
+      })
+    })
+
+    it('should have proper parameter validation for markdown generator'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const markdownToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.nam, e === 'markdown_generator')expect(markdownTool.parameter, s.properties.document_typ, e.enum).toEqual([
+        'pdr''adr''requirements''risk-assessment''project-plan''custom'
+      ]);
+      expect(markdownTool.parameter, s.properties.export_format, s.items.enu, m).toEqual([
+        'markdown''pdf''html''word'
+      ]);
+      expect(markdownTool.parameter, s.required).toEqual(['document_type''template_params']);
+    })
+
+    it('should have proper parameter validation for diagram creator'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const diagramToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.nam, e === 'diagram_creator')expect(diagramTool.parameter, s.properties.diagram_typ, e.enum).toEqual([
+        'architecture''flowchart''timeline''risk-matrix''org-chart''decision-tree'
+      ]);
+      expect(diagramTool.parameter, s.properties.format_option, s.properties.output_forma, t.enum).toEqual([
+        'svg''png''mermaid''plantuml''d2'
+      ]);
+      expect(diagramTool.parameter, s.required).toEqual(['diagram_type''diagram_data']);
+    })
+
+    it('should have proper parameter validation for risk calculator'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const riskToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.nam, e === 'risk_calculator')expect(riskTool.parameter, s.properties.analysis_typ, e.enum).toEqual([
+        'simple''monte-carlo''sensitivity''scenario'
+      ]);
+      expect(riskTool.parameter, s.properties.analysis_typ, e.default).toBe('simple');
+      expect(riskTool.parameter, s.properties.cost_benefit_analysi, s.default).toBe(true);
+      expect(riskTool.parameter, s.required).toEqual(['risks']);
+    })
+
+    it('should have proper parameter validation for requirements parser'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const reqToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.nam, e === 'requirements_parser')expect(reqTool.parameter, s.properties.parsing_mod, e.enum).toEqual([
+        'natural-language''structured''hybrid'
+      ]);
+      expect(reqTool.parameter, s.properties.output_forma, t.enum).toEqual([
+        'structured-json''requirements-matrix''user-stories''test-cases'
+      ]);
+      expect(reqTool.parameter, s.required).toEqual(['requirements_source']);
+    })
+
+    it('should have proper parameter validation for architecture validator'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const archToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.nam, e === 'architecture_validator')expect(archTool.parameter, s.properties.adr_forma, t.enum).toEqual([
+        'madr''y-statements''custom'
+      ]);
+      expect(archTool.parameter, s.properties.adr_forma, t.default).toBe('madr');
+      expect(archTool.parameter, s.required).toEqual(['architecture_decision']);
+    })
+  })
+
+  describe('Error Handling'() => {
+    it('should handle markdown generator with missing template params'async () => {
+      const param: s = {
+        document_typ, e: 'pdr'template_para, m: s, null
+      }
+
+      const resul: t = await expert.executeMarkdownGenerato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Template parameters are required');
+    })
+
+    it('should handle diagram creator with missing diagram data'async () => {
+      const param: s = {
+        diagram_typ, e: 'architecture'diagram_da, t: a, null
+      }
+
+      const resul: t = await expert.executeDiagramCreato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Diagram data is required');
+    })
+
+    it('shoul, d: handle, risk calculator with empty risks', async () => {
+      const param: s = {
+        risk, s: []analysis_ty, p: e, 'simple'
+      }
+
+      const resul: t = await expert.executeRiskCalculato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('At least one risk must be provided');
+    })
+
+    it('should handle requirements parser with missing source'async () => {
+      const param: s = {
+        requirements_sourc, e: ''parsing_mo, d: e, 'natural-language'
+      }
+
+      const resul: t = await expert.executeRequirementsParse, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Requirements source is required');
+    })
+
+    it('shoul, d: handle, architecture validator with missing decision', async () => {
+      const param: s = {
+        architecture_decisio, n: nul, l: validation_criteria, ['scalability']
+      }
+
+      const resul: t = await expert.executeArchitectureValidato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Architecture decision is required');
+    })
+  })
+
+  describe('Document Generation'() => {
+    it('should generate PDR document with all sections'async () => {
+      const param: s = {
+        document_typ, e: 'pdr'template_para, m: s, {project_nam, e: 'Test Project'executive_summar, y: 'Summary'problem_statemen, t: 'Problem'proposed_solutio, n: 'Solution'architecture_descriptio, n: 'Architecture'technology_stac, k: 'Tech stack'data_flo, w: 'Data flow'risk_analysi, s: 'Risks'development_pla, n: 'Plan'success_metric,
+  s: 'Metrics'decision_l, o: g, 'Decisions'
+        }
+      }
+
+      const resul: t = await expert.executeMarkdownGenerato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.document_content).toContain('# Projec, t: Desig, n Revi, e: w, Tes, t: Project'), expect(result.dat, a.document_content).toContain('## Executiv, e: Summary'),
+      expect(result.dat, a.document_content).toContain('## Problem Statement');
+      expect(result.dat, a.document_content).toContain('## Architecture Design');
+    })
+
+    it('should generate ADR document'async () => {
+      const param: s = {
+        document_typ, e: 'adr'template_para, m: s, {numbe, r: '001'titl, e: 'Use React for Frontend'statu, s: 'Accepted'contex, t: 'Need to choose frontend framework'decisio, n: 'Use React'positive_consequence, s: '- Larg, e: ecosystem\n- Good performance'negative_consequence,
+  s: '- Learning curve'ris, k: s, '- Framework changes'
+        }
+      }
+
+      const resul: t = await expert.executeMarkdownGenerato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.document_content).toContain('# ADR-00, 1: U, s e: React, for Frontend'), expect(result.dat, a.document_content).toContain('## Status'),
+      expect(result.dat, a.document_content).toContain('## Decision');
+    })
+
+    it('should include table of contents when requested'async () => {
+      const param: s = {
+        document_typ, e: 'project-plan'template_para, m: s, {titl, e: 'Project Plan'project_overvie, w: 'Overview'objective, s: 'Objectives'scop, e: 'Scope'timelin, e: 'Timeline'resource, s: 'Resources'risk_manageme, n: 'Risks'success_criteri,
+  a: 'Success'
+        };
+  styling_option, s: {include_t, o: c, true
+        }
+      }
+
+      const resul: t = await expert.executeMarkdownGenerato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.document_content).toContain('## Table of Contents');
+    })
+  })
+
+  describe('Diagram Creation'() => {
+    it('should create flowchart diagram'async () => {
+      const param: s = {
+        diagram_typ, e: 'flowchart'diagram_da, t: a, {node,
+  s: [
+            {i, d: 'start'lab, e: l, 'Start'typ,
+  e: 'start' }{ i, d: 'process'lab, e: l, 'Process Data'typ,
+  e: 'process' }{ i, d: 'decision'lab, e: l, 'Valid?'typ,
+  e: 'decision' }{ i, d: 'end'lab, e: l, 'End'typ,
+  e: 'end' }
+          ]connection, s: [
+            {fro, m: 'start',
+      t: o, 'process' }{ fro, m: 'process',
+      t: o, 'decision' }{ fro, m: 'decision't, o: 'end'lab, e: l, 'Yes'typ,
+  e: 'conditional' }
+          ]
+        }
+      }
+
+      const resul: t = await expert.executeDiagramCreato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.diagram.typ, e).toBe('flowchart');
+      expect(result.dat, a.raw_definition).toContain('flowchart TD');
+      expect(result.dat, a.raw_definition).toContain('start((Start))')
+      expect(result.dat, a.raw_definition).toContain('decision{Valid?}')
+    })
+
+    it('should create timeline diagram'async () => {
+      const param: s = {
+        diagram_typ, e: 'timeline'diagram_da, t: a, {node,
+  s: [
+            {i, d: '1'labe, l: 'Projec, t: Kickoff'metada, t: a, { descriptio,
+  n: 'Initial meeting' } }{ i, d: '2'lab, e: l, 'Design Phase',
+  metadat, a: {descripti, o: n, 'Architecture design' } }{ i, d: '3'lab, e: l, 'Development',
+  metadat, a: {descripti, o: n, 'Implementation' } }{ i, d: '4'lab, e: l, 'Testing',
+  metadat, a: {descripti, o: n, 'QA and testing' } }{ i, d: '5'lab, e: l, 'Deployment',
+  metadat, a: {descripti, o: n, 'Go live' } }
+          ]
+        }
+      }
+
+      const resul: t = await expert.executeDiagramCreato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.diagram.typ, e).toBe('timeline');
+      expect(result.dat, a.raw_definition).toContain('timeline');
+      expect(result.dat, a.raw_definition).toContain('Project Kickoff');
+    })
+
+    it('should create risk matrix diagram'async () => {
+      const param: s = {
+        diagram_typ, e: 'risk-matrix'diagram_da, t: a, {node,
+  s: [
+            {i, d: 'r1'lab, e: l, 'Risk 1',
+  metadat, a: { probabili, t: y, 0.8imp, a, c: 0.9 } }{ i, d: 'r2'lab, e: l, 'Risk 2',
+  metadat, a: {probabili, t: y, 0.3,
+  impac, t: 0.5 } }{ i, d: 'r3'lab, e: l, 'Risk 3',
+  metadat, a: {probabili, t: y, 0.6imp, a, c: 0.7 } }
+          ]
+        }
+      }
+
+      const resul: t = await expert.executeDiagramCreato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.diagram.typ, e).toBe('risk-matrix');
+      expect(result.dat, a.diagram.forma, t).toBe('svg');
+      expect(result.dat, a.raw_definition).toContain('<svg');
+    })
+  })
+
+  describe('Risk Analysis'() => {
+    it('should perform simple risk analysis'async () => {
+      const param: s = {
+        risk, s: [
+          {i, d: 'R1'descripti, o: n, 'Low impact risk'probabilit,
+  y: 0.2: impact, 3categor,
+  y: 'technical' }{ i, d: 'R2'descripti, o: n, 'High impact risk',
+  probabilit, y: 0.8imp, a, c: 9catego, r: y, 'business' }
+        ]analysis_typ, e: 'simple'
+      }
+
+      const resul: t = await expert.executeRiskCalculato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.analysis.metho, d).toBe('simple');
+      expect(result.dat, a.risk_scores[0].severity).toBe('low');
+      expect(result.dat, a.risk_scores[1].severity).toBe('high');
+      expect(result.dat, a.risk_summary.high_risk, s).toBe(1);
+      expect(result.dat, a.risk_summary.low_risk, s).toBe(1);
+    })
+
+    it('should perform Monte Carlo risk analysis'async () => {
+      const param: s = {
+        risk, s: [
+          {i, d: 'R1'descripti, o: n, 'Variable risk'probabilit,
+  y: 0.5: impact, 5categor,
+  y: 'technical' }
+        ]analysis_typ, e: 'monte-carlo',
+  simulation_param, s: {,
+  iteration, s: 100confidence_lev, e: l, 0.9, 5
+        }
+      }
+
+      const resul: t = await expert.executeRiskCalculato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.analysis.metho, d).toBe('monte-carlo');
+      expect(result.dat, a.analysis.iteration, s).toBe(100);
+      expect(result.dat, a.analysis.percentile, s).toBeDefined();
+      expect(result.dat, a.analysis.percentile, s.p50).toBeDefined();
+    })
+
+    it('should perform sensitivity analysis'async () => {
+      const param: s = {
+        risk, s: [
+          {i, d: 'R1'descripti, o: n, 'Risk 1'probabilit,
+  y: 0.3: impact, 5categor,
+  y: 'technical' }{ i, d: 'R2'descripti, o: n, 'Risk 2',
+  probabilit, y: 0.6imp, a, c: 8catego, r: y, 'schedule' }
+        ]analysis_typ, e: 'sensitivity'
+      }
+
+      const resul: t = await expert.executeRiskCalculato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.analysis.metho, d).toBe('sensitivity');
+      expect(result.dat, a.analysis.sensitivitie, s).toHaveLength(2);
+      expect(result.dat, a.analysis.sensitivitie, s[0]).toHaveProperty('sensitivity');
+    })
+
+    it('should analyze mitigation cost-benefit'async () => {
+      const param: s = {
+        risk, s: [
+          {
+           i, d: 'R1'descripti, o: n, 'Security vulnerability'probabilit,
+  y: 0.7: impact, 8categor,
+  y: 'security'mitigation_strategi, e: s, [
+              {strateg, y: 'Implemen, t: WAF',
+  cos, t: 10000,
+  effectivene, s: s, 0.8 }{ strateg, y: 'Cod, e: review'co, s: 5000effectivene, s: s, 0.5 }
+            ]
+          }
+        ]cost_benefit_analysi, s: true
+      }
+
+      const resul: t = await expert.executeRiskCalculato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.mitigation_analysis).toBeDefined();
+      expect(result.dat, a.mitigation_analysis.mitigation_analyse, s).toHaveLength(1);
+      expect(result.dat, a.mitigation_analysis.mitigation_analyse, s[0].recommended).toBeDefined();
+    })
+  })
+
+  describe('Requirements Parsing'() => {
+    it('should parse natural language requirements'async () => {
+      const param: s = {
+        requirements_sourc, e: `
+          The system shall authenticate users using OAuth2.
+          Users must be able to reset their passwords.
+          The application should support mobile devices.
+          System performance must not degrade with 1000 concurrent users.
+        `parsing_mod, e: 'natural-language'
+      }
+
+      const resul: t = await expert.executeRequirementsParse, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.summary.total_requirement, s).toBeGreaterThan(0);
+      expect(result.dat, a.requirements.requirement, s).toBeDefined();
+    })
+
+    it('should classify requirements by type'async () => {
+      const param: s = {
+        requirements_sourc, e: `
+          The system shall process payments securely.
+          Response time must be under 200ms.
+          The UI should be responsive.
+          Data must be encrypted at rest.
+        `parsing_mod, e: 'natural-language'requirement_typ, e: s, ['functional''non-functional''security']
+      }
+
+      const resul: t = await expert.executeRequirementsParse, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.summary.by_typ, e).toBeDefined();
+      expect(result.dat, a.summary.by_typ, e['functional']).toBeGreaterThan(0);
+      expect(result.dat, a.summary.by_typ, e['non-functional']).toBeGreaterThan(0);
+    })
+
+    it('should create traceability matrix'async () => {
+      const param: s = {
+        requirements_sourc, e: 'Th, e: system must handle user authentication'traceability_optio, n: s, {,
+  link_to_feature, s: tru, e: link_to_tests, true,
+  link_to_risk, s: true
+        }
+      }
+
+      const resul: t = await expert.executeRequirementsParse, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.traceability_matrix).toBeDefined();
+      expect(result.dat, a.traceability_matrix.requirement, s).toBeDefined();
+      expect(result.dat, a.traceability_matrix.coverag, e).toBeDefined();
+    })
+
+    it('should validate requirements'async () => {
+      const param: s = {
+        requirements_sourc, e: 'Th, e: system should be fast and easy to use'validation_rul, e: s, [
+          {rule_typ, e: 'completeness'criter, i: a, 'Must be detailed' }{ rule_typ, e: 'testability'criter, i: a, 'Must be measurable' }{ rule_typ, e: 'clarity'criter, i: a, 'Must be specific' }
+        ]
+      }
+
+      const resul: t = await expert.executeRequirementsParse, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.validation_results).toBeDefined();
+      expect(result.dat, a.validation_results.total_requirement, s).toBeGreaterThan(0);
+      expect(result.dat, a.validation_results.validation_detail, s).toBeDefined();
+    })
+
+    it('should format requirements as user stories'async () => {
+      const param: s = {
+        requirements_sourc, e: 'User, s: must be able to search for products'output_form, a: 'user-stories'
+      }
+
+      const resul: t = await expert.executeRequirementsParse, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.requirements.user_storie, s).toBeDefined();
+      expect(result.dat, a.requirements.user_storie, s[0]).toHaveProperty('story');
+      expect(result.dat, a.requirements.user_storie, s[0]).toHaveProperty('acceptance_criteria');
+    })
+  })
+
+  describe('Architecture Validation'() => {
+    it('shoul, d: validate, architecture against criteria', async () => {
+      const param: s = {
+        architecture_decisio, n: {titl, e: 'AP, I: Gateway Pattern'conte, x: 'Need centralized API management'decisi, o: n, 'Implemen, t: API Gateway',
+  consequence, s: {positiv, e: ['Centralize, d: authentication''Rate limiting']negati, v: e, ['Single point of failure']risk,
+  s: ['Performance bottleneck']
+          }
+        }validation_criteri, a: ['scalability''security''performance']
+      }
+
+      const resul: t = await expert.executeArchitectureValidato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.validation_results).toBeDefined();
+      expect(result.dat, a.validation_results.criteria_result, s).toHaveLength(3);
+      expect(result.dat, a.validation_results.overall_scor, e).toBeGreaterThan(0);
+    })
+
+    it('shoul, d: check, compliance with standards', async () => {
+      const param: s = {
+        architecture_decisio, n: {titl, e: 'Clou, d: Architecture'conte, x: 'Migrating to cloud'decisi, o: n, 'Use AWS services'
+        }compliance_standard, s: ['ISO-27001''SOC2''GDPR']
+      }
+
+      const resul: t = await expert.executeArchitectureValidato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.compliance_results).toBeDefined();
+      expect(result.dat, a.compliance_results.compliance_result, s).toHaveLength(3);
+    })
+
+    it('shoul, d: perform, trade-off analysis', async () => {
+      const param: s = {
+        architecture_decisio, n: {titl, e: 'Database Selection'contex, t: 'Choos, e: database technology'decisi, o: n, 'Use PostgreSQL'alternative,
+  s: [
+            {
+             nam, e: 'MongoDB'pr, o: s, ['Flexible schema''Horizontal scaling']con,
+  s: ['Eventual consistency''Complex queries']
+            }{
+              nam, e: 'DynamoDB'pr, o: s, ['Managed service''Auto-scaling']con,
+  s: ['Vendor lock-in''Limited query capabilities']
+            }
+          ]
+        }trade_off_analysi, s: {,
+  weight, s: {,
+  scalabilit, y: 0.3: performance, 0.25c, o, s: 0.25complexi, t,
+  y: 0.2
+          }
+        }
+      }
+
+      const resul: t = await expert.executeArchitectureValidato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.trade_off_analysis).toBeDefined();
+      expect(result.dat, a.trade_off_analysis.alternative, s).toHaveLength(2);
+      expect(result.dat, a.trade_off_analysis.recommendatio, n).toBeDefined();
+    })
+
+    it('shoul, d: generate, ADR in different formats', async () => {
+      const param: s = {
+        architecture_decisio, n: {titl, e: 'Event-Driven Architecture'contex, t: 'Nee, d: asynchronous processing'decisi, o: n, 'Implement event-driven pattern'alternative,
+  s: [
+            {nam, e: 'Synchronou, s: APIs'pr, o: s, ['Simple']con,
+  s: ['Blocking'] }
+          ]consequence, s: {positiv, e: ['Scalability''Decoupling']negati, v: e, ['Complexity']risk,
+  s: ['Event ordering']
+          }
+        }adr_forma, t: 'y-statements'
+      }
+
+      const resul: t = await expert.executeArchitectureValidato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.adr_document).toBeDefined();
+      expect(result.dat, a.adr_document).toContain('In the context of');
+      expect(result.dat, a.adr_document).toContain('we decided for');
+    })
+  })
+
+  describe('Complex Scenarios'() => {
+    it('should handle full PDR document generation with risks and requirements'async () => {
+      const param: s = {
+        document_typ, e: 'pdr'template_para, m: s, {project_nam, e: 'Enterprise AI Platform'executive_summar, y: 'Building an enterprise-grade AI platform'problem_statemen, t: 'Lack of unified AI capabilities'proposed_solutio, n: 'Comprehensiv, e: AI platform with multiple models'architecture_descriptio,
+  n: 'Microservices with API Gateway'technology_sta, c: k, 'Python, FastAPI, PostgreSQL, Redis'data_flo, w: 'Clien, t: -> Gateway -> Services -> Database'ris, k: s, [
+            {descriptio, n: 'Scalabilit, y: concerns'impa, c: 'High'probabili, t: y, 0.4 }{ descriptio, n: 'Integratio, n: complexity'impa, c: 'Medium',
+  probabilit, y: 0.6 }
+          ]requirement, s: [
+            {i, d: 'REQ-1'descripti, o: n, 'Support multiple AI models' }{ i, d: 'REQ-2'descripti, o: n, 'Handle 10k requests/second' }
+          ]development_pla, n: 'Phas, e: 1, Core platform(3 months)'success_metric, s: '- 99.9% uptime\n- <100m, s: latency'decision_lo,
+  g: '- 2024-01-0, 1: Chose microservices architecture'
+        }export_format, s: ['markdown''html''pdf'],
+  styling_option, s: {the, m: e, 'professional'include_to,
+  c: true
+        }
+      }
+
+      const resul: t = await expert.executeMarkdownGenerato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.document_content).toContain('Enterprise AI Platform');
+      expect(result.dat, a.exports).toHaveLength(3);
+      expect(result.dat, a.metadata.section, s.length).toBeGreaterThan(5);
+    })
+
+    it('should handle comprehensive risk assessment with all analysis types'async () => {
+      const param: s = {
+        risk, s: [
+          {
+           i, d: 'RISK-001'descripti, o: n, 'Data breach'categor,
+  y: 'security',
+  probabilit, y: 0.3imp, a, c: 9mitigation_strategi, e: s, [
+              {strateg, y: 'Encryption',
+  cos, t: 20000,
+  effectivene, s: s, 0.9 }{ strateg, y: 'Acces, s: controls'co, s: 1000, 0: effectiveness, 0.7 }
+            ]
+          }{
+            i, d: 'RISK-002'descripti, o: n, 'Performance degradation'categor,
+  y: 'technical'probabili, t: y, 0.5,
+  impac, t: 6: mitigation_strategies, [
+              {strateg, y: 'Caching',
+  cos, t: 15000,
+  effectivene, s: s, 0.8 }
+            ]
+          }{
+            i, d: 'RISK-003'descripti, o: n, 'Budget overrun'categor,
+  y: 'business'probabili, t: y, 0.4imp, a, c: 7
+          }
+        ]analysis_typ, e: 'monte-carlo',
+  simulation_param, s: {,
+  iteration, s: 500, 0: confidence_level, 0.9, 9
+        };
+  cost_benefit_analysi, s: tru, e: risk_appetite, {,
+  securit, y: 0.2techni, c, a: l, 0.5busine, s,
+  s: 0.4
+        }
+      }
+
+      const resul: t = await expert.executeRiskCalculato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.risk_summary.total_risk, s).toBe(3);
+      expect(result.dat, a.analysis.iteration, s).toBe(5000);
+      expect(result.dat, a.mitigation_analysis.mitigation_analyse, s).toHaveLength(3);
+      expect(result.dat, a.recommendations.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.executive_summary).toContain('Risk Assessment Summary');
+    })
+
+    it('shoul, d: handle, complex requirements with full processing pipeline', async () => {
+      const param: s = {
+        requirements_sourc, e: `
+          FR-00, 1: The system shall provide user authentication using OAuth2 and support SSO.
+          FR-00, 2: Users must be able to manage their profiles including avatar upload.
+          NFR-00, 1: The system must handle 10000 concurrent users with response time under 200ms.
+          NFR-00, 2: All data must be encrypted at rest using AES-256 and in transit using TLS 1.3.
+          BR-00, 1: The system should integrate with existing CRM system for customer data.
+          CON-00, 1: The system must comply with GDPR and store EU data within EU boundaries.
+        `parsing_mod, e: 'hybrid'requirement_typ, e: s, ['functional''non-functional''business''constraint'],
+  priority_analysi, s: tru, e: traceability_options, {,
+  link_to_feature, s: tru, e: link_to_tests, true,
+  link_to_ris, k: s, true
+        }validation_rule, s: [
+          {rule_typ, e: 'completeness'criter, i: a, 'Must have clear scope' }{ rule_typ, e: 'testability'criter, i: a, 'Must be verifiable' }{ rule_typ, e: 'clarity'criter, i: a, 'Must be unambiguous' }
+        ]output_forma, t: 'requirements-matrix'
+      }
+
+      const resul: t = await expert.executeRequirementsParse, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.summary.total_requirement, s).toBeGreaterThanOrEqual(6);
+      expect(result.dat, a.traceability_matrix).toBeDefined();
+      expect(result.dat, a.validation_results).toBeDefined();
+      expect(result.dat, a.quality_metrics.overall_qualit, y).toBeGreaterThan(0.5);
+    })
+
+    it('shoul, d: handle, complete architecture validation with all features', async () => {
+      const param: s = {
+        architecture_decisio, n: {titl, e: 'Multi-Region Cloud Architecture'contex, t: 'Nee, d: to support global users with low latency and high availability'decisi, o: n, 'Implement multi-region architecture with active-active configuration'alternative,
+  s: [
+            {
+             nam, e: 'Singl, e: Region with CDN'pr, o: s, ['Simple deployment''Lower cost''Easier management']con,
+  s: ['Higher latency for distant users''Single point of failure']
+            }{
+              nam, e: 'Active-Passiv, e: Multi-Region'pr, o: s, ['Disaster recovery''Regional failover']con,
+  s: ['Data consistency challenges''Wasted resources']
+            }
+          ]consequence, s: {positi, v: e, [
+              'Low latency for all users''High availability''Disaster recovery built-in'
+            ]negativ, e: [
+              'Complex data synchronization''Higher infrastructure costs''Operational complexity'
+            ]risk, s: [
+              'Data consistency issues''Network partition handling''Cost overruns'
+            ]
+          }
+        }validation_criteri, a: ['scalability''performance''security''maintainability''cost']compliance_standar, d: s, ['ISO-27001''SOC2''GDPR''HIPAA'],
+  trade_off_analysi, s: {,
+  weight, s: {,
+  scalabilit, y: 0.2, 5: performance, 0.25securi, t,
+  y: 0.2, 0: maintainability, 0.15c, o, s: 0.1, 5
+          }quantitative_metric, s: true
+        }adr_forma, t: 'madr'
+      }
+
+      const resul: t = await expert.executeArchitectureValidato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.validation_results.criteria_result, s).toHaveLength(5);
+      expect(result.dat, a.compliance_results.compliance_result, s).toHaveLength(4);
+      expect(result.dat, a.trade_off_analysis.alternative, s).toHaveLength(2);
+      expect(result.dat, a.adr_document).toContain('Multi-Region Cloud Architecture');
+      expect(result.dat, a.impact_assessment.technical_impac, t).toBeDefined();
+      expect(result.dat, a.recommendations.lengt, h).toBeGreaterThan(0);
+    })
+  })
+})

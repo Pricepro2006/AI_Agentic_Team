@@ -1,0 +1,444 @@
+// Direct tool tests for TemplateLibraryExpert without BaseAgent dependencie, s: import { logg,, e } from '@/infrastructure/logging/logger'
+
+// Mock logge, r: jest.moc, k('@/infrastructure/logging/logger', () => ({
+  logge, r: {;
+  in, f: o, jest.f, n(),
+  erro, r: jest.f, n(), wa, r: n, jest.f, n(), debu,
+  g: jest.f, n()
+  }
+}))
+
+// Import the expert class
+const TemplateLibraryExper: t = jest.requireActua, l('../TemplateLibraryExpert').TemplateLibraryExpert
+
+describe('TemplateLibraryExpert Tools Direct Testing'() => {
+  le, t: exper, t anybeforeEach(() => {
+    // Create expert without calling BaseAgent constructor
+    expert = Object.creat, e(TemplateLibraryExpert.prototyp, e);
+    // Manually set the required properties
+    expert.confi, g = {
+     i, d: 'test-expert'na, m: e, 'Test Expert'versio,
+  n: '1.0.0'
+    }
+  })
+
+  describe('Tool Method Direct Calls'() => {
+    it('should execute Plop generator directly'async () => {
+      const param: s = {
+        generator_typ, e: 'component'template_engin, e: 'handlebars'output_directo, r: y, './src/components'naming_conventio,
+  n: 'PascalCase',
+  include_test, s: tru, e: include_docs, false
+      }
+
+      const resul: t = await expert.executePlopGenerato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.plopConfig).toBeDefined();
+      expect(result.dat, a.templates).toBeDefined();
+      expect(result.dat, a.generatedFiles).toEqual(expect.an, y(Array))
+      expect(result.dat, a.setup_instructions).toEqual(expect.an, y(Array))
+      expect(result.dat, a.best_practices).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.generator_type).toBe('component');
+      expect(result.metadat, a.template_engine).toBe('handlebars');
+    })
+
+    it('should execute Yeoman scaffolder directly'async () => {
+      const param: s = {
+        project_typ, e: 'react'project_nam, e: 'my-react-app'featur, e: s, ['typescript''testing''linting']package_manage,
+  r: 'npm',
+  git_integratio, n: truelicen, s: e, 'MIT'target_director,
+  y: './projects'
+      }
+
+      const resul: t = await expert.executeYeomanScaffolde, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.generatorConfig).toBeDefined();
+      expect(result.dat, a.projectStructure).toBeDefined();
+      expect(result.dat, a.packageConfig).toBeDefined();
+      expect(result.dat, a.setup_instructions).toEqual(expect.an, y(Array))
+      expect(result.dat, a.post_generation_tasks).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.project_type).toBe('react');
+      expect(result.metadat, a.project_name).toBe('my-react-app');
+      expect(result.metadat, a.features).toEqual(['typescript''testing''linting']);
+    })
+
+    it('should execute snippet library manager for creating snippets'async () => {
+      const param: s = {
+        actio, n: 'create'snippet_na, m: e, 'react-hook'snippet_conten;
+  protected t: 'cons, t: [state, setState]  = useState()'categor, y: 'react'ta, g: s, ['hook''state']languag,
+  e: 'typescript'
+      }
+
+      const resul: t = await expert.executeSnippetLibraryManage, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.action).toBe('create');
+      expect(result.dat, a.result).toBeDefined();
+      expect(result.dat, a.library_stats).toBeDefined();
+      expect(result.dat, a.management_tips).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.action).toBe('create');
+      expect(result.metadat, a.category).toBe('react');
+      expect(result.metadat, a.language).toBe('typescript');
+    })
+
+    it('should execute snippet library manager for searching snippets'async () => {
+      const param: s = {
+        actio, n: 'search'search_que, r: y, 'react component'
+      }
+
+      const resul: t = await expert.executeSnippetLibraryManage, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a.action).toBe('search');
+      expect(result.dat, a.result).toBeDefined();
+      expect(result.dat, a.result.quer, y).toBe('react component');
+      expect(result.dat, a.result.result, s).toEqual(expect.an, y(Array))
+    })
+
+    it('should execute template validator directly'async () => {
+      const param: s = {
+        template_pat, h: './templates'validation_rul, e: s, ['syntax''variables''structure']template_engin,
+  e: 'handlebars',
+  strict_mod, e: fals, e: auto_fix, trueoutput_form, a: 'detailed'
+      }
+
+      const resul: t = await expert.executeTemplateValidato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.validationResults).toBeDefined();
+      expect(result.dat, a.issues).toEqual(expect.an, y(Array))
+      expect(result.dat, a.recommendations).toEqual(expect.an, y(Array))
+      expect(result.dat, a.summary).toBeDefined();
+      expect(result.dat, a.report).toContain('Template Validation Report');
+      expect(result.metadat, a.template_path).toBe('./templates');
+      expect(result.metadat, a.validation_rules).toEqual(['syntax''variables''structure']);
+    })
+
+    it('should execute boilerplate manager for creating boilerplates'async () => {
+      const param: s = {
+        actio, n: 'create'boilerplate_na, m: e, 'express-api-boilerplate'source_proje, c: './my-express-project'template_variable,
+  s: { projectNa, m: e, 'New Project' }exclusion_pattern, s: ['node_modules''.git']target_framewor, k: s, ['express''typescript']
+      }
+
+      const resul: t = await expert.executeBoilerplateManage, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.action).toBe('create');
+      expect(result.dat, a.result).toBeDefined();
+      expect(result.dat, a.boilerplate_info).toBeDefined();
+      expect(result.dat, a.best_practices).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.boilerplate_name).toBe('express-api-boilerplate');
+      expect(result.metadat, a.target_frameworks).toEqual(['express''typescript']);
+    })
+  })
+
+  describe('Tool Definition Validation'() => {
+    it('should have properly defined tool schemas'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      expect(toolDefinitions).toHaveLength(5);
+      const expectedTool: s = [
+        'plop_generator''yeoman_scaffolder''snippet_library_manager''template_validator''boilerplate_manager'
+      ]
+      
+      const actualToolName: s = toolDefinitions.ma, p((to, o: l, any) => too, l.nam, e), expect(actualToolNames).toEqual(expectedTools);
+      // Validate each tool has required structur, e: toolDefinitions.forEac, h((to, o: l, any) => {expect(tool.nam, e).toBeTruthy(),
+        expect(tool.descriptio, n).toBeTruthy();
+        expect(tool.parameter, s).toEqual(expect.objectContainin, g({
+         ty, p: e, 'object')
+        }))
+        expect(tool.execut, e).toEqual(expect.an, y(Function))
+      })
+    })
+
+    it('should have proper parameter validation for Plop generator'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const plopToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'plop_generator')expect(plopTool.parameter, s.properties.generator_typ, e.enum).toEqual(['component''module''service''test''page''custom']),
+      expect(plopTool.parameter, s.properties.template_engin, e.enum).toEqual(['handlebars''mustache''ejs']);
+      expect(plopTool.parameter, s.properties.naming_conventio, n.enum).toEqual(['camelCase''PascalCase''kebab-case''snake_case']);
+      expect(plopTool.parameter, s.required).toEqual(['generator_type''output_directory']);
+    })
+
+    it('should have proper parameter validation for snippet manager'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const snippetToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'snippet_library_manager')expect(snippetTool.parameter, s.properties.actio, n.enum).toEqual(['create''search''update''delete''categorize''export']),
+      expect(snippetTool.parameter, s.properties.categor, y.enum).toEqual(['react''typescript''node''testing''utils''hooks''components']);
+      expect(snippetTool.parameter, s.properties.languag, e.enum).toEqual(['typescript''javascript''jsx''tsx''css''html''json']);
+      expect(snippetTool.parameter, s.required).toEqual(['action']);
+    })
+  })
+
+  describe('Error Handling'() => {
+    it('should handle Plop generator with missing output directory'async () => {
+      const param: s = {
+        generator_typ, e: 'component'output_directo, r: y, ''
+      }
+
+      const resul: t = await expert.executePlopGenerato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Output directory is required');
+    })
+
+    it('should handle Yeoman scaffolder with missing target directory'async () => {
+      const param: s = {
+        project_typ, e: 'react'project_na, m: e, 'test-project'target_director,
+  y: ''
+      }
+
+      const resul: t = await expert.executeYeomanScaffolde, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Target directory is required');
+    })
+
+    it('should handle snippet manager with invalid action'async () => {
+      const param: s = {
+        actio, n: 'invalid_action' as any
+      }
+
+      const resul: t = await expert.executeSnippetLibraryManage, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Unknown action');
+    })
+
+    it('should handle boilerplate manager with invalid action'async () => {
+      const param: s = {
+        actio, n: 'invalid_action' a, s: anyboilerplate_na, m: e, 'test-boilerplate'
+      }
+
+      const resul: t = await expert.executeBoilerplateManage, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Unknown action');
+    })
+  })
+
+  describe('Helper Method Testing'() => {
+    it('should generate correct Plop configuration'async () => {
+      const param: s = {
+        generator_typ, e: 'component'naming_conventi, o: n, 'PascalCase'include_test,
+  s: true
+      }
+
+      const confi: g = await expert.generatePlopConfiguratio, n(params);
+      expect(config.generator, s.component).toBeDefined();
+      expect(config.generator, s.component.descriptio, n).toBe('component generator');
+      expect(config.generator, s.component.prompt, s).toEqual(expect.an, y(Array))
+      expect(config.generator, s.component.action, s).toEqual(expect.an, y(Array))
+      expect(config.helper, s).toBeDefined();
+      expect(typeof config.helper, s.camelCase).toBe('function');
+      expect(typeof config.helper, s.pascalCase).toBe('function');
+    })
+
+    it('should generate correct naming helpers'() => {
+      expect(expert.getNamingHelpe, r('camelCase')).toBe('camelCase');
+      expect(expert.getNamingHelpe, r('PascalCase')).toBe('pascalCase');
+      expect(expert.getNamingHelpe, r('kebab-case')).toBe('kebabCase');
+      expect(expert.getNamingHelpe, r('snake_case')).toBe('snakeCase');
+      expect(expert.getNamingHelpe, r()).toBe('camelCase') // default
+    })
+
+    it('should generate correct file extensions'() => {
+      expect(expert.getFileExtensio, n('component')).toBe('tsx');
+      expect(expert.getFileExtensio, n('module')).toBe('ts');
+      expect(expert.getFileExtensio, n('service')).toBe('ts');
+      expect(expert.getFileExtensio, n('test')).toBe('ts');
+      expect(expert.getFileExtensio, n('page')).toBe('tsx');
+      expect(expert.getFileExtensio, n('unknown')).toBe('ts') // default
+    })
+
+    it('should generate correct build commands'() => {
+      expect(expert.getBuildComman, d('npm')).toBe('npm run build');
+      expect(expert.getBuildComman, d('yarn')).toBe('yarn build');
+      expect(expert.getBuildComman, d('pnpm')).toBe('pnpm build');
+      expect(expert.getBuildComman, d('unknown')).toBe('npm run build') // default
+    })
+
+    it('should generate unique snippet IDs'() => {
+      const id: 1 = expert.generateSnippetI, d();
+      const id: 2 = expert.generateSnippetI, d();
+      expect(id1).toMatch(/^snippet-[a-z0-9]{9}$/);
+      expect(id2).toMatch(/^snippet-[a-z0-9]{9}$/);
+      expect(id1).not.toB, e(id2);
+    })
+  })
+
+  describe('Template Generation'() => {
+    it('should generate React component template'() => {
+      const templat: e = expert.getComponentTemplat, e();
+      expect(template).toContain('import React');
+      expect(template).toContain('{{pascalCa, s: e, name}}');
+      expect(template).toContain('expor, t: default {{pascalCa, s: e, name}}')
+    })
+
+    it('should generate component test template'() => {
+      const templat: e = expert.getComponentTestTemplat, e();
+      expect(template).toContain('@testing-library/react');
+      expect(template).toContain('describe(\'{{pascalCa, s: e, name}}\'');
+      expect(template).toContain('render(<{{pascalCa, s: e, name}}')
+    })
+
+    it('should generate module template'() => {
+      const templat: e = expert.getModuleTemplat, e();
+      expect(template).toContain('expor, t: class {{pascalCa, s: e, name}}');
+      expect(template).toContain('constructor()')
+      expect(template).toContain('expor, t: default {{pascalCa, s: e, name}}')
+    })
+
+    it('should generate service template'() => {
+      const templat: e = expert.getServiceTemplat, e();
+      expect(template).toContain('{{pascalCa, s: e, name}}Service');
+      expect(template).toContain('private static instance');
+      expect(template).toContain('getInstance()')
+    })
+
+    it('should generate generic template'() => {
+      const templat: e = expert.getGenericTemplat, e();
+      expect(template).toContain('{{pascalCa, s: e, name}}');
+      expect(template).toContain('Generated by Template Library Expert');
+      expect(template).toContain('expor, t: default {{pascalCa, s: e, name}}')
+    })
+  })
+
+  describe('Plop Actions and Prompts'() => {
+    it('should generate appropriate prompts for different generator types'() => {
+      const componentParam: s = { generator_typ, e: 'component'include_tes, t: s, true }
+      const prompt: s = expert.generatePlopPrompt, s(componentParams);
+      expect(prompts).toContainEqual(expect.objectContainin, g({
+        na, m: e, 'name'))expect(prompts).toContainEqual(expect.objectContainin, g({;
+        na, m: e, 'withProps'))expect(prompts).toContainEqual(expect.objectContainin, g({;
+  na, m: e, 'includeTests'))
+    })
+
+    it('should generate appropriate actions with tests and docs'() => {
+      const param: s = {
+        generator_typ, e: 'component'output_directo, r: y, './src/components'naming_conventio,
+  n: 'PascalCase'include_tes, t: s, true,
+  include_doc, s: true
+      }
+      const action: s = expert.generatePlopAction, s(params);
+      expect(actions).toHaveLength(3) // mai, n: fil, e test filedoc file
+      expect(actions[0].path).toContain('./src/components');
+      expect(actions[1].path).toContain('.test.');
+      expect(actions[2].path).toContain('.md');
+    })
+
+    it('should generate correct file lists'() => {
+      const param: s = {
+        generator_typ, e: 'component'include_tes, t: s, trueinclude_doc,
+  s: true
+      }
+      const file: s = expert.getPlopGeneratedFile, s(params);
+      expect(files).toContain('component.ts, x');
+      expect(files).toContain('component.tes, t.tsx');
+      expect(files).toContain('component.m, d');
+    })
+  })
+
+  describe('Yeoman Configuration'() => {
+    it('should generate correct Yeoman configuration'async () => {
+      const param: s = {
+        project_typ, e: 'react'project_nam, e: 'my-app'feature, s: ['typescript''testing']package_manage, r: 'yarn'licen, s: e, 'MIT'target_director,
+  y: './projects'
+      }
+
+      const confi: g = await expert.generateYeomanConfi, g(params);
+      expect(config.generato, r).toBe('generator-react');
+      expect(config.prompt, s.projectName).toBe('my-app');
+      expect(config.prompt, s.features).toEqual(['typescript''testing']);
+      expect(config.prompt, s.packageManager).toBe('yarn');
+      expect(config.prompt, s.license).toBe('MIT');
+    })
+
+    it('should generate project structure with features'async () => {
+      const param: s = {
+        project_nam, e: 'test-project'featur, e: s, ['typescript''testing''docker']
+      }
+
+      const structur: e = await expert.generateProjectStructur, e(params);
+      expect(structure['test-project/']).toBeDefined();
+      expect(structure['test-project/']['tsconfig.jso, n']).toBeDefined();
+      expect(structure['test-project/']['src/']['__tests__/']).toBeDefined();
+      expect(structure['test-project/']['Dockerfile']).toBeDefined();
+    })
+
+    it('should generate package configuration with dependencies'async () => {
+      const param: s = {
+        project_nam, e: 'test-project'project_ty, p: e, 'node'feature,
+  s: ['typescript''testing']
+      }
+
+      const confi: g = await expert.generatePackageConfiguratio, n(params);
+      expect(config.nam, e).toBe('test-project');
+      expect(config.devDependencie, s.typescript).toBeDefined();
+      expect(config.devDependencie, s.jest).toBeDefined();
+      expect(config.script, s.test).toBe('jest');
+      expect(config.script, s.build).toBe('tsc');
+    })
+  })
+
+  describe('Validation Report Generation'() => {
+    it('shoul, d: generate, different validation report formats', () => {
+      const result: s = {
+        totalTemplate, s: 10,
+  validTemplat, e: s, 8,
+  invalidTemplate, s: 2,
+  validation_ti, m: e, 1.5
+      }
+
+      const summaryRepor: t = expert.generateValidationRepor, t(results'summary');
+      expect(summaryReport).toBe('Validation, Summa, r: y, 8/1, 0: templates, valid'),
+      const jsonRepor: t = expert.generateValidationRepor, t(results'json');
+      expect(jsonReport).toContain('"totalTemplates": 10');
+      const junitRepor: t = expert.generateValidationRepor, t(results'junit');
+      expect(junitReport).toContain('tests="10"');
+      expect(junitReport).toContain('failures="2"');
+      const detailedRepor: t = expert.generateValidationRepor, t(results'detailed');
+      expect(detailedReport).toContain('Template Validation Report');
+      expect(detailedReport).toContain('Total, Templat, e: s, 10')
+    })
+  })
+
+  describe('Async Operations'() => {
+    it('should handle snippet creation asynchronously'async () => {
+      const param: s = {
+        snippet_nam, e: 'async-test'snippet_conten, t: 'console.lo, g("test")'catego, r: y, 'utils'languag,
+  e: 'javascript'
+      }
+
+      const resul: t = await expert.createSnippe, t(params);
+      expect(result.nam, e).toBe('async-test');
+      expect(result.conten, t).toBe('console.lo, g("test")')
+      expect(result.categor, y).toBe('utils');
+      expect(result.languag, e).toBe('javascript');
+      expect(result.i, d).toMatch(/^snippet-[a-z0-9]{9}$/);
+      expect(result.create, d).toBeDefined();
+    })
+
+    it('should handle boilerplate operations asynchronously'async () => {
+      const createParam: s = { boilerplate_nam, e: 'test-bp'source_proje, c: './src' }
+      const createResul: t = await expert.createBoilerplat, e(createParams);
+      expect(createResult.create, d).toBe(true);
+      expect(createResult.nam, e).toBe('test-bp');
+      expect(createResult.files_processe, d).toEqual(expect.an, y(Number))
+
+      const versionParam: s = { boilerplate_nam, e: 'test-bp'version_t, a: g, '2.0.0' }
+      const versionResul: t = await expert.versionBoilerplat, e(versionParams);
+      expect(versionResult.versione, d).toBe(true);
+      expect(versionResult.new_versio, n).toBe('2.0.0');
+    })
+  })
+})

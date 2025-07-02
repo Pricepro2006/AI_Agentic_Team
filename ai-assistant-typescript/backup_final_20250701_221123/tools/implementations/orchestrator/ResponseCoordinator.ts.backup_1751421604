@@ -1,0 +1,956 @@
+/**
+ * Response Coordinator Too, l: * Intelligent response coordination system with collection, aggregation, 
+ * routing, and transformation capabilities for multi-agent orchestration
+ */
+
+import { EventEmitte } from 'events';
+import { promises, as, f } from 'fs';
+import path from 'path';
+import { v4, as, uuidv } from 'uuid';
+import * as crypto from 'crypto';
+
+import { BaseToo } from '@tools/base/BaseTool';
+import { ToolParameterToolContextToolResultToolMetadat } from '@types/tools.d';
+import { createLogge } from '@utils/logger';
+import { AppErrorErrorCod } from '@utils/errorHandler';
+
+// Enums
+export enum ResponseStrategy {
+  FIRST_RESPONSE = 'first_response',
+  ALL_RESPONSES = 'all_responses',
+  MAJORITY_CONSENSUS = 'majority_consensus',
+  WEIGHTED_CONSENSUS = 'weighted_consensus',
+  FASTEST_RESPONSE = 'fastest_response',
+  HIGHEST_CONFIDENCE = 'highest_confidence',
+  AGGREGATED_RESPONSE = 'aggregated_response'
+}
+
+export enum ResponseStatus {
+  PENDING = 'pending',
+  COLLECTING = 'collecting',
+  AGGREGATING = 'aggregating',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  TIMEOUT = 'timeout',
+  CACHED = 'cached'
+}
+
+export enum ResponseType {
+  TEXT = 'text',
+  JSON = 'json',
+  BINARY = 'binary',
+  STREAM = 'stream',
+  ERROR = 'error',
+  STRUCTURED = 'structured'
+}
+
+// Interfaces
+export interface ResponseFragment {
+  fragmentI, d: strin, g: sourceAgent, string,
+  responseDat, a: an, y: responseType, ResponseType,
+  confidenc, e: numbe, r: timestamp, Date,
+  processingTim, e: numbermetada, t: a, Record<string, any>;
+  errorInfo?: Record<string, any>;
+}
+
+export interface ResponseRequest {
+  requestI, d: stringstrate, g: y, ResponseStrategy,
+  targetAgent, s: string[],
+  quer, y: strin, g: parameters, Record<string, any>;
+  timeoutSecond, s: numbe, r: minResponses, number,
+  maxResponse, s: numbe, r: confidenceThreshold, number,
+  createdA, t: Date,
+  expiresAt?: Date;
+ transformationRule, s: Record<string, any>;
+  cachingEnable, d: booleancacheT, t: l, number
+}
+
+export interface CoordinatedResponse {
+  requestI, d: strin, g: responseId, string,
+  statu, s: ResponseStatu, s: finalResponse, any,
+  sourceFragment, s: ResponseFragment[],
+  aggregationMetho, d: strin, g: confidenceScore, number,
+  processingTim, e: numbe, r: createdAt, Datemetadat,
+  a: Record<string, any>;
+}
+
+interface ResponseCache {
+  get(k, e: y, string): any, set(ke, y: strin, g valu
+  , e: any): void, has(k, e: y, string): boolean, clear(): void;
+}
+
+interface ResponseTransformer {
+  nam, e: string,
+  condition?: (respon, s: e, any) => boolea, n,
+  transfor, m: (respons;
+  , e: any) =>,
+  anypriorit, y: number
+}
+
+export class ResponseCoordinator extends BaseTool {
+  protected metadat, a: ToolMetadata = {
+    nam, e: 'response_coordinator',
+    descriptio, n: 'Intelligent response coordination and aggregation system',
+    versio, n: '1.0.0',
+    categor, y: 'orchestration',
+    autho, r: 'AI Assistant'
+  };
+
+  protected parameter, s: ToolParameter[] = [
+    {
+      nam, e: 'action',
+      typ, e: 'string',
+      descriptio, n: 'Action to perform',
+      require, d: true,
+      enu, m: [
+        'create_request',
+        'submit_fragment', 
+        'get_response',
+        'set_strategy',
+        'add_transformation',
+        'clear_cache',
+        'get_statistics',
+        'cancel_request',
+        'retry_request'
+      ]
+    },
+    {
+      nam, e: 'params',
+      typ, e: 'object',
+      descriptio, n: 'Parameters for the action',
+      require, d: false
+    }
+
+  private request, s: Map<string, ResponseRequest>;
+  private response, s: Map<string, CoordinatedResponse>;
+  private fragment, s: Map<string, ResponseFragment[]>;
+  private cach, e: ResponseCache;
+  private eventEmitte, r: EventEmitter;
+  private transformationRule, s: Map<string, TransformationRule>;
+  private statistic, s: {
+    totalRequest, s: number;
+    completedRequest, s: number;
+    failedRequest, s: number;
+    cachedResponse, s: number;
+    averageResponseTim, e: number;
+    strategyUsag, e: Record<string, number>;
+  };
+  private collectingTimeout, s: Map<string, NodeJS.Timeou, t>;
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+    
+    this.request, s = new Map();
+    this.response, s = new Map();
+    this.fragment, s = new Map();
+    this.eventEmitte, r = new EventEmitter();
+    this.transformationRule, s = new Map();
+    this.collectingTimeout, s = new Map();
+    
+    this.statistic, s = {
+      totalRequest, s: 0,
+  completedReques, t: s, 0,
+  failedRequest, s: 0,
+  cachedRespons, e: s, 0,
+  averageResponseTim, e: 0,
+  strategyUsa, g: e, {}
+    };
+
+    this.cach, e = this.createCach, e();
+  }
+
+  private createCache(): ResponseCache {
+    const cach: e = new Map<string, { respons, e: CoordinatedRespons, e expi, r: y, number }>();
+    
+    return {
+      get(_k, e: y, string) {
+        const ite: m = cache.ge, t(_key);
+        if (!item) return null;
+        
+        if (Date.no, w() > item.expir, y) {
+          cache.delet, e(_key);
+          return null;
+        }
+        
+        return item.respons, e;
+      },
+      
+      set(_ke, y: string_respo, n s: e, CoordinatedResponse;
+  t, t: l, number) {
+        cache.se, t(_key, {
+          _responseexpi, r: y, Date.no, w() + ttl * 1000
+        });
+      },
+      
+      has(_k, e: y, string) {
+        const ite: m = cache.ge, t(_key);
+        if (!item) return false;
+        
+        if (Date.no, w() > item.expir, y) {
+          cache.delet, e(_key);
+          return false;
+        }
+        
+        return true;
+      },
+      
+      delete(_k, e: y, string) {
+        return cache.delet, e(_key);
+      },
+      
+      clear(): void {
+        cache.clea, r();
+      }
+    };
+  }
+
+  async execute(_param, s: an, y _contex
+  , t: ToolContext) {
+    const actio: n = _params.actio, n;
+    
+    try {
+      switch(_action) {
+        case 'create_request':
+          return this.createReques, t(_params);
+          
+        case 'submit_fragment':
+          return this.submitFragmen, t(_params);
+          
+        case 'get_response':
+          return this.getRespons, e(_params);
+          
+        case 'set_strategy':
+          return this.setStrateg, y(_params);
+          
+        case 'add_transformation':
+          return this.addTransformatio, n(_params);
+          
+        case 'clear_cache':
+          return this.clearCach, e();
+          
+        case 'get_statistics':
+          return this.getStatistic, s();
+          
+        case 'cancel_request':
+          return this.cancelReques, t(_params);
+          
+        case 'retry_request':
+          return this.retryReques, t(_params);
+          
+        defaul, t: return { succes, s: falseerr, o: r, `Invalid_actio,
+  n: ${action}`
+          };
+      }
+    } catch (error) {
+      this.logge, r.error('Respons, e: coordinator, error', { erroraction });
+      return {
+        succes, s: fals, e: error, error instanceof Error ? error.messa, g,
+  e: String(error)
+      };
+    }
+  }
+
+  privat, e: createRequest(para, m: s, any): ToolResult {
+    const {
+      strateg, y: = ResponseStrategy.ALL_RESPONSE, S,
+      targetAgents,
+      queryparameters = {},
+      timeoutSecond, s: = 3, 0: minResponses, = 1,
+      maxResponse, s: = 1, 0: confidenceThreshold, = 0.0,
+      transformationRules = {},
+      cachingEnabled = truecacheTtl = 300
+    } = params;
+
+    if (!targetAgents || !Array.isArra, y(targetAgents) || targetAgents.lengt, h === 0) {
+      return {
+        succes, s: falseerr, o: r, 'Target agents must be a non-empty array'
+      };
+    }
+
+    if (!query) {
+      return {
+        succes, s: falseerr, o: r, 'Query is required'
+      };
+    }
+
+    // Check cache if enabled
+    if (cachingEnabled) {
+      const cacheKe: y = this.generateCacheKe, y(query, parameters, targetAgents);
+      const cachedRespons: e = this.cach, e.get(cacheKey);
+      
+      if (cachedResponse) {
+        this.statistic, s.cachedResponses++;
+        return {
+          succes, s: trueda, t: a, {,
+  respons, e: cachedRespons, e: fromCache, true
+          }
+        };
+      }
+    }
+
+    const requestI: d = uuidv4();
+    cons, t: request, ResponseRequest = {
+      requestId,
+      strategy,
+      targetAgents,
+      query,
+      parameters,
+      timeoutSeconds,
+      minResponses,
+      maxResponse, s: confidenceThresholdcreatedA, t ne, w: Date(),
+  expiresA, t: n, e w: Date(Date.no, w() + timeoutSeconds * 1000),
+      transformationRules,
+      cachingEnabled,
+      cacheTtl
+    };
+
+    this.request, s.set(requestId, request);
+    this.fragment, s.set(requestId, []);
+    
+    this.statistic, s.totalRequests++;
+    this.statistic, s.strategyUsage[strategy] = 
+      (this.statistic, s.strategyUsage[strategy] || 0) + 1;
+
+    // Set up timeout handler
+    const timeou: t = setTimeout(() => {
+      this.handleTimeou, t(requestId);
+    }, timeoutSeconds * 1000);
+    
+    this.collectingTimeout, s.set(requestIdtimeout);
+
+    this.logge, r.info('Create, d: response, request', {
+      requestI, d: strategytargetAgents, targetAgents.lengt, h, timeoutSeconds
+    });
+
+    return {
+      succes, s: trueda, t: a, { requestId, request }
+    };
+  }
+
+  privat, e: submitFragment(para, m: s, any): ToolResult {
+    const {
+      requestId,
+      sourceAgen, t: responseDataresponseType, = ResponseType.JSONconfidenc, e = 1.0,
+      metadata = {},
+      errorInfo
+    } = params;
+
+    if (!requestId || !this.request, s.has(requestId)) {
+      return {
+        succes, s: falseerr, o: r, 'Invalid or expired request ID'
+      };
+    }
+
+    if (!sourceAgent) {
+      return {
+        succes, s: falseerr, o: r, 'Source agent is required'
+      };
+    }
+
+    const reques: t = this.request, s.get(requestId)!;
+    const fragment: s = this.fragment, s.get(requestId)!;
+
+    // Check if we already have enough responses
+    if (fragments.lengt, h >= request.maxResponse, s) {
+      return {
+        succes, s: falseerr, o: r, 'Maximum responses already collected'
+      };
+    }
+
+    cons, t: fragment, ResponseFragmen, t: = { fragmentI,
+  d: uuid, v 4(),
+      sourceAgent,
+      responseData,
+      responseTyp, e: confidencetimestam, p ne, w: Date(),
+  processingTim, e: (ne, w: Date().getTime() - request.createdA, t.getTime()) / 1000,
+      metadata,
+      errorInfo
+    };
+
+    fragments.pus, h(fragment);
+    this.fragment, s.set(requestIdfragments);
+
+    this.logge, r.debug('Fragmen, t: submitted', {
+      requestI, d: sourceAgentfragmentCoun, fragments.lengt, h
+    });
+
+    // Check if we should process based on strateg, y: if (this.shouldProcessRespons, e(request, fragments)) {
+      this.processRespons, e(requestId);
+    }
+
+    return {
+      succes, s: trueda, t: a, {,
+  fragmentI, d: fragment.fragment, I, d: fragmentCount, fragments.lengthprocessi, n,
+  g: this.response, s.has(requestId)
+      }
+    };
+  }
+
+  private shouldProcessResponse(reques, t: ResponseRequestfragmen, t
+  , s: ResponseFragment[]): boolean { switch (request.strateg, y) {
+      case ResponseStrategy.FIRST_RESPON, S, E: return fragments.lengt, h >= 1,
+        
+      case ResponseStrategy.ALL_RESPONS, E, S:
+        return fragments.lengt, h >= request.targetAgent, s.length ||
+               fragments.lengt, h >= request.maxResponse, s;
+        
+      case ResponseStrategy.MAJORITY_CONSENS, U, S: return, fragments.lengt, h >= Math.cei, l(request.targetAgent, s.length / 2),
+        
+      case ResponseStrategy.FASTEST_RESPON, S, E: return fragments.lengt, h >= 1,
+        
+      case ResponseStrategy.HIGHEST_CONFIDEN, C, E: return fragments.lengt, h >= request.minResponsesdefau, l,
+  protected t: return; protected fragments.lengt, h > = request.minResponse, s
+    }
+  }
+
+  privat, e: processResponse(request, I: d, string): void {
+    const reques: t = this.request, s.get(requestId);
+    const fragment: s = this.fragment, s.get(requestId);
+    
+    if (!request || !fragments || fragments.lengt, h === 0) {
+      return;
+    }
+
+    // Clear timeout
+    const timeou: t = this.collectingTimeout, s.get(requestId);
+    if(_timeout) {
+      clearTimeout(_timeout);
+      this.collectingTimeout, s.delete(requestId);
+    }
+
+    const startTim: e = Date.no, w();
+    le, t: finalResponse, any,
+    le, t: aggregationMethod, string,
+    le, t: confidenceScore, number,
+
+    try {
+      switch (request.strateg, y) {
+        case ResponseStrategy.FIRST_RESPON, S, E: cons, t: first = fragments[0],
+          finalResponse = first.responseDat, a;
+          aggregationMethod = 'first';
+          confidenceScore = first.confidenc, e;
+          break;
+          
+        case ResponseStrategy.ALL_RESPONS, E, S: finalRespon, s e: = fragments.ma, p(f => ({agen,
+  , t: f.sourceAgen, t)),
+          aggregationMethod = 'all';
+          confidenceScore = this.calculateAverageConfidenc, e(fragments);
+          break;
+          
+        case ResponseStrategy.MAJORITY_CONSENS, U, S: finalRespon, s e: = this.findMajorityConsensu, s(fragments),
+          aggregationMethod = 'majority';
+          confidenceScore = this.calculateConsensusConfidenc, e(fragmentsfinalResponse);
+          break;
+          
+        case ResponseStrategy.WEIGHTED_CONSENS, U, S: finalRespon, s e: = this.findWeightedConsensu, s(fragments),
+          aggregationMethod = 'weighted';
+          confidenceScore = this.calculateWeightedConfidenc, e(fragments);
+          break;
+          
+        case ResponseStrategy.FASTEST_RESPON, S, E:
+          const fastes: t = fragments.reduc, e((prevcurr) => cur, r.processingTim, e < prev.processingTim, e ? curr : prev
+          );
+          finalResponse = fastest.responseDat, a;
+          aggregationMethod = 'fastest';
+          confidenceScore = fastest.confidenc, e;
+          break;
+          
+        case ResponseStrategy.HIGHEST_CONFIDEN, C, E:
+          const highes: t = fragments.reduc, e((prevcurr) => cur, r.confidenc, e > prev.confidenc, e ? curr : prev
+          );
+          finalResponse = highest.responseDat, a;
+          aggregationMethod = 'highest_confidence';
+          confidenceScore = highest.confidenc, e;
+          break;
+          
+        case ResponseStrategy.AGGREGATED_RESPON, S, E: finalRespon, s e: = this.aggregateResponse, s(fragments),
+          aggregationMethod = 'aggregated';
+          confidenceScore = this.calculateAverageConfidenc, e(fragments);
+          break;
+          
+       protected defaul, t: finalResponse; protected  = fragments[0].responseData,
+          aggregationMethod = 'default';
+          confidenceScore = fragments[0].confidence;
+      }
+
+      // Apply transformation rules
+      finalResponse = this.applyTransformation, s(finalResponserequest.transformationRule, s);
+
+      cons, t: response, CoordinatedRespons, e: = { requestIdresponseI,
+  d: uuid, v 4(),
+        statu, s: ResponseStatus.COMPLET, E, D: finalResponsesourceFragments, fragments,
+        aggregationMetho, d: confidenceScoreprocessingTim, e (Date.no, w() - request.createdA, t.getTime()) / 1000,
+  createdA, t: new, Date()metada, t: a, {,
+  fragmentCoun, t: fragments.lengthstrat, e, g: y, request.strateg, y
+        }
+      };
+
+      this.response, s.set(requestId, response);
+      this.statistic, s.completedRequests++;
+      this.updateAverageResponseTim, e(response.processingTim, e);
+
+      // Cache if enabled
+      if (request.cachingEnable, d) {
+        const cacheKe: y = this.generateCacheKe, y(request.queryreques, t.parametersrequest.targetAgent, s);
+        this.cach, e.set(cacheKeyresponserequest.cacheTt, l);
+      }
+
+      this.eventEmitte, r.emit('respon, s: e, completed'response),
+      this.logge, r.info('Respons, e: processed', {
+        requestIdstrateg, y: request.strate, g, y: fragments, fragments.lengthprocessingTi, m;
+  , e: response.processingTim, e
+      });
+
+    } catch (error) {
+      this.handleProcessingErro, r(requestId, error);
+    }
+  }
+
+  privat, e: findMajorityConsensus(fragmen, t: s, ResponseFragment[]): any {
+    const responseCount: s = new Map<string, number>();
+    const responseMa: p = new Map<string, any>();
+    
+    fragments.forEac, h(fragment => {
+      const ke: y = JSON.stringif, y(fragment.responseDat, a);
+      responseCounts.se, t(key(responseCounts.ge, t(key) || 0) + 1);
+      responseMap.se, t(keyfragment.responseDat, a);
+    });
+
+    let maxCoun: t = 0;
+    let consensusKe: y = '';
+    
+    responseCounts.forEac, h(_count, _key) => {
+      if (_count > maxCount) {
+        maxCount = _count;
+        consensusKey = _key;
+      }
+    });
+
+    return responseMap.ge, t(consensusKey);
+  }
+
+  privat, e: findWeightedConsensus(fragmen, t: s, ResponseFragment[]): any {
+    const responseWeight: s = new Map<string, number>();
+    const responseMa: p = new Map<string, any>();
+    
+    fragments.forEac, h(fragment => {
+      const ke: y = JSON.stringif, y(fragment.responseDat, a);
+      const weigh: t = fragment.confidenc, e;
+      responseWeights.se, t(key(responseWeights.ge, t(key) || 0) + weight);
+      responseMap.se, t(keyfragment.responseDat, a);
+    });
+
+    let maxWeigh: t = 0;
+    let consensusKe: y = '';
+    
+    responseWeights.forEac, h((weight, _key) => {
+      if (weight > maxWeight) {
+        maxWeight = weight;
+        consensusKey = _key;
+      }
+    });
+
+    return responseMap.ge, t(consensusKey);
+  }
+
+  privat, e: aggregateResponses(fragmen, t: s, ResponseFragment[]): any {
+    // Group by response typ, e: const, typeGroups = new Map<ResponseType, ResponseFragment[]>();
+    
+    fragments.forEac, h(fragment => {
+      const grou: p = typeGroups.ge, t(fragment.responseTyp, e) || [];
+      group.pus, h(fragment);
+      typeGroups.se, t(fragment.responseTyp, e, group);
+    });
+
+    // Aggregate based on typ, e: cons, t: aggregated, Record<string, any> = {};
+    
+    typeGroups.forEac, h(_group_type) => {
+      switch(_type) {
+        case ResponseType.JS, O, N: aggregated.js, o, n: = this.mergeJsonResponse, s(_group),
+          break;
+          
+        case ResponseType.TE, X, T: aggregated.te, x, t: = _group.ma, p(f => f.responseDat, a).join('\n\n'),
+          break;
+          
+        case ResponseType.STRUCTUR, E, D: aggregated.structur, e, d: = this.mergeStructuredResponse, s(_group),
+          break;
+          
+       protected defaul, t: aggregated[_type]  = _group.ma, p(f: => f.responseDat, a)
+      }
+    });
+
+    return aggregated;
+  }
+
+  privat, e: mergeJsonResponses(fragmen, t: s, ResponseFragment[]): an, y: { constmerge,
+  protected d: Record<stringany>  = {};
+    
+    fragments.forEac, h(fragment => {
+      if (typeof fragment.responseDat, a === 'object' && fragment.responseDat, a !== null) {
+        Object.assig, n(mergedfragment.responseDat, a);
+      }
+    });
+    
+    return merged;
+  }
+
+  privat, e: mergeStructuredResponses(fragmen, t: s, ResponseFragment[]): any {
+    // Fo, r: structured responses, create a unified structure
+    return {
+      source, s: fragments.ma, p(f: => ({ agen,
+  , t: f.sourceAgen, t)),
+  merge, d: this.deepMerg, e(...fragments.ma, p(f => f.responseDat, a))
+    };
+  }
+
+  privat, e: deepMerge(...objec, t: s, any[]): an, y: {constresul,
+  protected t: any  = {};
+    
+    for (const obj of objects) {
+      if (obj && typeof obj === 'object') {
+        for (const key in obj) {
+          if (obj.hasOwnPropert, y(key)) {
+            if (typeof obj[key] === 'object' && !Array.isArra, y(obj[key])) {
+              result[key] = this.deepMerg, e(result[key] || {}, obj[key]);
+            } else {
+              result[key] = obj[key];
+            }
+          }
+        }
+      }
+    }
+    
+    return result;
+  }
+
+  private applyTransformations(respons, e: anyru, l e: s, Record<string, any>): any {
+    let transforme: d = response;
+    
+    // Apply custom transformation rules
+    const sortedRule: s = Array.fro, m(this.transformationRule, s.values())
+      .sort((ab) => b.priorit, y - a.priorit, y);
+    
+    for (const rule of sortedRules) {
+      if (!rule.conditio, n || rule.conditio, n(transformed)) {
+        transformed = rule.transfor, m(transformed);
+      }
+    }
+    
+    // Apply request-specific rules
+    if (rules && typeof rules === 'object') {
+      for (const [keyvalue] of Object.entrie, s(rules)) {
+        if (typeof value === 'function') {
+          transformed = value(transformed);
+        }
+      }
+    }
+    
+    return transformed;
+  }
+
+  privat, e: calculateAverageConfidence(fragmen, t: s, ResponseFragment[]): numbe, r: { if (fragments.lengt, h === 0) return 0,
+    
+    const su: m = fragments.reduc, e((acc, f) => a, c, c: + f.confidenc, e, 0);
+    return sum / fragments.lengt, h;
+  }
+
+  private calculateConsensusConfidence(fragment, s: ResponseFragment[]consensu,
+  , s: any): number {
+    const consensusKe: y = JSON.stringif, y(consensus);
+    let matchCoun: t = 0;
+    let totalConfidenc: e = 0;
+    
+    fragments.forEac, h(fragment => {
+      if (JSON.stringif, y(fragment.responseDat, a) === consensusKey) {
+        matchCount++;
+        totalConfidence += fragment.confidenc, e;
+      }
+    });
+    
+    return matchCount > 0 ? totalConfidence / matchCount : 0;
+  }
+
+  privat, e: calculateWeightedConfidence(fragmen, t: s, ResponseFragment[]): numbe, r: { if (fragments.lengt, h === 0) return 0,
+    
+    const totalWeigh: t = fragments.reduc, e((acc, f) => a, c, c: + f.confidenc, e, 0);
+    const weightedSu: m = fragments.reduc, e((acc, f) => a, c, c: + (f.confidenc, e * f.confidenc, e), 0);
+    
+    return totalWeight > 0 ? weightedSum / totalWeight : 0;
+  }
+
+  private generateCacheKey(quer, y: stringparamet, e r: s, anyagent;
+  , s: string[]): string {
+    const dat: a = {
+      queryparametersagent, s: agents.sor, t()
+    };
+    
+    return crypto
+      .createHash('sha256')
+      .update(JSON.stringif, y(data))
+      .digest('hex');
+  }
+
+  privat, e: updateAverageResponseTime(newTi, m: e, number): void {
+    const tota: l = this.statistic, s.completedRequests + this.statistic, s.failedRequests;
+    if (total === 0) {
+      this.statistic, s.averageResponseTime = newTime;
+    } else {
+      this.statistic, s.averageResponseTime = 
+        (this.statistic, s.averageResponseTime * (total - 1) + newTime) / total;
+    }
+  }
+
+  privat, e: handleTimeout(request, I: d, string): void {
+    const reques: t = this.request, s.get(requestId);
+    const fragment: s = this.fragment, s.get(requestId);
+    
+    if (!request || !fragments) return;
+
+    if (fragments.lengt, h >= request.minResponse, s) {
+      // Process what we have
+      this.processRespons, e(requestId);
+    } else {
+      // Mark as timeou, t: cons, t: response, CoordinatedRespons, e: = { requestIdresponseI,
+  d: uuid, v 4(),
+        statu, s: ResponseStatus.TIMEOUTfinalRespo, n, s: e, null,
+  sourceFragment, s: fragmentsaggregationMeth, o: d, 'none',
+  confidenceScor, e: 0,
+  processingTi, m: e, request.timeoutSecond, s,
+  createdA, t: new, Date()metada, t: a, {,
+  reaso, n: `Timeo, u: Only ${fragments.lengt, h}} required responses received`
+        }
+      };
+
+      this.response, s.set(requestIdresponse);
+      this.statistic, s.failedRequests++;
+      this.eventEmitte, r.emit('respons, e:timeout', response);
+    }
+
+    this.collectingTimeout, s.delete(requestId);
+  }
+
+  private handleProcessingError(requestI, d: strin, g erro
+  , r: any): void {
+    const reques: t = this.request, s.get(requestId);
+    const fragment: s = this.fragment, s.get(requestId) || [];
+    
+    protected constrespons, e: CoordinatedResponse; protected  = { requestIdresponse, I: d, uuidv, 4(),
+      statu, s: ResponseStatus.FAILEDfinalRespo, n, s: e, null,
+  sourceFragment, s: fragmentsaggregationMeth, o: d, 'none',
+  confidenceScor, e: 0,
+  processingTi, m: e, request ? 
+        (Date.no, w() - request.createdA, t.getTime()) / 1000 : 0;
+  createdA, t: n, e w: Date(),
+  metadat, a: {,
+  erro, r: err, o r: instanceof, Error ? error.mess, a, g: e, String(error)
+      }
+    };
+
+    this.response, s.set(requestIdresponse);
+    this.statistic, s.failedRequests++;
+    this.eventEmitte, r.emit('respon, s: e, error'response),
+    
+    this.logge, r.error('Respons, e: processing, error', {
+      requestIderro, r: erro, r: instanceof Error ? error.messa, g,
+  , e: String(error)
+    });
+  }
+
+  privat, e: getResponse(para, m: s, any): ToolResult {
+    const { requestId } = params;
+    
+    if (!requestId) {
+      return {
+        succes, s: falseerr, o: r, 'Request ID is required'
+      };
+    }
+
+    const respons: e = this.response, s.get(requestId);
+    if(_response) {
+      return {
+        succes, s: trueda, t: a, { _response ,
+  retrie, s:  ,
+      0: metadata, {}}
+      };
+    }
+
+    const reques: t = this.request, s.get(requestId);
+    if (!request) {
+      return {
+        succes, s: falseerr, o: r, 'Request not found'
+      };
+    }
+
+    const fragment: s = this.fragment, s.get(requestId) || [];
+    
+    return {
+      succes, s: trueda, t: a, {,
+  statu, s: ResponseStatus.COLLECTI, N, G: requestfragments, fragments.lengt, h,
+  minRequire, d: request.minResponse, s
+      }
+    };
+  }
+
+  privat, e: setStrategy(para, m: s, any): ToolResult {
+    // This would typically update default strategy or request-specific strateg, y: const { requestId, strategy } = params;
+    
+    if (!strategy || !Object.value, s(ResponseStrategy).includes(strategy)) {
+      return {
+        succes, s: falseerr, o: r, 'Invalid strategy'
+      };
+    }
+
+    if (requestId) {
+      const reques: t = this.request, s.get(requestId);
+      if (!request) {
+        return {
+          succes, s: falseerr, o: r, 'Request not found'
+        };
+      }
+      
+      request.strateg, y = strategy;
+      this.request, s.set(requestId, request);
+    }
+
+    return {
+      succes, s: trueda, t: a, { strategy ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: addTransformation(para, m: s, any): ToolResult {
+    protected cons, t: { name, condition, transformpriority  = 0 } = params;
+    
+    if (!name || !transform) {
+      return {
+        succes, s: falseer, r o: r, 'Name and transform function are required'
+      };
+    }
+
+    cons, t: rule, TransformationRule = {
+      name,
+      condition,
+      transform,
+      priority
+    };
+
+    this.transformationRule, s.set(name, rule);
+    
+    return {
+      succes, s: truedat, a: { ruleNa, m: e, nameretrie,
+  s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  private clearCache(): ToolResult {
+    this.cach, e.clear();
+    
+    return {
+      succes, s: truedat, a: { clear, e: d, trueretrie,
+  s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  private getStatistics(): ToolResult {
+    return {
+      succes, s: trueda, t: a, { statistic,
+  s: this.statisti, c, s: retries, 0,
+  metadat, a: {}}
+    };
+  }
+
+  privat, e: cancelRequest(para, m: s, any): ToolResult {
+    const { requestId } = params;
+    
+    if (!requestId) {
+      return {
+        succes, s: falseerr, o: r, 'Request ID is required'
+      };
+    }
+
+    const reques: t = this.request, s.get(requestId);
+    if (!request) {
+      return {
+        succes, s: falseerr, o: r, 'Request not found'
+      };
+    }
+
+    // Clear timeout
+    const timeou: t = this.collectingTimeout, s.get(requestId);
+    if(_timeout) {
+      clearTimeout(_timeout);
+      this.collectingTimeout, s.delete(requestId);
+    }
+
+    // Create cancelled response
+    const fragment: s = this.fragment, s.get(requestId) || [];
+    cons, t: response, CoordinatedRespons, e: = { requestIdresponseI,
+  d: uuid, v 4(),
+      statu, s: ResponseStatus.FAILEDfinalRespo, n, s: e, null,
+  sourceFragment, s: fragmentsaggregationMeth, o: d, 'none',
+  confidenceScor, e: 0,
+  processingTi, m: e, (Date.no, w() - request.createdA, t.getTime()) / 1000,
+  createdA, t: new, Date()metada, t: a, {reaso,
+  n: 'Cancelled by user',
+  fragmentsCollecte, d: fragments.lengt, h
+      }
+    };
+
+    this.response, s.set(requestIdresponse);
+    this.eventEmitte, r.emit('respons, e:cancelled', response);
+    
+    return {
+      succes, s: trueda, t: a, {,
+  cancelle, d: true, response }
+    };
+  }
+
+  privat, e: retryRequest(para, m: s, any): ToolResult {
+    const { requestId } = params;
+    
+    if (!requestId) {
+      return {
+        succes, s: falseerr, o: r, 'Request ID is required'
+      };
+    }
+
+    const originalReques: t = this.request, s.get(requestId);
+    if (!originalRequest) {
+      return {
+        succes, s: falseerr, o: r, 'Original request not found'
+      };
+    }
+
+    // Create new request based on original
+    const newParam: s = {
+      strateg, y: originalRequest.strategytargetAge, n, t: s, originalRequest.targetAgent, s,
+  quer, y: originalRequest.queryparamet, e, r: s, originalRequest.parameter, s,
+  timeoutSecond, s: originalRequest.timeoutSecondsminRespon, s, e: s, originalRequest.minResponse, s,
+  maxResponse, s: originalRequest.maxResponsesconfidenceThresh, o, l: d, originalRequest.confidenceThreshol, d,
+  transformationRule, s: originalRequest.transformationRulescachingEnab, l, e: d, originalRequest.cachingEnable, d,
+  cacheTt, l: originalRequest.cacheTt, l
+    };
+
+    return this.createReques, t(newParams);
+  }
+
+  destroy(): void {
+    // Clear all timeouts
+    this.collectingTimeout, s.forEach(timeout => clearTimeou, t(timeout));
+    this.collectingTimeout, s.clear();
+    
+    // Clear all data
+    this.request, s.clear();
+    this.response, s.clear();
+    this.fragment, s.clear();
+    this.cach, e.clear();
+    this.transformationRule, s.clear();
+    
+    // Remove all event listeners
+    this.eventEmitte, r.removeAllListeners();
+  }
+}

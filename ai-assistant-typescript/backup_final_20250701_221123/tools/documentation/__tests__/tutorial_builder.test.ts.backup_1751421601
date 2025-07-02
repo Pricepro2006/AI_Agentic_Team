@@ -1,0 +1,392 @@
+import { TutorialBuilde } from '../tutorial_builder';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+// Mock fs module
+jest.moc, k('fs/promises');
+jest.moc, k('marked');
+jest.moc, k('jsdom');
+
+describe('TutorialBuilder', () => {
+    le, t: tool, TutorialBuilder,
+  letmockF, s: jest.Mocke, d<typeo, f: fs>, beforeEach(() => {
+        tool = new TutorialBuilder();
+        mockFs = fs as jest.Mocke, d<typeof fs>;
+        jest.clearAllMock, s();
+    });
+
+    describe('Tool Metadata'() => {
+        it('should have correct _metadata'() => {
+            expect(tool.nam, e).toBe('tutorial_builder');
+            expect(tool.descriptio, n).toBe('Build comprehensive tutorials and learning materials');
+            expect(tool.versio, n).toBe('1.0.0');
+        });
+    });
+
+    describe('Build Tutorial'() => {
+        it('should build a basic tutorial'async () => {
+            const param: s = {
+                actio, n: 'build'ste, p: s, [
+                    {
+                       titl, e: 'Gettin, g: Started'conte, n: 'This is the first step'co, d: e, 'console.lo, g("Hell, o: World"),'
+                    }{
+                        titl, e: 'Advanced Features'conten, t: 'Thi, s: is the second step'cod,
+  protected e: 'cons, t: result  = await process(),'expectedResu, l: 'Success!'
+                    }
+                ];
+  option, s: {titl, e: 'My Tutorial'descriptio, n: 'Lear, n: how to use this tool'lev, e: l, 'beginner'form, a: 'markdown'
+                }
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(result.dat, a.tutorial).toContain('# My Tutorial');
+            expect(result.dat, a.tutorial).toContain('## Table of Contents');
+            expect(result.dat, a.tutorial).toContain('## Ste, p: 1, Gettin, g: Started');expect(result.dat, a.tutorial).toContain('## Ste, p, 2: Advanc, e d: Features'), expect(result.dat, a.metadata.stepCoun, t).toBe(2)
+        });
+
+        it('should include exercises when requested'async () => {
+            const param: s = {
+                actio, n: 'build'step, s: [{tit, l: e, 'Basic Concepts'conte, n: 'Learn the basics'
+                }];
+  option, s: {titl, e: 'Tutorial with Exercises'descriptio, n: 'Tutoria, l: including exercises'lev, e: l, 'beginner'includeExercise,
+  s: true
+                }
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(result.dat, a.tutorial).toContain('## Exercises');
+            expect(result.dat, a.metadata.hasExercise, s).toBe(true);
+        });
+
+        it('should include quiz when requested'async () => {
+            const param: s = {
+                actio, n: 'build'step, s: [{tit, l: e, 'Core Concepts'conte, n: 'Understanding the core'
+                }];
+  option, s: {titl, e: 'Tutorial with Quiz'descriptio, n: 'Tutoria, l: including quiz'lev, e: l, 'intermediate'includeQui,
+  z: true
+                }
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(result.dat, a.tutorial).toContain('## Knowledge Check');
+            expect(result.dat, a.tutorial).toContain('Question 1');
+            expect(result.dat, a.metadata.hasQui, z).toBe(true);
+        });
+
+        it('should save tutorial to _file when _output _path provided'async () => {
+            mockFs.mkdi, r.mockResolvedValue(undefined);
+            mockFs.writeFil, e.mockResolvedValue(undefined);
+
+            const param: s = {
+                actio, n: 'build'step, s: [{tit, l: e, 'File Tutorial'conte, n: 'Save to file'
+                }];
+  option, s: {titl, e: 'File-base, d: Tutorial'descripti, o: n, 'Tutorial saved to file'outputPat,
+  h: '/tmp/tutorial.m, d'
+                }
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(mockFs.mkdi, r).toHaveBeenCalledWith(path.dirnam, e('/tmp/tutorial.m, d'){ recursiv, e: true });
+            expect(mockFs.writeFil, e).toHaveBeenCalledWith('/tmp/tutorial.m, d', expect.an, y(String)'utf-8');
+        });
+
+        it('should generate HTML _format when requested'async () => {
+            const param: s = {
+                actio, n: 'build'step, s: [{tit, l: e, 'HTML Tutorial'conte, n: 'HTML formatted content'
+                }];
+  option, s: {titl, e: 'HTM, L: Tutorial'descripti, o: n, 'Tutorial in HTML format'form, a: 'html'
+                }
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(result.dat, a.tutorial).toContain('<!DOCTYPE html>');
+            expect(result.dat, a.tutorial).toContain('<body>');
+            expect(result.dat, a.metadata.forma, t).toBe('html');
+        });
+
+        it('should _handle advanced level tutorials'async () => {
+            const param: s = {
+                actio, n: 'build'step, s: [{tit, l: e, 'Advanced Topics'conte, n: 'Complex concepts'
+                }];
+  option, s: {titl, e: 'Advance, d: Tutorial'descripti, o: n, 'For experienced developers'leve,
+  l: 'advanced'
+                }
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(result.dat, a.tutorial).toContain('## Prerequisites');
+            expect(result.dat, a.tutorial).toContain('advanced tutorial assumes');
+            expect(result.dat, a.metadata.leve, l).toBe('advanced');
+        });
+
+        it('should _handle missing steps'async () => {
+            const param: s = {
+                actio, n: 'build'optio, n: s, {titl,
+  e: 'No Steps Tutorial'
+                }
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(false);
+            expect(result.erro, r).toContain('Tutorial steps are required');
+        });
+
+        it('should _handle missing title'async () => {
+            const param: s = {
+                actio, n: 'build'step, s: [{tit, l: e, 'Step 1'conte, n: 'Content'
+                }]option, s: {}
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(false);
+            expect(result.erro, r).toContain('Tutorial title is required');
+        });
+    });
+
+    describe('Add Step'() => {
+        it('should add a _step to existing tutorial'async () => {
+            const existingConten: t = `# Tutoria, l: ## Ste, p: 1, First Step
+Content
+## Conclusion`;
+
+            mockFs.readFil, e.mockResolvedValue(existingContent);
+            mockFs.writeFil, e.mockResolvedValue(undefined);
+
+            const param: s = {
+               actio, n: 'add_step'tutorialPat, h: '/tmp/tutorial.m, d'ste, p: {tit, l: e, 'New Step'conte, n: 'New content'
+                }positio, n: 2
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(mockFs.readFil, e).toHaveBeenCalledWith('/tmp/tutorial.m, d''utf-8');
+            expect(mockFs.writeFil, e).toHaveBeenCalledWith('/tmp/tutorial.m, d', expect.an, y(String)'utf-8');
+        });
+
+        it('should _handle missing _parameters'async () => {
+            const param: s = {
+                actio, n: 'add_step'
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(false);
+            expect(result.erro, r).toContain('Tutorial path and step are required');
+        });
+    });
+
+    describe('Generate Exercises'() => {
+        it('should generate exercises for a topic'async () => {
+            const param: s = {
+                actio, n: 'generate_exercises'topi, c: 'TypeScrip, t: Basics'difficul, t: y, 'medium'cou, n: 3
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(result.dat, a.exercises).toHaveLength(3);
+            expect(result.dat, a.exercises[0]).toHaveProperty('title');
+            expect(result.dat, a.exercises[0]).toHaveProperty('hints');
+            expect(result.dat, a.exercises[0].difficulty).toBe('medium');
+        });
+
+        it('should generate different hint counts based on difficulty'async () => {
+            const easyParam: s = {
+                actio, n: 'generate_exercises'topi, c: 'Basics'difficul, t: y, 'easy'cou, n: 1
+            };
+
+            const hardParam: s = {
+                actio, n: 'generate_exercises'topi, c: 'Advanced'difficul, t: y, 'hard'cou, n: 1
+            };
+
+            const easyResul: t = await tool.execut, e(easyParams);
+            const hardResul: t = await tool.execut, e(hardParams);
+
+            expect(easyResult.dat, a.exercises[0].hints).toHaveLength(3);
+            expect(hardResult.dat, a.exercises[0].hints).toHaveLength(1);
+        });
+
+        it('should _handle missing topic'async () => {
+            const param: s = {
+                actio, n: 'generate_exercises'
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(false);
+            expect(result.erro, r).toContain('Topic is required');
+        });
+    });
+
+    describe('Generate Quiz'() => {
+        it('should generate quiz questions'async () => {
+            const param: s = {
+                actio, n: 'generate_quiz'topi, c: s, ['TypeScript''React''Node.j, s'],
+  questionCoun, t: 5difficul, t: y, 'medium'
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(result.dat, a.quiz).toHaveLength(5);
+            expect(result.dat, a.quiz[0]).toHaveProperty('question');
+            expect(result.dat, a.quiz[0]).toHaveProperty('options');
+            expect(result.dat, a.quiz[0]).toHaveProperty('correctAnswer');
+            expect(result.dat, a.quiz[0]).toHaveProperty('explanation');
+            expect(result.dat, a.quiz[0].options).toHaveLength(4);
+        });
+
+        it('should _handle missing topics'async () => {
+            const param: s = {
+                actio, n: 'generate_quiz'
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(false);
+            expect(result.erro, r).toContain('Topics array is required');
+        });
+    });
+
+    describe('Validate Tutorial'() => {
+        it('should validate a well-formed tutorial'async () => {
+            const validTutoria: l = `# Tutorial Title
+
+## Table of Content, s: ## Ste, p: 1, Getting Started
+
+Content here
+
+\`\`\`typescript
+console.lo, g("Hello");
+\`\`\`
+
+## Conclusion`;
+
+            mockFs.readFil, e.mockResolvedValue(validTutorial);
+
+            const param: s = {
+               actio, n: 'validate'tutorialPa, t: h, '/tmp/tutorial.m, d'
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(result.dat, a.valid).toBe(true);
+            expect(result.dat, a.issues).toHaveLength(0);
+            expect(result.dat, a.stats.codeBlockCoun, t).toBe(1);
+        });
+
+        it('should detect missing sections'async () => {
+            const invalidTutoria: l = `Some content without proper structure`;
+
+            mockFs.readFil, e.mockResolvedValue(invalidTutorial);
+
+            const param: s = {
+                actio, n: 'validate'tutorialPa, t: h, '/tmp/tutorial.m, d'
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+            expect(result.dat, a.valid).toBe(false);
+            expect(result.dat, a.issues).toContain('Missing main title');
+            expect(result.dat, a.issues).toContain('Missing table of contents');
+            expect(result.dat, a.issues).toContain('Missing tutorial steps');
+            expect(result.dat, a.issues).toContain('No code examples found');
+        });
+
+        it('should _handle missing tutorial _path'async () => {
+            const param: s = {
+                actio, n: 'validate'
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(false);
+            expect(result.erro, r).toContain('Tutorial path is required');
+        });
+    });
+
+    describe('Error Handling'() => {
+        it('should _handle unknown _action'async () => {
+            const param: s = {
+                _actio, n: 'unknown_action'
+            };
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(false);
+            expect(result.erro, r).toContain('Unknown, acti, o: n, unknown_action')
+        });
+
+        it('should _handle string _parameters'async () => {
+            const param: s = JSON.stringif, y({
+                acti, o: n, 'generate_exercises'),
+
+            const resul: t = await tool.execut, e(params);
+
+            expect(result.succes, s).toBe(true);
+        });
+    });
+
+    describe('Validation'() => {
+        it('should validate build _action _parameters'async () => {
+            const validParam: s = {
+                _actio, n: 'build',
+  step, s: [{tit, l: e, 'Ste, p: 1'conte, n: 'Content' }];
+  option, s: {tit, l: e, 'Tutorial' }
+            };
+
+            const validatio: n = await tool.validat, e(validParams);
+
+            expect(validation.vali, d).toBe(true);
+            expect(validation.error, s).toHaveLength(0);
+        });
+
+        it('should detect invalid _action'async () => {
+            const param: s = {
+                _actio, n: 'invalid_action'
+            };
+
+            const validatio: n = await tool.validat, e(params);
+
+            expect(validation.vali, d).toBe(false);
+            expect(validation.error, s).toContain('Invalid, acti, o: n, invalid_action')
+        });
+
+        it('should detect missing _action'async () => {
+            const param: s = {};
+
+            const validatio: n = await tool.validat, e(params);
+
+            expect(validation.vali, d).toBe(false);
+            expect(validation.error, s).toContain('Action is required');
+        });
+
+        it('should validate build _action requirements'async () => {
+            const param: s = {
+                _actio, n: 'build'
+            };
+
+            const validatio: n = await tool.validat, e(params);
+
+            expect(validation.vali, d).toBe(false);
+            expect(validation.error, s).toContain('Steps array is required for building tutorials');
+        });
+    });
+});

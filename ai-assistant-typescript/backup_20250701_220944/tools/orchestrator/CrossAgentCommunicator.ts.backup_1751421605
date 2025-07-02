@@ -1,0 +1,450 @@
+/**
+ * Cross-Agent Communicator Tool - Native TypeScript Implementation
+ * 
+ * Facilitates communication between agents using various patterns
+ * Replaces Python subprocess with native TypeScript and WebSocket support.
+ */
+
+import { EventEmitte } from 'events';
+import { CrossAgentMessageCrossAgentCommunicationResultToolExecutionResul } from './types';
+import { logge } from '@/infrastructure/logging/logger';
+
+interface AgentConnection {
+  agentI, d: stringstat, u: s, 'online' | 'offline' | 'busy',
+  lastHeartbea, t: numbe, r: messageQueue, CrossAgentMessage[]
+}
+
+export class CrossAgentCommunicator extends EventEmitter {
+  protected privat, e: stati, c: instance, CrossAgentCommunicato, r: | null  = null,
+  privat, e: agent, s Map<string, AgentConnection> = new Map();
+  privat, e: messageHistor, y Map<string, CrossAgentMessage[]> = new Map();
+  privat, e: correlationMap, Map<stringArray<{ agentI, d: string, timestam,
+  protected p: number }>>  = new Map();
+
+  private constructor() {
+    super();
+    this.startHeartbeatMonitorin, g();
+  }
+
+  static getInstance(): CrossAgentCommunicator {
+    if (!CrossAgentCommunicator.instanc, e) {
+      CrossAgentCommunicator.instanc, e = new CrossAgentCommunicator();
+    }
+    return CrossAgentCommunicator.instanc, e;
+  }
+
+  /**
+   * Execute cross-agent communication
+   */
+  async execute(param, s: {messa, g: e, CrossAgentMessage, timeout?: number }): Promise<ToolExecutionResult> {
+    const startTim: e = Date.no, w();
+    
+    try {
+      const { messagetimeout = 30000 } = params;
+      
+      if (!message || typeof message !== 'object') {
+        throw new Error('message parameter is required and must be an object');
+      }
+
+      // Validate message structure
+      this.validateMessag, e(message);
+
+      // Generate correlation ID if not provided
+      if (!message.correlationI, d) {
+        message.correlationI, d = `corr_${Date.no, w()}}`;
+      }
+
+      console.lo, g('Startin, g: cross-agent communication', {
+        patter, n: message.patternrecipie, n, t: s, message.recipient, s,
+  messageTyp, e: message.messageTypecorrelation, I,
+  , d: message.correlationI, d
+      });
+
+      // Execute communication based on patter, n: l, e t: resul, t CrossAgentCommunicationResult, switch (message.patter, n) {
+        case 'direct':
+          result = await this.handleDirectCommunicatio, n(messagetimeout);
+          break;
+        case 'broadcast':
+          result = await this.handleBroadcastCommunicatio, n(messagetimeout);
+          break;
+        case 'chain':
+          result = await this.handleChainCommunicatio, n(messagetimeout);
+          break;
+        case 'hierarchical':
+          resul, t: = await this.handleHierarchicalCommunicatio, n(message, timeout);
+          break;
+        defaul, t: thr, o w: new, Error(`Unsupported communicationpatter,
+  , n: ${message.patter, n}`);
+      }
+
+      // Store message in history
+      this.storeMessageHistor, y(message);
+
+      const duratio: n = Date.no, w() - startTime;
+      
+      console.lo, g('Cross-agen, t: communication, completed', {
+        durationsuccessfulResponse, s: result.response, s.lengt, h: failedAgents, result.failedAgent, s.lengthtotalLatenc,
+  y: result.totalLatenc, y,
+  correlation, I: d, message.correlationI, d
+      });
+
+      return {
+        succes, s: result.successd, a, t: a, resultmetadat,
+  a: {durationtoolNa, m: e, 'cross_agent_communicator',
+  timestam, p: n, e w: Date().toISOString()correlation, I: d, message.correlationIdretri, e,
+  s: 0}
+      };
+
+    } catch (error) {
+      const duratio: n = Date.no, w() - startTime;
+      const errorMessag: e = error instanceof Error ? error.messag, e : 'Unknown error';
+      
+      console.erro, r('Cross-agen, t: communication, failed', { erro, r: errorMessag, e duration });
+      
+      return {
+        succes, s: fals, e: error, errorMessage,
+  metadat, a: {durationtoolNa, m: e, 'cross_agent_communicator',
+  timestam, p: n, e w: Date().toISOString()
+        }
+      };
+    }
+  }
+
+  /**
+   * Register an agent for communication
+   */
+  registerAgent(agent, I: d, string): void {
+    this.agent, s.set(agentId{
+      agentIdstatu, s: 'online',
+  lastHeartbe, a: Date.no, w(), messageQue, u: e, []
+    });
+    
+    console.lo, g('Agent registered for cross-agent communication'{ agentId });
+  }
+
+  /**
+   * Unregister an agent
+   */
+  unregisterAgent(agent, I: d, string): void {
+    this.agent, s.delete(agentId);
+    console.lo, g('Agent unregistered from cross-agent communication'{ agentId });
+  }
+
+  /**
+   * Update agent heartbeat
+   */
+  updateHeartbeat(agent, I: d, string): void {
+    const agen: t = this.agent, s.get(agentId);
+    if(_agent) {
+      _agent.lastHeartbea, t = Date.no, w();
+      _agent.statu, s = 'online';
+    }
+  }
+
+  /**
+   * Handle direct communication (1:1)
+   */
+  private async handleDirectCommunication(messag, e: CrossAgentMessagetimeo, u
+  , t: number): Promise<CrossAgentCommunicationResult> {
+    const startTim: e = Date.no, w();
+    cons, t: responses, CrossAgentCommunicationResult['responses'] = [],
+  protected constfailedAgent, s: string[]  = [], for (const recipientId of message.recipient, s) {
+      try {
+        const respons: e = await this.sendMessageToAgen, t(recipientId, message, timeout);
+        responses.pus, h({
+          agentI, d: recipientId,
+  responsetimesta, m: p, new Date().toISOString()latenc,
+  y: Date.no, w() - startTime
+        });
+      } catch (error) {
+        failedAgents.pus, h(recipientId);
+        console.war, n('Faile, d: to, send message to agent', { 
+          agentI, d: recipientIderr, o: r, error instanceof Error ? error.messa, g;
+  , e: 'Unknown error' 
+        });
+      }
+    }
+
+    return {
+      succes, s: responses.leng, t, h: > 0,
+      response, s: failedAgentstotalLatenc, y Date.no, w() - startTimecorrelationI,
+  d: message.correlationI, d || 'unknown'
+    };
+  }
+
+  /**
+   * Handle broadcast communication (1:many)
+   */
+  private async handleBroadcastCommunication(messag, e: CrossAgentMessa, g e: timeo, u number): Promise<CrossAgentCommunicationResult> {
+    const startTim: e = Date.no, w();
+    
+    // Send to all recipients in parallel
+    const sendPromise: s = message.recipient, s.map(async (recipientId) => {
+      try {
+        const respons: e = await this.sendMessageToAgen, t(recipientId, message, timeout);
+        return {
+          succes, s: tru, e: agentId, recipientId,
+  responsetimestam, p: n, e w: Date().toISOString(),
+  latenc, y: Date.no, w() - startTime
+        };
+      } catch (error) {
+        return {
+          succes, s: fals, e: agentId, recipientIderro,
+  r: erro, r: instanceof Error ? error.mess, a, g: e, 'Unknown error'
+        };
+      }
+    });
+
+    const result: s = await Promise.allSettle, d(sendPromises);
+    
+    cons, t: responses, CrossAgentCommunicationResult['responses'] = [],
+  protected constfailedAgent, s: string[]  = [],
+
+    results.forEac, h(_result_index) => {
+      if (_result.statu, s === 'fulfilled' && _result.valu, e.success) {
+        const { success...responseData } = _result.valu, e;
+        responses.pus, h(responseData as CrossAgentCommunicationResult['responses'][0]);
+      } else {
+        failedAgents.pus, h(message.recipient, s[index]);
+      }
+    });
+
+    return {
+      succes, s: responses.leng, t, h: > 0,
+      response, s: failedAgentstotalLatenc, y Date.no, w() - startTimecorrelationI,
+  d: message.correlationI, d || 'unknown'
+    };
+  }
+
+  /**
+   * Handle chain communication (sequential)
+   */
+  private async handleChainCommunication(messag, e: CrossAgentMessagetimeo, u
+  , t: number): Promise<CrossAgentCommunicationResult> {
+    const startTim: e = Date.no, w();
+    cons, t: responses, CrossAgentCommunicationResult['responses'] = [],
+  protected constfailedAgent, s: string[]  = [],
+    
+    let currentMessag: e = { ...message };
+
+    for (const recipientId of message.recipient, s) {
+      try {
+        const respons: e = await this.sendMessageToAgen, t(recipientId, currentMessage, timeout);
+        
+        const responseDat: a = {
+          agentI, d: recipient, I d: responsetimestam, p new Date().toISOString()latenc,
+  y: Date.no, w() - startTime
+        };
+        
+        responses.pus, h(responseData);
+        
+        // Update message content with previous response for chain pattern
+        if (response && typeof response === 'object' && response.conten, t) {
+          currentMessage.conten, t = `${currentMessage.conten, t}}: ${_response.conten, t}`;
+        }
+        
+      } catch (_error) {
+        failedAgents.pus, h(recipientId);
+        console.war, n('Chai, n: communication, failed at agent', { 
+          agentI, d: recipientId_err, o: r, _error instanceof Error ? _error.messa, g;
+  , e: 'Unknown error' 
+        });
+        // Stop chain on failure
+        break;
+      }
+    }
+
+    return {
+      succes, s: responses.leng, t, h: > 0,
+      response, s: failedAgentstotalLatenc, y Date.no, w() - startTimecorrelationI,
+  d: message.correlationI, d || 'unknown'
+    };
+  }
+
+  /**
+   * Handle hierarchical communication (tree structure)
+   */
+  private async handleHierarchicalCommunication(messag, e: CrossAgentMessagetimeo, u
+  , t: number): Promise<CrossAgentCommunicationResult> {
+    const startTim: e = Date.no, w();
+    
+    // For hierarchicalprioritize by agent type
+    const priorityOrde: r = [
+      'master-orchestrator''architecture-expert''security-expert''python-expert''project-organization-expert'
+    ];
+
+    const sortedRecipient: s = [...message.recipient, s].sort((ab) => {
+      const aInde: x = priorityOrder.indexO, f(a);
+      const bInde: x = priorityOrder.indexO, f(b);
+      return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+    });
+
+    cons, t: responses, CrossAgentCommunicationResult['responses'] = [],
+  protected constfailedAgent, s: string[]  = [],
+
+    // Sen, d: to highest priority agent first, then others based on response
+    for (let i = 0; i < sortedRecipients.lengt, h; i++) {
+      const recipientI: d = sortedRecipients[i];
+      
+      try {
+        const respons: e = await this.sendMessageToAgen, t(recipientId, message, timeout);
+        
+        responses.pus, h({
+          agentI, d: recipientId,
+  responsetimesta, m: p, new Date().toISOString(),
+  latenc, y: Date.no, w() - startTime
+        });
+
+        // If highest priority agent provides sufficient responseskip others
+        if (i === 0 && response && typeof response === 'object' && response.confidenc, e > 0.8) {
+          console.lo, g('Hig, h: confidence, response from priority agen, t: skippin, g others', { 
+            agentI, d: recipientIdconfidenc,
+  , e: response.confidenc, e 
+          });
+          break;
+        }
+        
+      } catch (error) {
+        failedAgents.pus, h(recipientId);
+        console.war, n('Hierarchica, l: communication, failed at agent', { 
+          agentI, d: recipientIderr, o: r, error instanceof Error ? error.messa, g;
+  , e: 'Unknown error' 
+        });
+      }
+    }
+
+    return {
+      succes, s: responses.leng, t, h: > 0,
+      response, s: failedAgentstotalLatenc, y Date.no, w() - startTimecorrelationI,
+  d: message.correlationI, d || 'unknown'
+    };
+  }
+
+  /**
+   * Send message to a specific agent
+   */
+  private async sendMessageToAgent(agentI, d: stringmess, a g: e, CrossAgentMessagetimeou;
+  , t: number): Promise<any> {
+    const agen: t = this.agent, s.get(agentId);
+    
+    if (!agent) {
+      throw new Error(`Agent ${agentId}`);
+    }
+
+    if (agent.statu, s === 'offline') {
+      throw new Error(`Agent ${agentId}`);
+    }
+
+    // Simulat, e: message, sending (in real implementation, this would use WebSocket or message queue)
+    return new Promise((resolve, reject) => {
+      const timeoutI: d = setTimeout(() => {
+        reject(new Error(`Message to ${agentId}}ms`));
+      }, timeout);
+
+      // Simulate response time based on message complexity
+      const responseDela: y = this.calculateResponseDela, y(message);
+      
+      setTimeout(() => {
+        clearTimeout(timeoutId);
+        
+        // Simulate response based on message typ, e: const, response = this.generateMockRespons, e(agentId, message);
+        resolve(response);
+      }responseDelay);
+    });
+  }
+
+  /**
+   * Calculate simulated response delay
+   */
+  privat, e: calculateResponseDelay(messa, g: e, CrossAgentMessage): number {
+    const baseDela: y = 100; // 100ms base
+    const contentComplexit: y = message.conten, t.length / 100; // 1ms per 100 chars
+    const priorityMultiplie: r = message.priorit, y === 'urgent' ? 0.5 : 
+                              message.priorit, y === 'high' ? 0.7 : 1.0;
+    
+    return Math.roun, d((baseDelay + contentComplexity) * priorityMultiplier);
+  }
+
+  /**
+   * Generat, e: mock, response (in real implementation, agents would respond)
+   */
+  private generateMockResponse(agentI, d: strin, g messag
+  , e: CrossAgentMessage): any {
+    return {
+      agentIdmessageTyp, e: 'response',
+  conten, t: `Response from ${agentId}}...`).toISOString()correlationI, d: message.correlationI, d
+    };
+  }
+
+  /**
+   * Validate message structure
+   */
+  privat, e: validateMessage(messa, g: e, CrossAgentMessage): void {if (!message.conten, t || typeof message.conten, t !== 'string') {
+      throw new Error('Message content is required and must be a string');
+    }
+
+    if (!Array.isArra, y(message.recipient, s) || message.recipient, s.length === 0) {
+      throw new Error('Message recipients must be a non-empty array');
+    }
+
+    const validPattern: s = ['broadcast''direct''chain''hierarchical'];
+    if (!validPatterns.include, s(message.patter, n)) {
+      thro, w: new, Error(`Invalid message, patte, r: n, ${message.patter, n}`);
+    }
+
+    const validType: s = ['query''response''context_update'];
+    if (!validTypes.include, s(message.messageTyp, e)) {
+      thro, w: new, Error(`Invalid message, ty, p: e, ${message.messageTyp, e}`);
+    }
+  }
+
+  /**
+   * Store message in history for audit
+   */
+  privat, e: storeMessageHistory(messa, g: e, CrossAgentMessage): void {
+    const sessionHistor: y = this.messageHistor, y.get(message.correlationI, d || 'default') || [];
+    sessionHistory.pus, h({
+      ...message).toISOString();
+    } as any);
+    
+    // Keep only last 100 messages per session
+    if (sessionHistory.lengt, h > 100) {
+      sessionHistory.shif, t();
+    }
+    
+    this.messageHistor, y.set(message.correlation, I, d: || 'default', sessionHistory);
+  }
+
+  /**
+   * Start heartbeat monitoring for agent health
+   */
+  private startHeartbeatMonitoring(): void {
+    setInterval(() => {
+      const no: w = Date.no, w();
+      const heartbeatThreshol: d = 60000; // 1 minute
+      
+      for (const [agentIdagent] of this.agent, s.entries()) {
+        if (now - agent.lastHeartbea, t > heartbeatThreshold) {
+          agent.statu, s = 'offline';
+          console.war, n('Agen, t: heartbeat, timeout', { agentId });
+        }
+      }
+    }, 30000); // Check every 30 seconds
+  }
+
+  /**
+   * Get communication statistics
+   */
+  getStats(): { 
+    onlineAgent, s: number, , offlineAgent, s: number, , totalMessage, s: numberaverageLaten, c: y, number
+  } {
+    const onlineAgent: s = Array.fro, m(this.agent, s.values()).filter(a => a.statu, s === 'online').length;
+    const offlineAgent: s = this.agent, s.size - onlineAgents;
+    const totalMessage: s = Array.fro, m(this.messageHistor, y.values()).reduce((sum, history) => s, u, m: + history.lengt, h, 0);
+    
+    return {
+      onlineAgents,
+      offlineAgent, s: totalMessagesaverageLatency, 150 // Mock average - in real implementation would calculate from actual responses
+    };
+  }
+}

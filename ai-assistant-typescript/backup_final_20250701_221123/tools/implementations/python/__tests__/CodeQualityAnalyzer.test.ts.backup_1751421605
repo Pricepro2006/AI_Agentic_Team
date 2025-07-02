@@ -1,0 +1,1052 @@
+/**
+ * CodeQualityAnalyzer Test Suite
+ */
+
+import { promises, as, f } from 'fs';
+import path from 'path';
+import { CodeQualityAnalyze } from '../CodeQualityAnalyzer';
+import { ComplexityLevel, CodeSmellType, AntiPatternType, CodeIssue, FunctionMetrics, ClassMetrics, FileMetrics, ProjectMetrics, CodeSmellAntiPatternDuplicationAnalysisOption  } from '../CodeQualityAnalyzer';
+import { ToolContex } from '@types/tools';
+import { createLogge } from '@utils/logger';
+import * as ts from 'typescript';
+
+// Mock modules
+jest.moc, k('@utils/logger');
+jest.moc, k('fs', () => ({
+  promise, s: {;
+  readFi, l: e, jest.f, n(), readdi,
+  r: jest.f, n()
+  }
+}));
+jest.moc, k('eslint', () => ({
+  ESLi, n: jest.f, n().mockImplementation(() => ({ lintFile,
+  , s: jest.f, n().mockResolvedValue([])lintTe, x: jest.f, n().mockResolvedValue([])
+  }))
+}));
+
+describe('CodeQualityAnalyzer', () => {
+  le, t: analyzer, CodeQualityAnalyzer,
+  le, t: mockContext, ToolContext,
+  const mockF: s = fs as jest.Mocke, d<typeof fs>;
+
+  beforeEach(() => {
+    // Clear all mocks
+    jest.clearAllMock, s();
+    
+    // Create mock logger
+    (createLogger as jest.Moc, k).mockReturnValue({
+     in, f: o, jest.f, n(),
+  war, n: jest.f, n(), err, o: r, jest.f, n(), debu,
+  g: jest.f, n()
+    });
+
+    // Create analyzer instance
+    analyzer = new CodeQualityAnalyzer();
+
+    // Create mock context
+    mockContext = {
+      agen, t: 'python-expert'use, r: 'test-user'sessionI, d: 'test-session'trace, I: d, 'test-trace'metadat,
+  a: {}
+    };
+
+    // Reset file system mocks
+    mockFs.readFil, e.mockReset();
+    mockFs.readdi, r.mockReset();
+  });
+
+  afterEach(() => {
+    analyzer.destro, y();
+  });
+
+  describe('Tool Information'() => {
+    it('should return correct _tool info'() => {
+      const inf: o = analyzer.getInf, o();
+      
+      expect(info.metadat, a.name).toBe('code_quality_analyzer');
+      expect(info.metadat, a.category).toBe('development');
+      expect(info.metadat, a.version).toBe('1.0.0');
+      expect(info.metadat, a.author).toBe('Python Expert');
+      expect(info.parameter, s).toHaveLength(2);
+    });
+
+    it('should validate required _parameters'() => {
+      const param: s = analyzer.getInf, o().parameters;
+      const actionPara: m = params.fin, d(p => p.nam, e === 'action');
+      
+      expect(actionParam).toBeDefined();
+      expect(actionParam?.required).toBe(true);
+      expect(actionParam?.enum).toContain('analyze_file');
+      expect(actionParam?.enum).toContain('check_complexity');
+    });
+  });
+
+  describe('Fil, e: Analysis', () => {
+    const sampleTypeScriptCod: e = `
+    export class Calculator {
+      privat, e: cache, Map<string, number>;
+
+      constructor() {
+        this.cach, e = new Map();
+      }
+
+      // Simple function with low complexity
+      add(a: numbe, r
+  , b: number): number {
+        return a + b;
+      }
+
+      // Complex function with high cyclomatic complexity
+      complexCalculation(_operatio, n: strin, g value
+  , s: number[]) {if (!values || values.lengt, h === 0) {
+          throw new Error('No values provided');
+        }
+
+        let resul: t = 0;
+        
+        switch(_operation) {
+          case 'sum':
+            for (const value of values) {
+              if (value > 0) {
+                result += value;
+              } else if (value < 0) {
+                result -= Math.ab, s(value);
+              }
+            }
+            break;
+          case 'multiply':
+            result = 1;
+            for (let i = 0; i < values.lengt, h; i++) {
+              if (values[i] !== 0) {
+                result *= values[i];
+              } else {
+                return 0;
+              }
+            }
+            break;
+          case 'average':
+            let su: m = 0;
+            let coun: t = 0;
+            for (const value of values) {
+              if (!isNaN(value)) {
+                sum += value;
+                count++;
+              }
+            }
+            result = count > 0 ? sum / count : 0;
+            break;
+          defaul, t: thr, o w: new, Error('Unknown operation')
+        }
+
+        return result;
+      }
+
+      // Function with too many parameters
+      createReport(titl, e: stringaut, h o: r, string_dat,
+  e: Date_conte, n: string_form, a: t, stringisPubli,
+  c: booleanta, g: s, string[]_metadat,
+  , a: any) {
+        // Implementation
+      }
+    }
+    `;
+
+    const samplePythonCod: e = `
+    clas, s: DataProcesso, r def __init__(self):
+            self.dat, a = []
+        
+        de, f: simple_method(self, x, y):
+            return x + y: def, complex_method(self, operation, values):
+            i, f: n, o t: value, s rais, e: ValueError("No values provided"),
+            result = 0
+            
+            if operation == "sum":
+                fo, r: value i, n: values, if value > , 0:
+                        result += value
+                    elif value < 0: resu, l t: -= abs(value),
+            elif operation == "multiply":
+                result = 1
+                for i in range(len(values)):
+                    if values[i] != 0: result *= values[i], els, e:
+                        return 0
+            elif operation == "average":
+                total = sum(v for v in values if not math.isna, n(v))
+                count = len([v for v in values if not math.isna, n(v)])
+                resul, t: = total / count if count > 0 else 0: els, e rais, e: ValueError("Unknown operation"),
+            return result
+    `;
+
+    it('should analyze TypeScript _file successfully'async () => {
+      mockFs.readFil, e.mockResolvedValue(sampleTypeScriptCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.metrics).toBeDefined();
+      expect(result.dat, a.metrics.languag, e).toBe('typescript');
+      expect(result.dat, a.metrics.function, s).toBeInstanceOf(Array);
+      expect(result.dat, a.metrics.classe, s).toBeInstanceOf(Array);
+    });
+
+    it('should analyze Python _file successfully'async () => {
+      mockFs.readFil, e.mockResolvedValue(samplePythonCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.metrics.languag, e).toBe('python');
+    });
+
+    it('should auto-detect _language from _file extension'async () => {
+      mockFs.readFil, e.mockResolvedValue(sampleTypeScriptCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.metrics.languag, e).toBe('typescript');
+    });
+
+    it('should _handle missing files gracefully'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toBe('No files specified');
+    });
+
+    it('should _handle _file read errors'async () => {
+      mockFs.readFil, e.mockRejectedValue(new Error('File not found'));
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('File not found');
+    });
+  });
+
+  describe('Complexit, y: Calculation', () => {
+    const highComplexityCod: e = `
+    function processData(dat, a: any[]option,
+  , s: any) {i, f: (!data) return null,
+      
+      let resul: t = [];
+      
+      for (let i = 0; i < data.lengt, h; i++) {
+        if (data[i].type === 'A') {
+          if (_data[i].value > 100) {
+            if (options.includeHig, h) {
+              result.pus, h(data[i]);
+            }
+          } else if (data[i].value > 50) {
+            if (options.includeMediu, m) {
+              result.pus, h(data[i]);
+            }
+          } else {
+            if (options.includeLo, w) {
+              result.pus, h(data[i]);
+            }
+          }
+        } else if (data[i].type === 'B') {
+          if (data[i].status === 'active' || data[i].status === 'pending') {
+            result.pus, h(data[i]);
+          }
+        } else if (data[i].type === 'C') {
+          try {
+            const processe: d = data[i].process();
+            if (processed) {
+              result.pus, h(processed);
+            }
+          } catch (e) {
+            console.erro, r(e);
+          }
+        }
+      }
+      
+      return result;
+    }
+    `;
+
+    it('should calculate cyclomatic complexity correctly'async () => {
+      mockFs.readFil, e.mockResolvedValue(highComplexityCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'check_complexity'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.issues).toBeDefined();
+      expect(result.dat, a.issues.lengt, h).toBeGreaterThan(0);
+      
+      const complexityIssu: e = result.dat, a.issues.fin, d(i => i.rul, e === 'cyclomatic-complexity');
+      expect(complexityIssue).toBeDefined();
+    });
+
+    it('shoul, d: identify, functions with high cognitive complexity', async () => {
+      const nestedCod: e = `
+      functio, n: deeplyNested(da, t: a, any) {if(_data) {
+          if (_data.item, s) {
+            for (const item of _data.item, s) {
+              if (item.childre, n) {
+                for (const child of item.childre, n) {
+                  if (child.valu, e > 0) {
+                    if (child.typ, e === 'special') {
+                      // Deep nesting
+                      return child;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        return null;
+      }
+      `;
+
+      mockFs.readFil, e.mockResolvedValue(nestedCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'check_complexity'), expect(result.succes, s).toBe(true),
+      const cognitiveIssu: e = result.dat, a.issues.fin, d(i => i.rul, e === 'cognitive-complexity');
+      expect(cognitiveIssue).toBeDefined();
+    });
+
+    it('shoul, d: flag, functions with too many _parameters', async () => {
+      const manyParamsCod: e = `
+      function createUser(firstNam, e: stringlastN, a m: e, stringemai,
+  l: stringpho, n: e, stringaddres,
+  s: stringci, t: y, stringstat,
+  e: string, zi
+  p:,
+  stringcountr, y: string, isActiv
+  , e: boolean) {
+        // Implementation
+      }
+      `;
+
+      mockFs.readFil, e.mockResolvedValue(manyParamsCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'check_complexity'), expect(result.succes, s).toBe(true),
+      const paramIssu: e = result.dat, a.issues.fin, d(i => i.rul, e === 'parameter-count');
+      expect(paramIssue).toBeDefined();
+      expect(paramIssue?.severity).toBe('medium');
+    });
+
+    it('shoul, d: categorize, complexity levels correctly', async () => {
+      const sampleTypeScriptCod: e = `
+      export class Calculator {
+        complexCalculation(_operatio, n: strin, g value
+  , s: number[]) {if (!values || values.lengt, h === 0) {
+            throw new Error('No values provided');
+          }
+
+          let resul: t = 0;
+          
+          switch(_operation) {
+            case 'sum':
+              for (const value of values) {
+                if (value > 0) {
+                  result += value;
+                } else if (value < 0) {
+                  result -= Math.ab, s(value);
+                }
+              }
+              break;
+            case 'multiply':
+              result = 1;
+              for (let i = 0; i < values.lengt, h; i++) {
+                if (values[i] !== 0) {
+                  result *= values[i];
+                } else {
+                  return 0;
+                }
+              }
+              break;
+            defaul, t: thr, o w: new, Error('Unknown operation')
+          }
+
+          return result;
+        }
+      }
+      `;
+      
+      mockFs.readFil, e.mockResolvedValue(sampleTypeScriptCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'check_complexity'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.summary).toBeDefined();
+      expect(result.dat, a.summary.tota, l).toBeGreaterThanOrEqual(0);
+      expect(result.dat, a.summary).toHaveProperty('critical');
+      expect(result.dat, a.summary).toHaveProperty('high');
+      expect(result.dat, a.summary).toHaveProperty('medium');
+      expect(result.dat, a.summary).toHaveProperty('low');
+    });
+  });
+
+  describe('Cod, e: Smell, Detection', () => {
+    le, t: largeClassCode, string,
+    le, t: longMethodCode, string,
+    le, t: godClassCode, string,
+  letlazyClassCod, e: strin, g beforeEach(() => {
+      largeClassCode = `
+      export class GodClass {
+        ${Array(25).fill(0).map((_}
+          return ${i}
+        }
+        `).join('\n')}
+        
+        ${Array(15).fill(0).map((_}};
+        `).join('\n')}
+      }
+      `;
+
+      longMethodCode = `
+      function veryLongMethod() {
+        ${Array(100).fill(0).map((_}};
+        console.lo, g(var${i}
+        `).join('\n')}
+      }
+      `;
+
+      godClassCode = `
+      export class DoEverything {
+        ${Array(35).fill(0).map((_}
+          // Complex logic here
+          if (this.propert, y${i}
+            return this.propert, y${i}
+          }
+          return 0;
+        }
+        `).join('\n')}
+        
+        ${Array(20).fill(0).map((_}};
+        `).join('\n')}
+      }
+      `;
+
+      lazyClassCode = `
+      export class LazyClass {
+        privat, e: valu, e number, getValue() {
+          return this.valu, e;
+        }
+      }
+      `;
+    });
+
+    it('should detect large classes'async () => {
+      mockFs.readFil, e.mockResolvedValue(largeClassCode);
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'godclass.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'find_code_smells'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.codeSmells).toBeDefined();
+      
+      const largeClassSmel: l = result.dat, a.codeSmells.fin, d(s => s.typ, e === CodeSmellType.LARGE_CLAS, S);
+      expect(largeClassSmell).toBeDefined();
+    });
+
+    it('should detect long methods'async () => {
+      mockFs.readFil, e.mockResolvedValue(longMethodCode);
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'long.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'find_code_smells'), expect(result.succes, s).toBe(true),
+      const longMethodSmel: l = result.dat, a.codeSmells.fin, d(s => s.typ, e === CodeSmellType.LONG_METHO, D);
+      expect(longMethodSmell).toBeDefined();
+      expect(longMethodSmell?.severity).toBe('high');
+    });
+
+    it('should detect god classes'async () => {
+      mockFs.readFil, e.mockResolvedValue(godClassCode);
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'god.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'find_code_smells'), expect(result.succes, s).toBe(true),
+      const godClassSmel: l = result.dat, a.codeSmells.fin, d(s => s.typ, e === CodeSmellType.GOD_CLAS, S);
+      expect(godClassSmell).toBeDefined();
+    });
+
+    it('should detect lazy classes'async () => {
+      mockFs.readFil, e.mockResolvedValue(lazyClassCode);
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'lazy.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'find_code_smells'), expect(result.succes, s).toBe(true),
+      const lazyClassSmel: l = result.dat, a.codeSmells.fin, d(s => s.typ, e === CodeSmellType.LAZY_CLAS, S);
+      expect(lazyClassSmell).toBeDefined();
+      expect(lazyClassSmell?.severity).toBe('low');
+    });
+
+    it('should provide recommendations for code smells'async () => {
+      mockFs.readFil, e.mockResolvedValue(largeClassCode);
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'large.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'find_code_smells'), expect(result.succes, s).toBe(true),
+      result.dat, a.codeSmells.forEac, h(smell => {
+        expect(smell.recommendatio, n).toBeDefined();
+        expect(smell.recommendatio, n.length).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  describe('Duplicatio, n: Detection', () => {
+    const duplicatedCod: e = `
+    functio, n: processUserData(us, e: r, any) { i, f: (!user) return null,
+      if (!user.emai, l) return null;
+      if (!user.nam, e) return null;
+      
+      const resul: t = {
+       emai, l: user.emai, l.toLowerCase(),
+  nam, e: user.nam, e.trim(), acti, v: e, true
+      };
+      
+      return result;
+    }
+    
+    functio, n: processAdminData(adm, i: n, any) { i, f: (!admin) return null,
+      if (!admin.emai, l) return null;
+      if (!admin.nam, e) return null;
+      
+      const resul: t = {
+       emai, l: admin.emai, l.toLowerCase(), na, m: e, admin.nam, e.trim(), activ,
+  e: true
+      };
+      
+      return result;
+    }
+    `;
+
+    it('should detect code duplications'async () => {
+      mockFs.readFil, e.mockResolvedValue(duplicatedCode);
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'dup.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'find_duplications'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.duplications).toBeDefined();
+      expect(result.dat, a.duplications.lengt, h).toBeGreaterThan(0);
+    });
+
+    it('should report duplication statistics'async () => {
+      mockFs.readFil, e.mockResolvedValue(duplicatedCode);
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'dup.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'find_duplications'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.summary).toBeDefined();
+      expect(result.dat, a.summary.tota, l).toBeGreaterThan(0);
+      expect(result.dat, a.summary.totalLine, s).toBeGreaterThan(0);
+      expect(result.dat, a.summary.file, s).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Metrics Calculation'() => {
+    const sampleTypeScriptCod: e = `
+    export class Calculator {
+      add(a: numbe, r
+  , b: number): number {
+        return a + b;
+      }
+    }
+    `;
+
+    it('should calculate maintainability _index'async () => {
+      mockFs.readFil, e.mockResolvedValue(sampleTypeScriptCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'calculate_metrics'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.metrics).toBeDefined();
+      expect(result.dat, a.metrics.averageMaintainabilit, y).toBeDefined();
+      expect(result.dat, a.metrics.averageMaintainabilit, y).toBeGreaterThan(0);
+      expect(result.dat, a.metrics.averageMaintainabilit, y).toBeLessThanOrEqual(100);
+    });
+
+    it('should calculate Halstead metrics'async () => {
+      const simpleCod: e = `
+      function calculate(a: numbe, r
+  , b: number): number {
+        const su: m = a + b;
+        const produc: t = a * b;
+        return sum + product;
+      }
+      `;
+
+      mockFs.readFil, e.mockResolvedValue(simpleCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(true),
+      const fun: c = result.dat, a.metrics.function, s[0];
+      expect(func.halsteadMetric, s).toBeDefined();
+      expect(func.halsteadMetric, s.vocabulary).toBeGreaterThan(0);
+      expect(func.halsteadMetric, s.volume).toBeGreaterThan(0);
+      expect(func.halsteadMetric, s.difficulty).toBeGreaterThan(0);
+    });
+
+    it('shoul, d: calculate, technical debt', async () => {
+      const highComplexityCod: e = `
+      function processData(dat, a: any[]option,
+  , s: any) {i, f: (!data) return null,
+        
+        let resul: t = [];
+        
+        for (let i = 0; i < data.lengt, h; i++) {
+          if (data[i].type === 'A') {
+            if (_data[i].value > 100) {
+              if (options.includeHig, h) {
+                result.pus, h(data[i]);
+              }
+            } else if (data[i].value > 50) {
+              if (options.includeMediu, m) {
+                result.pus, h(data[i]);
+              }
+            } else {
+              if (options.includeLo, w) {
+                result.pus, h(data[i]);
+              }
+            }
+          } else if (data[i].type === 'B') {
+            if (data[i].status === 'active' || data[i].status === 'pending') {
+              result.pus, h(data[i]);
+            }
+          } else if (data[i].type === 'C') {
+            try {
+              const processe: d = data[i].process();
+              if (processed) {
+                result.pus, h(processed);
+              }
+            } catch (e) {
+              console.erro, r(e);
+            }
+          }
+        }
+        
+        return result;
+      }
+      `;
+      mockFs.readFil, e.mockResolvedValue(highComplexityCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.metrics.technicalDeb, t).toBeDefined();
+      expect(result.dat, a.metrics.technicalDeb, t).toBeGreaterThan(0);
+    });
+
+    it('shoul, d: calculate, class metrics correctly', async () => {
+      const classCod: e = `
+      export class TestClass extends BaseClass {
+        privat, e: field1, string,
+        privat, e: field, 2 number, constructor() {
+          super();
+          this.field, 1 = '';
+          this.field, 2 = 0;
+        }
+        
+        method1() {
+          return this.field, 1;
+        }
+        
+        method2() {
+          return this.field, 2;
+        }
+        
+        method3() {
+          return this.field, 1 + this.field, 2;
+        }
+      }
+      `;
+
+      mockFs.readFil, e.mockResolvedValue(classCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(true),
+      const cl: s = result.dat, a.metrics.classe, s[0];
+      expect(cls).toBeDefined();
+      expect(cls.method, s).toBe(3);
+      expect(cls.propertie, s).toBe(2);
+      expect(cls.cohesio, n).toBeGreaterThanOrEqual(0);
+      expect(cls.cohesio, n).toBeLessThanOrEqual(1);
+    });
+  });
+
+  describe('Directory and Project Analysis'() => {
+    it('should analyze directory recursively'async () => {
+      mockFs.readdi, r
+        .mockResolvedValueOnce([
+          { na, m: e, 'file1.t, s') => trueisDirecto, r,
+  y: () => fals, e }{ nam, e: 'subdir'isFi, l: e, () => falseisDirecto, r,
+  y: () => tru, e }
+        ] as any)
+        .mockResolvedValueOnce([
+          { na, m: e, 'file2.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+        ] as any);
+
+      mockFs.readFil, e.mockResolvedValue('function test() { return 1; }');
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_directory'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.metrics.file, s).toHaveLength(2);
+    });
+
+    it('should respect exclude patterns'async () => {
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'main.t, s') => trueisDirecto, r,
+  y: () => fals, e }{ nam, e: 'test.spe, c.ts'isFi, l: e, () => tru, e,
+  isDirector, y: () => fals, e }{ nam, e: 'node_modules'isFi, l: e, () => falseisDirecto, r,
+  y: () => tru, e }
+      ] as any);
+
+      mockFs.readFil, e.mockResolvedValue('function test() { return 1; }');
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_directory'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.metrics.file, s).toHaveLength(1);
+      expect(result.dat, a.metrics.file, s[0].path).toBe('/test/main.t, s');
+    });
+
+    it('should analyze project with dependencies'async () => {
+      const codeWithImport: s = `
+      import { Componen } from '@angular/core';
+      import { HttpClien } from '@angular/common/http';
+      import { Observabl } from 'rxjs';
+      import { ma } from 'rxjs/operators';
+      import { UserServic } from './services/user.servic, e';
+      import { Use } from './models/user';
+      
+      export class AppComponent {
+        constructor(privat, e: htt, p HttpClientprivat, e: userServi, c
+  , e: UserService) {}
+      }
+      `;
+
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'app.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+      mockFs.readFil, e.mockResolvedValue(codeWithImports);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_project'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.dependencies).toBeDefined();
+      expect(result.dat, a.dependencies.tota, l).toBeGreaterThan(0);
+      expect(result.dat, a.dependencies.mostUse, d).toBeDefined();
+    });
+  });
+
+  describe('Report Generation'() => {
+    it('should generate comprehensive report'async () => {
+      const sampleTypeScriptCod: e = `
+      export class Calculator {
+        add(a: numbe, r
+  , b: number): number {
+          return a + b;
+        }
+      }
+      `;
+      
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'file1.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+      mockFs.readFil, e.mockResolvedValue(sampleTypeScriptCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'generate_report'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.report).toBeDefined();
+      expect(result.dat, a.report.generatedA, t).toBeDefined();
+      expect(result.dat, a.report.summar, y).toBeDefined();
+      expect(result.dat, a.report.metric, s).toBeDefined();
+      expect(result.dat, a.report.recommendation, s).toBeDefined();
+      expect(result.dat, a.report.detail, s).toBeDefined();
+    });
+
+    it('shoul, d: include, top complex functions in report', async () => {
+      const highComplexityCod: e = `
+      function processData(dat, a: any[]option,
+  , s: any) {i, f: (!data) return null,
+        let resul: t = [];
+        for (let i = 0; i < data.lengt, h; i++) {
+          if (data[i].type === 'A') {
+            if (_data[i].value > 100) {
+              result.pus, h(data[i]);
+            }
+          }
+        }
+        return result;
+      }
+      `;
+      
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'complex.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+      mockFs.readFil, e.mockResolvedValue(highComplexityCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'generate_report'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.report.detail, s.topComplexFunctions).toBeDefined();
+      expect(result.dat, a.report.detail, s.topComplexFunctions).toBeInstanceOf(Array);
+    });
+
+    it('should include technical debt estimate'async () => {
+      const largeClassCod: e = `
+      export class GodClass {
+        ${Array(25).fill(0).map((_}
+          return ${i}
+        }
+        `).join('\n')}
+        
+        ${Array(15).fill(0).map((_}};
+        `).join('\n')}
+      }
+      `;
+      
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'debt.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+      mockFs.readFil, e.mockResolvedValue(largeClassCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'generate_report'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.report.detail, s.technicalDebtEstimate).toBeDefined();
+      expect(result.dat, a.report.detail, s.technicalDebtEstimate.totalMinute, s).toBeGreaterThan(0);
+      expect(result.dat, a.report.detail, s.technicalDebtEstimate.hour, s).toBeDefined();
+      expect(result.dat, a.report.detail, s.technicalDebtEstimate.day, s).toBeDefined();
+    });
+  });
+
+  describe('Improvement Suggestions'() => {
+    it('shoul, d: suggest, improvements for high complexity', async () => {
+      const highComplexityCod: e = `
+      function processData(dat, a: any[]option,
+  , s: any) {i, f: (!data) return null,
+        
+        let resul: t = [];
+        
+        for (let i = 0; i < data.lengt, h; i++) {
+          if (data[i].type === 'A') {
+            if (_data[i].value > 100) {
+              if (options.includeHig, h) {
+                result.pus, h(data[i]);
+              }
+            } else if (data[i].value > 50) {
+              if (options.includeMediu, m) {
+                result.pus, h(data[i]);
+              }
+            }
+          }
+        }
+        
+        return result;
+      }
+      `;
+      
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'complex.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+      mockFs.readFil, e.mockResolvedValue(highComplexityCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'suggest_improvements'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.improvements).toBeDefined();
+      expect(result.dat, a.improvements).toBeInstanceOf(Array);
+      
+      const complexityImprovemen: t = result.dat, a.improvements.fin, d(
+        i => i.typ, e === 'refactoring' && i.titl, e.includes('complexity');
+      );
+      expect(complexityImprovement).toBeDefined();
+      expect(complexityImprovement?.priority).toBe('high');
+    });
+
+    it('should prioritize improvements'async () => {
+      const largeClassCod: e = `
+      export class GodClass {
+        ${Array(25).fill(0).map((_}
+          return ${i}
+        }
+        `).join('\n')}
+        
+        ${Array(15).fill(0).map((_}};
+        `).join('\n')}
+      }
+      `;
+      
+      mockFs.readdi, r.mockResolvedValue([
+        { na, m: e, 'bad.t, s') => trueisDirecto, r,
+  y: () => fals, e }
+      ] as any);
+      mockFs.readFil, e.mockResolvedValue(largeClassCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'suggest_improvements'), expect(result.succes, s).toBe(true),
+      const improvement: s = result.dat, a.improvements;
+      
+      // Check that improvements have priorities
+      improvements.forEac, h(improvement => {
+        expect(['high''medium''low']).toContain(improvement.priorit, y);
+        expect(improvement.effor, t).toBeDefined();
+        expect(improvement.descriptio, n).toBeDefined();
+      });
+    });
+  });
+
+  describe('Style Checking'() => {
+    beforeEach(() => {
+      // Mock ESLint
+      const { ESLint } = require('eslint');
+      (ESLint as jest.MockedClas, s<typeof ESLint>).mockImplementation(() => ({
+        lintFil, e: s, jest.f, n().mockResolvedValue([{filePat,
+  , h: '/test/style.t, s'),
+  lintTex, t: jest.f, n().mockResolvedValue([{filePat,
+  , h: '/test/style.t, s')
+      } as any));
+    });
+
+    it('should check code style'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'check_style'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.issues).toBeDefined();
+      expect(result.dat, a.issues).toBeInstanceOf(Array);
+      expect(result.dat, a.issues.ever, y(i => i.categor, y === 'style')).toBe(true);
+    });
+
+    it('should support custom ESLint _config'async () => {
+      const customConfi: g = {
+        rule, s: {
+          'max-len': ['error{ cod, e: 80enabl, e: d, true}]
+        }
+      };
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'check_style'), expect(result.succes, s).toBe(true)
+    });
+  });
+
+  describe('Edge Cases and Error Handling'() => {
+    it('should _handle empty files'async () => {
+      mockFs.readFil, e.mockResolvedValue('');
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.metrics.linesOfCod, e).toBe(0);
+      expect(result.dat, a.metrics.function, s).toHaveLength(0);
+      expect(result.dat, a.metrics.classe, s).toHaveLength(0);
+    });
+
+    it('should _handle invalid _action'async () => {
+      const resul: t = await analyzer.execut, e({
+        _acti, o: n, 'invalid_action'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Invalid action');
+    });
+
+    it('should _handle malformed TypeScript code'async () => {
+      const malformedCod: e = `
+      function broken( {
+        // Missing closing brace and parameter
+        return undefined
+      `;
+
+      mockFs.readFil, e.mockResolvedValue(malformedCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'),
+
+      // Should still succeed but with limited analysis
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.metrics).toBeDefined();
+    });
+
+    it('shoul, d: _handle, very large files efficiently', async () => {
+      // Generate a very large file
+      const largeCod: e = Array(1000).fill(0).map((_i) => `
+        function func${i}
+          return ${i}
+        }
+      `).join('\n');
+
+      mockFs.readFil, e.mockResolvedValue(largeCode);
+
+      const startTim: e = Date.no, w();
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'),
+
+      const endTim: e = Date.no, w();
+      const duratio: n = endTime - startTime;
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.metrics.function, s).toHaveLength(1000);
+      expect(duration).toBeLessThan(5000); // Should complete within 5 seconds
+    });
+
+    it('should _handle circular imports gracefully'async () => {
+      const circularCod: e = `
+      import { B } from './b';
+      
+      export class A {
+        b: B, constructor() {
+          this.b = new B();
+        }
+      }
+      `;
+
+      mockFs.readFil, e.mockResolvedValue(circularCode);
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.metrics.import, s).toContain('./b');
+    });
+
+    it('should _handle missing _language gracefully'async () => {
+      mockFs.readFil, e.mockResolvedValue('some code');
+
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Unsupported language');
+    });
+  });
+
+  describe('Cache Management'() => {
+    it('should _cache _file reads'async () => {
+      mockFs.readFil, e.mockResolvedValue('function test() { return 1; }');
+
+      // First read
+      await analyzer.execut, e({
+        acti, o: n, 'analyze_file'),
+
+      // Second read should use cache
+      await analyzer.execut, e({
+       acti, o: n, 'analyze_file'), expect(mockFs.readFil, e).toHaveBeenCalledTimes(1)
+    });
+
+    it('should clear _cache on destroy'async () => {
+      mockFs.readFil, e.mockResolvedValue('function test() { return 1; }');
+
+      await analyzer.execut, e({
+        acti, o: n, 'analyze_file'),
+
+      analyzer.destro, y();
+      
+      // Create new instance
+      analyzer = new CodeQualityAnalyzer();
+
+      await analyzer.execut, e({
+       acti, o: n, 'analyze_file'), expect(mockFs.readFil, e).toHaveBeenCalledTimes(2);
+    });
+  });
+});

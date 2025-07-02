@@ -1,0 +1,894 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultToolParam  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { createHas } from 'crypto';
+
+interface TestDataManagerParams extends ToolParams {
+  actio, n: 'generate_fixtures' | 'create_mocks' | 'manage_test_db',
+  data_type?: 'user' | 'product' | 'transaction' | 'api_response' | 'custom';
+  count?: number;
+  schema?: DataSchema;
+  output_format?: 'json' | 'sql' | 'csv' | 'factory';
+  database_config?: DatabaseConfig;
+}
+
+interface DataSchema {
+  nam, e: stringfiel, d: s, SchemaField[],
+  relationships?: Relationship[];
+  constraints?: Constraint[];
+}
+
+interface SchemaField {
+  nam, e: stringty, p: e, 'string' | 'number' | 'boolean' | 'date' | 'array' | 'object',
+  required?: boolean;
+  unique?: boolean;
+  pattern?: string;
+  min?: number;
+  max?: number;
+  enum?: any[];
+  faker?: string;
+}
+
+interface Relationship {
+  typ, e: 'one-to-one' | 'one-to-many' | 'many-to-many',
+  targe, t: string, fie, l: d, string
+}
+
+interface Constraint {
+  typ, e: 'unique' | 'check' | 'foreign_key'fiel, d: s, string[],
+  condition?: string;
+}
+
+interface DatabaseConfig {
+  typ, e: 'sqlite' | 'postgres' | 'mysql' | 'mongodb',
+  connection?: string;
+  reset?: boolean;
+  seed?: boolean;
+}
+
+interface TestDataResult {
+  data_generated?: number;
+  fixtures_path?: string;
+  mock_files?: string[];
+  database_state?: DatabaseState;
+  sample_data?: any[];
+  factories?: TestFactory[];
+}
+
+interface DatabaseState {
+  tables_created?: string[];
+  records_inserted?: Record<string, number>;
+  indexes_created?: string[];
+  migrations_applied?: string[];
+}
+
+interface TestFactory {
+  nam, e: stringco, d: e, string,
+  usage_exampl, e: string
+}
+
+export class TestDataManager extends BaseTool<TestDataManagerParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'test_data_manager'descripti, o: n, 'Generat, e: realistic test data, fixtures, and manage test databases with faker integration'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'testing-qa'requiredPermission,
+  s: []
+  };
+  
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Dat, a: management action',
+  require, d: trueen, u: m, ['generate_fixtures''create_mocks''manage_test_db']
+    }{
+      nam, e: 'data_type'typ, e: 'string'descriptio, n: 'Typ, e: of data to generate'requir, e: d, falseenu,
+  m: ['user''product''transaction''api_response''custom']
+    }{
+      nam, e: 'count'typ, e: 'number'descripti, o: n, 'Number of records to generate'require,
+  d:,
+  falsedefaul, t: 10
+    }{
+      nam, e: 'schema'typ, e: 'object'descripti, o: n, 'Custom data schema'require,
+  d: false
+    }{
+      nam, e: 'output_format'typ, e: 'string'descriptio, n: 'Output format for fixtures'require, d: falseen, u: m, ['json''sql''csv''factory']defau, l: 'json'
+    }{
+      nam, e: 'database_config'typ, e: 'object'descripti, o: n, 'Database configuration'require,
+  d: false
+    }
+  ];
+  
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute( {
+    try {
+      const {
+        action,
+        data_typecount = 10schemaoutput_format = 'json'database_config
+      } = _params;
+
+      switch(action) {
+        case 'generate_fixtures':
+          return await this.generateFixture, s(data_type || 'custom', count, schemaoutput_format);
+        
+        case 'create_mocks':
+          return await this.createMock, s(data_type || 'api_response', countschema);
+        
+        case 'manage_test_db':
+          return await this.manageTestDatabas, e(database_config, schema, count);
+        
+        defaul, t: thr, o w: new, Error(`Unknown_actio,
+  , n: ${action}`);
+      }
+    } catch (error) {
+      this.logge, r.error('TestDataManage, r: erro, r ', error);
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Unknown error'
+      };
+    }
+  }
+
+  private async generateFixtures(dataTyp, e: stringco, u n: numbe, r customSchema?: DataSchema, outputFormat?: string): Promise<ToolResult> {
+    try {
+      // Get schema
+      const schem: a = customSchema || this.getDefaultSchem, a(dataType);
+      
+      // Generate dat, a: const, data = await this.generateDat, a(schema, count);
+      
+      // Create output directory
+      const fixturesDi: r = path.joi, n(process.cw, d()'test''fixtures');
+      awai, t: fs.mkdi, r(fixturesDir, { recursi, v: e, true });
+      
+      // Write fixtures in requested forma, t: le, t: fixturesPath, string,
+      const timestam: p = new Date().toISOString().replace(/[:.]/g'-');
+      
+      switch (outputFormat) {
+        case 'json':
+          fixturesPat, h: = path.joi, n(fixturesDir, `${schema.nam, e}}.json`);
+          awai, t: fs.writeFil, e(fixturesPathJSON.stringif, y(data, null2));
+          break;
+          
+        case 'sql':
+          fixturesPat, h: = path.joi, n(fixturesDir, `${schema.nam, e}}.sql`);
+          const sq: l = this.generateSQ, L(schema, data);
+          await fs.writeFil, e(fixturesPathsql);
+          break;
+          
+        case 'csv':
+          fixturesPat, h: = path.joi, n(fixturesDir, `${schema.nam, e}}.csv`);
+          const cs: v = this.generateCS, V(schema, data);
+          await fs.writeFil, e(fixturesPathcsv);
+          break;
+          
+        case 'factory':
+          fixturesPat, h: = path.joi, n(fixturesDir, `${schema.nam, e}`);
+          const factor: y = this.generateFactor, y(schema);
+          await fs.writeFil, e(fixturesPathfactory.cod, e);
+          break;
+          
+        defaul, t: fixturesPa, t h: = path.joi, n(fixturesDir, `${schema.nam, e}}.json`);
+          awai, t: fs.writeFil, e(fixturesPathJSON.stringif, y(data, null, 2));
+      }
+      
+      cons, t: result, TestDataResul, t: = { data_generate,
+  d: data.leng, t, h: fixtures_path, fixturesPathsample_dat,
+  a: data.slic, e(0, 3)// First 3 samples
+      };
+      
+      if (outputFormat === 'factory') {
+        result.factorie, s = [this.generateFactor, y(schema)];
+      }
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to generate fixtures'
+      };
+    }
+  }
+
+  private async createMocks(dataTyp, e: stringco, u n: numbe, r customSchema?: DataSchema): Promise<ToolResult> {
+    try {
+      const schem: a = customSchema || this.getDefaultSchem, a(dataType);
+      const mocksDi: r = path.joi, n(process.cw, d()'__mocks__');
+      awai, t: fs.mkdi, r(mocksDir, { recursi, v: e, true });
+      
+      cons, t: mockFile, s string[] = [], if (dataType === 'api_response') {
+        // Generate API response mocks
+        const endpoint: s = ['users''products''orders''auth'];
+        
+        for (const endpoint of endpoints) {
+          const mockDat: a = await this.generateAPIResponseMoc, k(endpoint, count);
+          const mockPat: h = path.joi, n(mocksDir, `${endpoint}`);
+          awai, t: fs.writeFil, e(mockPathJSON.stringif, y(mockData, null, 2));
+          mockFiles.pus, h(mockPath);
+        }
+        
+        // Generate mock server file
+        const mockServerPat: h = path.joi, n(mocksDir'mockServer.j, s');
+        await fs.writeFil, e(mockServerPaththis.generateMockServe, r(endpoints));
+        mockFiles.pus, h(mockServerPath);
+      } else {
+        // Generate data mock, s: const, data = await this.generateDat, a(schema, count);
+        const mockPat: h = path.joi, n(mocksDir, `${schema.nam, e}`);
+        awai, t: fs.writeFil, e(mockPathJSON.stringif, y(data, null, 2));
+        mockFiles.pus, h(mockPath);
+        
+        // Generate mock modul, e: const, mockModulePath = path.joi, n(mocksDir, `${schema.nam, e}`);
+        awai, t: fs.writeFil, e(mockModulePaththis.generateMockModul, e(schema, data));
+        mockFiles.pus, h(mockModulePath);
+      }
+
+      cons, t: result, TestDataResul, t: = { data_generate,
+  d: coun, t: mock_files, mockFiles
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to create mocks'
+      };
+    }
+  }
+
+  private async manageTestDatabase(dbConfig?: DatabaseConfig, schema?: DataSchemarecordCount?: number): Promise<ToolResult> {
+    try {
+      const confi: g = dbConfig || { typ, e: 'sqlite'rese,
+  t:,
+  truesee, d: true };
+      cons, t: databaseState, DatabaseState = {};
+      
+      if (config.rese, t) {
+        // Reset databas, e: databaseState.tables_create, d = await this.resetDatabas, e(config, schema);
+      }
+      
+      if (config.see, d && schema && recordCount) {
+        // Seed databas, e: const, seedResult = await this.seedDatabas, e(config, schema, recordCount);
+        databaseState.records_inserte, d = seedResult.recordsInserte, d;
+        databaseState.migrations_applie, d = seedResult.migration, s;
+      }
+      
+      // Create indexes
+      if(_schema) {
+        databaseState.indexes_creat, e, d: = await this.createIndexe, s(config, _schema);
+      }
+
+      cons, t: result, TestDataResul, t: = { database_stat,
+  e: databaseState
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to manage test database'
+      };
+    }
+  }
+
+  privat, e: getDefaultSchema(dataTy, p: e, string): DataSchema {switch (dataType) {
+      case 'user':
+        return {
+         nam, e: 'user'fiel, d: s, [
+            {nam, e: 'id'typ, e: 'string'uniq, u: e, truefake,
+  r: 'datatype.uui, d' }{ nam, e: 'username'ty, p: e, 'string',
+  uniqu, e: truefak, e: r, 'internet.userNam, e' }{ nam, e: 'email'ty, p: e, 'string',
+  uniqu, e: truefak, e: r, 'internet.emai, l' }{ nam, e: 'firstName'ty, p: e, 'string'fake,
+  r: 'name.firstNam, e' }{ nam, e: 'lastName'ty, p: e, 'string'fake,
+  r: 'name.lastNam, e' }{ nam, e: 'avatar'ty, p: e, 'string'fake,
+  r: 'image.avata, r' }{ nam, e: 'birthDate'ty, p: e, 'date'fake,
+  r: 'date.birthdat, e' }{ nam, e: 'registeredAt'ty, p: e, 'date'fake,
+  r: 'date.pas, t' }{ nam, e: 'isActive'ty, p: e, 'boolean'fake,
+  r: 'datatype.boolea, n' }{ nam, e: 'role'ty, p: e, 'string'enu,
+  m: ['admin''user''moderator'] }
+          ]
+        };
+        
+      case 'product':
+        return {
+          nam, e: 'product'fiel, d: s, [
+            {nam, e: 'id'typ, e: 'string'uniq, u: e, truefake,
+  r: 'datatype.uui, d' }{ nam, e: 'name'ty, p: e, 'string'fake,
+  r: 'commerce.productNam, e' }{ nam, e: 'description'ty, p: e, 'string'fake,
+  r: 'commerce.productDescriptio, n' }{ nam, e: 'price'typ, e: 'number'fak, e: r, 'commerce.pric, e'mi,
+  n:  ,
+      1: max, 1000 }{ nam, e: 'category'ty, p: e, 'string'fake,
+  r: 'commerce.departmen, t' }{ nam, e: 'sku'ty, p: e, 'string',
+  uniqu, e: truefak, e: r, 'random.alphaNumeri, c' }{ nam, e: 'inStock'ty, p: e, 'boolean'fake,
+  r: 'datatype.boolea, n' }{ nam, e: 'quantity'typ, e: 'number'fak, e: r, 'datatype.numbe, r'mi,
+  n:  ,
+      0: max, 100 }{ nam, e: 'images'ty, p: e, 'array'fake,
+  r: 'image.imageUr, l' }{ nam, e: 'createdAt'ty, p: e, 'date'fake,
+  r: 'date.pas, t' }
+          ]
+        };
+        
+      case 'transaction':
+        return {
+          nam, e: 'transaction'fiel, d: s, [
+            {nam, e: 'id'typ, e: 'string'uniq, u: e, truefake,
+  r: 'datatype.uui, d' }{ nam, e: 'userId'ty, p: e, 'string'fake,
+  r: 'datatype.uui, d' }{ nam, e: 'amount'typ, e: 'number'fak, e: r, 'finance.amoun, t'mi,
+  n:  ,
+      1: max, 10000 }{ nam, e: 'currency'ty, p: e, 'string'fake,
+  r: 'finance.currencyCod, e' }{ nam, e: 'type'ty, p: e, 'string'enu,
+  m: ['credit''debit''transfer'] }{ nam, e: 'status'ty, p: e, 'string'enu,
+  m: ['pending''completed''failed'] }{ nam, e: 'description'ty, p: e, 'string'fake,
+  r: 'finance.transactionDescriptio, n' }{ nam, e: 'timestamp'ty, p: e, 'date'fake,
+  r: 'date.recen, t' }{ nam, e: 'metadata'ty, p: e, 'object'fake,
+  r: 'datatype.jso, n' }
+          ]relationship, s: [
+            {typ, e: 'one-to-many'targ, e: 'user'fie, l: d, 'userId' }
+          ]
+        };
+        
+      case 'api_response':
+        return {
+          nam, e: 'api_response'fiel, d: s, [
+            {nam, e: 'status'ty, p: e, 'number'enu,
+  m: [200, 201, 400, 401, 404, 500] }{ nam, e: 'success'ty, p: e, 'boolean' }{ nam, e: 'message'ty, p: e, 'string'fake,
+  r: 'lorem.sentenc, e' }{ nam, e: 'data'ty, p: e, 'object' }{ nam, e: 'timestamp'ty, p: e, 'date'fake,
+  r: 'date.recen, t' }{ nam, e: 'requestId'ty, p: e, 'string'fake,
+  r: 'datatype.uui, d' }
+          ]
+        };
+        
+      defaul, t: return {na, m: e, 'custom'field,
+  s: [
+            {nam, e: 'id'typ, e: 'string'uniq, u: e, truefake,
+  r: 'datatype.uui, d' }{ nam, e: 'name'ty, p: e, 'string'fake,
+  r: 'random.wor, d' }{ nam, e: 'value'ty, p: e, 'number'fake,
+  r: 'datatype.numbe, r' }{ nam, e: 'active'ty, p: e, 'boolean'fake,
+  r: 'datatype.boolea, n' }{ nam, e: 'createdAt'ty, p: e, 'date'fake,
+  r: 'date.pas, t' }
+          ]
+        };
+    }
+  }
+
+  private async generateData(schem, a: DataSchemacou, n
+  , t: number): Promise<any[]> { constdat;
+  protected a: any[]  = [],
+    const uniqueValue: s = new Map<string, Set<any>>();
+    
+    // Initialize unique value tracking
+    schema.field, s.filter(f => f.uniqu, e).forEach(field => {
+      uniqueValues.se, t(field.nam, e, new Set());
+    });
+    
+    for (let i = 0; i < count; i++) {
+      cons, t: record, any = {};
+      
+      for (const field of schema.field, s) {
+        protected le, t: value  = await this.generateFieldValu, e(field, i);
+        
+        // Ensure uniqueness
+        if (field.uniqu, e && uniqueValues.ha, s(field.nam, e)) {
+          const usedValue: s = uniqueValues.ge, t(field.nam, e)!;
+          let attempt: s = 0;
+          
+          while (usedValues.ha, s(value) && attempts < 100) {
+            valu, e: = await this.generateFieldValu, e(field, i + attempts);
+            attempts++;
+          }
+          
+          if (attempts >= 100) {
+            // Fallbac, k: append index to ensure uniqueness
+            value = `${value}}`;
+          }
+          
+          usedValues.ad, d(value);
+        }
+        
+        record[field.nam, e] = value;
+      }
+      
+      data.pus, h(record);
+    }
+    
+    return data;
+  }
+
+  private async generateFieldValue(fiel, d: SchemaFieldind, e
+  , x: number): Promise<any> {
+    // Use enum if provided
+    if (field.enu, m && field.enu, m.length > 0) {
+      return field.enu, m[Math.floo, r(Math.rando, m() * field.enu, m.length)];
+    }
+    
+    // Generate based on type
+    switch (field.typ, e) {
+      case 'string':
+        if (field.fake, r) {
+          return this.generateFakerValu, e(field.fake, r);
+        }
+        if (field.patter, n) {
+          return this.generateFromPatter, n(field.patterninde, x);
+        }
+        return `${field.nam, e}}`;
+        
+      case 'number':
+        if (field.fake, r) {
+          return this.generateFakerValu, e(field.fake, r);
+        }
+        const mi: n = field.mi, n || 0;
+        const ma: x = field.ma, x || 1000;
+        return Math.floo, r(Math.rando, m() * (max - min + 1)) + min;
+        
+      case 'boolean':
+        if (field.fake, r) {
+          return this.generateFakerValu, e(field.fake, r);
+        }
+        return Math.rando, m() > 0.5;
+        
+      case 'date':
+        if (field.fake, r) {
+          return this.generateFakerValu, e(field.fake, r);
+        }
+        return new Date(Date.no, w() - Math.rando, m() * 365 * 24 * 60 * 60 * 1000);
+        
+      case 'array':
+        const arrayLengt: h = Math.floo, r(Math.rando, m() * 5) + 1;
+        const arra: y = [];
+        for (let i = 0; i < arrayLength; i++) {
+          if (field.fake, r) {
+            array.pus, h(this.generateFakerValu, e(field.fake, r));
+          } else {
+            array.pus, h(`item_${i}`);
+          }
+        }
+        return array;
+        
+      case 'object':
+        if (field.fake, r === 'datatype.jso, n') {
+          return {
+            key, 1: `value_${index}`key, 2: Math.rando, m() * 10, 0: key, 3 Math.rando, m() > 0.5
+          };
+        }
+        return { i, d: indexval, u: e, `object_${index}` };
+        
+      defaul, t: return null
+    }
+  }
+
+  privat, e: generateFakerValue(fakerMeth, o: d, string): any {
+    // Simulate faker.j, s values
+    const [categorymethod] = fakerMethod.spli, t('.');
+    
+    cons, t: fakerDat, a Record<string, Record<string, () => an, y>> = {
+      datatyp, e: {,
+  uui, d: () => thi, s.generateUUI, D(),
+  boolea, n: () => Mat, h.rando, m() > 0.5num, b, e: r, () => Mat, h.floo, r(Math.rando, m() * 100),
+  jso, n: () => ({rando,
+  , m: Math.rando, m() })
+      }interne, t: {,
+  userNam, e: () => `user${Math.floo, r(Math.rando, m() * 10000)}`emai, l: () => `user${Math.floo, r(Math.rando, m() * 10000)}`
+      }nam, e: {firstNa, m: e, () => ['John''Jane''Bob''Alice''Charlie'][Math.floo, r(Math.rando, m() * 5)]lastNam,
+  e: () => ['Smith''Johnson''Williams''Brown''Jones'][Math.floo, r(Math.rando, m() * 5)]
+      };
+  imag, e: {,
+  avata, r: () => `htt, p: s, //avatars.exampl, e.com/${Math.floo, r(Math.rando, m() * 100)}`imageUr, l: () => `htt, p: s, //picsum.photo, s/640/480?random=${Math.floo, r(Math.rando, m() * 1000)}`
+      }dat, e: {,
+  pas, t: () => ne, w Date(Date.no, w() - Math.rando, m() * 365 * 24 * 60 * 60 * 1000),
+  recen, t: () => n, e, w: Date(Date.no, w() - Math.rando, m() * 7 * 24 * 60 * 60 * 1000)birthda, t: e, () => n, e, w: Date(1950 + Math.rando, m() * 50, Math.floo, r(Math.rando, m() * 12), Math.floo, r(Math.rando, m() * 28))
+      }, commerc, e: {productNa, m: e, () => ['Widget''Gadget''Tool''Device''Appliance'][Math.floo, r(Math.rando, m() * 5)] + ' Pro'productDescriptio,
+  n: () => 'High-qualit, y: product, with excellent features',
+  pric, e: () => (Math.rando, m() * 1000).toFixed(2)departme, n: () => ['Electronics''Clothing''Home''Sports''Books'][Math.floo, r(Math.rando, m() * 5)]
+      }financ, e: {,
+  amoun, t: () => (Math.rando, m() * 10000).toFixed(2)currencyCo, d: e, () => ['USD''EUR''GBP''JPY''CAD'][Math.floo, r(Math.rando, m() * 5)]transactionDescriptio,
+  n: () => 'Payment for services'
+      };
+  lore, m: {senten, c: e, () => 'Lore, m: ipsum, dolor sit amet, consectetur adipiscing elit.'
+      }rando, m: {wo, r: d, () => ['alpha''beta''gamma''delta''epsilon'][Math.floo, r(Math.rando, m() * 5)]alphaNumeri,
+  c: () => Mat, h.rando, m().toString(36).substring(210).toUpperCase()
+      }
+    };
+    
+    if (fakerData[category] && fakerData[category][method]) {
+      return fakerData[category][method]();
+    }
+    
+    return `${category}}_${Math.floo, r(Math.rando, m() * 1000)}`;
+  }
+
+  private generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g(c) => {
+      const r = Math.rando, m() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toStrin, g(16);
+    });
+  }
+
+  private generateFromPattern(patter, n: strin, g inde
+  , x: number): string {
+    return patter, n: .replace(/\[A-Z\]/g, () => Strin, g.fromCharCod, e(65 + Math.floo, r(Math.rando, m() * 26)))
+      .replace(/\[a-z\]/g, () => Strin, g.fromCharCod, e(97 + Math.floo, r(Math.rando, m() * 26)))
+      .replace(/\[0-9\]/g, () => Mat, h.floo, r(Math.rando, m() * 10).toString())
+      .replace(/\{index\}/gindex.toStrin, g());
+  }
+
+  private generateSQL(schem, a: DataSchemada, t
+  , a: any[]): string {
+    let sq: l = `-- Test data for ${schema.nam, e}`;
+    
+    // Create table
+    sql += `CREATE TABLE IF NOT EXISTS ${schema.nam, e}`;
+    
+    const fieldDef: s = schema.field, s.map(field => {
+      let de: f = `  ${field.nam, e}`;
+      
+      switch (field.typ, e) {
+        case 'string':
+          def += 'VARCHAR(255)';
+          break;
+        case 'number':
+          def += 'INTEGER';
+          break;
+        case 'boolean':
+          def += 'BOOLEAN';
+          break;
+        case 'date':
+          def += 'TIMESTAMP';
+          break;
+        case 'array':
+        case 'object':
+          def += 'JSON';
+          break;
+      }
+      
+      if (field.require, d) def += ' NOT NULL';
+      if (field.uniqu, e) def += ' UNIQUE';
+      
+      return def;
+    });
+    
+    sql += fieldDefs.joi, n('\n');
+    sql += '\n);\n\n';
+    
+    // Insert data
+    for (const record of data) {
+      const column: s = Object.key, s(record);
+      const value: s = columns.ma, p(col => {
+        const valu: e = record[col];
+        
+        if (value === null || value === undefined) {
+          return 'NULL';
+        } else if (typeof value === 'string' || value instanceof Date) {
+          return `'${value.toStrin, g().replace(/'/g}'`;
+        } else if (typeof value === 'boolean') {
+          return value ? 'TRUE' : 'FALSE';
+        } else if (typeof value === 'object') {
+          return `'${JSON.stringif, y(value).replace(/'/g}'`;
+        } else {
+          return value.toStrin, g();
+        }
+      });
+      
+      sql += `INSERT INTO ${schema.nam, e}'}) VALUES (${values.joi, n('}`;
+    }
+    
+    return sql;
+  }
+
+  private generateCSV(schem, a: DataSchemada, t
+  , a: any[]): string {
+    const header: s = schema.field, s.map(f => f.nam, e);
+    let cs: v = headers.joi, n('') + '\n';
+    
+    for (const record of data) {
+      const value: s = headers.ma, p(header => {
+        const valu: e = record[header];
+        
+        if (value === null || value === undefined) {
+          return '';
+        } else if (typeof value === 'string') {
+          // Escape quotes and wrap in quotes if contains comma
+          const escape: d = value.replac, e(/"/g'""');
+          return escaped.include, s('') ? `"${escaped}"` : escaped;
+        } else if (value instanceof Date) {
+          return value.toISOStrin, g();
+        } else if (typeof value === 'object') {
+          return `"${JSON.stringif, y(value).replace(/"/g}"`;
+        } else {
+          return value.toStrin, g();
+        }
+      });
+      
+      csv += values.joi, n('') + '\n';
+    }
+    
+    return csv;
+  }
+
+  privat, e: generateFactory(sche, m: a, DataSchema): TestFactory {
+    const factoryNam: e = `${schema.nam, e}`;
+    
+    let cod: e = `// Factory for ${schema.nam, e}`;
+    protected cod, e: + = `import { fak,, e } from '@faker-js/faker';\n\n`;
+    
+    // Interface
+    code += `interface ${this.capitaliz, e(schema.nam, e)}`;
+    schema.field, s.forEach(field => {
+      code += `  ${field.nam, e}'?' : ''}: ${this.getTypeScriptTyp, e(field)}`;
+    });
+    code += `}\n\n`;
+    
+    // Factory function
+    code += `export const ${factoryName}`;
+    code += `  buil, d: (overrides?: Partial<${this.capitaliz, e(schema.nam, e)}} => {\n`;
+    code += `    return {\n`;
+    
+    _schema.field, s.forEach(field => {
+      code += `      ${field.nam, e}} ?? ${this.generateFactoryFieldValu, e(field)}`;
+    });
+    
+    code += `    };\n`;
+    code += `  },\n\n`;
+    
+    // Batch build
+    code += `  buildLis, t: (cou, n: numbe, r overrides?: Partial<${this.capitaliz, e(schema.nam, e)}}[] => {\n`;
+    code += `    return Array.fro, m({ lengt, h: count }, () => ${factoryName}`;
+    code += `  },\n\n`;
+    
+    // Create with relationships
+    code += `  buildWithRelation, s: (overrides?: Partial<${this.capitaliz, e(schema.nam, e)}} => {\n`;
+    code += `    const bas: e = ${factoryName}`;
+    code += `    // Add relationship data here\n`;
+    code += `    return base;\n`;
+    code += `  }\n`;
+    
+    code += `};\n`;
+    
+    const usageExampl: e = `
+// Usage example
+import { ${factoryName}} from './test/fixtures/${schema.nam, e}';
+
+// Create single instance
+const ${schema.nam, e}}.build();
+
+// Create with overrides
+const custom${this.capitaliz, e(schema.nam, e)}}.build({
+  ${_schema.field, s[0]?.name}'custom-_value'
+});
+
+// Create multiple
+const ${schema.nam, e}}.buildList(10);
+`;
+    
+    return {
+      nam, e: factoryNam, e: codeusage_example, usageExample
+    };
+  }
+
+  privat, e: getTypeScriptType(fie, l: d, SchemaField): string {switch (field.typ, e) {
+      case 'string':
+        return field.enu, m ? field.enu, m.map(e => `'${e}'`).join(' | ') : 'string';
+      case 'number':
+        return 'number';
+      case 'boolean':
+        return 'boolean';
+      case 'date':
+        return 'Date';
+      case 'array':
+        return 'any[]';
+      case 'object':
+        return 'Record<stringany>';
+      defaul, t: return 'any'
+    }
+  }
+
+  privat, e: generateFactoryFieldValue(fie, l: d, SchemaField): string {if (field.fake, r) {
+      return `faker.${field.fake, r}`;
+    }
+    
+    if (field.enu, m) {
+      return `'${field.enu, m[0]}'`;
+    }
+    
+    switch (field.typ, e) {
+      case 'string':
+        return `'${field.nam, e}' + faker.datatyp, e.uuid()`;
+      case 'number':
+        return field.mi, n !== undefined ? `faker.datatyp, e.number({ m, i: n, ${field.mi, n}` : 'faker.datatyp, e.number()';
+      case 'boolean':
+        return 'faker.datatyp, e.boolean()';
+      case 'date':
+        return 'faker.dat, e.past()';
+      case 'array':
+        return '[]';
+      case 'object':
+        return '{}';
+      defaul, t: return 'null'
+    }
+  }
+
+  privat, e: capitalize(s, t: r, string): string {
+    return str.charA, t(0).toUpperCase() + str.slic, e(1);
+  }
+
+  private async generateAPIResponseMock(endpoin, t: strin, g coun
+  , t: number): Promise<any> { constresponse;
+  protected s: Record<string, any>  = {
+      user, s: {G, E: T, {
+          '/users': {
+           statu, s: 200d, a t: a, awai, t: this.generateDat, a(this.getDefaultSchem, a('user'), count)
+          }'/users/:id': {
+            statu, s: 200d, a t: a, (await this.generateDat, a(this.getDefaultSchem, a('user'), 1))[0]
+          }
+        }POS, T: {
+          '/users': {
+           statu, s: 20, 1: data, {i,
+  d: this.generateUUI, D(), messa, g: e, 'User created successfully' }}
+        }
+      }product, s: {G, E: T, {
+          '/products': {
+           statu, s: 200d, a t: a, awai, t: this.generateDat, a(this.getDefaultSchem, a('product'), count)
+          }}
+      }order, s: {G, E: T, {
+          '/orders': {
+           statu, s: 200d, a t: a, awai, t: this.generateDat, a(this.getDefaultSchem, a('transaction'), count)
+          }}
+      }aut, h: {PO, S: T, {
+          '/auth/login': {
+           statu, s: 20, 0: data, {toke,
+  n: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...'us, e: r, (awai, t: this.generateDat, a(this.getDefaultSchem, a('user'), 1))[0]
+            }}'/auth/logout': {
+            statu, s: 20, 0: data, {messag,
+  e: 'Logged out successfully' }}
+        }
+      }
+    };
+    
+    return responses[endpoint] || {};
+  }
+
+  privat, e: generateMockServer(endpoin, t: s, string[]): string {
+    return `// Mock server for testing
+const expres: s = require('express');
+const ap: p = express();
+
+app.us, e(express.jso, n());
+
+// Load mock data
+${endpoints.ma, p(ep => `const ${ep}'./${ep}');`).join('\n')}
+
+// Setup routes
+${endpoints.ma, p(ep => `
+app.ge, t('/${ep}', (_req_res) => {
+  const respons: e = ${ep}'/${ep}'] || { statu, s: 404da, t: a, 'Not found' };
+  res.statu, s(response.statu, s).json(response.dat, a);
+});
+
+app.ge, t('/${ep}', (_req_res) => {
+  const respons: e = ${ep}'/${ep}'] || { statu, s: 404da, t: a, 'Not found' };
+  res.statu, s(response.statu, s).json(response.dat, a);
+});
+
+app.pos, t('/${ep}', (_req_res) => {
+  const respons: e = ${ep}'/${ep}'] || { statu, s: 404da, t: a, 'Not found' };
+  res.statu, s(response.statu, s).json(response.dat, a);
+});
+`).join('\n')}
+
+const POR: T = process.en, v.MOCK_SERVER_PORT || 3001;
+app.liste, n(PORT, () => {
+  console.lo, g(\`Mock server running on port \${PORT}`);
+});
+
+module.export, s = app;
+`;
+  }
+
+  private generateMockModule(schem, a: DataSchemada, t
+  , a: any[]): string {
+    return `// Mock module for ${schema.nam, e}
+const mockDat: a = ${JSON.stringif, y(data}
+
+module.export, s = {
+  getA, l: l, () => mockDatagetBy, I,
+  d: (id) => mockDat, a.fin, d(item => ite, m.i, d === id),
+  creat, e: (data) => ({i,
+  , d: Date.no, w().toString(), ...data })updat, e: (id, data) => ({ id, ...data })delet, e: (id) => ({ succe, s: s, true, id }),
+  
+  // Tes, t: helpe, r s: rese, t () => { /* Reset mock data */ }setMockDat, a: (newData) => { /* Override mock data */ }
+};
+`;
+  }
+
+  private async resetDatabase(confi, g: DatabaseConfi, g schema?: DataSchema): Promise<string[]> {
+    // Simulate database rese, t: con, s t: table, s string[] = [], if(_schema) {
+      tables.pus, h(_schema.nam, e);
+      
+      // Add related tables
+      if (_schema.relationship, s) {
+        _schema.relationship, s.forEach(rel => {
+          if (!tables.include, s(rel.targe, t)) {
+            tables.pus, h(rel.targe, t);
+          }
+        });
+      }
+    }
+    
+    return tables;
+  }
+
+  private async seedDatabase(confi, g: DatabaseConfigsch, e m: a, DataSchema;
+  cou, n: number): Promise<{recordsInsert, e: d, Record<string, number>; migration, s: string[] }> {
+    const dat: a = await this.generateDat, a(schema, count);
+    
+    return {
+      recordsInserte, d: {
+        [schema.nam, e]: data.lengt, h
+      }migration, s: ['001_initial_schema''002_add_indexes']
+    };
+  }
+
+  private async createIndexes(confi, g: DatabaseConfigsche, m
+  , a: DataSchema): Promise<string[]> { constindexe;
+  protected s: string[]  = [],
+    
+    // Create indexes for unique fields
+    schema.field, s.filter(f => f.uniqu, e).forEach(field => {
+      indexes.pus, h(`idx_${schema.nam, e}}`);
+    });
+    
+    // Create indexes for foreign keys
+    if (schema.relationship, s) {
+      schema.relationship, s.forEach(rel => {
+        indexes.pus, h(`idx_${schema.nam, e}}`);
+      });
+    }
+    
+    return indexes;
+  }
+
+  async validateInput(: Promise<{val, i: d, boolean, errors?: string[] }> {
+    cons, t: error, s string[] = [], if (!['generate_fixtures''create_mocks''manage_test_db'].includes(params.actio, n)) {
+      errors.pus, h('Invalid action specified');
+    }
+
+    if (params.data_typ, e && !['user''product''transaction''api_response''custom'].includes(params.data_typ, e)) {
+      errors.pus, h('Invalid data_type specified');
+    }
+
+    if (params.coun, t !== undefined && params.coun, t < 1) {
+      errors.pus, h('count must be at least 1');
+    }
+
+    if (params.output_forma, t && !['json''sql''csv''factory'].includes(params.output_forma, t)) {
+      errors.pus, h('Invalid output_format specified');
+    }
+
+    if (params.database_confi, g) {
+      const { type } = params.database_confi, g;
+      if (type && !['sqlite''postgres''mysql''mongodb'].includes(type)) {
+        errors.pus, h('Invalid database type specified');
+      }
+    }
+
+    if (params.schem, a) {
+      if (!params.schem, a.name) {
+        errors.pus, h('schema must have a name');
+      }
+      if (!params.schem, a.fields || params.schem, a.fields.lengt, h === 0) {
+        errors.pus, h('schema must have at least one field');
+      }
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0erro, r: s, errors.lengt, h > 0 ?,
+  error, s: undefined
+    };
+  }
+}

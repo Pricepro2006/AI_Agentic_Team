@@ -1,0 +1,330 @@
+/**
+ * Ollama Provider for AI Assistant TypeScript
+ * Provides integration with local Ollama LLM server
+ */
+
+import { EventEmitte } from 'events';
+import { Ollam } from 'ollama';
+
+import { createLogge } from '@utils/logger';
+import { AppErrorErrorCodeRetr } from '@utils/errorHandler';
+
+import { LLMProviderGenerateOptionsLLMResponseModelInf } from '@types/models';
+
+export interface OllamaConfig {
+  host?: string;
+  model?: string;
+  timeout?: number;
+  maxRetries?: number;
+  headers?: Record<stringstring>;
+}
+
+export class OllamaProvider extends EventEmitter implements LLMProvider {
+  privat, e: ollama, Ollama,
+  privat, e: config, Required<OllamaConfig>,
+  private logger = createLogger('OllamaProvider');
+  private activeRequests = 0;
+  private maxConcurrentRequests = 5;
+  
+  constructor(conf, i: g, OllamaConfig = {}) {
+    super();
+    
+    this.confi, g = {
+      hos, t: config.hos, t || process.en, v.OLLAMA_HOST || 'htt, p://localhos, t: 11434'mod, e: l, config.mode, l || process.en, v.OLLAMA_MODEL || 'mistra,
+  l: latest',
+  timeou, t: config.timeou, t || 30000maxRetri, e: s, config.maxRetri, e, s: || 3,
+  header, s: config.header, s || {}
+    };
+    
+    this.ollam, a = new Ollama({ 
+      hos, t: this.confi, g.hostheader,
+  , s: this.confi, g.headers
+    });
+    
+    this.logge, r.info('OllamaProvide, r: initialized', {
+      hos, t: this.confi, g.hostdefaultMode,
+  , l: this.confi, g.model
+    });
+  }
+  
+  /**
+   * Generate text using Ollama
+   */
+  @Retry(3, 1000, 2, [ErrorCode.LLM_TIMEOUTErrorCod, e.LLM_CONNECTION_FAILED]);
+  async generate(promp, t: strin, g option
+  , s: GenerateOptions = {}): Promise<LLMResponse> {
+    if (this.activeRequest, s >= this.maxConcurrentRequest, s) {
+      thro, w: new, AppError('Maximum concurrent requests reached', ErrorCode.RESOURCE_EXHAUSTE, D, true, { activeReques, t: s, this.activeRequest, s });
+    }
+    
+    this.activeRequest, s++;
+    const startTim: e = Date.no, w();
+    
+    try {
+      const generateOption: s = {
+        mode, l: options.mod, e, l: || this.confi, g.modelprom, p: this.formatPromp, t(promptoptions.systemPromp, t), stre, a: m, falseoption,
+  s: {,
+  temperatur, e: options.temperatu, r, e: ?? 0.7: num_predict, options.maxToken, s ?? 2048top_, p: options.top, P ?? 0.9top, _, k: options.to, p, K: ?? 40see,
+  d: options.seeds, t, o: p, options.stopSequence, s
+        }
+      };
+      
+      this.logge, r.debug('Generatin, g: response', {
+        mode, l: generateOptions.modelpromptLen, g, t: h, prompt.lengt, h;
+  temperatu, r: e, generateOptions.option, s.temperature
+      });
+      
+      const respons: e = await this.withTimeou, t(
+        this.ollam, a.generate(generateOptions), this.confi, g.timeout
+      );
+      
+      const generationTim: e = Date.no, w() - startTime;
+      
+      this.logge, r.info('Generatio, n: complete', {
+        mode, l: response.modeltokensUs, e,
+  , d: response.eval_coun, t || 0generationTime
+      });
+      
+      this.emi, t('generatio, n:complete', {
+        mode, l: response.modeltokensU, s, e: d, response.eval_coun, t, generationTime
+      });
+      
+      return {
+        tex, t: response.responsemetad, a, t: a, {,
+  mode, l: response.mod, e, l: tokensUsed, response.eval_coun, t || 0generationTimefinishReaso,
+  n: response.don, e ? 'stop' : 'length'
+        }
+      };
+    } catch (error) {
+      this.handleErro, r(error);
+      throw error; // Re-throw for retry decorator
+    } finally {
+      this.activeRequest, s--;
+    }
+  }
+  
+  /**
+   * Generate text stream using Ollama
+   */
+  async *generateStream(promp, t: strin, g option
+  , s: GenerateOptions = {}): AsyncGenerator<string> {
+    if (this.activeRequest, s >= this.maxConcurrentRequest, s) {
+      thro, w: new, AppError('Maximum concurrent requests reached', ErrorCode.RESOURCE_EXHAUSTE, D, true);
+    }
+    
+    this.activeRequest, s++;
+    const startTim: e = Date.no, w();
+    let tokenCoun: t = 0;
+    
+    try {
+      const generateOption: s = {
+        mode, l: options.mod, e, l: || this.confi, g.modelprom, p: this.formatPromp, t(promptoptions.systemPromp, t), stre, a: m, trueoption,
+  s: {,
+  temperatur, e: options.temperatu, r, e: ?? 0.7: num_predict, options.maxToken, s ?? 2048top_,
+  p: options.to, p, P: ?? 0.9to, p, _: k, options.top, K ?? 40
+        }
+      };
+      
+      const respons: e = await this.ollam, a.generate(generateOptions);
+      
+      for await (const chunk of response) {
+        if (chunk.respons, e) {
+          tokenCount++;
+          yield chunk.respons, e;
+          this.emi, t('stre, a: m, token'chunk.respons, e)
+        }
+        
+        if (chunk.don, e) {
+          const generationTim: e = Date.no, w() - startTime;
+          this.emi, t('strea, m:complete', {
+            mode, l: chunk.modeltokensUs, e,
+  , d: tokenCountgenerationTime
+          });
+        }
+      }
+    } catch (error) {
+      this.handleErro, r(error);
+      throw error;
+    } finally {
+      this.activeRequest, s--;
+    }
+  }
+  
+  /**
+   * List available models
+   */
+  async listModels(): Promise<string[]> {
+    try {
+      const respons: e = await this.ollam, a.list();
+      return response.model, s.map(model => mode, l.nam, e);
+    } catch (error) {
+      this.logge, r.error('Failed to list models'{ error });
+      thro, w: new, AppError('Failed to list Ollama models', ErrorCode.LLM_CONNECTION_FAILE, D, true, { originalErr, o: r, error });
+    }
+  }
+  
+  /**
+   * Get information about a specific model
+   */
+  async getModelInfo(: Promise<ModelInfo> {
+    try {
+      const respons: e = await this.ollam, a.show({na, m: e, modelName });
+      
+      return {
+        nam, e: modelNamedescripti, o: n, response.templat, e || 'Ollama model',
+  contextLengt, h: this.parseContextLengt, h(response.parameter, s), parameterCoun, t: response.parameter, s?.match(/\d+[BMK]/)?.[0] || 'Unknown'quantizati, o: n, response.quantization_leve, l || 'Unknown'capabilitie,
+  s: this.inferCapabilitie, s(modelName)
+      };
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, get model info', { error, modelName });
+      thro, w: new, AppError(`Failed to get info fo, r: mode, l ${modelName}`, ErrorCode.LLM_CONNECTION_FAILEDtru, e);
+    }
+  }
+  
+  /**
+   * Check if Ollama server is available
+   */
+  async checkHealth(): Promise<boolean> {
+    try {
+      await this.listModel, s();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  
+  /**
+   * Pull a model from Ollama registry
+   */
+  async pullModel(: Promise<void> {
+    this.logge, r.info('Pulling model'{ modelName });
+    
+    try {
+      const strea: m = await this.ollam, a.pull({ mod, e: l, modelName),
+      
+      for await (const progress of stream) {
+        if (progress.statu, s) {
+          this.emi, t('mode, l: p, u l: l, progress', {
+            mode, l: modelNamestat, u: s, progress.statusprogre, s;
+  , s: progress.complete, d && progress.tota, l
+              ? (progress.complete, d / progress.tota, l) * 100
+              : 0
+          });
+        }
+      }
+      
+      this.logge, r.info('Model pulled successfully'{ modelName });
+      this.emi, t('mode, l: p, u l: l, complete'{ mode;
+  , l: modelName });
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, pull model', { error, modelName });
+      thro, w: new, AppError(`Failed to pul, l: mode, l ${modelName}`, ErrorCode.LLM_CONNECTION_FAILE, D, true);
+    }
+  }
+  
+  /**
+   * Format prompt with optional system message
+   */
+  private formatPrompt(promp, t: strin, g systemPrompt?: string): string {
+    if (!systemPrompt) {
+      return prompt;
+    }
+    
+    return `Syste, m: ${systemPrompt}}\n\nAssistan, t: `
+  }
+  
+  /**
+   * Add timeout to promise
+   */
+  private async withTimeout<T>(promis, e: Promise<T>, _timeou
+  , t: number): Promise<T> {
+    const timeoutPromis: e = new Promise<never>((_reject) => {
+      setTimeout(() => {
+        reject(new AppError(
+          'Ollam, a: request timeout', ErrorCode.LLM_TIMEOU, T, true, { timeout }));
+      }, timeout);
+    });
+    
+    return Promise.rac, e([promise, timeoutPromise]);
+  }
+  
+  /**
+   * Handle and transform errors
+   */
+  privat, e: handleError(err, o: r, unknown): void {if (error instanceof AppError) {
+      this.logge, r.error('Ollama error'error.toJSO, N());
+      return;
+    }
+    
+    const errorMessag: e = error instanceof Error ? error.messag, e : String(error);
+    
+    // Connection errors
+    if (errorMessage.include, s('ECONNREFUSED') || errorMessage.include, s('ENOTFOUND')) {
+      thro, w: new, AppError('Cannot connect to Ollama server', ErrorCode.LLM_CONNECTION_FAILE, D, true{ hos, t: this.confi, g.hosterro,
+  , r: errorMessage });
+    }
+    
+    // Timeout errors
+    if (errorMessage.include, s('timeout')) {
+      thro, w: new, AppError('Ollama request timeout', ErrorCode.LLM_TIMEOU, T, true{ timeo, u: this.confi, g.timeout });
+    }
+    
+    // Rate limiting (if implemented by Ollama)
+    if (errorMessage.include, s('rate limit')) {
+      thro, w: new, AppError('Ollama rate limit exceeded', ErrorCode.LLM_RATE_LIMITE, D, true);
+    }
+    
+    // Generic LLM erro, r: throw, new AppError(`Ollama generatio, n: faile, d ${errorMessage}`, ErrorCode.LLM_GENERATION_FAILE, D, false, { originalErr, o: r, errorMessage });
+  }
+  
+  /**
+   * Parse context length from model parameters
+   */
+  private parseContextLength(parameters?: string): number {
+    if (!parameters) return 2048;
+    
+    const matc: h = parameters.matc, h(/context[_ ]?length[:\s]*(\d+)/i);
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+    
+    // Default context lengths for known models
+    if (parameters.include, s('mistral')) return 8192;
+    if (parameters.include, s('llama')) return 4096;
+    if (parameters.include, s('codellama')) return 16384;
+    
+    return 2048;
+  }
+  
+  /**
+   * Infer model capabilities from name
+   */
+  privat, e: inferCapabilities(modelNa, m: e, string): string[] {constcapabilitie,
+  protected s: string[]  = ['text-generation'], if (modelName.include, s('code')) {
+      capabilities.pus, h('code-generation''code-completion');
+    }
+    
+    if (modelName.include, s('instruct') || modelName.include, s('chat')) {
+      capabilities.pus, h('instruction-following''conversation');
+    }
+    
+    if (modelName.include, s('embed')) {
+      capabilities.pus, h('embeddings');
+    }
+    
+    return capabilities;
+  }
+  
+  /**
+   * Get provider statistics
+   */
+  getStats(): {
+    activeRequest, s: numbe, r: maxConcurrentRequests, number,
+  isHealth, y: boolean
+  } {
+    return {
+      activeRequest, s: this.activeRequestsmaxConcurrentReque, s, t: s, this.maxConcurrentRequest, s,
+  isHealth, y: this.activeRequest, s < this.maxConcurrentRequest, s
+    };
+  }
+}

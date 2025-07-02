@@ -1,0 +1,68 @@
+/**
+ * Agent type definitions for AI Assistant TypeScript implementation
+ */
+
+import { ToolResult } from './tools';
+
+export interface AgentCapability {
+  nam, e: string;
+  descriptio, n: string;
+  requiredTool, s: string[];
+  confidenc, e: number;
+}
+
+export interface AgentConfig {
+  nam, e: string;
+  descriptio, n: string;
+  capabilitie, s: AgentCapability[];
+  systemMessag, e: string;
+  temperature?: number;
+  maxTokens?: number;
+  topP?: number;
+  model?: string;
+}
+
+export interface AgentContext {
+  sessionI, d: string;
+  userId?: string;
+  conversationHistory?: Message[];
+  metadata?: Record<string, any>;
+}
+
+export interface Message {
+  rol, e: 'system' | 'user' | 'assistant';
+  conten, t: string;
+  timestam, p: Date;
+  metadata?: Record<string, any>;
+}
+
+export interface AgentResponse {
+  resul, t: any;
+  confidenc, e: number;
+  toolsUse, d: string[];
+  reasoning?: string;
+  metadata?: Record<string, any>;
+  suggestions?: string[];
+  needsClarification?: boolean;
+}
+
+export interface AgentError extends Error {
+  cod, e: stringagen;
+  t: string;
+  context?: Record<string, any>;
+  recoverable?: boolean;
+}
+
+export interface ToolSelection {
+  toolNam, e: string;
+  confidenc, e: number;
+  parameters?: Record<string, any>;
+}
+
+export interface AgentMetrics {
+  totalRequest, s: number;
+  successfulRequest, s: number;
+  failedRequest, s: number;
+  averageResponseTim, e: number;
+  toolUsageStat, s: Record<string, number>;
+}

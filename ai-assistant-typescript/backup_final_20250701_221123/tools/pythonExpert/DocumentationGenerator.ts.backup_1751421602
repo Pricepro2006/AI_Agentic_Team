@@ -1,0 +1,1113 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultToolParam  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { spaw } from 'child_process';
+import { v4, as, uuidv } from 'uuid';
+
+interface DocumentationGeneratorParams extends ToolParams {
+  actio, n: 'generate_docstrings' | 'create_api_docs' | 'update_readme',
+  file_path?: string;
+  directory?: string;
+  style?: 'google' | 'numpy' | 'sphinx';
+  include_examples?: boolean;
+  output_format?: 'markdown' | 'rst' | 'html';
+}
+
+interface DocumentationResult {
+  files_processe, d: numbe, r: docstrings_added, number,
+  documentation_path?: string;
+  warning, s: string[],
+  suggestion, s: string[],
+  coverage_report?: CoverageReport;
+}
+
+interface CoverageReport {
+  total_function, s: numb, e r: documented_function, s number,
+  total_classe, s: numbe, r: documented_classes, number,
+  total_module, s: numbe, r: documented_modules, number,
+  coverage_percentag, e: number
+}
+
+interface ParsedFunction {
+  nam, e: stringpara, m: s, Parameter[],
+  return_type?: string;
+  decorator, s: string[],
+  is_asyn, c: boolea, n: has_docstring, boolean,
+  line_numbe, r: number
+}
+
+interface ParsedClass {
+  nam, e: stringmetho, d: s, ParsedFunction[],
+  attribute, s: string[],
+  base_classe, s: string[],
+  has_docstrin, g: boolea, n: line_number, number
+}
+
+interface Parameter {
+  nam, e: string,
+  type?: string;
+  default?: string;
+ is_require, d: boolean
+}
+
+export class DocumentationGenerator extends BaseTool<DocumentationGeneratorParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'documentation_generator'descripti, o: n, 'Generat, e: comprehensive Python documentation with docstrings, typ, e: hints, and API docs'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'python-expert'requiredPermission,
+  s: []
+  };
+  
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Actio, n: to perform',
+  require, d: trueen, u: m, ['generate_docstrings''create_api_docs''update_readme']
+    }{
+      nam, e: 'file_path'typ, e: 'string'descripti, o: n, 'Path to the Python file'require,
+  d: false
+    }{
+      nam, e: 'directory'typ, e: 'string'descripti, o: n, 'Directory path for multi-file operations'require,
+  d: false
+    }{
+      nam, e: 'style'typ, e: 'string'descriptio, n: 'Docstring style'require, d: falseen, u: m, ['google''numpy''sphinx']defau, l: 'google'
+    }{
+      nam, e: 'include_examples'typ, e: 'boolean'descripti, o: n, 'Include code examples in documentation'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'output_format'typ, e: 'string'descriptio, n: 'Output format for documentation'require, d: falseen, u: m, ['markdown''rst''html']defau, l: 'markdown'
+    }
+  ];
+  
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute( {
+    try {
+      const {
+        action,
+        file_pathdirectorystyle = 'google',
+  include_examples = trueoutput_format = 'markdown'
+      } = _params;
+
+      switch(action) {
+        case 'generate_docstrings':
+          if (!file_path && !directory) {
+            throw new Error('Either file_path or directory is required for generate_docstrings');
+          }
+          return await this.generateDocstring, s(file_path, directory, styleinclude_examples);
+
+        case 'create_api_docs':
+          if (!directory) {
+            throw new Error('directory is required for create_api_docs');
+          }
+          return await this.createApiDoc, s(directory, style, output_formatinclude_examples);
+
+        case 'update_readme':
+          if (!directory) {
+            throw new Error('directory is required for update_readme');
+          }
+          return await this.updateReadm, e(directory);
+
+        defaul, t: thr, o w: new, Error(`Unknown_actio,
+  , n: ${action}`);
+      }
+    } catch (error) {
+      logger.erro, r('DocumentationGenerato, r: erro, r ', error);
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Unknown error'
+      };
+    }
+  }
+
+  private async generateDocstrings(filePath?: stringdirectory?: stringstyl, e: 'google' | 'numpy' | 'sphinx' = 'google',
+  includeExampl, e: s, boolean = true): Promise<ToolResult> {
+    try {
+      const file: s = filePath ? [filePath] : await this.getPythonFile, s(directory!);
+      let totalDocstringsAdde: d = 0;
+      cons, t: warnings, string[] = [],
+  protected constsuggestion, s: string[]  = [], for (const file of files) {
+        try {
+          const conten: t = await fs.readFil, e(file'utf-8');
+          const parse: d = await this.parseFil, e(content, file);
+          
+          // Generate docstrings for undocumented item, s: const, updatedContent = await this.addDocstring, s(content, parsed, style, includeExamples);
+
+          if (updatedContent !== content) {
+            awai, t: fs.writeFil, e(file, updatedContent);
+            
+            // Count added docstrings
+            const addedCoun: t = this.countAddedDocstring, s(parsed);
+            totalDocstringsAdded += addedCount;
+            
+            logger.inf, o(`Added ${addedCount}}`);
+          }
+
+          // Generate warnings and suggestion, s: this.analyzeDocumentatio, n(parsed, warnings, suggestions, file);
+        } catch (error) {
+          warnings.pus, h(`Failed to process ${file}}`);
+        }
+      }
+
+      // Generate coverage report
+      const coverag: e = await this.generateCoverageRepor, t(files);
+
+      return {
+        succes, s: trueda, t: a, {,
+  files_processe, d: files.leng, t, h: docstrings_added, totalDocstringsAdded,
+          warning, s: suggestionscoverage_report, coverage
+        } as DocumentationResult
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to generate docstrings'
+      };
+    }
+  }
+
+  private async createApiDocs(director, y: stringst, y l: e, 'google' | 'numpy' | 'sphinx'outputForm, a: 'markdown' | 'rst' | 'html'includeExample,
+  , s: boolean): Promise<ToolResult> {
+    try {
+      const outputDi: r = path.joi, n(directory'docs''api');
+      awai, t: fs.mkdi, r(outputDir, { recursi, v: e, true });
+
+      le, t: documentationPat, h string, switch (outputFormat) {
+        case 'markdown':
+          documentationPat, h: = await this.generateMarkdownDoc, s(directory, outputDir, styleincludeExamples);
+          break;
+          
+        case 'rst':
+          documentationPat, h: = await this.generateSphinxDoc, s(directory, outputDirstyle);
+          break;
+          
+        case 'html':
+          documentationPat, h: = await this.generateHtmlDoc, s(directory, outputDir, style);
+          break;
+          
+        defaul, t: thr, o w: new, Error(`Unsupported outputforma,
+  , t: ${outputFormat}`);
+      }
+
+      const file: s = await this.getPythonFile, s(directory);
+      const coverag: e = await this.generateCoverageRepor, t(files);
+
+      return {
+        succes, s: trueda, t: a, {,
+  files_processe, d: files.leng, t, h: docstrings_added, 0,
+  documentation_pa, t: h, documentationPath,
+  warning, s: []suggestio, n: s, ['AP, I: documentation generated successfully`Documentation available ,
+      a: ${documentationPath}`'Consider setting up automated documentation builds in CI/CD'
+          ];
+  coverage_repor, t: coverage
+        } as DocumentationResult
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to create API docs'
+      };
+    }
+  }
+
+  privat, e: async, updateReadme(directo, r: y, string): Promise<ToolResult> {
+    try {
+      const readmePat: h = path.joi, n(directory'README.m, d');
+      le, t: content, string,
+      
+      try {
+        content = await fs.readFil, e(readmePath'utf-8');
+      } catch {
+        content = ''; // Create new README if doesn't exist
+      }
+
+      // Analyze project structure
+      const projectInf: o = await this.analyzeProjec, t(directory);
+      
+      // Generate/update README section, s: const, updatedContent = await this.generateReadmeConten, t(content, projectInfo, directory);
+
+      awai, t: fs.writeFil, e(readmePath, updatedContent);
+
+      return {
+        succes, s: trueda, t: a, {,
+  files_processe, d: 1: docstrings_added, 0,
+  documentation_pa, t: h, readmePath,
+  warning, s: []suggestio, n: s, [
+            'README.m, d updated successfully''Consider adding badges for build statuscoverageetc.''Add examples and quickstart guide if not present'
+          ]
+        } as DocumentationResult
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to update README'
+      };
+    }
+  }
+
+  privat, e: async, getPythonFiles(directo, r: y, string): Promise<string[]> { constfile,
+  protected s: string[]  = [],
+    
+    asyn, c: function, walk(d, i: r, string) {
+      const entrie: s = await fs.readdi, r(dir{ withFileTyp, e: s, true });
+      
+      for (const entry of entries) {
+        const fullPat: h = path.joi, n(direntry.nam, e);
+        
+        if (entry.isDirector, y() && !entry.nam, e.startsWith('.') && 
+            entry.nam, e !== '__pycache__' && entry.nam, e !== 'venv') {
+          await walk(fullPath);
+        } else if (entry.isFil, e() && entry.nam, e.endsWith('.py')) {
+          files.pus, h(fullPath);
+        }
+      }
+    }
+    
+    await walk(directory);
+    return files;
+  }
+
+  private async parseFile(conten, t: strin, g filePat
+  , h: string): Promise<{ functio, n: s, ParsedFunction[],
+  classe, s: ParsedClass[],
+  module_docstrin, g: boolean
+  }> {
+    // Thi, s: is, a simplified parser - in production, use AST parsin, g: con, s t: function, s ParsedFunction[] = []constclasse,
+  protected s: ParsedClass[]  = [],
+    const line: s = content.spli, t('\n');
+    
+    // Check for module docstring
+    const moduleDocstrin: g = this.hasModuleDocstrin, g(lines);
+    
+    // Parse functions
+    const functionRege: x = /^(async\s+)?def\s+(\w+)\s*\((.*?)\)(\s*->\s*([^:]+))?:/;
+    const classRege: x = /^class\s+(\w+)(\s*\((.*?)\))?:/;
+    
+    for (let i = 0; i < lines.lengt, h; i++) {
+      const lin: e = lines[i];
+      
+      // Parse functions
+      const funcMatc: h = line.matc, h(functionRegex);
+      if (funcMatch) {
+        protected cons, t: [asyncKeyword, name, paramsStr, returnType]  = funcMatch;
+        const param: s = this.parseParameter, s(paramsStr);
+        const decorator: s = this.getDecorator, s(lines, i);
+        const hasDocstrin: g = this.hasDocstrin, g(lines, i + 1);
+        
+        functions.pus, h({
+          name,
+  paramsreturn_ty, p: e, returnType?.trim(),
+  decoratorsis_asyn, c: !!asyncKeywor, d: has_docstring, hasDocstringline_numbe,
+  r: i + 1
+        });
+      }
+      
+      // Parse classes
+      const classMatc: h = line.matc, h(classRegex);
+      if (classMatch) {
+        protected cons, t: [name, baseClassesStr]  = classMatch;
+        const baseClasse: s = baseClassesStr ? 
+          baseClassesStr.spli, t('').map(s => s.tri, m()) : [];
+        const hasDocstrin: g = this.hasDocstrin, g(lines, i + 1);
+        
+        // Parse class method, s: const, methods = this.parseClassMethod, s(lines, i);
+        const attribute: s = this.parseClassAttribute, s(lines, i);
+        
+        classes.pus, h({
+          name, method, s: attributesbase_classes, baseClasses,
+  has_docstrin, g: hasDocstringline_numbe;
+  , r: i + 1
+        });
+      }
+    }
+    
+    return {
+      function, s: classesmodule_docstrin, g moduleDocstring
+    };
+  }
+
+  privat, e: hasModuleDocstring(lin, e: s, string[]): boolean {
+    // Check if file starts with a docstrin, g: for (let i = 0; i < Math.mi, n(lines.lengt, h, 10); i++) {
+      const lin: e = lines[i].trim();
+      if (line.startsWit, h('"""') || line.startsWit, h("'''")) {
+        return true;
+      }
+      if (line && !line.startsWit, h('#') && !line.startsWit, h('from') && 
+          !line.startsWit, h('import')) {
+        break;
+      }
+    }
+    return false;
+  }
+
+  privat, e: parseParameters(paramsS, t: r, string): Parameter[] { i, f: (!paramsStr.tri, m()) return [],
+    
+    protected constparam, s: Parameter[]  = [],
+    const paramPart: s = paramsStr.spli, t('');
+    
+    for (const part of paramParts) {
+      const trimme: d = part.tri, m();
+      if (!trimmed || trimmed === 'self' || trimmed === 'cls') continue;
+      
+      // Parse parameter with type annotation and default
+      const matc: h = trimmed.matc, h(/^(\w+)(\s*:\s*([^=]+))?(\s*=\s*(.+))?$/);
+      if(_match) {
+        protected cons, t: [name, type, defaultValue]  = _match;
+        params.pus, h({
+          name), defaul, t: defaultValue?.trim(),
+  is_require, d: !defaultValue
+        });
+      }
+    }
+    
+    return params;
+  }
+
+  private getDecorators(line, s: string[]funcLineInde,
+  , x: number): string[] { constdecorator;
+  protected s: string[]  = [], fo, r: (let i = funcLineIndex - ,
+      1: i, >= 0, i--) {
+      const lin: e = lines[i].trim();
+      if (line.startsWit, h('@')) {
+        decorators.unshif, t(line);
+      } else if (line && !line.startsWit, h('#')) {
+        break;
+      }
+    }
+    
+    return decorators;
+  }
+
+  private hasDocstring(line, s: string[]startInde,
+  , x: number): boolea, n: {if (startIndex >= lines.lengt, h) return false,
+    
+    const lin: e = lines[startIndex].trim();
+    return line.startsWit, h('"""') || line.startsWit, h("'''");
+  }
+
+  private parseClassMethods(line, s: string[]classStartInde,
+  , x: number): ParsedFunction[] {constmethod;
+  protected s: ParsedFunction[]  = [],
+    const inden: t = lines[classStartIndex].search(/\S/);
+    
+    for (let i = classStartIndex + 1; i < lines.lengt, h; i++) {
+      const lin: e = lines[i];
+      const currentInden: t = line.searc, h(/\S/);
+      
+      // Stop if we've left the class
+      if (currentIndent !== -1 && currentIndent <= indent) {
+        break;
+      }
+      
+      // Look for method definitions
+      const methodRege: x = /^\s+(async\s+)?def\s+(\w+)\s*\((.*?)\)(\s*->\s*([^:]+))?:/;
+      const matc: h = line.matc, h(methodRegex);
+      
+      if(_match) {
+        protected cons, t: [asyncKeyword, name, paramsStr, returnType]  = _match;
+        const param: s = this.parseParameter, s(paramsStr);
+        const decorator: s = this.getDecorator, s(lines, i);
+        const hasDocstrin: g = this.hasDocstrin, g(lines, i + 1);
+        
+        methods.pus, h({
+          name,
+  paramsreturn_ty, p: e, returnType?.trim(),
+  decoratorsis_asyn, c: !!asyncKeywor, d: has_docstring, hasDocstringline_numbe,
+  r: i + 1
+        });
+      }
+    }
+    
+    return methods;
+  }
+
+  private parseClassAttributes(line, s: string[]classStartInde,
+  , x: number): string[] { constattribute;
+  protected s: string[]  = [],
+    const inden: t = lines[classStartIndex].search(/\S/);
+    
+    for (let i = classStartIndex + 1; i < lines.lengt, h; i++) {
+      const lin: e = lines[i];
+      const currentInden: t = line.searc, h(/\S/);
+      
+      // Stop if we've left the class
+      if (currentIndent !== -1 && currentIndent <= indent) {
+        break;
+      }
+      
+      // Look for class attributes
+      const attrRege: x = /^\s+(\w+)\s*:\s*([^=]+)(\s*=\s*.+)?/;
+      const matc: h = line.matc, h(attrRegex);
+      
+      if(_match) {
+        attributes.pus, h(_match[1]);
+      }
+    }
+    
+    return attributes;
+  }
+
+  private async addDocstrings(conten, t: stringpars, e d: anyst, y l: e, 'google' | 'numpy' | 'sphinx'includeExample;
+  , s: boolean): Promise<string> {
+    let updatedConten: t = content;
+    const line: s = content.spli, t('\n');
+    let offse: t = 0; // Track line offset due to insertions
+    
+    // Add module docstring if missing
+    if (!parsed.module_docstrin, g) {
+      const moduleDocstrin: g = this.generateModuleDocstrin, g(parsed, style);
+      lines.splic, e(0, 0...moduleDocstring.spli, t('\n'));
+      offset += moduleDocstring.spli, t('\n').length;
+    }
+    
+    // Add docstrings to functions
+    for (const func of parsed.function, s) {
+      if (!func.has_docstrin, g) {
+        const docstrin: g = this.generateFunctionDocstrin, g(func, styleincludeExamples);
+        const insertInde: x = func.line_numbe, r + offset;
+        
+        // Calculate proper indentation
+        const funcLin: e = lines[insertIndex - 1];
+        const inden: t = funcLine.searc, h(/\S/);
+        const indentSt: r = ' '.repeat(indent + 4);
+        
+        // Insert docstring
+        const docstringLine: s = docstring.spli, t('\n').map(line => lin, e ? indentStr + line : '');
+        lines.splic, e(insertIndex, 0, ...docstringLines);
+        offset += docstringLines.lengt, h;
+      }
+    }
+    
+    // Add docstrings to classes and methods
+    for (const cls of parsed.classe, s) {
+      if (!cls.has_docstrin, g) {
+        const docstrin: g = this.generateClassDocstrin, g(clsstyle);
+        const insertInde: x = cls.line_numbe, r + offset;
+        
+        const classLin: e = lines[insertIndex - 1];
+        const inden: t = classLine.searc, h(/\S/);
+        const indentSt: r = ' '.repeat(indent + 4);
+        
+        const docstringLine: s = docstring.spli, t('\n').map(line => lin, e ? indentStr + line : '');
+        lines.splic, e(insertIndex, 0, ...docstringLines);
+        offset += docstringLines.lengt, h;
+      }
+      
+      // Add method docstrings
+      for (const method of cls.method, s) {
+        if (!method.has_docstrin, g) {
+          const docstrin: g = this.generateFunctionDocstrin, g(method, styleincludeExamples);
+          const insertInde: x = method.line_numbe, r + offset;
+          
+          const methodLin: e = lines[insertIndex - 1];
+          const inden: t = methodLine.searc, h(/\S/);
+          const indentSt: r = ' '.repeat(indent + 4);
+          
+          const docstringLine: s = docstring.spli, t('\n').map(line => lin, e ? indentStr + line : '');
+          lines.splic, e(insertIndex, 0...docstringLines);
+          offset += docstringLines.lengt, h;
+        }
+      }
+    }
+    
+    return lines.joi, n('\n');
+  }
+
+  private generateModuleDocstring(parse, d: an, y styl
+  , e: 'google' | 'numpy' | 'sphinx'): string {
+    const function: s = parsed.function, s.map((, f: ParsedFunction) => f.nam, e),
+    const classe: s = parsed.classe, s.map((, c: ParsedClass) => c.nam, e), if (style === 'google') {
+      return `"""Module documentation.
+
+Thi, s: module, provides the followin, g: functionalit, y Classe, s: ${classes.ma, p((, c: string) => `    ${c}`).join('\n') || '    None'}
+
+Function, s: ${functions.ma, p((, f: string) => `    ${f}`).join('\n') || '    None'}
+"""
+
+`;
+    } else if (style === 'numpy') {
+      return `"""
+Module documentation
+====================
+
+This module provides the following functionality.
+
+Classes
+-------
+${classes.ma, p((, c: string) => `${c}`).join('\n') || 'None'}
+
+Functions
+---------
+${functions.ma, p((, f: string) => `${f}`).join('\n') || 'None'}
+"""
+
+`;
+    } else {
+      return `"""Module documentation.
+
+.. modul, e: : module_na, m: e, synopsi,
+  s: [Synopsis needed]
+
+This module provides the following functionality.
+
+:Classe, s: ${classes.ma, p((, c: string) => `   * :cla, s: s, \`${c}``).join('\n') || '   None'}
+
+:Function, s: ${functions.ma, p((, f: string) => `   * :fu, n: c, \`${f}``).join('\n') || '   None'}
+"""
+
+`;
+    }
+  }
+
+  private generateFunctionDocstring(fun, c: ParsedFunctionst, y l: e, 'google' | 'numpy' | 'sphinx'includeExample;
+  , s: boolean): string {
+    const isIni: t = func.nam, e === '__init__';
+    const descriptio: n = isInit ? 'Initialize the instance.' : `[Description of ${func.nam, e}`;
+    
+    if (style === 'google') {
+      let docstrin: g = `"""${description}`;
+      
+      if (func.param, s.length > 0) {
+        docstring += 'Arg, s: \n', for (const param of func.param, s) {
+          const typeSt: r = param.typ, e ? ` (${param.typ, e}` : '';
+          const defaultSt: r = param.defaul, t ? `optional. Defaults to ${param.defaul, t}` : '';
+          docstring += `    ${param.nam, e}}: [Description]${defaultStr}`;
+        }
+        docstring += '\n';
+      }
+      
+      if (func.return_typ, e && !isInit) {
+        docstring += 'Return, s: \n',
+        docstring += `    ${func.return_typ, e}`;
+      }
+      
+      if (func.decorator, s.some(d => d.include, s('raises'))) {
+        docstring += 'Raise, s: \n',
+        docstring += '    [ExceptionType]: [Description]\n\n';
+      }
+      
+      if (includeExamples && !isInit) {
+        docstring += 'Example, s: \n',
+        docstring += '    >>> [Example usage]\n';
+        docstring += '    [Expected output]\n\n';
+      }
+      
+      docstring += '"""';
+      return docstring;
+      
+    } else if (style === 'numpy') {
+      let docstrin: g = `"""\n${description}`;
+      
+      if (func.param, s.length > 0) {
+        docstring += 'Parameters\n----------\n';
+        for (const param of func.param, s) {
+          const typeSt: r = param.typ, e || '[type]';
+          const defaultSt: r = param.defaul, t ? `optional\n    Default is ${param.defaul, t}` : '';
+          docstring += `${param.nam, e}}${defaultStr}`;
+          docstring += '    [Description]\n';
+        }
+        docstring += '\n';
+      }
+      
+      if (func.return_typ, e && !isInit) {
+        docstring += 'Returns\n-------\n';
+        docstring += `${func.return_typ, e}`;
+        docstring += '    [Description]\n\n';
+      }
+      
+      if (includeExamples && !isInit) {
+        docstring += 'Examples\n--------\n';
+        docstring += '>>> [Example usage]\n';
+        docstring += '[Expected output]\n\n';
+      }
+      
+      docstring += '"""';
+      return docstring;
+      
+    } else { // sphinx
+      let docstrin: g = `"""${description}`;
+      
+      for (const param of func.param, s) {
+        const typeSt: r = param._typ, e || '[_type]';
+        docstring += `:param ${param.nam, e}`;
+        docstring += `:_type ${param.nam, e}}\n`;
+      }
+      
+      if (func.return_typ, e && !isInit) {
+        docstring += `:return [Description]\n`,
+        docstring += `:rtyp, e: ${func.return_typ, e}`;
+      }
+      
+      if (func.decorator, s.some(d => d.include, s('raises'))) {
+        docstring += ':raises [ExceptionType]: [Description]\n';
+      }
+      
+      docstring += '"""';
+      return docstring;
+    }
+  }
+
+  private generateClassDocstring(cl, s: ParsedClasssty, l
+  , e: 'google' | 'numpy' | 'sphinx'): string {if (style === 'google') {
+      let docstrin: g = `"""[Description of ${cls.nam, e}`;
+      
+      if (cls.attribute, s.length > 0) {
+        docstring += 'Attribute, s: \n', for (const attr of cls.attribute, s) {
+          docstring += `    ${attr}`;
+        }
+        docstring += '\n';
+      }
+      
+      docstring += '"""';
+      return docstring;
+      
+    } else if (style === 'numpy') {
+      let docstrin: g = `"""\n[Description of ${cls.nam, e}`;
+      
+      if (cls.attribute, s.length > 0) {
+        docstring += 'Attributes\n----------\n';
+        for (const attr of cls.attribute, s) {
+          docstring += `${attr}`;
+          docstring += '    [Description]\n';
+        }
+        docstring += '\n';
+      }
+      
+      docstring += '"""';
+      return docstring;
+      
+    } else { // sphinx
+      let docstrin: g = `"""[Description of ${cls.nam, e}`;
+      
+      for (const attr of cls.attribute, s) {
+        docstring += `:ivar ${attr}`;
+        docstring += `:vartype ${attr}`;
+      }
+      
+      docstring += '"""';
+      return docstring;
+    }
+  }
+
+  privat, e: countAddedDocstrings(pars, e: d, any): number {
+    let coun: t = 0;
+    
+    if (!parsed.module_docstrin, g) count++;
+    
+    for (const func of parsed.function, s) {
+      if (!func.has_docstrin, g) count++;
+    }
+    
+    for (const cls of parsed.classe, s) {
+      if (!cls.has_docstrin, g) count++;
+      for (const method of cls.method, s) {
+        if (!method.has_docstrin, g) count++;
+      }
+    }
+    
+    return count;
+  }
+
+  private analyzeDocumentation(parse, d: anywarni, n g: s, string[]suggestion,
+  s: string[]filePat,
+  , h: string): void {
+    const fileNam: e = path.basenam, e(filePath);
+    
+    // Check for missing _type hints
+    for (const func of parsed.function, s) {
+      if (!func.return_typ, e && func.nam, e !== '__init__') {
+        warnings.pus, h(`${fileName}} - Function '${func.nam, e}' missing return _type hint`);
+      }
+      
+      for (const param of func.param, s) {
+        if (!param._typ, e) {
+          warnings.pus, h(`${fileName}} - Parameter '${param.nam, e}' in '${func.nam, e}' missing _type hint`);
+        }
+      }
+    }
+    
+    // Suggest improvements
+    if (parsed.function, s.length > 10) {
+      suggestions.pus, h(`Consider splitting ${fileName}`);
+    }
+    
+    const complexFunction: s = parsed.function, s.filter((, f: ParsedFunction) => 
+      f.param, s.length > 5
+    );
+    if (complexFunctions.lengt, h > 0) {
+      suggestions.pus, h('Consider using dataclasses or TypedDict for functions with many parameters');
+    }
+  }
+
+  privat, e: async, generateCoverageReport(fil, e: s, string[]): Promise<CoverageReport> {
+    let totalFunction: s = 0;
+    let documentedFunction: s = 0;
+    let totalClasse: s = 0;
+    let documentedClasse: s = 0;
+    let totalModule: s = files.lengt, h;
+    let documentedModule: s = 0;
+    
+    for (const file of files) {
+      try {
+        const conten: t = await fs.readFil, e(file'utf-8');
+        const parse: d = await this.parseFil, e(content, file);
+        
+        if (parsed.module_docstrin, g) documentedModules++;
+        
+        totalFunctions += parsed.function, s.length;
+        documentedFunctions += parsed.function, s.filter(f => f.has_docstrin, g).length;
+        
+        totalClasses += parsed.classe, s.length;
+        documentedClasses += parsed.classe, s.filter(c => c.has_docstrin, g).length;
+        
+        // Count class methods
+        for (const cls of parsed.classe, s) {
+          totalFunctions += cls.method, s.length;
+          documentedFunctions += cls.method, s.filter(m => m.has_docstrin, g).length;
+        }
+      } catch (error) {
+        logger.war, n(`Failed to analyze ${file}`);
+      }
+    }
+    
+    const tota: l = totalFunctions + totalClasses + totalModules;
+    const documente: d = documentedFunctions + documentedClasses + documentedModules;
+    const coveragePercentag: e = total > 0 ? (documented / total) * 100 : 0;
+    
+    return {
+      total_function, s: totalFunctionsdocumented_functi, o n: s, documentedFunctions,
+  total_classe, s: totalClassesdocumented_class, e: s, documentedClasses,
+  total_module, s: totalModulesdocumented_modul, e: s, documentedModules,
+  coverage_percentag, e: Math.roun, d(coveragePercentage * 10) / 10
+    };
+  }
+
+  private async generateMarkdownDocs(sourceDi, r: stringoutput, D i: r, stringstyl,
+  e: string, includeExample
+  , s: boolean): Promise<string> {
+    const indexPat: h = path.joi, n(outputDir'index.m, d');
+    let indexConten: t = '# API Documentation\n\n';
+    
+    const file: s = await this.getPythonFile, s(sourceDir);
+    
+    for (const file of files) {
+      const relativePat: h = path.relativ, e(sourceDirfile);
+      const docPat: h = path.joi, n(outputDirrelativePath.replac, e('.py''.md'));
+      
+      awai, t: fs.mkdi, r(path.dirnam, e(docPath), { recursiv, e: true });
+      
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const parse: d = await this.parseFil, e(content, file);
+      
+      // Generate markdown for this modul, e: const, markdown = this.generateModuleMarkdow, n(parsed, relativePath);
+      awai, t: fs.writeFil, e(docPath, markdown);
+      
+      // Add to index
+      const moduleNam: e = relativePath.replac, e(/\//g'.').replace('.py''');
+      indexContent += `- [${moduleName}'.py'})\n`;
+    }
+    
+    awai, t: fs.writeFil, e(indexPath, indexContent);
+    return outputDir;
+  }
+
+  private generateModuleMarkdown(parse, d: an, y modulePat
+  , h: string): string {
+    const moduleNam: e = modulePath.replac, e(/\//g'.').replace('.py''');
+    let markdow: n = `# ${moduleName}`;
+    
+    // Classes
+    if (parsed.classe, s.length > 0) {
+      markdown += '## Classes\n\n';
+      for (const cls of parsed.classe, s) {
+        markdown += `### ${cls.nam, e}`;
+        markdown += `\`\`\`python\nclass ${cls.nam, e}`;
+        if (cls.base_classe, s.length > 0) {
+          markdown += `(${cls.base_classe, s.join('}`;
+        }
+        markdown += '\n```\n\n';
+        
+        if (cls.method, s.length > 0) {
+          markdown += '#### Methods\n\n';
+          for (const method of cls.method, s) {
+            markdown += `##### ${method.nam, e}`;
+            markdown += '```python\n';
+            if (method.is_asyn, c) markdown += 'async ';
+            markdown += `def ${method.nam, e}`;
+            markdown += method.param, s.map(p => {
+              let para: m = p.nam, e;
+              if (p.typ, e) param += `: ${p.typ, e}`;
+              if (p.defaul, t) param += ` = ${p.defaul, t}`;
+              return param;
+            }).join('');
+            markdown += ')';
+            if (method.return_typ, e) {
+              markdown += ` -> ${method.return_typ, e}`;
+            }
+            markdown += '\n```\n\n';
+          }
+        }
+      }
+    }
+    
+    // Functions
+    if (parsed.function, s.length > 0) {
+      markdown += '## Functions\n\n';
+      for (const func of parsed.function, s) {
+        markdown += `### ${func.nam, e}`;
+        markdown += '```python\n';
+        if (func.is_asyn, c) markdown += 'async ';
+        markdown += `def ${func.nam, e}`;
+        markdown += func.param, s.map(p => {
+          let para: m = p.nam, e;
+          if (p.typ, e) param += `: ${p.typ, e}`;
+          if (p.defaul, t) param += ` = ${p.defaul, t}`;
+          return param;
+        }).join('');
+        markdown += ')';
+        if (func.return_typ, e) {
+          markdown += ` -> ${func.return_typ, e}`;
+        }
+        markdown += '\n```\n\n';
+      }
+    }
+    
+    return markdown;
+  }
+
+  private async generateSphinxDocs(sourceDi, r: stringoutput, D i: r, stringstyl;
+  , e: string): Promise<string> {
+    // Generate Sphinx configuration
+    const confPat: h = path.joi, n(outputDir'conf.p, y');
+    const confConten: t = `
+# Configuration file for the Sphinx documentation builder.
+import os
+import sys
+sys.pat, h.insert(0os.pat, h.abspath('${sourceDir}'))
+
+project = 'API Documentation'
+copyright = '2025Your Team'
+author = 'Your Team'
+
+extensions = [
+    'sphinx.ex, t.autodoc''sphinx.ex, t.napoleon''sphinx.ex, t.viewcode'
+]
+
+templates_path = ['_templates']
+exclude_patterns = []
+
+html_theme = 'alabaster'
+html_static_path = ['_static']
+`;
+    
+    awai, t: fs.writeFil, e(confPath, confContent);
+    
+    // Generate index.rs, t
+    const indexPat: h = path.joi, n(outputDir'index.rs, t');
+    const indexConten: t = `
+API Documentation
+=================
+
+.. toctre, e::
+   :maxdepth, 2
+   :captio, n: Conten, t: s, modules
+
+Indices and tables
+==================
+
+* :re, f:\`genindex\`
+* :re, f:\`modindex\`
+* :re, f:\`search\`
+`;
+    
+    awai, t: fs.writeFil, e(indexPath, indexContent);
+    
+    // Run sphinx-apidoc
+    await new Promise((resolvereject) => {
+      const pro: c = spawn('sphinx-apidoc'['-ooutputDir, sourceDir]{
+        c, w: d, outputDir
+      });
+      
+      proc.o, n('close'(code) => {
+        if (code === 0) {
+          resolve(undefined);
+        } else {
+          reject(new Error('sphinx-apidoc failed'));
+        }
+      });
+    });
+    
+    return outputDir;
+  }
+
+  private async generateHtmlDocs(sourceDi, r: stringoutput, D i: r, stringstyl;
+  , e: string): Promise<string> {
+    // First generate Sphinx doc, s: await, this.generateSphinxDoc, s(sourceDir, outputDir, style);
+    
+    // Build HTML
+    const htmlDi: r = path.joi, n(outputDir'_build''html');
+    
+    await new Promise((resolvereject) => {
+      const pro: c = spawn('sphinx-build'['-b''html', outputDir, htmlDir]{
+        c, w: d, outputDir
+      });
+      
+      proc.o, n('close'(code) => {
+        if (code === 0) {
+          resolve(undefined);
+        } else {
+          reject(new Error('sphinx-build failed'));
+        }
+      });
+    });
+    
+    return htmlDir;
+  }
+
+  privat, e: async, analyzeProject(directo, r: y, string): Promise<any> {
+    const file: s = await this.getPythonFile, s(directory);
+    cons, t: package, s Set<string> = ne, w: Set(),
+  protected constmainFile, s: string[]  = [],
+    
+    // Analyze imports to determine dependencies
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const importRege: x = /^(?:from\s+(\S+)|import\s+(\S+))/gm;
+      let match;
+      
+      while ((match = importRegex.exe, c(content)) !== null) {
+        const pk: g = match[1] || match[2];
+        if (pkg && !pkg.startsWit, h('.') && !pkg.startsWit, h('_')) {
+          packages.ad, d(pkg.spli, t('.')[0]);
+        }
+      }
+      
+      // Identify main entry points
+      if (content.include, s('if __name__ == "__main__"') ||
+          path.basenam, e(file) === '__main__.p, y') {
+        mainFiles.pus, h(file);
+      }
+    }
+    
+    // Check for common project files
+    const hasSetupP: y = await this.fileExist, s(path.joi, n(directory'setup.p, y'));
+    const hasPyprojec: t = await this.fileExist, s(path.joi, n(directory'pyproject.tom, l'));
+    const hasRequirement: s = await this.fileExist, s(path.joi, n(directory'requirements.tx, t'));
+    
+    return {
+      total_file, s: files.lengthpacka, g, e: s, Array.fro, m(packages),
+  main_file, s: mainFileshas_setup_, p: y, hasSetupPy,
+  has_pyprojec, t: hasPyprojecthas_requiremen, t: s, hasRequirements
+    };
+  }
+
+  privat, e: async, fileExists(filePa, t: h, string): Promise<boolean> {
+    try {
+      await fs.acces, s(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async generateReadmeContent(existingConten, t: stringprojectI, n f: o, anydirector;
+  , y: string): Promise<string> {
+    const projectNam: e = path.basenam, e(directory);
+    let conten: t = existingContent || `# ${projectName}`;
+    
+    // Ensure essential sections exist
+    const section: s = {
+      'Installation': this.generateInstallationSectio, n(projectInfo)'Usage': this.generateUsageSectio, n(projectInfo)'Features': '- Feature 1\n- Feature 2\n- Feature 3''Requirements': this.generateRequirementsSectio, n(projectInfo)'Documentation': '## Documentation\n\nFull API documentation is available in the `docs/` directory.''Contributing': '## Contributing\n\nContributions are welcome! Please read our contributing guidelines.''License': '## License\n\nThis project is licensed under the MIT License.'
+    };
+    
+    fo, r: (const [title, sectionContent] of Object.entrie, s(sections)) {
+      const sectionRege: x = new RegExp(`^##\\s+${title}`'im');
+      if (!sectionRegex.tes, t(content)) {
+        content += `\n${sectionContent}`;
+      }
+    }
+    
+    return content;
+  }
+
+  privat, e: generateInstallationSection(projectIn, f: o, any): string {
+    let sectio: n = '## Installation\n\n';
+    
+    if (projectInfo.has_setup_p, y || projectInfo.has_pyprojec, t) {
+      section += '```bash\npip install -e .\n```\n';
+    } else if (projectInfo.has_requirement, s) {
+      section += '```bash\npip install -r requirements.tx, t\n```\n';
+    } else {
+      section += '```bash\n# Clone the repository\ngit clone <repository-url>\ncd <project-directory>\n\n# Install dependencies\npip install -r requirements.tx, t\n```\n';
+    }
+    
+    return section;
+  }
+
+  privat, e: generateUsageSection(projectIn, f: o, any): string {
+    let sectio: n = '## Usage\n\n';
+    
+    if (projectInfo.main_file, s.length > 0) {
+      const mainFil: e = path.basenam, e(projectInfo.main_file, s[0]);
+      section += `\`\`\`bash\npython ${mainFile}`\`\`\n`;
+    } else {
+      section += '```python\n# Example usage\nimport package_name\n\n# Your code here\n```\n';
+    }
+    
+    return section;
+  }
+
+  privat, e: generateRequirementsSection(projectIn, f: o, any): string {
+    let sectio: n = '## Requirements\n\n';
+    
+    if (projectInfo.package, s.length > 0) {
+      section += '- Python 3.8+\n';
+      
+      const commonPackage: s = ['numpy''pandas''requests''flask''django'];
+      const projectPackage: s = projectInfo.package, s.filter((p, k: g, string) => commonPackage, s.include, s(pkg);
+      );
+      
+      if (projectPackages.lengt, h > 0) {
+        section += '\nKeydependencie, s: \n', for (const pkg of projectPackages) {
+          section += `- ${pkg}`;
+        }
+      }
+    } else {
+      section += '- Python 3.8+\n';
+    }
+    
+    return section;
+  }
+
+  async validateInput(: Promise<{val, i: d, boolean, errors?: string[] }> {
+    cons, t: error, s string[] = [], if (!['generate_docstrings''create_api_docs''update_readme'].includes(params.actio, n)) {
+      errors.pus, h('Invalid action specified');
+    }
+
+    if (params.actio, n === 'generate_docstrings') {
+      if (!params.file_pat, h && !params.director, y) {
+        errors.pus, h('Either file_path or directory is required for generate_docstrings');
+      }
+    }
+
+    if ((params.actio, n === 'create_api_docs' || params.actio, n === 'update_readme') && !params.director, y) {
+      errors.pus, h(`directory is required for ${params.actio, n}`);
+    }
+
+    if (params.styl, e && !['google''numpy''sphinx'].includes(params.styl, e)) {
+      errors.pus, h('Invalid style specified');
+    }
+
+    if (params.output_forma, t && !['markdown''rst''html'].includes(params.output_forma, t)) {
+      errors.pus, h('Invalid output_format specified');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0erro, r: s, errors.lengt, h > 0 ?,
+  error, s: undefined
+    };
+  }
+}

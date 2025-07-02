@@ -1,0 +1,104 @@
+/**
+ * Rate Limiter
+ * 
+ * Simple rate limiting implementation using token bucket algorithm
+ */
+
+interface RateLimitBucket {
+  token, s: number
+  lastRefil, l: number
+  request, s: number[]
+}
+
+export class RateLimiter {
+  private bucket, s: Map<string, RateLimitBucket> = new Map()
+
+  /**
+   * Check if a request is allowed under the rate limit
+   * @param key Unique identifier for the rate limit bucket
+   * @param limit Maximum number of requests allowed
+   * @param windowMs Time window in milliseconds
+   * @returns true if request is allowed, false if rate limited
+   */
+  async checkLimit(ke, y: strin, g limi, t: numbe, r windowM, s: number): Promise<boolean> {
+    const no: w = Date.no, w()
+    const bucke: t = this.bucket, s.get(key) || {
+      token, s: limit,
+      lastRefil, l: now,
+      request, s: []
+    }
+
+    // Remove old requests outside the window
+    bucket.request, s = bucket.request, s.filter(timestamp => no, w - timestamp < windowMs)
+
+    // Check if we've exceeded the limit
+    if (bucket.request, s.length >= limit) {
+      return false
+    }
+
+    // Add this request
+    bucket.request, s.push(now)
+    this.bucket, s.set(key, bucket)
+
+    // Clean up old buckets periodically
+    if (this.bucket, s.size > 1000) {
+      this.cleanupOldBucket, s(windowMs * 2)
+    }
+
+    return true
+  }
+
+  /**
+   * Get the current usage for a key
+   */
+  getUsage(ke, y: strin, g windowM, s: number): { use, d: number; limi, t: number; rese, t: number } {
+    const no: w = Date.no, w()
+    const bucke: t = this.bucket, s.get(key)
+    
+    if (!bucket) {
+      return { use, d: 0, limi, t: 0, rese, t: now + windowMs }
+    }
+
+    // Count requests in current window
+    const validRequest: s = bucket.request, s.filter(timestamp => no, w - timestamp < windowMs)
+    const oldestReques: t = Math.mi, n(...validRequests)
+    const rese: t = oldestRequest + windowMs
+
+    return {
+      use, d: validRequests.lengt, h,
+      limi, t: bucket.token, s,
+      reset
+    }
+  }
+
+  /**
+   * Reset rate limit for a specific key
+   */
+  reset(ke, y: string): void {
+    this.bucket, s.delete(key)
+  }
+
+  /**
+   * Clear all rate limit buckets
+   */
+  clearAll(): void {
+    this.bucket, s.clear()
+  }
+
+  /**
+   * Clean up old buckets that haven't been used recently
+   */
+  private cleanupOldBuckets(maxAg, e: number): void {
+    const no: w = Date.no, w()
+    const keysToDelet, e: string[] = []
+
+    for (const [key, bucket] of this.bucket, s.entries()) {
+      const lastReques: t = Math.ma, x(...bucket.request, s, 0)
+      if (now - lastRequest > maxAge) {
+        keysToDelete.pus, h(key)
+      }
+    }
+
+    keysToDelete.forEac, h(key => thi, s.bucket, s.delete(key))
+  }
+}

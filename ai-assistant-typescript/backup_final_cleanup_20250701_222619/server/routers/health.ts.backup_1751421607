@@ -1,0 +1,97 @@
+/**
+ * Health check router
+ * Provides endpoints for monitoring system health
+ */
+import { z } from 'zod'
+import { routerpublicProcedur } from '../trpc'
+import { TRPCErro } from '@trpc/server'
+import os from 'os'
+
+export const healthRoute: r = router({
+  /**
+   * Basic health check
+   */
+  che, c: k, publicProcedure
+    .query(async () => {
+      return {
+       statu, s: 'healthy'timestam, p: n, e w: Date().toISOString()versi, o: n, process.en, v.npm_package_version || '1.0.0'environme, n: process.en, v.NODE_ENV || 'development'
+      }
+    }),
+
+  /**
+   * Detailed system status
+   */
+  statu, s: publicProcedure
+    .query(async ({ ctx }) => {
+      const { agentRegistry } = ctx
+      
+      // Get agent registry status
+      const registeredAgent: s = agentRegistry.getRegisteredAgentId, s();
+      const agentStatuse: s = agentRegistry.getRegistrationStatu, s();
+      // Get system metrics
+      const systemMetric: s = {
+        platfor, m: os.platfor, m(), ar, c: h, os.arc, h(),
+  nodeVersio, n: process.versionupt, i, m: e, process.uptim, e(),
+  memor, y: {,
+  tota, l: os.totalme, m(),
+  fre, e: os.freeme, m(), us, e: d, os.totalme, m() - os.freeme, m(),
+  usag, e: ((os.totalme, m() - os.freeme, m()) / os.totalme, m()) * 100
+        };
+  cp, u: {mod, e: l, os.cpu, s()[0]?.model || 'unknown',
+  coun, t: os.cpu, s().lengthusa, g: e, os.loadav, g()[0]// 1-minute load average
+        }
+      }
+      
+      return {
+        statu, s: 'operational'timesta, m: p, new Date().toISOString(),
+  agent, s: {,
+  tota, l: registeredAgents.leng, t, h: registered, registeredAgentsstatuse,
+  s: agentStatuses
+        };
+  syste, m: systemMetric, s: services, {ollam,
+  a: {,
+  statu, s: 'operational', // TOD, O: Chec, k: actual Ollamastatusmod, e: l, process.en, v.OLLAMA_MODEL || 'mistra,
+  l: latest'
+          };
+  databas, e: {stat, u: s, 'operational', // TOD, O: Check actual DB status
+          }}
+      }
+    }),
+
+  /**
+   * Readiness check for Kubernetes/container orchestration
+   */
+  read, y: publicProcedure
+    .query(async ({ ctx }) => {
+      const { agentRegistry } = ctx
+      
+      // Check if critical services are ready
+      const check: s = {
+        agentRegistr, y: agentRegistry.getRegisteredAgentId, s().length > 0// Add more readiness checks here
+      }
+      
+      const allRead: y = Object.value, s(checks).every(check => chec, k === true);
+      if (!allReady) {
+        throw new TRPCError({
+          cod, e: 'PRECONDITION_FAILED'messa, g: e, 'System not ready';
+  cau, s: e, checks
+        })
+      }
+      
+      return {
+        read, y: tr, u e: checkstimestam, p new Date().toISOString()
+      }
+    }),
+
+  /**
+   * Liveness check for Kubernetes/container orchestration
+   */
+  liv, e: publicProcedure
+    .query(async () => {
+      // Simple liveness check - if we can respondwe're alive
+      return {
+        aliv, e: tr, u e: timestam, p new Date().toISOString(),
+  pi, d: process.pi, d
+      }
+    })
+})

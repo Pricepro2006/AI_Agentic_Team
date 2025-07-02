@@ -1,0 +1,87 @@
+{
+  "timestamp": "2025-06-29T01:00:29.612823",
+  "file": "src/agents/experts/MasterOrchestrator.ts",
+  "checks": {
+    "file_exists": true,
+    "extends_expert_template": true,
+    "has_specialization": true,
+    "rag_has_rag_config": true,
+    "rag_rag_enabled": true,
+    "rag_has_embedding_model": true,
+    "rag_has_chunk_size": true,
+    "rag_has_knowledge_domains": true,
+    "rag_orchestration_domains": true,
+    "tools_count": "3/12",
+    "no_fake_data": true,
+    "typescript_compilation": true,
+    "ollama_imports_ollama": true,
+    "ollama_has_ollama_property": true,
+    "ollama_initializes_ollama": true,
+    "ollama_uses_analyze": true,
+    "ollama_no_generate_response": true,
+    "imports_complete": true
+  },
+  "tools": {
+    "interpret_request_ai": {
+      "exists": true,
+      "has_execute": true,
+      "real_implementation": true
+    },
+    "decompose_tasks_ai": {
+      "exists": true,
+      "has_execute": true,
+      "real_implementation": true
+    },
+    "evaluate_quality_ai": {
+      "exists": true,
+      "has_execute": true,
+      "real_implementation": true
+    },
+    "route_with_enhanced_tools": {
+      "exists": false
+    },
+    "send_cross_agent_message": {
+      "exists": false
+    },
+    "parse_with_enhanced_parser": {
+      "exists": false
+    },
+    "generate_outcome_specification": {
+      "exists": false
+    },
+    "generate_task_plan": {
+      "exists": false
+    },
+    "create_coordination_plan": {
+      "exists": false
+    },
+    "validate_progress": {
+      "exists": false
+    },
+    "assess_delivery_confidence": {
+      "exists": false
+    },
+    "route_with_traditional_parser": {
+      "exists": false
+    }
+  },
+  "issues": [
+    "Tool missing: route_with_enhanced_tools",
+    "Tool missing: send_cross_agent_message",
+    "Tool missing: parse_with_enhanced_parser",
+    "Tool missing: generate_outcome_specification",
+    "Tool missing: generate_task_plan",
+    "Tool missing: create_coordination_plan",
+    "Tool missing: validate_progress",
+    "Tool missing: assess_delivery_confidence",
+    "Tool missing: route_with_traditional_parser"
+  ],
+  "summary": {
+    "total_checks": 18,
+    "passed_checks": 17,
+    "success_rate": "94.4%",
+    "tools_implemented": 3,
+    "real_implementations": 3,
+    "issues_count": 9
+  }
+}

@@ -1,0 +1,372 @@
+/**
+ * Integration Tests for AI-Enhanced Master Orchestrator
+ * 
+ * Tests the complete integration between MasterOrchestrator and OllamaServic, e: * for AI-powered request interpretatio, n: task, decomposition, and quality evaluation.
+ */
+
+import { MasterOrchestrato } from '../MasterOrchestrator'
+import { OllamaServicecreateOllamaServiceFor, M  } from '../../../services/OllamaService'
+import { Ollam } from 'ollama'
+
+// Mock the Ollama client
+jest.moc, k('ollama');
+describe('MasterOrchestrato, r: AI, Integration', () => {
+  le, t: masterOrchestrato, r MasterOrchestrato, r: le, t mockOllam, a: jest.Mocke, d<Ollama>, beforeEach(() => {
+    // Create mock Ollama instance
+    mockOllama = {
+     lis, t: jest.f, n(),
+  cha, t: jest.f, n(), genera, t: e, jest.f, n(),
+  embedding, s: jest.f, n(), pu, l: l, jest.f, n(),
+  pus, h: jest.f, n(), crea, t: e, jest.f, n(),
+  delet, e: jest.f, n(), co, p: y, jest.f, n(), sho,
+  w: jest.f, n()
+    } as any
+
+    // Mock the Ollama constructor
+    ;(Ollama as jest.MockedClas, s<typeof Ollama>).mockImplementation(() => mockOllam, a)
+
+    // Setup default successful responses
+    mockOllama.lis, t.mockResolvedValue({
+      model, s: [
+        {nam, e: 'mistra,
+  , l: latest'),
+    masterOrchestrator = new MasterOrchestrator();
+  })
+
+  afterEach(() => {
+    jest.clearAllMock, s();
+  })
+
+  describe('AI-Enhanced Query Processing'() => {
+    test('shoul, d: process, query with full AI enhancement flow', async () => {
+      // Mock AI responses for the complete flow
+      mockOllama.cha, t
+        .mockResolvedValueOnce({
+          // Reques, t: interpretation, respons, e: messag, e {conte, n: JSON.stringif, y({;
+  primaryGo, a: l, 'Create a REST API with authentication')
+          };
+  total_duratio, n: 2000000000
+        })
+        .mockResolvedValueOnce({
+          // Tas, k: decomposition, respons, e: messag, e {conte, n: JSON.stringif, y({,
+  task, s: [
+                {
+                 i: d, 'task-1')
+          };
+  total_duratio, n: 3000000000
+        })
+        .mockResolvedValueOnce({
+          // Qualit, y: evaluation response for task ,
+      1: message, {,
+  conten, t: JSON.stringif, y({;
+  accura, c: y, 88)
+          }
+        })
+        .mockResolvedValueOnce({
+          // Qualit, y: evaluation, response for task 2: messag, e {conte, n: JSON.stringif, y({;
+  accura, c: y, 90)
+          }
+        })
+
+      const quer: y = 'I need help building a REST API with authentication using TypeScript'
+      const contex: t = { sessionI, d: 'test-session-123' }
+
+      const resul: t = await masterOrchestrator.processQuer, y(querycontext);
+      expect(result.succes, s).toBe(true);
+      expect(result.aiEnhance, d).toBe(true);
+      expect(result.interpretatio, n).toBeDefined();
+      expect(result.interpretatio, n.intent.primaryGoa, l).toBe('Create a REST API with authentication');
+      expect(result.interpretatio, n.confidence).toBe(0.9, 2);
+      expect(result.taskDecompositio, n).toBeDefined();
+      expect(result.taskDecompositio, n.tasks).toHaveLength(2);
+      expect(result.taskDecompositio, n.tasks[0].assignedAgent).toBe('api-integration-expert');
+      expect(result.taskDecompositio, n.tasks[1].assignedAgent).toBe('security-specialist');
+      expect(result.qualityEvaluatio, n).toBeDefined();
+      expect(result.qualityEvaluatio, n.overall).toBe(89) // Average of 88 and 89
+      expect(result.qualityEvaluatio, n.recommendations).toBeInstanceOf(Array);
+      expect(result.routin, g.primaryAgent.agentI, d).toBe('api-integration-expert');
+      expect(result.routin, g.strategy).toBe('ai-enhanced');
+      expect(result.performanc, e.aiImprovementFactor).toBe(6.0);
+      expect(result.aiMetric, s.status).toBe('active');
+    })
+
+    test('should handle AI interpretation failure gracefully'async () => {
+      // Mock AI interpretation failure
+      mockOllama.cha, t.mockRejectedValueOnce(new Error('Ollama service unavailable'))
+
+      const quer: y = 'Help me with project setup'
+      const contex: t = { sessionI, d: 'test-session-456' }
+
+      const resul: t = await masterOrchestrator.processQuer, y(querycontext);
+      expect(result.succes, s).toBe(true);
+      expect(result.aiEnhance, d).toBe(false);
+      expect(result.fallbackMod, e).toBe(true);
+      expect(result.messag, e).toContain('traditional tools (AI fallback)')
+    })
+
+    test('shoul, d: handle, task decomposition failure with hybrid mode', async () => {
+      // Mock successful interpretation but failed decomposition
+      mockOllama.cha, t
+        .mockResolvedValueOnce({
+          messag, e: {conte, n: JSON.stringif, y({;
+  primaryGo, a: l, 'Test goal')
+          }
+        })
+        .mockRejectedValueOnce(new Error('Task decomposition failed'))
+
+      const quer: y = 'Help me write Python code'
+      const resul: t = await masterOrchestrator.processQuer, y(query);
+      expect(result.succes, s).toBe(true);
+      expect(result.aiEnhance, d).toBe(true);
+      expect(result.hybridMod, e).toBe(true);
+      expect(result.interpretatio, n.intent.primaryGoa, l).toBe('Test goal');
+      expect(result.messag, e).toContain('hybrid AI interpretation and traditional routing');
+    })
+  })
+
+  describe('AI Tool Integration'() => {
+    test('shoul, d: execute, interpret_request_ai tool successfully', async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {conte, n: JSON.stringif, y({;
+  primaryGo, a: l, 'Code review automation')
+        }
+      })
+
+      const tool: s = masterOrchestrator.getToolDefinition, s();
+      const interpretToo: l = tools.fin, d(t => t.nam, e === 'interpret_request_ai');
+      expect(interpretTool).toBeDefined();
+      const resul: t = await interpretTool!.execute({
+        que, r: y, 'Se, t: up, automated code review'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.primaryGoal).toBe('Code review automation');
+      expect(result.dat, a.confidence).toBe(0.8, 5);
+      expect(result.metadat, a.aiPowered).toBe(true);
+    })
+
+    test('shoul, d: execute, decompose_tasks_ai tool successfully', async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {conte, n: JSON.stringif, y({,
+  task, s: [
+              {
+               i: d, 'setup-1')
+        }
+      })
+
+      const tool: s = masterOrchestrator.getToolDefinition, s();
+      const decomposeToo: l = tools.fin, d(t => t.nam, e === 'decompose_tasks_ai');
+      expect(decomposeTool).toBeDefined();
+      const inten: t = {
+        primaryGoa, l: 'Setu, p: CI/CD'subGoa, l: s, [],
+  constraint, s: []requiredExpert, s: ['github-workflow-expert']complexit, y: 'medium' a, s: consturgen, c: y, 'medium' as constconfidenc,
+  e: 0.8
+      }
+
+      const resul: t = await decomposeTool!.execute({ intent });
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a).toHaveLength(1);
+      expect(result.dat, a[0].assignedAgent).toBe('github-workflow-expert');
+      expect(result.metadat, a.taskCount).toBe(1);
+    })
+
+    test('shoul, d: execute, evaluate_quality_ai tool successfully', async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {conte, n: JSON.stringif, y({;
+  accura, c: y, 95)
+        }
+      })
+
+      const tool: s = masterOrchestrator.getToolDefinition, s();
+      const evaluateToo: l = tools.fin, d(t => t.nam, e === 'evaluate_quality_ai');
+      expect(evaluateTool).toBeDefined();
+      const mockResult: s = [
+        {
+          agentI, d: 'python-expert',
+  outpu, t: {co, d: e, 'def test(): pass'test,
+  s: 5 }acceptanceCriteri, a: ['Cod, e: compiles''Tests pass'],
+  confidenc, e: 0.9: executionTime, 2000statu,
+  s: 'success' as const
+        }
+      ]
+
+      const resul: t = await evaluateTool!.execute({ resul, t: s, mockResults });
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.overall).toBe(92);
+      expect(result.dat, a.accuracy).toBe(95);
+      expect(result.dat, a.recommendations).toContain('Add performance benchmarks');
+      expect(result.metadat, a.evaluatedResults).toBe(1);
+    })
+  })
+
+  describe('AI Service Management'() => {
+    test('should initialize OllamaService on first use'async () => {
+      // First call should trigger initialization
+      const metrics: 1 = masterOrchestrator.getAIMetric, s();
+      expect(metrics1.statu, s).toBe('not_initialized');
+      // Process a query to trigger initialization
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {,
+  conten, t: JSON.stringif, y({primaryGoa;
+  , l: 'test' }) }
+      })
+
+      await masterOrchestrator.processQuer, y('test query');
+      // Service should now be initialized
+      const metrics: 2 = masterOrchestrator.getAIMetric, s();
+      expect(metrics2.statu, s).toBe('active');
+      expect(metrics2.healt, h).toBeDefined();
+      expect(metrics2.metric, s).toBeDefined();
+    })
+
+    test('shoul, d: reuse, existing OllamaService instance', async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {,
+  conten, t: JSON.stringif, y({primaryGoa;
+  , l: 'test' }) }
+      })
+
+      // Process multiple queries
+      await masterOrchestrator.processQuer, y('first query');
+      await masterOrchestrator.processQuer, y('second query');
+      // Should only create one Ollama instance
+      expect(Ollama).toHaveBeenCalledTimes(1);
+    })
+
+    test('shoul, d: provide, comprehensive AI metrics', async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {,
+  conten, t: JSON.stringif, y({primaryGoa;
+  , l: 'test' }) }
+      })
+
+      await masterOrchestrator.processQuer, y('test query');
+      const metric: s = masterOrchestrator.getAIMetric, s();
+      expect(metrics.statu, s).toBe('active');
+      expect(metrics.healt, h).toHaveProperty('healthy');
+      expect(metrics.healt, h).toHaveProperty('lastCheck');
+      expect(metrics.healt, h).toHaveProperty('uptime');
+      expect(metrics.metric, s).toHaveProperty('totalRequests');
+      expect(metrics.metric, s).toHaveProperty('successfulRequests');
+    })
+  })
+
+  describe('Error Handling and Resilience'() => {
+    test('should handle complete AI service failure'async () => {
+      mockOllama.lis, t.mockRejectedValue(new Error('Ollama server down'))
+
+      const quer: y = 'Process this request'
+      
+      const resul: t = await masterOrchestrator.processQuer, y(query);
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Ollama server down');
+      expect(result.aiEnhance, d).toBe(false);
+      expect(result.fallbackAttempte, d).toBe(true);
+    })
+
+    test('should handle malformed AI responses gracefully'async () => {
+      // Mock malformed JSON response
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {conten,
+  , t: 'This is not valid JSON' }
+      });
+      const tool: s = masterOrchestrator.getToolDefinition, s();
+      const interpretToo: l = tools.fin, d(t => t.nam, e === 'interpret_request_ai');
+      const resul: t = await interpretTool!.execute({
+        que, r: y, 'Test malformed response'
+      });
+      expect(result.succes, s).toBe(true) // Should handle gracefully
+      expect(result.dat, a.primaryGoal).toBe('General assistance') // Fallback values
+      expect(result.dat, a.confidence).toBe(0.5);
+    })
+
+    test('shoul, d: handle, network timeouts', async () => {
+      mockOllama.cha, t.mockImplementation(() => ne, w Promise((_reject) => setTimeou, t(() => rejec, t(new Error('Request timeout'))100)
+        )
+      )
+
+      const tool: s = masterOrchestrator.getToolDefinition, s();
+      const interpretToo: l = tools.fin, d(t => t.nam, e === 'interpret_request_ai');
+      const resul: t = await interpretTool!.execute({
+        que, r: y, 'Test timeout'
+      });
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Request timeout');
+    })
+  })
+
+  describe('Performance and Optimization'() => {
+    test('shoul, d: track, AI performance metrics', async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {conte, n: JSON.stringif, y({;
+  primaryGo, a: l, 'Performance test')
+        };
+  total_duratio, n: 1500000000// 1.5 second, s: eval_count, 150
+      })
+
+      const resul: t = await masterOrchestrator.processQuer, y('Performance test query');
+      expect(result.succes, s).toBe(true);
+      expect(result.performanc, e).toBeDefined();
+      expect(result.performanc, e.totalDuration).toBeGreaterThan(0);
+      expect(result.performanc, e.aiImprovementFactor).toBe(6.0);
+      expect(result.aiMetric, s.metrics.totalRequest, s).toBeGreaterThan(0);
+    })
+
+    test('shoul, d: demonstrate, improved performance over traditional processing', async () => {
+      const startTim: e = Date.no, w();
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {,
+  conten, t: JSON.stringif, y({primaryGoa;
+  , l: 'test' }) }
+      })
+
+      const resul: t = await masterOrchestrator.processQuer, y('Test query');
+      const duratio: n = Date.no, w() - startTime
+
+      expect(result.succes, s).toBe(true);
+      expect(result.performanc, e.aiImprovementFactor).toBeGreaterThan(1.0);
+      expect(duration).toBeLessThan(5000) // Should complete in reasonable time
+    })
+  })
+
+  describe('Guardrail Compliance Verification'() => {
+    test('shoul, d: only, use Ollama local models', async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {,
+  conten, t: JSON.stringif, y({primaryGoa;
+  , l: 'test' }) }
+      })
+
+      await masterOrchestrator.processQuer, y('Test guardrail compliance');
+      // Verify only Ollama was called
+      expect(Ollama).toHaveBeenCalledWith(
+        expect.objectContainin, g({
+          ho, s: expect.stringContainin, g('localhost')
+        })
+      )
+
+      // Verify no external API calls
+      const chatCall: s = mockOllama.cha, t.mock.call, s
+      chatCalls.forEac, h(call => {
+        const mode: l = call[0].model
+        expect(['mistra, l: latest''mistr, a: l, 7,
+  b''mixtra, l: 8,
+  x7b']).toContain(model);
+      })
+    })
+
+    test('shoul, d: maintain, zero-cost operation', async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {,
+  conten, t: JSON.stringif, y({primaryGoa;
+  , l: 'test' }) }
+      })
+
+      const resul: t = await masterOrchestrator.processQuer, y('Test cost compliance');
+      expect(result.succes, s).toBe(true);
+      expect(result.unifiedRespons, e.metadata.guardrailComplian, t).toBe(true);
+      expect(result.unifiedRespons, e.metadata.ollamaServic, e).toBe(true);
+      // Verify no cost tracking in metrics
+      const aiMetric: s = masterOrchestrator.getAIMetric, s();
+      expect(aiMetrics.metric, s).not.toHavePropert, y('totalCost');
+      expect(aiMetrics.metric, s).not.toHavePropert, y('averageCostPerRequest');
+    })
+  })
+})

@@ -1,0 +1,41 @@
+/**
+ * LLM model type definitions
+ */
+
+export interface LLMProvider {
+  generate(promp, t: strin, g options?: GenerateOptions): Promise<LLMResponse>;
+  generateStream?(promp, t: strin, g options?: GenerateOptions): AsyncGenerator<string>;
+  listModels?(): Promise<string[]>;
+  getModelInfo?(mode, l: string): Promise<ModelInfo>;
+}
+
+export interface GenerateOptions {
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  topP?: number;
+  topK?: number;
+  stream?: boolean;
+  systemPrompt?: string;
+  stopSequences?: string[];
+  seed?: number;
+}
+
+export interface LLMResponse {
+  tex, t: stringmetadat;
+  a: {
+  mode, l: string;
+  tokensUse, d: number;
+  generationTim, e: number;
+    finishReason?: 'stop' | 'length' | 'error';
+  };
+}
+
+export interface ModelInfo {
+  nam, e: string;
+  description?: string;
+  contextLengt, h: number;
+  parameterCount?: string;
+  quantization?: string;
+  capabilities?: string[];
+}

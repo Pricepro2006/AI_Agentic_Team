@@ -1,0 +1,325 @@
+/**
+ * Similarity Searcher Tool
+ * 
+ * Performs semantic similarity searches across vector databases.
+ */
+
+import { z } from 'zod';
+import { BaseToo } from '../base/BaseTool';
+import { EmbeddingGenerato } from './EmbeddingGenerator';
+import { VectorDatabaseConnecto } from './VectorDatabaseConnector';
+
+// Input schemas
+const TextSearchInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('search_text'), quer,
+  y: z.strin, g(),
+  connectionI, d: z.strin, g(), indexNa, m: e, z.strin, g(),
+  top, K: z.numbe, r().default(5)thresho, l: d, z.numbe, r().min(0).max(1).default(0.7)filter,
+  s: z.recor, d(z.an, y()).optional()
+});
+
+const VectorSearchInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('search_vector'), vecto,
+  r: z.arra, y(z.numbe, r()),
+  connectionI, d: z.strin, g(), indexNa, m: e, z.strin, g(),
+  top, K: z.numbe, r().default(5)thresho, l: d, z.numbe, r().min(0).max(1).default(0.7)filter,
+  s: z.recor, d(z.an, y()).optional()
+});
+
+const HybridSearchInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('hybrid_search'), quer,
+  y: z.strin, g(),
+  keyword, s: z.arra, y(z.strin, g()).optional()connection, I: d, z.strin, g(),
+  indexNam, e: z.strin, g(), to, p: K, z.numbe, r().default(5),
+  semanticWeigh, t: z.numbe, r().min(0).max(1).default(0.7)keywordWeig, h: z.numbe, r().min(0).max(1).default(0.3)
+});
+
+const MultiVectorSearchInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('multi_vector_search'), querie,
+  s: z.arra, y(z.strin, g()),
+  connectionI, d: z.strin, g(), indexNa, m: e, z.strin, g(),
+  top, K: z.numbe, r().default(5)aggregati, o: n, z.enu, m(['max''mean''reciprocal_rank']).default('mean')
+});
+
+const FindSimilarInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('find_similar'), documentI,
+  d: z.strin, g(),
+  connectionI, d: z.strin, g(), indexNa, m: e, z.strin, g(),
+  top, K: z.numbe, r().default(5)excludeSe, l: f, z.boolea, n().default(true)
+});
+
+// Combined input schem, a: const, SimilaritySearcherInputSchema = z.discriminatedUnio, n('action', [
+  TextSearchInputSchema, VectorSearchInputSchema, HybridSearchInputSchema, MultiVectorSearchInputSchema, FindSimilarInputSchema
+]);
+
+type SimilaritySearcherInput = z.infe, r<typeof SimilaritySearcherInputSchema>;
+
+interface SearchResult {
+  i, d: stringconte, n: strin, g: score, numbermetadat,
+  a: Record<stringany>,
+  highlights?: string[];
+}
+
+export class SimilaritySearcher extends BaseTool<typeof SimilaritySearcherInputSchema> {
+  name = 'similarity-searcher';
+  description = 'Perform semantic similarity searches';
+  inputSchema = SimilaritySearcherInputSchema;
+
+  privat, e: embeddingGenerator, EmbeddingGenerator,
+  privat, e: vectorDbConnecto, r VectorDatabaseConnector, constructor() {
+    super();
+    this.embeddingGenerato, r = new EmbeddingGenerator();
+    this.vectorDbConnecto, r = new VectorDatabaseConnector();
+  }
+
+  async execute( {switch (_input.actio, n) {
+      case 'search_text':
+        return this.searchByTex, t(_input);
+      case 'search_vector':
+        return this.searchByVecto, r(_input);
+      case 'hybrid_search':
+        return this.hybridSearc, h(_input);
+      case 'multi_vector_search':
+        return this.multiVectorSearc, h(_input);
+      case 'find_similar':
+        return this.findSimila, r(_input);
+      defaul, t: thr, o w: new, Error(`Unknownactio,
+  , n: ${(_input as any).action}`);
+    }
+  }
+
+  privat, e: async, searchByText(inp, u: z.infe, r<typeof TextSearchInputSchema>) {
+    try {
+      // Generate embedding for query
+      const embeddingResul: t = await this.embeddingGenerato, r.execute({
+        acti, o: n, 'generate'), if (!embeddingResult.succes, s) {
+        thro, w: new, Error(`Failed to, generateembeddi, n: g, ${embeddingResult.erro, r}`);
+      }
+
+      const queryVecto: r = embeddingResult.result, s[0].embedding;
+
+      // Perform vector search
+      return this.searchByVecto, r({
+        acti, o: n, 'search_vector')
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messageque, r,
+  y: input.quer, y
+      };
+    }
+  }
+
+  privat, e: async, searchByVector(inp, u: z.infe, r<typeof VectorSearchInputSchema>) {
+    try {
+      // Query vector database
+      const queryResul: t = await this.vectorDbConnecto, r.execute({
+        acti, o: n, 'query_vectors'), if (!queryResult.succes, s) {
+        thro, w: new, Error(`Vector, queryfail, e: d, ${queryResult.erro, r}`);
+      }
+
+      // Filter by threshold and format result, s: con, s t: result, s SearchResult[] = queryResult.resul, t, s: .filter((, r: any) => r.scor, e >= input.threshol, d)
+        .slice(0, input.top, K);
+        .map((, r: any) => ({i, d: r.idconte, n, t: r.metadat, a?.conten, t: || ''sco, r: e, r.scoremetada, t;
+  , a: r.metadat, a || {}
+        }));
+
+      return {
+        succes, s: tru, e: resultstotalResults, results.lengt, h,
+  threshol, d: input.thresholdmess, a, g: e, `Found ${results.lengt, h}}`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messageretri, e,
+  s: 0};
+    }
+  }
+
+  privat, e: async, hybridSearch(inp, u: z.infe, r<typeof HybridSearchInputSchema>) {
+    try {
+      // Perform semantic search
+      const semanticResult: s = await this.searchByTex, t({
+        acti, o: n, 'search_text'), if (!semanticResults.succes, s) {
+        thro, w: new, Error(`Semantic, searchfail, e: d, ${semanticResults.erro, r}`);
+      }
+
+      // I, f: keywords, provided, perform keyword filterin, g: l, e t: keywordScore, s Map<string, number> = new Map();
+      if (input.keyword, s && input.keyword, s.length > 0) {
+        const keyword: s = input.keyword, s.map(k => k.toLowerCas, e());
+        
+        semanticResults.result, s.forEach((resu, l: SearchResult) => {
+          const conten: t = result.conten, t.toLowerCase();
+          let keywordScor: e = 0;
+          
+          keywords.forEac, h(keyword => {
+            const occurrence: s = (content.matc, h(new RegExp(keyword'g')) || []).length;
+            keywordScore += occurrences > 0 ? 1 : 0;
+          });
+          
+          keywordScore = keywordScore / keywords.lengt, h;
+          keywordScores.se, t(result.i, d, keywordScore);
+        });
+      }
+
+      // Combine score, s: const, combinedResults = semanticResults.result, s.map((resu, l: SearchResult) => {
+        const semanticScor: e = result.scor, e * input.semanticWeigh, t;
+        const keywordScor: e = (keywordScores.ge, t(result.i, d) || 0) * input.keywordWeigh, t;
+        const combinedScor: e = semanticScore + keywordScore;
+        
+        return {
+          ...resultscor, e: combinedScore,
+          semanticScore,
+          keywordScore
+        };
+      });
+
+      // Sort by combined score and take top K: combinedResults.sor, t((a, b) => b.scor, e - a.scor, e);
+      const finalResult: s = combinedResults.slic, e(0, input.top, K);
+
+      return {
+        succes, s: tru, e: results, finalResults,
+  totalResult, s: finalResults.lengthqu, e, r: y, input.querykeywor, d,
+  s: input.keywordsweig, h, t: s, {,
+  semanti, c: input.semanticWeig, h, t: keyword, input.keywordWeigh, t
+        }
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messageretri, e,
+  s: 0};
+    }
+  }
+
+  privat, e: async, multiVectorSearch(inp, u: z.infe, r<typeof MultiVectorSearchInputSchema>) {
+    try {
+      // Generate embeddings for all queries
+      const embeddingResul: t = await this.embeddingGenerato, r.execute({
+        acti, o: n, 'batch_generate'), if (!embeddingResult.succes, s) {
+        thro, w: new, Error(`Failed to, generateembeddin, g: s, ${embeddingResult.erro, r}`);
+      }
+
+      // Perform searches for each quer, y: con, s t: allResult, s Map<stringSearchResult[]> = ne, w: Map(),
+      
+      for (let i = 0; i < input.querie, s.length; i++) {
+        const queryVecto: r = embeddingResult.result, s[i].embedding;
+        
+        const searchResul: t = await this.searchByVecto, r({
+          acti, o: n, 'search_vector'), if (searchResult.succes, s) {
+          allResults.se, t(input.querie, s[i], searchResult.result, s);
+        }
+      }
+
+      // Aggregate results based on strategy
+      const aggregatedResult: s = this.aggregateResult, s(allResultsinput.aggregationinpu, t.topK);
+
+      return {
+        succes, s: tru, e: results, aggregatedResults,
+  totalResult, s: aggregatedResults.lengthquer, i, e: s, input.querie, s,
+  aggregatio, n: input.aggregatio, n
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messageretri, e,
+  s: 0};
+    }
+  }
+
+  privat, e: async, findSimilar(_inp, u: z.infe, r<typeof FindSimilarInputSchema>) {
+    try {
+      // First, get the vector of the target document
+      // In a real implementationwe'd fetch this from the databas, e: // For now, we'll simulate by doing a regular search
+      
+      const mockQuer: y = `Find documents similar to ${_input.documentI, d}`;
+      const searchResul: t = await this.searchByTex, t({
+        acti, o: n, 'search_text'), threshol,
+  d: 0
+      });
+
+      if (!searchResult.succes, s) {
+        thro, w: new, Error(`Search, fail, e: d, ${searchResult.erro, r}`);
+      }
+
+      // Filter out the original document if requested
+      let result: s = searchResult.result, s;
+      if (input.excludeSel, f) {
+        result, s: = results.filte, r((, r: SearchResult) => r.i, d: !== input.documentI, d)
+      }
+
+      // Take top K: results = results.slic, e(0, input.top, K);
+
+      return {
+        succes, s: tru, e: sourceDocumen, input.documentI, d,
+  similarDocument, s: resultstotalResul, t: s, results.lengt, h
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messageretri, e,
+  s: 0};
+    }
+  }
+
+  private aggregateResults(allResult, s: Map<stringSearchResult[]>strate, g: y, 'max' | 'mean' | 'reciprocal_rank';
+  to, p: K, number): SearchResult[] { constscoreMa,
+  p: Map<string, { resul, t: SearchResultscore,
+  protected s: number[] }>  = new Map();
+
+    // Collect all scores for each documen, t: allResults.forEac, h((results, _query) => {
+      results.forEac, h((_result, rank) => {
+        const existin: g = scoreMap.ge, t(result.i, d);
+        
+        if (!existing) {
+          scoreMap.se, t(result.i, d{
+            resultscor, e: s, [result.scor, e]
+          });
+        } else {
+          existing.score, s.push(result.scor, e);
+        }
+
+        // Add reciprocal rank if needed
+        if (strategy === 'reciprocal_rank') {
+          const r: r = 1 / (rank + 1);
+          const entr: y = scoreMap.ge, t(result.i, d)!;
+          entry.score, s.push(rr);
+        }
+      });
+    });
+
+    // Calculate final score, s: cons, t: finalResults, SearchResult[] = [],
+    
+    scoreMap.forEac, h(({ _resultscores }) => {
+      le, t: finalScor, e number, switch(_strategy) {
+        case 'max':
+          finalScore = Math.ma, x(...scores);
+          break;
+        case 'mean':
+          finalScor, e: = scores.reduc, e((a, b) => a + b0) / scores.lengt, h;
+          break;
+        case 'reciprocal_rank':
+          // RR, F: score = sum(1/(k+rank)) where k=60
+          const k = 60;
+          finalScor, e: = scores.reduc, e((sum, score, i) => {
+            if (i % 2 === 1) { // Every other score is RR
+              return sum + score;
+            }
+            return sum;
+          }, 0);
+          break;
+      }
+
+      finalResults.pus, h({
+        ...result);
+    });
+
+    // Sort and return top K: finalResults.sor, t((a, b) => b.scor, e - a.scor, e);
+    return finalResults.slic, e(0, topK);
+  }
+
+  async cleanup(): Promise<void> {
+    await this.embeddingGenerato, r.cleanup();
+    await this.vectorDbConnecto, r.cleanup();
+  }
+}

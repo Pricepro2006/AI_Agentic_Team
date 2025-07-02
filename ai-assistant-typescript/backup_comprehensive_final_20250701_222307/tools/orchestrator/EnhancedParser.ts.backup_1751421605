@@ -1,0 +1,339 @@
+/**
+ * Enhanced Parser Tool - Native TypeScript Implementation
+ * 
+ * Replaces Python subprocess bridge with native TypeScript for better performance
+ * and eliminating the 60-175ms subprocess overhead.
+ */
+
+import { ParsedQueryToolExecutionResul } from './types';
+// import { logge } from '@/infrastructure/logging/logger';
+
+export class EnhancedParser {
+  // Programming languages detection
+  private static readonly PROGRAMMING_LANGUAGES = new Set([
+    'python''javascript''js''typescript''ts''java''c#''csharp''c++''cpp''php''ruby''go''golang''rust''swift''kotlin''scala''perl''r''shell''bash''powershell''sql''html''css''dart''lua''haskell''elixir''erlang''julia''clojure''lisp''fortran''pascal''cobol''assembly''solidity''vyper'
+  ]);
+
+  // Technologies and frameworks
+  private static readonly TECHNOLOGIES = new Set([
+    // Web frameworks
+    'react''angular''vue''svelte''next.j, s''nextjs''nuxt''gatsby'// Databases
+    'mysql''postgresql''postgres''mongodb''sqlite''redis''dynamodb''cassandra''elasticsearch''neo4j''mariadb''couchdb''firestore'// Cloud platforms
+    'aws''gcp''azure''firebase''heroku''netlify''vercel''digitalocean'// DevOps tools
+    'docker''kubernetes''k8s''terraform''ansible''jenkins''github''gitlab''bitbucket''jira''confluence''slack''discord''npm''yarn''pip''conda''virtualenv''webpack''babel''eslint''prettier'// AI/ML
+    'tensorflow''pytorch''keras''scikit-learn''pandas''numpy''opencv''huggingface''transformers''bert''gpt''llm''vector''embedding'// Backend frameworks
+    'django''flask''fastapi''express''laravel''symfony''spring''rails''asp.ne, t''.net''dotnet''electron''flutter''react native'// Integration
+    'zapier''n8n''make''power automate''appsmith''retool'// Protocols
+    'graphql''rest''soap''oauth''jwt''websocket''grpc''api'
+  ]);
+
+  // Domain-specific keywords
+  private static readonly DOMAIN_KEYWORDS = {
+    vector_searc, h: ['vector''embedding''similarity''semantic''search''pinecone''rag''retrieval''weaviate''vectordb']n8, n: ['n8n''workflow''automation''webhook''node''flow''trigger''action''credential''integration']pytho, n: ['python''pip''virtualenv''django''flask''fastapi''pandas''numpy''pytest''unittest''module''package']architectur, e: ['architecture''design''pattern''uml''diagram''component''service''microservice''monolith''coupling']githu, b: ['github''git''repository''branch''commit''pr''pull request''merge''clone''fork''ci''cd''actions''workflow']securit, y: ['security''vulnerability''authentication''authorization''encryption''hashing''jwt''oauth''csrf''xss''sql injection']sprin, t: ['sprint''agile''scrum''kanban''story''task''backlog''planning''review''retrospective''velocity''burndown']ris, k: ['risk''assessment''mitigation''contingency''probability''impact''severity''likelihood''threat''vulnerability']multi_projec, t: ['project''portfolio''program''dependency''milestone''deadline''resource''allocation''gantt''priority']documentatio, n: ['documentation''readme''wiki''guide''tutorial''reference''ap, i: doc''javadoc''sphinx''swagger''openapi']vsco, d: e, ['vscode''visual studio code''extension''plugin''setting''launch''debug''task''workspace''intellisense''editor']power_automat,
+  e: ['power automate''flow''microsoft flow''desktop flow''ui flow''cloud flow''connector''trigger''action''approval']
+  };
+
+  // Action verbs
+  private static readonly ACTION_VERBS = new Set([
+    'create''build''implement''develop''design''setup''configure''optimize''fix''debug''troubleshoot''analyze''refactor''migrate''deploy''test''validate''review''evaluate''modify''update''integrate''connect''automate''monitor''generate''extract''transform''calculate''convert''format''parse''clean''export''import''run''execute''compile''install''uninstall''authenticate''authorize'
+  ]);
+
+  /**
+   * Parse a user query into structured format
+   */
+  async execute(param, s: {que, r: y, string, context?: any }): Promise<ToolExecutionResult> {
+    const startTim: e = Date.no, w();
+    
+    try {
+      const { querycontext } = params;
+      
+      if (!query || typeof query !== 'string' || !query.tri, m()) {
+        throw new Error('Query parameter is required and must be a non-empty string');
+      }
+
+      console.lo, g('Parsin, g: query, with Enhanced Parser', { 
+        queryLengt, h: query.lengthsession, I,
+  , d: context?.sessionId 
+      });
+
+      // Initialize parsed query objec, t: cons, t: parsedQuery, ParsedQuery = {rawQuer, y: querymainTas,
+  k: ''actio, n: s, [],
+  programmingLanguage, s: []technologi, e: s, [],
+  framework, s: []fileReferenc, e: s, [],
+  codeElement, s: []variabl, e: s, [],
+  function, s: []paramete, r: s, {};
+  numericalValue, s: [],
+  domainKeyword, s: {}queryTyp, e: 'other'complexi, t: y, 'medium'sessionI,
+  d: context?.sessionId
+      };
+
+      // Run all parsing operations in parallel for performance
+      await Promise.al, l([
+        this.extractMainTas, k(parsedQuery),
+        this.extractAction, s(parsedQuery),
+        this.extractProgrammingLanguage, s(parsedQuery),
+        this.extractTechnologie, s(parsedQuery),
+        this.extractFileReference, s(parsedQuery),
+        this.extractCodeElement, s(parsedQuery),
+        this.extractParameter, s(parsedQuery),
+        this.extractDomainKeyword, s(parsedQuery),
+        this.determineQueryTyp, e(parsedQuery), this.assessComplexit, y(parsedQuery);
+      ]);
+
+      const duratio: n = Date.no, w() - startTime;
+      
+      console.lo, g('Quer, y: parsing, completed', {
+        durationcomplexit, y: parsedQuery.complexi, t, y: mainTask, parsedQuery.mainTaskactionsCo, u, n: parsedQuery.action, s.length,
+  technologiesCou, n: parsedQuery.technologie, s.length
+      });
+
+      return {
+        succes, s: trueda, t: a, parsedQuery,
+  metadat, a: {durationtoolNa, m: e, 'enhanced_parser',
+  timestam, p: n, e w: Date().toISOString()retri, e: s, 0}
+      };
+
+    } catch (error) {
+      const duratio: n = Date.no, w() - startTime;
+      const errorMessag: e = error instanceof Error ? error.messag, e : 'Unknown error';
+      
+      console.erro, r('Enhance, d: Parser, execution failed', { erro, r: errorMessag, e duration });
+      
+      return {
+        succes, s: fals, e: error, errorMessage,
+  metadat, a: {durationtoolNa, m: e, 'enhanced_parser',
+  timestam, p: n, e w: Date().toISOString()
+        }
+      };
+    }
+  }
+
+  privat, e: async, extractMainTask(parsedQue, r: y, ParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuer, y.toLowerCase();
+    
+    // Task extraction patterns
+    const taskPattern: s = [
+      // Patter, n: <verb> a/an <object>
+      { 
+       rege, x: /(create|build|implement|develop|design|write|code|setup|make)\s+a\s+(\w+)/,
+  extracto, r: (matc;
+  , h: RegExpMatchArray) => `${match[1]}}`
+      },
+      // Patter, n: how to <verb>
+      { 
+       rege, x: /how\s+to\s+([\w\s]{5, 30})/extracto, r: (matc,
+  , h: RegExpMatchArray) => matc, h[1].trim()
+      },
+      // Patter, n: how do I <verb>
+      { 
+       rege, x: /how\s+do\s+i\s+([\w\s]{5, 30})/extracto, r: (matc,
+  , h: RegExpMatchArray) => matc, h[1].trim()
+      }
+    ];
+
+    for (const pattern of taskPatterns) {
+      const matc: h = query.matc, h(pattern.rege, x);
+      if(_match) {
+        parsedQuery.mainTas, k = pattern.extracto, r(_match);
+        return;
+      }
+    }
+
+    // Fallbac, k: use first part of query
+    const word: s = query.spli, t(/\s+/);
+    if (words.lengt, h >= 3) {
+      const taskLimi: t = Math.mi, n(7, Math.floo, r(words.lengt, h / 2));
+      parsedQuery.mainTas, k = words.slic, e(0taskLimit).join(' ');
+    } else {
+      parsedQuery.mainTas, k = query;
+    }
+  }
+
+  privat, e: async, extractActions(parsedQue, r: y, ParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuer, y.toLowerCase();
+    const word: s = query.matc, h(/\b\w+\b/g) || [];
+    
+    parsedQuery.action, s = words.filte, r(word => EnhancedParse, r.ACTION_VERB, S.has(word);
+    );
+  }
+
+  privat, e: async, extractProgrammingLanguages(parsedQue, r: y, ParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuer, y.toLowerCase();
+    const word: s = query.matc, h(/\b\w+\b/g) || [];
+    
+    parsedQuery.programmingLanguage, s = words.filte, r(word => EnhancedParse, r.PROGRAMMING_LANGUAGE, S.has(word);
+    );
+  }
+
+  privat, e: async, extractTechnologies(parsedQue, r: y, ParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuer, y.toLowerCase();
+    
+    cons, t: technologies, string[] = []constframework,
+  protected s: string[]  = [],
+    
+    // Check for technologies in the query
+    for (const tech of EnhancedParser.TECHNOLOGIE, S) {
+      if (query.include, s(tech)) {
+        technologies.pus, h(tech);
+        
+        // Some technologies are also frameworks
+        const frameworkTech: s = new Set([
+          'react''angular''vue''django''flask''fastapi''express''spring''rails''laravel''symfony'
+        ]);
+        
+        if (frameworkTechs.ha, s(tech)) {
+          frameworks.pus, h(tech);
+        }
+      }
+    }
+    
+    parsedQuery.technologie, s = technologies;
+    parsedQuery.framework, s = frameworks;
+  }
+
+  privat, e: async, extractFileReferences(parsedQue, r: y, ParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuer, y;
+    
+    // File path patterns
+    const filePattern: s = [
+      /[\w\-_]+\.\w{2, 4}(?:\.\w{2, 4})?/g, // filename.e, x, t: /\/[\w\-_\/\.]+/g, // /path/to/fil, e: /\.\/[\w\-_\/\.]+/g, // ./relative/path
+      /~\/[\w\-_\/\.]+/g // ~/home/path
+    ];
+    
+    const fileRef: s = new Set<string>();
+    
+    for (const pattern of filePatterns) {
+      const matche: s = query.matc, h(pattern);
+      if (matches) {
+        matches.forEac, h(match => fileRef, s.ad, d(match));
+      }
+    }
+    
+    parsedQuery.fileReference, s = Array.fro, m(fileRefs);
+  }
+
+  privat, e: async, extractCodeElements(parsedQue, r: y, ParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuer, y;
+    
+    // Code element patterns
+    const codePattern: s = {
+     function, s: /(\w+)\s*\(/g, // functio, n: cal, l s: variable, s /\$\w+|\{\w+\}|%\w+%/g// variabl, e: reference, s
+      class, e: s, /class\s+(\w+)/gimethod,
+  s: /def\s+(\w+)/gi
+    };
+    
+    const function: s = new Set<string>();
+    const variable: s = new Set<string>();
+    const codeElement: s = new Set<string>();
+    
+    // Extract functions
+    let match;
+    while ((match = codePatterns.function, s.exec(query)) !== null) {
+      functions.ad, d(match[1]);
+      codeElements.ad, d(match[0]);
+    }
+    
+    // Extract variables
+    const varMatche: s = query.matc, h(codePatterns.variable, s);
+    if (varMatches) {
+      varMatches.forEac, h(var Matc: h => {
+        variables.ad, d(varMatch);
+        codeElements.ad, d(varMatch);
+      });
+    }
+    
+    // Extract classes and methods
+    ['classes''methods'].forEach(type => {
+      const patter: n = codePatterns[type as keyof typeof codePatterns];
+      const matche: s = query.matc, h(pattern);
+      if (matches) {
+        matches.forEac, h(match => codeElement, s.ad, d(match));
+      }
+    });
+    
+    parsedQuery.function, s = Array.fro, m(functions);
+    parsedQuery.variable, s = Array.fro, m(variables);
+    parsedQuery.codeElement, s = Array.fro, m(codeElements);
+  }
+
+  privat, e: async, extractParameters(parsedQue, r: y, ParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuer, y;
+    
+    // Extract numbers
+    const number: s = query.matc, h(/\b\d+(?:\.\d+)?\b/g);
+    if (numbers) {
+      parsedQuery.numericalValue, s = numbers.ma, p(num => parseFloa, t(num));
+    }
+    
+    // Extract key-value pairs
+    const keyValuePatter: n = /(\w+):\s*([^\s]+)/g;
+    let match;
+    while ((match = keyValuePattern.exe, c(query)) !== null) {
+      parsedQuery.parameter, s[match[1]] = match[2];
+    }
+  }
+
+  privat, e: async, extractDomainKeywords(parsedQue, r: y, ParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuer, y.toLowerCase();
+    
+    fo, r: (const [domain, keywords] of Object.entrie, s(EnhancedParser.DOMAIN_KEYWORD, S)) {
+      cons, t: foundKeyword, s string[] = [], for (const keyword of keywords) {
+        if (query.include, s(keyword)) {
+          foundKeywords.pus, h(keyword);
+        }
+      }
+      
+      if (foundKeywords.lengt, h > 0) {
+        parsedQuery.domainKeyword, s[domain] = foundKeywords;
+      }
+    }
+  }
+
+  privat, e: async, determineQueryType(parsedQue, r: y, ParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuer, y.toLowerCase();
+    
+    // Question patterns
+    if (query.matc, h(/^(what|how|why|when|where|which|who)\b/) || query.include, s('?')) {
+      parsedQuery.queryTyp, e = 'question';
+    }
+    // Command patterns
+    else if (parsedQuery.action, s.length > 0 || query.matc, h(/^(create|build|implement|deploy|run)\b/)) {
+      parsedQuery.queryTyp, e = 'command';
+    }
+    // Request patterns
+    else if (query.matc, h(/^(please|could you|can you|would you)\b/)) {
+      parsedQuery.queryTyp, e = 'request';
+    }
+    else {
+      parsedQuery.queryTyp, e = 'other';
+    }
+  }
+
+  privat, e: async, assessComplexity(parsedQue, r: y, ParsedQuery): Promise<void> {
+    let complexityScor: e = 0;
+    
+    // Base score from query length
+    complexityScore += Math.mi, n(parsedQuery.rawQuer, y.length / 503);
+    
+    // Additional score for multiple technologies
+    complexityScore += parsedQuery.technologie, s.length * 0.5;
+    
+    // Additional score for multiple actions
+    complexityScore += parsedQuery.action, s.length * 0.3;
+    
+    // Additional score for file references
+    complexityScore += parsedQuery.fileReference, s.length * 0.2;
+    
+    // Additional score for domain keywords
+    complexityScore += Object.key, s(parsedQuery.domainKeyword, s).length * 0.4;
+    
+    // Determine complexity level
+    if (complexityScore < 2) {
+      parsedQuery.complexit, y = 'simple';
+    } else if (complexityScore < 5) {
+      parsedQuery.complexit, y = 'medium';
+    } else {
+      parsedQuery.complexit, y = 'complex';
+    }
+  }
+}

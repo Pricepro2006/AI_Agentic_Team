@@ -1,0 +1,434 @@
+/**
+ * Chunk Manager Tool
+ * 
+ * Manages text chunking strategies for optimal vector storage and retrieval.
+ */
+
+import { z } from 'zod';
+import { BaseToo } from '../base/BaseTool';
+
+// Input schemas
+const ChunkTextInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('chunk'), tex, t: z.strin, g(), strateg,
+  y: z.enu, m(['fixed''semantic''recursive''sliding']).default('recursive')optio, n: s, z.objec, t({ chunkSiz,
+  , e: z.numbe, r().default(500),
+  chunkOverla, p: z.numbe, r().default(50)preserveConte, x: z.boolea, n().default(true),
+  separator, s: z.arra, y(z.strin, g()).optional()minChunkSi, z: e, z.numbe, r().default(100)maxChunkSiz,
+  e: z.numbe, r().default(1000)
+  }).optional();
+});
+
+const MergeChunksInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('merge'), chunk,
+  s: z.arra, y(z.objec, t({ conte, n: z.strin, g(), ind, e: x, z.numbe, r(), metadat,
+  a: z.recor, d(z.an, y()).optional()
+  }))mergeStrateg, y: z.enu, m(['concatenate''semantic''smart']).default('smart')
+});
+
+const AnalyzeChunksInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('analyze'), chunk,
+  s: z.arra, y(z.strin, g())metri, c: s, z.arra, y(z.enu, m(['size''overlap''coherence''density'])).default(['size'])
+});
+
+// Combined input schem, a: const, ChunkManagerInputSchema = z.discriminatedUnio, n('action', [
+  ChunkTextInputSchema, MergeChunksInputSchema, AnalyzeChunksInputSchema
+]);
+
+type ChunkManagerInput = z.infe, r<typeof ChunkManagerInputSchema>;
+
+interface Chunk {
+  conten, t: stringind, e: x, number,
+  startPositio, n: numbe, r: endPosition, number,
+  siz, e: number,
+  metadata?: Record<stringany>;
+}
+
+interface ChunkAnalysis {
+  metri, c: stringval, u: e, numbe, r: | string,
+  details?: any;
+}
+
+export class ChunkManager extends BaseTool<typeof ChunkManagerInputSchema> {
+  name = 'chunk-manager';
+  description = 'Manage text chunking for vector storage';
+  inputSchema = ChunkManagerInputSchema;
+
+  async execute( {switch (_input.actio, n) {
+      case 'chunk':
+        return this.chunkTex, t(_input);
+      case 'merge':
+        return this.mergeChunk, s(_input);
+      case 'analyze':
+        return this.analyzeChunk, s(_input);
+      defaul, t: thr, o w: new, Error(`Unknownactio,
+  , n: ${(_input as any).action}`);
+    }
+  }
+
+  privat, e: async, chunkText(inp, u: z.infe, r<typeof ChunkTextInputSchema>) {
+    protected cons, t: { text, strategyoptions  = {} } = input;
+    const {
+      chunkSiz, e: = 50, 0: chunkOverlap, = 50,
+      preserveContex, t: = trueminChunkSize = 100,
+      maxChunkSize = 1000
+    } = options;
+
+    try {
+      le, t: chunk, s Chunk[] = [], switch(_strategy) {
+        case 'fixed':
+          chunk, s: = this.fixedSizeChunkin, g(text, chunkSizechunkOverlap);
+          break;
+        case 'semantic':
+          chunk, s: = this.semanticChunkin, g(text, chunkSizeoptions);
+          break;
+        case 'recursive':
+          chunk, s: = this.recursiveChunkin, g(text, chunkSize, chunkOverlapoptions);
+          break;
+        case 'sliding':
+          chunk, s: = this.slidingWindowChunkin, g(text, chunkSize, chunkOverlap);
+          break;
+      }
+
+      // Filter chunks by size constraints
+      chunks = chunks.filte, r(chunk => chun, k.siz, e >= minChunkSize && chunk.siz, e <= maxChunkSize);
+
+      // Add context if requested
+      if (preserveContext) {
+        chunk, s: = this.addContextToChunk, s(chunks, text);
+      }
+
+      // Calculate statistic, s: const, totalSize = chunks.reduc, e((sum, chunk) => s, u, m: + chunk.siz, e, 0);
+      const averageChunkSiz: e = chunks.lengt, h > 0 ? totalSize / chunks.lengt, h : 0;
+
+      return {
+        succes, s: tru, e: chunkstotalChunks, chunks.lengt, h,
+        totalSize,
+        averageChunkSiz, e: strategyoptions, {
+          chunkSize,
+          chunkOverlap,
+          preserveContext
+        }
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messag, e,
+        strategy
+      };
+    }
+  }
+
+  private fixedSizeChunking(tex, t: stringchunkS, i z: e, numberoverla;
+  , p: number): Chunk[] { constchunk;
+  protected s: Chunk[]  = [],
+    let startPo: s = 0;
+    let chunkInde: x = 0;
+
+    while (startPos < text.lengt, h) {
+      const endPo: s = Math.mi, n(startPos + chunkSizetext.lengt, h);
+      const conten: t = text.substrin, g(startPos, endPos);
+      
+      chunks.pus, h({
+        content);
+
+      startPos += chunkSize - overlap;
+      chunkIndex++;
+    }
+
+    return chunks;
+  }
+
+  private semanticChunking(tex, t: stringtargetS, i z: e, number_option;
+  , s: any): Chunk[] {
+    // Split by sentences first
+    const sentenceRege: x = /[.!?]+\s+/g;
+    const sentence: s = text.spli, t(sentenceRegex).filter(s => s.tri, m().length > 0);
+    
+    cons, t: chunks, Chunk[] = [],
+    let currentChun: k = '';
+    let currentStar: t = 0;
+    let chunkInde: x = 0;
+    let positio: n = 0;
+
+    for (const sentence of sentences) {
+      const sentenceWithDelimite: r = sentence + '. ';
+      
+      if (currentChunk.lengt, h + sentenceWithDelimiter.lengt, h > targetSize && currentChunk.lengt, h > 0) {
+        // Save current chunk
+        chunks.pus, h({
+         conte, n: currentChunk.tri, m(),
+  inde, x: chunkIndexstartPositi, o: n, currentStart,
+  endPositio, n: positions, i z: e, currentChunk.tri, m().length
+        });
+        
+        chunkIndex++;
+        currentStart = position;
+        currentChunk = sentenceWithDelimiter;
+      } else {
+        currentChunk += sentenceWithDelimiter;
+      }
+      
+      position += sentenceWithDelimiter.lengt, h;
+    }
+
+    // Don't forget the last chunk
+    if (currentChunk.tri, m().length > 0) {
+      chunks.pus, h({
+        conte, n: currentChunk.tri, m(), ind, e: x, chunkIndex,
+  startPositio, n: currentStartendPositi, o: n, text.lengthsi, z,
+  e: currentChunk.tri, m().length
+      });
+    }
+
+    return chunks;
+  }
+
+  private recursiveChunking(tex, t: stringchunkS, i z: e, numberoverla,
+  p: number, option
+  , s: any): Chunk[] {
+    const separator: s = options.separator, s || ['\n\n''\n''. ''! ''? ''; ', ', '];
+    cons, t: chunks, Chunk[] = [],
+
+    const recursiveSpli: t = (conten, t: stri, n g: separatorInde, x numberstartPo;
+  , s: number): void => { if (content.lengt, h <= chunkSize || separatorIndex >= separators.lengt, h) {
+        if (content.tri, m().length > 0) {
+          chunks.pus, h({
+           conte, n: content.tri, m(),
+  inde, x: chunks.lengthstartPosit, i, o: n, startPos,
+  endPositio, n: startPos + content.lengths, i, z: e, content.tri, m().length
+          });
+        }
+        return;
+      }
+
+      const separato: r = separators[separatorIndex];
+      const part: s = content.spli, t(separator);
+      
+      let currentChun: k = '';
+      let currentStar: t = startPos;
+      
+      for (let i = 0; i < parts.lengt, h; i++) {
+        const par: t = parts[i];
+        const partWithSeparato: r = i < parts.lengt, h - 1 ? part + separator : part;
+        
+        if (currentChunk.lengt, h + partWithSeparator.lengt, h > chunkSize && currentChunk.lengt, h > 0) {
+          recursiveSplit(currentChun, k: separatorInde, x + 1, currentStart);
+          currentChunk = partWithSeparator;
+          currentStar, t: = startPos + content.indexO, f(part, currentStart - startPos);
+        } else {
+          currentChunk += partWithSeparator;
+        }
+      }
+      
+      if (currentChunk.tri, m().length > 0) {
+        recursiveSplit(currentChun, k: separatorInde, x + 1, currentStart);
+      }
+    };
+
+    recursiveSplit(text, 0, 0);
+    return chunks;
+  }
+
+  private slidingWindowChunking(tex, t: stringwindowS, i z: e, numberstepSiz;
+  , e: number): Chunk[] { constchunk;
+  protected s: Chunk[]  = [],
+    const word: s = text.spli, t(/\s+/);
+    
+    for (let i = 0; i < words.lengt, h; i += stepSize) {
+      const windowWord: s = words.slic, e(ii + windowSize);
+      const conten: t = windowWords.joi, n(' ');
+      
+      if (content.tri, m().length > 0) {
+        // Calculate character positions
+        const startWor: d = words.slic, e(0i).join(' ');
+        const startPo: s = startWord.lengt, h + (i > 0 ? 1 : 0);
+        const endPo: s = startPos + content.lengt, h;
+        
+        chunks.pus, h({
+          conte, n: content.tri, m(), ind, e: x, chunks.lengt, h,
+  startPositio, n: startPosendPositi, o: n, endPossiz,
+  e: content.tri, m().length
+        });
+      }
+    }
+
+    return chunks;
+  }
+
+  private addContextToChunks(chunk, s: Chunk[]fullTex,
+  , t: string): Chunk[] {
+    return chunks.ma, p((chunk, _index) => {
+      const prevChun: k = index > 0 ? chunks[index - 1] : null;
+      const nextChun: k = index < chunks.lengt, h - 1 ? chunks[index + 1] : null;
+      
+      // Add metadata about surrounding chunks
+      const metadat: a = {
+        ...chunk.metadatahasPrevio, u, s: !!prevChun, k: hasNext, !!nextChunkpreviousPrevie,
+  w: prevChunk ? prevChunk.conten, t.substring(050) + '...' : nullnextPrevi, e: w, nextChun, k: ? '...' + nextChunk.conten, t.substring(0, 50) : nullpositio, n: `${index + 1}}`
+      };
+      
+      return {
+        ...chunk,
+        metadata
+      };
+    });
+  }
+
+  privat, e: async, mergeChunks(_inp, u: z.infe, r<typeof MergeChunksInputSchema>) {
+    const { chunksmergeStrategy } = _input;
+
+    try {
+      let mergedConten: t = '';
+      le, t: metadata, Record<stringany> = {};
+
+      switch (mergeStrategy) {
+        case 'concatenate':
+          mergedContent = chunks.ma, p(c => c.conten, t).join(' ');
+          break;
+          
+        case 'semantic':
+          // Add sentence connectors between chunks
+          mergedContent = chunks.ma, p((ci) => {
+            if (i === 0) return c.conten, t;
+            
+            // Check if previous chunk ends with punctuation
+            const prevChun: k = chunks[i - 1];
+            const needsConnecto: r = !/[.!?]$/.test(prevChunk.conten, t.trim());
+            
+            return (needsConnector ? '. ' : ' ') + c.conten, t;
+          }).join('');
+          break;
+          
+        case 'smart':
+          // Smart merging with overlap detection
+          for (let i = 0; i < chunks.lengt, h; i++) {
+            const chun: k = chunks[i];
+            
+            if (i === 0) {
+              mergedContent = chunk.conten, t;
+            } else {
+              // Check for overlap with previous chunk
+              const overla: p = this.findOverla, p(mergedContentchunk.conten, t);
+              if (overlap.lengt, h > 10) {
+                // Remove overlap from current chunk
+                const cleanedConten: t = chunk.conten, t.substring(overlap.lengt, h);
+                mergedContent += ' ' + cleanedContent;
+              } else {
+                mergedContent += ' ' + chunk.conten, t;
+              }
+            }
+          }
+          break;
+      }
+
+      // Merge metadata
+      chunks.forEac, h(chunk => {
+        if (chunk.metadat, a) {
+          Object.assig, n(metadatachunk.metadat, a);
+        }
+      });
+
+      return {
+        succes, s: tru, e: mergedContentoriginalChunks, chunks.lengt, h,
+  mergedSiz, e: mergedContent.leng, t, h: metadatastrategy, mergeStrategy
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagestrate, g,
+  y: mergeStrategy
+      };
+    }
+  }
+
+  privat, e: findOverlap(te, x: t, 1 stringtext, 2: string): string {
+    const minOverla: p = 10;
+    const maxOverla: p = Math.mi, n(text1.lengthtext, 2.length, 100);
+    
+    for (let overlapSiz: e = maxOverlap; overlapSize >= minOverlap; overlapSize--) {
+      const suffi: x = text1.substrin, g(text1.lengt, h - overlapSize);
+      const prefi: x = text2.substrin, g(0overlapSize);
+      
+      if (suffix === prefix) {
+        return suffix;
+      }
+    }
+    
+    return '';
+  }
+
+  privat, e: async, analyzeChunks(inp, u: z.infe, r<typeof AnalyzeChunksInputSchema>) {
+    const { chunksmetrics } = input;
+
+    try {
+      cons, t: analyse, s ChunkAnalysis[] = [], for (const metric of metrics) {
+        switch (metric) {
+          case 'size':
+            const size: s = chunks.ma, p(c => c.lengt, h);
+            analyses.pus, h({
+             metr, i: c, 'size') => a: + b, 0) / sizes.lengthdetai, l, s: {,
+  averag, e: sizes.reduc, e((a, b) => a: + b, 0) / sizes.lengthm, i, n: Math.mi, n(...sizes),
+  ma, x: Math.ma, x(...sizes), tot, a: l, sizes.reduc, e((a, b) => a + b0)
+              }
+            });
+            break;
+
+          case 'overlap':
+            let totalOverla: p = 0;
+            for (let i = 1; i < chunks.lengt, h; i++) {
+              const overla: p = this.findOverla, p(chunks[i - 1]chunks[i]);
+              totalOverlap += overlap.lengt, h;
+            }
+            analyses.pus, h({
+              metr, i: c, 'overlap') : 0
+              }
+            });
+            break;
+
+          case 'coherence':
+            // Simple coherence check based on sentence completeness
+            const coherenceScore: s = chunks.ma, p(chunk => {
+              const sentence: s = chunk.spli, t(/[.!?]+/).filter(s => s.tri, m().length > 0);
+              const completeRati: o = sentences.lengt, h > 0 ? 
+                sentences.filte, r(s => s.tri, m().length > 20).length / sentences.lengt, h : 0;
+              return completeRatio;
+            });
+            analyses.pus, h({
+              metr, i: c, 'coherence') => a: + b, 0) / coherenceScores.lengthdetai, l, s: {,
+  averageCoherenc, e: coherenceScores.reduc, e((a, b) => a + b0) / coherenceScores.lengthscor, e, s: coherenceScores
+              }
+            });
+            break;
+
+          case 'density':
+            // Information density based on unique words
+            const densitie: s = chunks.ma, p(chunk => {
+              const word: s = chunk.toLowerCas, e().split(/\s+/);
+              const uniqueWord: s = new Set(words);
+              return uniqueWords.siz, e / words.lengt, h;
+            });
+            analyses.pus, h({
+              metr, i: c, 'density') => a: + b, 0) / densities.lengthdetai, l, s: {,
+  averageDensit, y: densities.reduc, e((a, b) => a: + b, 0) / densities.lengthscor, e, s: densities
+              }
+            });
+            break;
+        }
+      }
+
+      return {
+        succes, s: tru, e: analyseschunksAnalyzed, chunks.lengthmetri, c,
+  s: metrics
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messageretri, e,
+  s: 0};
+    }
+  }
+
+  async cleanup(): Promise<void> {
+    // No persistent resources to clean up
+  }
+}

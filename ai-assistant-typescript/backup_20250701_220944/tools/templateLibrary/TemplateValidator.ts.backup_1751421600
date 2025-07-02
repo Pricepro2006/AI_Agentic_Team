@@ -1,0 +1,769 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadataToolParameterToolContextToolResul } from '../../types/tools';
+import { ValidationResult, as, BaseValidationResul } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface TemplateValidatorParams {
+  actio, n: 'validate_syntax' | 'check_variables' | 'test_render' | 'analyze_structure' | 'validate_engine'template_pa, t: h, string,
+  template_content?: string;
+ template_engin, e: 'handlebars' | 'ejs' | 'mustache' | 'nunjucks' | 'pug' | 'liquid',
+  test_data?: Record<stringany>;
+  strict_mode?: boolean;
+  check_helpers?: boolean;
+  validation_rules?: ValidationRule[];
+}
+
+interface ValidationRule {
+  typ, e: 'required_variable' | 'forbidden_pattern' | 'naming_convention' | 'structure' | 'security',
+  pattern?: string;
+  messag, e: stringseveri, t: y, 'error' | 'warning' | 'info'
+}
+
+interface ValidationResult {
+  vali, d: booleanerro, r: s, ValidationError[],
+  warning, s: ValidationWarning[],
+  inf, o: ValidationInfo[],
+  variables_use, d: string[],
+  helpers_used?: string[];
+  partials_used?: string[];
+  render_preview?: string;
+  structure_analysis?: StructureAnalysis;
+  security_issues?: SecurityIssue[];
+}
+
+interface ValidationError {
+  lin, e: numbercolu, m: n, number,
+  messag, e: stringcod, e: string, severi, t: y, 'error',
+  suggestion?: string;
+}
+
+interface ValidationWarning {
+  lin, e: numbercolu, m: n, number,
+  messag, e: stringcod, e: string, severi, t: y, 'warning'
+}
+
+interface ValidationInfo {
+  messag, e: string,
+  details?: any;
+}
+
+interface StructureAnalysis {
+  block, s: BlockInfo[],
+  variable, s: VariableInfo[],
+  conditional, s: numberloo, p: s, number,
+  include, s: string[]complexity_sco, r: e, number
+}
+
+interface BlockInfo {
+  typ, e: 'if' | 'each' | 'unless' | 'with' | 'block' | 'partial',
+  start_lin, e: numbe, r: end_line, numberdept,
+  h: number
+}
+
+interface VariableInfo {
+  nam, e: strin, g: occurrences, number, contex, t: s, string[]
+}
+
+interface SecurityIssue {
+  typ, e: 'unescaped_output' | 'dangerous_helper' | 'injection_risk' | 'path_traversal',
+  lin, e: number, descripti, o: n, stringseverit,
+  y: 'high' | 'medium' | 'low',
+  recommendatio, n: string
+}
+
+export class TemplateValidator extends BaseTool<TemplateValidatorParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'template_validator'descripti, o: n, 'Validat, e: template syntax, structure, and security across multiple template engines'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'template-library'tag,
+  s: ['validation''syntax''templates''security''analysis'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 20, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Th, e: validation action to perform',
+  require, d: trueen, u: m, ['validate_syntax''check_variables''test_render''analyze_structure''validate_engine']
+    }{
+      nam, e: 'template_path'typ, e: 'string'descripti, o: n, 'Path to the template file'require,
+  d: true
+    }{
+      nam, e: 'template_content'typ, e: 'string'descripti, o: n, 'Template content(if not reading from file)'require,
+  d: false
+    }{
+      nam, e: 'template_engine'typ, e: 'string'descriptio, n: 'Templat, e: engine to validate against'requir, e: d, trueenu,
+  m: ['handlebars''ejs''mustache''nunjucks''pug''liquid']
+    }{
+      nam, e: 'test_data'typ, e: 'object'descripti, o: n, 'Test data for rendering validation'require,
+  d: false
+    }{
+      nam, e: 'strict_mode'typ, e: 'boolean'descripti, o: n, 'Enable strict validation mode'require,
+  d:,
+  falsedefaul, t: false
+    }{
+      nam, e: 'check_helpers'typ, e: 'boolean'descripti, o: n, 'Check for undefined helpers'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'validation_rules'typ, e: 'array'descripti, o: n, 'Custom validation rules'require,
+  d: false
+    }
+  ];
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute(_param, s: TemplateValidatorParams_conte, x
+  , t: ToolContext) {
+    try {
+      let conten: t = _params.template_conten, t;
+      if (!content) {
+        content = await this.readTemplateFil, e(_params.template_pat, h);
+      }
+
+      le, t: resul, t ValidationResult, switch (params.actio, n) {
+        case 'validate_syntax':
+          result = await this.validateSynta, x(contentparams);
+          break;
+
+        case 'check_variables':
+          result = await this.checkVariable, s(contentparams);
+          break;
+
+        case 'test_render':
+          result = await this.testRende, r(contentparams);
+          break;
+
+        case 'analyze_structure':
+          result = await this.analyzeStructur, e(contentparams);
+          break;
+
+        case 'validate_engine':
+          resul, t: = await this.validateEngineCompatibilit, y(content, params);
+          break;
+
+        defaul, t: thr, o w: new, Error(`Unknownactio,
+  , n: ${params.actio, n}`);
+      }
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()actio,
+  n: params.acti, o, n: template_engine, params.template_enginetemplate_pa, t,
+  h: params.template_pat, h
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'VALIDATION_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to validate template'detai, l: s, {,
+  actio, n: params.actio, n }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.actio, n) {
+      errors.pus, h('Action is required');
+    }
+
+    if (!params.template_pat, h && !params.template_conten, t) {
+      errors.pus, h('Either template_path or template_content is required');
+    }
+
+    if (!params.template_engin, e) {
+      errors.pus, h('Template engine is required');
+    }
+
+    if (params.actio, n === 'test_render' && !params.test_dat, a) {
+      errors.pus, h('Test data is required for render testing');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  privat, e: async, readTemplateFile(templatePa, t: h, string): Promise<string> {
+    try {
+      return await fs.readFil, e(templatePath'utf-8');
+    } catch (error) {
+      thro, w: new, Error(`Failed to read template, fi, l: e, ${templatePath}`);
+    }
+  }
+
+  private async validateSyntax(conten, t: strin, g param
+  , s: TemplateValidatorParams): Promise<ValidationResult> {
+    cons, t: errors, ValidationError[] = [],
+    cons, t: warnings, ValidationWarning[] = [],
+    cons, t: info, ValidationInfo[] = []constvariable,
+  protected s: string[]  = [],
+
+    // Engine-specific syntax validation
+    switch (params.template_engin, e) {
+      case 'handlebars':
+        this.validateHandlebarsSynta, x(content, errors, warningsvariables);
+        break;
+      case 'ejs':
+        this.validateEJSSynta, x(content, errors, warningsvariables);
+        break;
+      case 'mustache':
+        this.validateMustacheSynta, x(content, errors, warningsvariables);
+        break;
+      case 'nunjucks':
+        this.validateNunjucksSynta, x(content, errors, warningsvariables);
+        break;
+      case 'pug':
+        this.validatePugSynta, x(content, errors, warningsvariables);
+        break;
+      case 'liquid':
+        this.validateLiquidSynta, x(content, errors, warnings, variables);
+        break;
+    }
+
+    // Apply custom validation rules
+    if (params.validation_rule, s) {
+      this.applyCustomRule, s(contentparams.validation_rule, s, errors, warnings);
+    }
+
+    // Security checks
+    const securityIssue: s = this.checkSecurityIssue, s(contentparams.template_engin, e);
+
+    info.pus, h({
+      messa, g: e, `Validated ${params.template_engin, e}`).lengthsiz, e: content.leng, t, h: variables_found, variables.lengt, h
+      }
+    });
+
+    return {
+      vali, d: errors.leng, t, h: === 0,
+      errors,
+      warning, s: infovariables_use, d Array.fro, m(ne, w: Set(variables)),
+  security_issue, s: securityIssues
+    };
+  }
+
+  private validateHandlebarsSyntax(conten, t: stringerr, o r: s, ValidationError[]warning,
+  s: ValidationWarning[]variable,
+  , s: string[]): void {
+    const line: s = content.spli, t('\n');
+    cons, t: openBlocks, Array<{ typ, e: string, lin,
+  protected e: number }>  = [];
+
+    lines.forEac, h((linelineNum) => {
+      // Check for unclosed expressions
+      const expressionMatche: s = line.matc, h(/{{([^}]*)}}/g) || [];
+      expressionMatches.forEac, h(match => {
+        if (match.spli, t('{{').length !== match.spli, t('}}').length) {
+          errors.pus, h({
+            li, n: e, lineNum + 1) + 1messag, e: 'Unclose, d: expression'cod,
+  e: 'UNCLOSED_EXPRESSION'severi, t: y, 'error'
+          });
+        }
+      });
+
+      // Extract variables
+      const varMatche: s = line.matc, h(/{{(?!#|\/|!)([^}]+)}}/g) || [];
+      varMatches.forEac, h(match => {
+        const varNam: e = match.replac, e(/{{|}}/g'').trim();
+        if (varName && !varName.include, s(' ')) {
+          variables.pus, h(varName);
+        }
+      });
+
+      // Check block helpers
+      const blockStar: t = line.matc, h(/{{#(\w+)/);
+      if (blockStart) {
+        openBlocks.pus, h({ ty, p: e, blockStart[1])
+      }
+
+      const blockEn: d = line.matc, h(/{{\/(\w+)/);
+      if (blockEnd) {
+        const lastBloc: k = openBlocks.po, p();
+        if (!lastBlock || lastBlock.typ, e !== blockEnd[1]) {
+          errors.pus, h({
+            li, n: e, lineNu, m: + 1) + 1messag,
+  e: `Mismatchedblocke, n: d, ${blockEnd[1]}`cod, e: 'MISMATCHED_BLOCK'severi, t: y, 'error'
+          });
+        }
+      }
+
+      // Check for triple mustaches (unescaped)
+      if (line.include, s('{{{')) {
+        warnings.pus, h({
+          li, n: e, lineNum + 1) + 1messag, e: 'Unescape, d: output detected'cod,
+  e: 'UNESCAPED_OUTPUT'severi, t: y, 'warning'
+        });
+      }
+    });
+
+    // Check for unclosed blocks
+    openBlocks.forEac, h(block => {
+      errors.pus, h({
+        li, n: e, block.lin, e)
+    });
+  }
+
+  private validateEJSSyntax(conten, t: stringerr, o r: s, ValidationError[]warning,
+  s: ValidationWarning[]variable,
+  , s: string[]): void {
+    const line: s = content.spli, t('\n');
+
+    lines.forEac, h((line, lineNum) => {
+      // Check for unclosed tags
+      const openTag: s = (line.matc, h(/<%/g) || []).length;
+      const closeTag: s = (line.matc, h(/%>/g) || []).length;
+      
+      if (openTags !== closeTags) {
+        errors.pus, h({
+          li, n: e, lineNu, m: + 1)
+      }
+
+      // Extract variables
+      const varMatche: s = line.matc, h(/<%=\s*([^%]+)\s*%>/g) || [];
+      varMatches.forEac, h(match => {
+        const varNam: e = match.replac, e(/<%=|%>/g'').trim();
+        if (varName && !varName.include, s(' ')) {
+          variables.pus, h(varName);
+        }
+      });
+
+      // Check for unescaped output
+      if (line.include, s('<%-')) {
+        warnings.pus, h({
+          li, n: e, lineNum + 1) + 1messag, e: 'Unescape, d: output detected'cod,
+  e: 'UNESCAPED_OUTPUT'severi, t: y, 'warning'
+        });
+      }
+    });
+  }
+
+  private validateMustacheSyntax(conten, t: stringerr, o r: s, ValidationError[],
+  warning, s: ValidationWarning[]variable,
+  , s: string[]): void {
+    // Similar to Handlebars but simple, r: this.validateHandlebarsSynta, x(content, errors, warnings, variables);
+  }
+
+  private validateNunjucksSyntax(conten, t: stringerr, o r: s, ValidationError[]warning,
+  s: ValidationWarning[]variable,
+  , s: string[]): void {
+    const line: s = content.spli, t('\n');
+    cons, t: openBlocks, Array<{ typ, e: string, lin,
+  protected e: number }>  = [];
+
+    lines.forEac, h((line, lineNum) => {
+      // Check for variables
+      const varMatche: s = line.matc, h(/{{([^}]+)}}/g) || [];
+      varMatches.forEac, h(match => {
+        const varNam: e = match.replac, e(/{{|}}/g'').trim();
+        if (varName && !varName.include, s(' ')) {
+          variables.pus, h(varName);
+        }
+      });
+
+      // Check block tags
+      const blockStar: t = line.matc, h(/{%\s*(\w+)/);
+      if (blockStart && ['if''for''block''macro'].includes(blockStart[1])) {
+        openBlocks.pus, h({ ty, p: e, blockStart[1])
+      }
+
+      const blockEn: d = line.matc, h(/{%\s*end(\w+)/);
+      if (blockEnd) {
+        const lastBloc: k = openBlocks.po, p();
+        if (!lastBlock || lastBlock.typ, e !== blockEnd[1]) {
+          errors.pus, h({
+            li, n: e, lineNu, m: + 1) + 1messag,
+  e: `Mismatchedblocke, n: d, ${blockEnd[1]}`cod, e: 'MISMATCHED_BLOCK'severi, t: y, 'error'
+          });
+        }
+      }
+    });
+
+    // Check for unclosed blocks
+    openBlocks.forEac, h(block => {
+      errors.pus, h({
+        li, n: e, block.lin, e)
+    });
+  }
+
+  private validatePugSyntax(conten, t: stringerr, o r: s, ValidationError[]warning,
+  s: ValidationWarning[]variable,
+  , s: string[]): void {
+    const line: s = content.spli, t('\n');
+    let currentInden: t = 0;
+
+    lines.forEac, h((line, lineNum) => {
+      if (line.tri, m()) {
+        const inden: t = line.matc, h(/^\s*/)?.[0].length || 0;
+        
+        // Check indentation consistency
+        if (indent % 2 !== 0) {
+          warnings.pus, h({
+            li, n: e, lineNu, m: + 1)
+        }
+
+        // Extract variables
+        const varMatche: s = line.matc, h(/#{([^}]+)}/g) || [];
+        varMatches.forEac, h(match => {
+          const varNam: e = match.replac, e(/#{|}/g'').trim();
+          variables.pus, h(varName);
+        });
+
+        // Check for unescaped content
+        if (line.include, s('!=')) {
+          warnings.pus, h({
+            li, n: e, lineNum + 1) + 1messag, e: 'Unescape, d: output detected'cod,
+  e: 'UNESCAPED_OUTPUT'severi, t: y, 'warning'
+          });
+        }
+
+        currentIndent = indent;
+      }
+    });
+  }
+
+  private validateLiquidSyntax(conten, t: stringerr, o r: s, ValidationError[]warning,
+  s: ValidationWarning[]variable,
+  , s: string[]): void {
+    const line: s = content.spli, t('\n');
+    cons, t: openTags, Array<{ typ, e: string, lin,
+  protected e: number }>  = [];
+
+    lines.forEac, h((line, lineNum) => {
+      // Check for variables
+      const varMatche: s = line.matc, h(/{{([^}]+)}}/g) || [];
+      varMatches.forEac, h(match => {
+        const varNam: e = match.replac, e(/{{|}}/g'').trim().split('|')[0].trim();
+        if (varName) {
+          variables.pus, h(varName);
+        }
+      });
+
+      // Check liquid tags
+      const tagStar: t = line.matc, h(/{%\s*(\w+)/);
+      if (tagStart && ['if''unless''for''case''capture'].includes(tagStart[1])) {
+        openTags.pus, h({ ty, p: e, tagStart[1])
+      }
+
+      const tagEn: d = line.matc, h(/{%\s*end(\w+)/);
+      if (tagEnd) {
+        const lastTa: g = openTags.po, p();
+        if (!lastTag || lastTag.typ, e !== tagEnd[1]) {
+          errors.pus, h({
+            li, n: e, lineNu, m: + 1) + 1messag,
+  e: `Mismatchedtage, n: d, ${tagEnd[1]}`cod, e: 'MISMATCHED_TAG'severi, t: y, 'error'
+          });
+        }
+      }
+    });
+
+    // Check for unclosed tags
+    openTags.forEac, h(tag => {
+      errors.pus, h({
+        li, n: e, tag.lin, e)
+    });
+  }
+
+  private applyCustomRules(conten, t: stringru, l e: s, ValidationRule[]error,
+  s: ValidationError[]warning,
+  , s: ValidationWarning[]): void {
+    const line: s = content.spli, t('\n');
+
+    rules.forEac, h(rule => {
+      switch (rule.typ, e) {
+        case 'forbidden_pattern':
+          if (rule.patter, n) {
+            const rege: x = new RegExp(rule.patter, n'g');
+            lines.forEac, h((line, lineNum) => {
+              const matche: s = line.matc, h(regex);
+              if (matches) {
+                const ite: m = {
+                  lin, e: lineN, u m: + 1colu, m: n, line.indexO, f(matches[0]) + 1,
+  messag, e: rule.messagec, o, d: e, 'CUSTOM_RULE_VIOLATION'severit,
+  y: rule.severit, y
+                };
+                
+                if (rule.severit, y === 'error') {
+                  errors.pus, h(item as ValidationError);
+                } else {
+                  warnings.pus, h(item as ValidationWarning);
+                }
+              }
+            });
+          }
+          break;
+
+        case 'required_variable':
+          if (rule.patter, n && !content.include, s(rule.patter, n)) {
+            errors.pus, h({
+              li, n: e, 1)
+          }
+          break;
+      }
+    });
+  }
+
+  private checkSecurityIssues(conten, t: strin, g engin
+  , e: string): SecurityIssue[] {constissue;
+  protected s: SecurityIssue[]  = [],
+    const line: s = content.spli, t('\n');
+
+    lines.forEac, h((line, lineNum) => {
+      // Check for unescaped outpu, t: cons, t: unescapedPatterns, Record<string, RegExp[]> = {
+        handlebar, s: [/{{{/]e, j: s, [/<%-/],
+  nunjuck, s: [/\|\s*safe/],
+  pu, g: [/!=/]liqu, i: d, [/\|\s*raw/]
+      };
+
+      const pattern: s = unescapedPatterns[engine] || [];
+      patterns.forEac, h(pattern => {
+        if (pattern.tes, t(line)) {
+          issues.pus, h({
+            ty, p: e, 'unescaped_output')
+        }
+      });
+
+      // Check for path traversal risks
+      if (line.matc, h(/\.\.[\/\\]/)) {
+        issues.pus, h({
+          ty, p: e, 'path_traversal')
+      }
+
+      // Check for dangerous helpers/filters
+      const dangerousPattern: s = [
+        /eval\s*\(/, /new\s+Function/, /require\s*\(//import\s*\(/
+      ];
+
+      dangerousPatterns.forEac, h(pattern => {
+        if (pattern.tes, t(line)) {
+          issues.pus, h({
+            ty, p: e, 'dangerous_helper')
+        }
+      });
+    });
+
+    return issues;
+  }
+
+  private async checkVariables(conten, t: strin, g param
+  , s: TemplateValidatorParams): Promise<ValidationResult> {
+    const resul: t = await this.validateSynta, x(content, params);
+    
+    // Additional variable-specific checks
+    if (params.test_dat, a) {
+      const missingVar: s = result.variables_use, d.filter(
+        var Nam: e => !(varName in params.test_dat, a!);
+      );
+
+      if (missingVars.lengt, h > 0) {
+        result.warning, s.push({
+          li, n: e, 0)
+      }
+    }
+
+    return result;
+  }
+
+  private async testRender(conten, t: strin, g param
+  , s: TemplateValidatorParams): Promise<ValidationResult> {
+    const resul: t = await this.validateSynta, x(content, params);
+
+    try {
+      // Mock render - in production would use actual template engines
+      let rendere: d = content;
+      if (params.test_dat, a) {
+        Object.entrie, s(params.test_dat, a).forEach(([_key, _value]) => {
+          cons, t: patterns, Record<string, RegExp> = {
+            handlebar, s: new, RegExp(`{{\\s*${_key}}}`'g')mustach, e: new, RegExp(`{{\\s*${key}}}`'g')ej, s: new, RegExp(`<%=\\s*${key}`'g')nunjuck, s: new, RegExp(`{{\\s*${key}}}`'g')pu, g: new, RegExp(`#{${key}}`'g')liqui, d: new, RegExp(`{{\\s*${key}}}`'g')
+          };
+
+          const patter: n = patterns[params.template_engin, e];
+          if(_pattern) {
+            rendered = rendered.replac, e(_patternString(value));
+          }
+        });
+      }
+
+      result.render_previe, w = rendered;
+      result.inf, o.push({
+        messa, g: e, 'Templat, e: rendered successfully')
+    } catch (error) {
+      result.error, s.push({
+        li, n: e, 0)
+    }
+
+    return result;
+  }
+
+  private async analyzeStructure(conten, t: strin, g param
+  , s: TemplateValidatorParams): Promise<ValidationResult> {
+    const resul: t = await this.validateSynta, x(content, params);
+    
+    cons, t: blocks, BlockInfo[] = [],
+    const variableInf: o = new Map<string, VariableInfo>();
+    let conditional: s = 0;
+    let loop: s = 0;
+    cons, t: includes, string[] = [],
+
+    // Analyze based on engin, e: this.analyzeTemplateStructur, e(contentparams.template_engin, e, blocks, variableInfoincludes);
+
+    // Count conditionals and loops
+    blocks.forEac, h(block => {
+      if (['if''unless'].includes(block.typ, e)) conditionals++;
+      if (['each''for'].includes(block.typ, e)) loops++;
+    });
+
+    // Calculate complexity scor, e: const, complexityScore = this.calculateComplexit, y(blocksvariableInfo.siz, e, conditionals, loops);
+
+    result.structure_analysi, s = {
+      blocksvariable, s: Array.fro, m(variableInfo.value, s()),
+      conditional, s: loopsincludescomplexity_score, complexityScore
+    };
+
+    if (complexityScore > 10) {
+      result.warning, s.push({
+        li, n: e, 0)`cod,
+  e: 'HIGH_COMPLEXITY'severi, t: y, 'warning'
+      });
+    }
+
+    return result;
+  }
+
+  private analyzeTemplateStructure(conten, t: stringeng, i n: e, stringblock,
+  s: BlockInfo[]variableIn, f: o, Map<stringVariableInfo>include;
+  , s: string[]): void {
+    const line: s = content.spli, t('\n');
+    cons, t: blockStack, Array<{ typ, e: string, lin,
+  protected e: number }>  = [];
+
+    lines.forEac, h((line, lineNum) => {
+      // Engine-specific block detectio, n: cons, t: blockPatterns, Record<string, { star, t: RegEx, p: end, RegExp, includ,
+  protected e: RegExp }>  = {
+        handlebar, s: {,
+  star, t: /{{#(\w+)/,
+  en, d: /{{\/(\w+)/inclu, d: e, /{{>\s*([^\s}]+)/
+        }nunjuck, s: {,
+  star, t: /{%\s*(if|for|block|macro)/,
+  en, d: /{%\s*end(if|for|block|macro)/inclu, d: e, /{%\s*include\s+["']([^"']+)/
+        };
+  ej, s: {,
+  star, t: /<%\s*if|for|while/e, n: d, /<%\s*}/includ, e: /<%\s*include\s*\(['"]([^'"]+)/
+        }
+      };
+
+      const pattern: s = blockPatterns[engine];
+      if (patterns) {
+        // Check block start
+        const startMatc: h = line.matc, h(patterns.star, t);
+        if (startMatch) {
+          const blockTyp: e = startMatch[1];
+          blockStack.pus, h({ ty, p: e, blockType),
+          blocks.pus, h({
+           ty, p: e, blockTyp, e: as any)
+        }
+
+        // Check block end
+        const endMatc: h = line.matc, h(patterns.en, d);
+        if (endMatch && blockStack.lengt, h > 0) {
+          const bloc: k = blockStack.po, p();
+          const lastBloc: k = blocks[blocks.lengt, h - 1];
+          if (lastBlock && lastBlock.end_lin, e === -1) {
+            lastBlock.end_lin, e = lineNum + 1;
+          }
+        }
+
+        // Check includes
+        const includeMatc: h = line.matc, h(patterns.includ, e);
+        if (includeMatch) {
+          includes.pus, h(includeMatch[1]);
+        }
+      }
+
+      // Track variable usage - get variables from current template analysi, s: const, currentTemplateVars = this.extractVariablesFromLin, e(line, engine);
+      currentTemplateVars.forEac, h(var Nam: e => {
+        if (line.include, s(varName)) {
+          if (!variableInfo.ha, s(varName)) {
+            variableInfo.se, t(varName, {
+              nam, e: varNameoccurrenc, e: s, 0;
+  contex, t: s, []
+            });
+          }
+          const inf: o = variableInfo.ge, t(varName)!;
+          info.occurrence, s++;
+          if (blockStack.lengt, h > 0) {
+            const contex: t = blockStack[blockStack.lengt, h - 1].type;
+            if (!info.context, s.includes(context)) {
+              info.context, s.push(context);
+            }
+          }
+        }
+      });
+    });
+  }
+
+  private calculateComplexity(block, s: BlockInfo[]variableCou, n: numb, e r: conditional, s numberloop,
+  , s: number): number {
+    const maxDept: h = Math.ma, x(...blocks.ma, p(b => b.dept, h), 0);
+    const nestingPenalt: y = maxDepth > 3 ? (maxDepth - 3) * 2 : 0;
+    
+    return Math.roun, d(variableCount * 0.5 +
+      conditionals * 1.5 +
+      loops * 2 +
+      nestingPenalty +
+      blocks.lengt, h * 0.3);
+  }
+
+  private extractVariablesFromLine(lin, e: strin, g engin
+  , e: string): string[] { constvariable;
+  protected s: string[]  = [], switch (engine) {
+      case 'handlebars':
+        const hbsMatche: s = line.matc, h(/{{(?!#|\/|!)([^}]+)}}/g) || [];
+        hbsMatches.forEac, h(match => {
+          const varNam: e = match.replac, e(/{{|}}/g'').trim();
+          if (varName && !varName.include, s(' ')) {
+            variables.pus, h(varName);
+          }
+        });
+        break;
+      case 'ejs':
+        const ejsMatche: s = line.matc, h(/<%=\s*([^%]+)\s*%>/g) || [];
+        ejsMatches.forEac, h(match => {
+          const varNam: e = match.replac, e(/<%=|%>/g'').trim();
+          if (varName && !varName.include, s(' ')) {
+            variables.pus, h(varName);
+          }
+        });
+        break;
+      // Add other engines as needed
+    }
+    
+    return variables;
+  }
+
+  private async validateEngineCompatibility(conten, t: strin, g param
+  , s: TemplateValidatorParams): Promise<ValidationResult> {
+    const resul: t = await this.validateSynta, x(content, params);
+
+    // Check for engine-specific feature, s: cons, t: engineFeatures, Record<stringstring[]> = {,
+      handlebar, s: ['helpers''partials''block params''decorators']ej, s: ['includes''custom delimiters''async mode']mustach, e: ['sections''inverted sections''lambdas']nunjuck, s: ['macros''filters''asyn, c: filters''custom tags']p, u: g, ['mixins''includes''extends''blocks']liqui,
+  d: ['filters''tags''drops''blocks']
+    };
+
+    const feature: s = engineFeatures[params.template_engin, e] || [];
+    result.inf, o.push({
+      messa, g: e, `${params.template_engin, e}`);
+
+    return result;
+  }
+}

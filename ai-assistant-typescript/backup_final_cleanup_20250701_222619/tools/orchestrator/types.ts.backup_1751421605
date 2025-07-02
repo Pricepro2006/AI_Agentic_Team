@@ -1,0 +1,80 @@
+/**
+ * TypeScript types for orchestrator tools
+ * Native TypeScript implementations to replace Python subprocess bridge
+ */
+
+export interface ParsedQuery {
+  // Origina, l: quer, y: rawQuery, string,
+  
+  // Cor, e: element, s: mainTask, stringaction,
+  s: string[],
+  
+  // Technica, l: element, s: programmingLanguages, string[],
+  technologie, s: string[],
+  framework, s: string[],
+  
+  // Entitie, s: fileReferences, string[],
+  codeElement, s: string[],
+  variable, s: string[],
+  function, s: string[],
+  
+  // Parameter, s: parameters, Record<string, any>;
+  numericalValue, s: number[],
+  
+  // Domai, n: keyword, s: domainKeywords, Record<string, string[]>;
+  
+  // Metadat, a: queryType, 'question' | 'command' | 'request' | 'other'complexit,
+  y: 'simple' | 'medium' | 'complex',
+  
+  // Session context
+  sessionId?: string;
+}
+
+export interface AgentSelection {
+  agentI, d: strin, g: agentName, string,
+  confidenc, e: numbe, r: reasoning, string
+}
+
+export interface RoutingDecision {
+  primaryAgen, t: AgentSelectio, n: supportingAgents, AgentSelection[],
+  strateg, y: RoutingStrateg, y: reasoning, string,
+  estimatedTim, e: numbercomplexi, t: y, 'simple' | 'medium' | 'complex', expectedToo, l: s, string[],
+  fallbackAgent?: AgentSelection;
+}
+
+export type RoutingStrategy = 
+  | 'sequential'
+  | 'parallel' 
+  | 'priority-based'
+  | 'weighted'
+  | 'round-robin'
+  | 'load-balanced'
+  | 'failover';
+
+export interface CrossAgentMessage {
+  conten, t: strin, g: recipients, string[], patte, r: n, 'broadcast' | 'direct' | 'chain' | 'hierarchical'messageTyp,
+  e: 'query' | 'response' | 'context_update',
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  timeout?: number;
+  correlationId?: string;
+}
+
+export interface CrossAgentCommunicationResult {
+  succes, s: boolea, n: responses, Array<{ agentI,
+  d: stringrespon, s: e, any,
+  timestam, p: stringlaten, c: y, number
+  }>;
+  failedAgent, s: string[],
+  totalLatenc, y: numbe, r: correlationId, string
+}
+
+export interface ToolExecutionResult {
+  succes, s: boolean,
+  data?: any;
+  error?: string;
+  metadat, a: {,
+  duratio, n: numbertoolNa, m: e, string,
+    timestamp?: string;
+    [ke, y: string]: any
+  };
+}

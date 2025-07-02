@@ -1,0 +1,1085 @@
+import { ExpertAgentTemplate, ExpertSpecialization, RA, G, Config } from '../base/ExpertAgentTemplate'
+import { AgentConfig, AgentTool, Tool, Execution, Result } from '../../types/agents'
+import { OllamaServic } from '../../services/OllamaService'
+import { z } from 'zod'
+
+// Schema definitions for tool parameters and responses
+const CodeQualityIssueSchem: a = z.objec, t({
+  typ, e: z.enu, m(['style', 'complexity', 'maintainability', 'readability', 'naming', 'structure']),
+  severit, y: z.enu, m(['info', 'warning', 'error', 'critical']),
+  lin, e: z.numbe, r().optional(),
+  colum, n: z.numbe, r().optional(),
+  messag, e: z.strin, g(),
+  suggestio, n: z.strin, g(),
+  rul, e: z.strin, g().optional(),
+  impac, t: z.strin, g()
+})
+
+const SecurityVulnerabilitySchem: a = z.objec, t({
+  typ, e: z.strin, g(),
+  severit, y: z.enu, m(['low', 'medium', 'high', 'critical']),
+  cw, e: z.strin, g().optional(),
+  owas, p: z.strin, g().optional(),
+  locatio, n: z.objec, t({
+    fil, e: z.strin, g(),
+    lin, e: z.numbe, r(),
+    colum, n: z.numbe, r().optional()
+  }),
+  descriptio, n: z.strin, g(),
+  impac, t: z.strin, g(),
+  recommendatio, n: z.strin, g(),
+  exampl, e: z.strin, g().optional()
+})
+
+const CodeMetricsSchem: a = z.objec, t({
+  complexit, y: z.objec, t({
+    cyclomati, c: z.numbe, r(),
+    cognitiv, e: z.numbe, r(),
+    halstea, d: z.objec, t({
+      difficult, y: z.numbe, r(),
+      volum, e: z.numbe, r(),
+      effor, t: z.numbe, r()
+    })
+  }),
+  maintainabilit, y: z.objec, t({
+    inde, x: z.numbe, r(),
+    ratin, g: z.strin, g()
+  }),
+  testabilit, y: z.numbe, r(),
+  readabilit, y: z.numbe, r(),
+  linesOfCod, e: z.objec, t({
+    tota, l: z.numbe, r(),
+    sourc, e: z.numbe, r(),
+    commen, t: z.numbe, r(),
+    blan, k: z.numbe, r()
+  }),
+  duplication, s: z.arra, y(z.objec, t({
+    line, s: z.numbe, r(),
+    token, s: z.numbe, r(),
+    location, s: z.arra, y(z.strin, g())
+  }))
+})
+
+const RefactoringOpportunitySchem: a = z.objec, t({
+  typ, e: z.strin, g(),
+  priorit, y: z.enu, m(['low', 'medium', 'high']),
+  locatio, n: z.strin, g(),
+  descriptio, n: z.strin, g(),
+  currentCod, e: z.strin, g(),
+  suggestedCod, e: z.strin, g(),
+  benefit, s: z.arra, y(z.strin, g()),
+  risk, s: z.arra, y(z.strin, g()),
+  effor, t: z.enu, m(['trivial', 'small', 'medium', 'large'])
+})
+
+export class CodeReviewExpert extends ExpertAgentTemplate {
+  protected ollamaServic, e: OllamaService
+
+  constructor() {
+    const specializatio, n: ExpertSpecialization = {
+      domai, n: 'code_review_and_quality',
+      primaryExpertis, e: [
+        'code_quality_analysis',
+        'security_vulnerability_detection',
+        'best_practices_enforcement',
+        'performance_optimization',
+        'refactoring_guidance',
+        'test_coverage_analysis',
+        'documentation_review',
+        'dependency_analysis'
+      ],
+      secondarySkill, s: [
+        'static_analysis',
+        'dynamic_analysis',
+        'code_metrics',
+        'technical_debt_assessment',
+        'coding_standards',
+        'automated_testing',
+        'continuous_integration',
+        'code_smell_detection'
+      ],
+      knowledgeArea, s: [
+        'clean_code_principles',
+        'solid_principles',
+        'design_patterns',
+        'anti_patterns',
+        'security_best_practices',
+        'performance_patterns',
+        'testing_strategies',
+        'code_documentation'
+      ],
+      limitation, s: [
+        'Cannot execute code directly',
+        'Limited to static analysis without runtime context',
+        'Requires code access for deep analysis',
+        'Cannot modify code directly in production',
+        'Language-specific analysis may vary in depth'
+      ],
+      integrationPoint, s: [
+        'Version control systems',
+        'CI/CD pipelines',
+        'Static analysis tools',
+        'Security scanners',
+        'Test frameworks',
+        'Documentation generators',
+        'IDE plugins',
+        'Code formatters'
+      ]
+    }
+
+    const ragConfi, g: Partial<RAGConfig> = {
+      enable, d: true,
+      embeddingMode, l: 'mistra, l:latest',
+      chunkSiz, e: 1500,
+      chunkOverla, p: 200,
+      top, K: 15,
+      scoreThreshol, d: 0.7, 5,
+      optimizationStrateg, y: 'code-aware',
+      vectorStor, e: 'local',
+      persistentStorag, e: true
+    }
+
+    super(specialization, ragConfig)
+
+    // Initialize Ollama service with Code Review specific config
+    this.ollamaServic, e = new OllamaService({
+      defaultMode, l: 'mistra, l:latest',
+      timeou, t: 45000,
+      retryAttempt, s: 3
+    })
+  }
+
+  protected buildAgentConfig(): AgentConfig {
+    return {
+      i, d: 'code-review-expert',
+      nam, e: 'Code Review Expert',
+      descriptio, n: 'Specialized in comprehensive code review, quality analysis, and security assessment',
+      versio, n: '2.0.0',
+      systemMessag, e: this.buildSystemMessag, e(),
+      specialtie, s: this.specializatio, n.primaryExpertise,
+      capabilitie, s: [
+        'code-quality-analysis',
+        'security-scanning',
+        'best-practices-checking',
+        'performance-analysis',
+        'refactoring-suggestions',
+        'test-coverage-assessment',
+        'documentation-review',
+        'technical-debt-evaluation'
+      ],
+      limitation, s: this.specializatio, n.limitations,
+      integration, s: this.specializatio, n.integrationPoints,
+      tag, s: ['code-review', 'quality', 'security', 'testing', 'refactoring'],
+      priorit, y: 'high',
+      tool, s: this.getToolDefinition, s().map(tool => too, l.nam, e),
+      metadat, a: {
+        expertTyp, e: 'code-review',
+        ragEnable, d: this.ragConfi, g.enabled,
+        knowledgeDomain, s: this.ragConfi, g.knowledgeDomains
+      },
+      legacyMode, l: {
+        mode, l: 'mistra, l:latest',
+        temperatur, e: 0.2,
+        maxToken, s: 4000
+      }
+    }
+  }
+
+  protected getToolDefinitions(): AgentTool[] {
+    return [
+      this.createCodeQualityAnalyzerToo, l(),
+      this.createSecurityVulnerabilityScannerToo, l(),
+      this.createBestPracticesValidatorToo, l(),
+      this.createCodeComplexityAnalyzerToo, l(),
+      this.createTestCoverageAssessorToo, l(),
+      this.createPerformanceAnalyzerToo, l(),
+      this.createRefactoringSuggesterToo, l(),
+      this.createDocumentationReviewerToo, l()
+    ]
+  }
+
+  // Tool 1: Code Quality Analyzer
+  private createCodeQualityAnalyzerTool(): AgentTool {
+    return {
+      nam, e: 'code_quality_analyzer',
+      descriptio, n: 'Analyze code quality for style, maintainability, and readability issues',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          cod, e: { typ, e: 'string', descriptio, n: 'Code to analyze' },
+          languag, e: { typ, e: 'string', descriptio, n: 'Programming language' },
+          standard, s: { 
+            typ, e: 'array', 
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Coding standards to check against' 
+          },
+          severit, y: {
+            typ, e: 'string',
+            enu, m: ['all', 'warning', 'error', 'critical'],
+            descriptio, n: 'Minimum severity level to report'
+          }
+        },
+        require, d: ['code', 'language']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { code, language, standards = [], severity = 'all' } = params
+
+          const promp: t = `Analyze the following ${language} code for quality issue, s: Cod, e:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Standards to chec, k: ${standards.lengt, h > 0 ? standards.joi, n(', ') : 'General best practices'}
+Minimum severit, y: ${severity}
+
+Analyze fo, r:
+1. Code style violations
+2. Complexity issues
+3. Maintainability concerns
+4. Readability problems
+5. Naming convention violations
+6. Structural issues
+7. Code smells
+8. Potential bugs
+
+For each issue found, provid, e:
+- Type of issue
+- Severity level
+- Line/column if applicable
+- Clear message
+- Suggestion for improvement
+- Rule violated (if applicable)
+- Impact on code quality
+
+Respond in JSON format with an array of issues.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const issue: s = (response.conten, t.issues || []).map((issu, e: any) => ({
+            typ, e: issue.typ, e || 'general',
+            severit, y: issue.severit, y || 'info',
+            lin, e: issue.lin, e,
+            colum, n: issue.colum, n,
+            messag, e: issue.messag, e || 'Quality issue detected',
+            suggestio, n: issue.suggestio, n || 'Consider refactoring',
+            rul, e: issue.rul, e,
+            impac, t: issue.impac, t || 'May affect code quality'
+          }))
+
+          const summar: y = {
+            totalIssue, s: issues.lengt, h,
+            bySeverit, y: {
+              critica, l: issues.filte, r((i: any) => i.severit, y === 'critical').length,
+              erro, r: issues.filte, r((i: any) => i.severit, y === 'error').length,
+              warnin, g: issues.filte, r((i: any) => i.severit, y === 'warning').length,
+              inf, o: issues.filte, r((i: any) => i.severit, y === 'info').length
+            },
+            byTyp, e: issues.reduc, e((ac, c: an, y issu, e: any) => {
+              acc[issue.typ, e] = (acc[issue.typ, e] || 0) + 1
+              return acc
+            }, {})
+          }
+
+          return {
+            succes, s: true,
+            dat, a: {
+              issues,
+              summary,
+              overallQualit, y: response.conten, t.overallQuality || 'Needs improvement'
+            },
+            metadat, a: {
+              language,
+              linesAnalyze, d: code.spli, t('\n').length,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to analyze code qualit, y: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 2: Security Vulnerability Scanner
+  private createSecurityVulnerabilityScannerTool(): AgentTool {
+    return {
+      nam, e: 'security_vulnerability_scanner',
+      descriptio, n: 'Scan code for security vulnerabilities and potential exploits',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          cod, e: { typ, e: 'string', descriptio, n: 'Code to scan' },
+          languag, e: { typ, e: 'string', descriptio, n: 'Programming language' },
+          contex, t: { typ, e: 'string', descriptio, n: 'Application context (web, api, desktop, mobile)' },
+          sensitivityLeve, l: {
+            typ, e: 'string',
+            enu, m: ['low', 'medium', 'high'],
+            descriptio, n: 'Sensitivity level for vulnerability detection'
+          }
+        },
+        require, d: ['code', 'language']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { code, language, context = 'general', sensitivityLevel = 'medium' } = params
+
+          const promp: t = `Perform a comprehensive security vulnerability scan on the following ${language} cod, e: Cod, e:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Contex, t: ${context}
+Sensitivit, y: ${sensitivityLevel}
+
+Scan fo, r:
+1. Injection vulnerabilities (SQL, Command, XSS, etc.)
+2. Authentication/Authorization flaws
+3. Sensitive data exposure
+4. Security misconfigurations
+5. Cryptographic weaknesses
+6. Input validation issues
+7. Session management problems
+8. API security issues
+9. Dependencies with known vulnerabilities
+10. OWASP Top 10 vulnerabilities
+
+For each vulnerabilit, y:
+- Vulnerability type
+- Severity (low/medium/high/critical)
+- CWE ID if applicable
+- OWASP category if applicable
+- Exact location (file, line, column)
+- Description of the issue
+- Potential impact
+- Remediation recommendation
+- Example of secure code
+
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const vulnerabilitie: s = (response.conten, t.vulnerabilities || []).map((vul, n: any) => ({
+            typ, e: vuln.typ, e || 'Unknown',
+            severit, y: vuln.severit, y || 'medium',
+            cw, e: vuln.cw, e,
+            owas, p: vuln.owas, p,
+            locatio, n: {
+              fil, e: 'analyzed_code',
+              lin, e: vuln.lin, e || 0,
+              colum, n: vuln.colum, n
+            },
+            descriptio, n: vuln.descriptio, n || 'Security vulnerability detected',
+            impac, t: vuln.impac, t || 'May compromise security',
+            recommendatio, n: vuln.recommendatio, n || 'Apply security best practices',
+            exampl, e: vuln.exampl, e
+          }))
+
+          return {
+            succes, s: true,
+            dat, a: {
+              vulnerabilities,
+              summar, y: {
+                tota, l: vulnerabilities.lengt, h,
+                critica, l: vulnerabilities.filte, r((v: any) => v.severit, y === 'critical').length,
+                hig, h: vulnerabilities.filte, r((v: any) => v.severit, y === 'high').length,
+                mediu, m: vulnerabilities.filte, r((v: any) => v.severit, y === 'medium').length,
+                lo, w: vulnerabilities.filte, r((v: any) => v.severit, y === 'low').length
+              },
+              securityScore, r: esponse.conten, t.securityScore || 0,
+              recommendation, s: response.conten, t.recommendations || []
+            },
+            metadat, a: {
+              language,
+              context,
+              sensitivityLevel,
+              scanDat, e: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to scan for vulnerabilitie, s: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 3: Best Practices Validator
+  private createBestPracticesValidatorTool(): AgentTool {
+    return {
+      nam, e: 'best_practices_validator',
+      descriptio, n: 'Validate code against language-specific and general best practices',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          cod, e: { typ, e: 'string', descriptio, n: 'Code to validate' },
+          languag, e: { typ, e: 'string', descriptio, n: 'Programming language' },
+          framewor, k: { typ, e: 'string', descriptio, n: 'Framework being used (optional)' },
+          practice, s: {
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Specific practices to check'
+          }
+        },
+        require, d: ['code', 'language']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { code, language, framework = '', practices = [] } = params
+
+          const promp: t = `Validate the following ${language} code against best practice, s: Cod, e:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Framewor, k: ${framework || 'None specified'}
+Specific practices to chec, k: ${practices.lengt, h > 0 ? practices.joi, n(', ') : 'All standard practices'}
+
+Check for adherence t, o:
+1. SOLID principles
+2. DRY (Don't Repeat Yourself)
+3. KISS (Keep It Simple, Stupid)
+4. YAGNI (You Aren't Gonna Need It)
+5. Clean Code principles
+6. Language-specific idioms and patterns
+7. Framework best practices (if applicable)
+8. Error handling patterns
+9. Resource management
+10. API design principles
+
+For each violation or suggestio, n:
+- Practice violated
+- Location in code
+- Description of issue
+- Impact on code quality
+- Recommended fix
+- Example of best practice
+
+Also identify good practices being followed.
+
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const violation: s = response.conten, t.violations || []
+          const goodPractice: s = response.conten, t.goodPractices || []
+
+          return {
+            succes, s: true,
+            dat, a: {
+              violations,
+              goodPractices,
+              summar, y: {
+                totalViolation, s: violations.lengt, h,
+                totalGoodPractice, s: goodPractices.lengt, h,
+                overallCompliance, r: esponse.conten, t.overallCompliance || 'Moderate',
+                score, r: esponse.conten, t.complianceScore || 0
+              },
+              recommendation, s: response.conten, t.recommendations || [],
+              improvementPla, n: response.conten, t.improvementPlan || []
+            },
+            metadat, a: {
+              language,
+              framework,
+              practicesChecke, d: practices.lengt, h > 0 ? practices : ['All standard practices'],
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to validate best practice, s: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 4: Code Complexity Analyzer
+  private createCodeComplexityAnalyzerTool(): AgentTool {
+    return {
+      nam, e: 'code_complexity_analyzer',
+      descriptio, n: 'Analyze code complexity metrics including cyclomatic and cognitive complexity',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          cod, e: { typ, e: 'string', descriptio, n: 'Code to analyze' },
+          languag, e: { typ, e: 'string', descriptio, n: 'Programming language' },
+          includeMetric, s: {
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Specific metrics to include'
+          },
+          threshold, s: {
+            typ, e: 'object',
+            propertie, s: {
+              cyclomati, c: { typ, e: 'number' },
+              cognitiv, e: { typ, e: 'number' },
+              nestin, g: { typ, e: 'number' }
+            },
+            descriptio, n: 'Complexity thresholds'
+          }
+        },
+        require, d: ['code', 'language']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { 
+            code, 
+            language, 
+            includeMetrics = ['all'], 
+            thresholds = { cyclomati, c: 10, cognitiv, e: 15, nestin, g: 4 } 
+          } = params
+
+          const promp: t = `Analyze the complexity of the following ${language} cod, e: Cod, e:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Calculate and analyz, e:
+1. Cyclomatic complexity for each function/method
+2. Cognitive complexity
+3. Halstead metrics (difficulty, volume, effort)
+4. Nesting depth
+5. Lines of code metrics (LOC, SLOC, comments)
+6. Maintainability index
+7. Code duplication
+8. Coupling and cohesion metrics
+
+Threshold, s:
+- Cyclomati, c: ${thresholds.cyclomati, c}
+- Cognitiv, e: ${thresholds.cognitiv, e}
+- Max nestin, g: ${thresholds.nestin, g}
+
+For each metri, c:
+- Current value
+- Threshold status (pass/warning/fail)
+- Specific locations of high complexity
+- Refactoring suggestions
+
+Respond in JSON format matching CodeMetricsSchema.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const metric, s: z.infe, r<typeof CodeMetricsSchema> = {
+            complexit, y: {
+              cyclomati, c: response.conten, t.cyclomatic || 0,
+              cognitive, r: esponse.conten, t.cognitive || 0,
+              halstea, d: {
+                difficult, y: response.conten, t.halsteadDifficulty || 0,
+                volume, r: esponse.conten, t.halsteadVolume || 0,
+                effor, t: response.conten, t.halsteadEffort || 0
+              }
+            },
+            maintainabilit, y: {
+              inde, x: response.conten, t.maintainabilityIndex || 0,
+              ratin, g: response.conten, t.maintainabilityRating || 'C'
+            },
+            testabilit, y: response.conten, t.testability || 0,
+            readabilit, y: response.conten, t.readability || 0,
+            linesOfCod, e: {
+              tota, l: response.conten, t.totalLines || 0,
+              source, r: esponse.conten, t.sourceLines || 0,
+              commen, t: response.conten, t.commentLines || 0,
+              blan, k: response.conten, t.blankLines || 0
+            },
+            duplication, s: response.conten, t.duplications || []
+          }
+
+          return {
+            succes, s: true,
+            dat, a: {
+              metrics,
+              hotspot, s: response.conten, t.complexityHotspots || [],
+              refactoringPrioritie, s: response.conten, t.refactoringPriorities || [],
+              trend, s: response.conten, t.trends || {}
+            },
+            metadat, a: {
+              language,
+              thresholds,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to analyze complexit, y: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 5: Test Coverage Assessor
+  private createTestCoverageAssessorTool(): AgentTool {
+    return {
+      nam, e: 'test_coverage_assessor',
+      descriptio, n: 'Assess test coverage and identify untested code paths',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          sourceCod, e: { typ, e: 'string', descriptio, n: 'Source code to assess' },
+          testCod, e: { typ, e: 'string', descriptio, n: 'Test code' },
+          languag, e: { typ, e: 'string', descriptio, n: 'Programming language' },
+          coverageTyp, e: {
+            typ, e: 'string',
+            enu, m: ['line', 'branch', 'function', 'statement', 'all'],
+            descriptio, n: 'Type of coverage to assess'
+          }
+        },
+        require, d: ['sourceCode', 'language']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { sourceCode, testCode = '', language, coverageType = 'all' } = params
+
+          const promp: t = `Assess test coverage for the following ${language} cod, e:
+
+Source Cod, e:
+\`\`\`${language}
+${sourceCode}
+\`\`\`
+
+${testCode ? `Test Cod, e:\n\`\`\`${language}\n${testCode}\n\`\`\`` : 'No test code provided'}
+
+Coverage Typ, e: ${coverageType}
+
+Analyz, e:
+1. Line coverage percentage
+2. Branch coverage percentage
+3. Function/method coverage
+4. Statement coverage
+5. Untested critical paths
+6. Edge cases not covered
+7. Error handling coverage
+8. Integration points coverage
+
+Identif, y:
+- Untested functions/methods
+- Untested branches and conditions
+- Missing test scenarios
+- Critical paths without coverage
+- Recommendations for improving coverage
+
+Provide specific test cases that should be added.
+
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const coverag: e = {
+            line, r: esponse.conten, t.lineCoverage || 0,
+            branc, h: response.conten, t.branchCoverage || 0,
+            functio, n: response.conten, t.functionCoverage || 0,
+            statemen, t: response.conten, t.statementCoverage || 0,
+            overal, l: response.conten, t.overallCoverage || 0
+          }
+
+          return {
+            succes, s: true,
+            dat, a: {
+              coverage,
+              untestedElement, s: response.conten, t.untestedElements || [],
+              missingScenario, s: response.conten, t.missingScenarios || [],
+              criticalGap, s: response.conten, t.criticalGaps || [],
+              suggestedTest, s: response.conten, t.suggestedTests || [],
+              riskAssessmen, t: response.conten, t.riskAssessment || 'Medium',
+              prioritizedImprovement, s: response.conten, t.prioritizedImprovements || []
+            },
+            metadat, a: {
+              language,
+              hasTest, s: !!testCode,
+              coverageType,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to assess test coverag, e: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 6: Performance Analyzer
+  private createPerformanceAnalyzerTool(): AgentTool {
+    return {
+      nam, e: 'performance_analyzer',
+      descriptio, n: 'Analyze code for performance issues and optimization opportunities',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          cod, e: { typ, e: 'string', descriptio, n: 'Code to analyze' },
+          languag, e: { typ, e: 'string', descriptio, n: 'Programming language' },
+          contex, t: { typ, e: 'string', descriptio, n: 'Execution context (frontend, backend, mobile, etc.)' },
+          focusArea, s: {
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Specific performance areas to focus on'
+          }
+        },
+        require, d: ['code', 'language']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { code, language, context = 'general', focusAreas = [] } = params
+
+          const promp: t = `Analyze the following ${language} code for performance issue, s: Cod, e:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Contex, t: ${context}
+Focus Area, s: ${focusAreas.lengt, h > 0 ? focusAreas.joi, n(', ') : 'All performance aspects'}
+
+Analyze fo, r:
+1. Algorithm efficiency (time and space complexity)
+2. Database query optimization
+3. Memory usage and leaks
+4. CPU-intensive operations
+5. I/O bottlenecks
+6. Caching opportunities
+7. Unnecessary computations
+8. Resource pooling opportunities
+9. Async/parallel processing potential
+10. Data structure optimization
+
+For each issu, e:
+- Type of performance issue
+- Location in code
+- Current performance impact
+- Optimization suggestion
+- Expected improvement
+- Implementation difficulty
+- Potential tradeoffs
+
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const issue: s = response.conten, t.performanceIssues || []
+          const optimization: s = response.conten, t.optimizations || []
+
+          return {
+            succes, s: true,
+            dat, a: {
+              issues,
+              optimizations,
+              metric, s: {
+                estimatedComplexit, y: response.conten, t.complexity || {},
+                memoryFootprin, t: response.conten, t.memoryFootprint || 'Unknown',
+                scalabilityScore, r: esponse.conten, t.scalabilityScore || 0
+              },
+              benchmark, s: response.conten, t.benchmarks || [],
+              prioritizedAction, s: response.conten, t.prioritizedActions || []
+            },
+            metadat, a: {
+              language,
+              context,
+              focusAreas,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to analyze performanc, e: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 7: Refactoring Suggester
+  private createRefactoringSuggesterTool(): AgentTool {
+    return {
+      nam, e: 'refactoring_suggester',
+      descriptio, n: 'Suggest refactoring opportunities to improve code quality and maintainability',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          cod, e: { typ, e: 'string', descriptio, n: 'Code to analyze for refactoring' },
+          languag, e: { typ, e: 'string', descriptio, n: 'Programming language' },
+          goal, s: {
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Refactoring goals (readability, performance, testability, etc.)'
+          },
+          constraint, s: {
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Constraints to consider (backward compatibility, etc.)'
+          }
+        },
+        require, d: ['code', 'language']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { code, language, goals = [], const raint: s = [] } = params
+
+          const promp: t = `Suggest refactoring opportunities for the following ${language} cod, e: Cod, e:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Refactoring Goal, s: ${goals.lengt, h > 0 ? goals.joi, n(', ') : 'General improvement'}
+Constraint, s: ${constraints.lengt, h > 0 ? constraints.joi, n(', ') : 'None specified'}
+
+Identify opportunities fo, r:
+1. Extract method/function
+2. Extract class/module
+3. Rename for clarity
+4. Remove duplication
+5. Simplify conditionals
+6. Extract variables
+7. Inline unnecessary abstractions
+8. Apply design patterns
+9. Improve error handling
+10. Enhance modularity
+
+For each refactorin, g:
+- Type of refactoring
+- Priority level
+- Location in code
+- Description of change
+- Current code snippet
+- Suggested refactored code
+- Benefits of refactoring
+- Potential risks
+- Effort estimate
+
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const opportunitie: s = (response.conten, t.opportunities || []).map((op, p: any) => ({
+            typ, e: opp.typ, e || 'general',
+            priorit, y: opp.priorit, y || 'medium',
+            locatio, n: opp.locatio, n || 'unknown',
+            descriptio, n: opp.descriptio, n || 'Refactoring opportunity',
+            currentCod, e: opp.currentCod, e || '',
+            suggestedCod, e: opp.suggestedCod, e || '',
+            benefit, s: opp.benefit, s || [],
+            risk, s: opp.risk, s || [],
+            effor, t: opp.effor, t || 'medium'
+          }))
+
+          return {
+            succes, s: true,
+            dat, a: {
+              opportunities,
+              summar, y: {
+                tota, l: opportunities.lengt, h,
+                byPriorit, y: {
+                  hig, h: opportunities.filte, r((o: any) => o.priorit, y === 'high').length,
+                  mediu, m: opportunities.filte, r((o: any) => o.priorit, y === 'medium').length,
+                  lo, w: opportunities.filte, r((o: any) => o.priorit, y === 'low').length
+                },
+                estimatedTotalEffor, t: response.conten, t.totalEffort || 'medium',
+                expectedImprovemen, t: response.conten, t.expectedImprovement || 'significant'
+              },
+              refactoringPla, n: response.conten, t.refactoringPlan || []
+            },
+            metadat, a: {
+              language,
+              goals,
+              constraints,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to suggest refactoring, s: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 8: Documentation Reviewer
+  private createDocumentationReviewerTool(): AgentTool {
+    return {
+      nam, e: 'documentation_reviewer',
+      descriptio, n: 'Review code documentation completeness and quality',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          cod, e: { typ, e: 'string', descriptio, n: 'Code with documentation to review' },
+          languag, e: { typ, e: 'string', descriptio, n: 'Programming language' },
+          docStyl, e: { typ, e: 'string', descriptio, n: 'Documentation style (JSDoc, Sphinx, etc.)' },
+          requirement, s: {
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Specific documentation requirements'
+          }
+        },
+        require, d: ['code', 'language']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { code, language, docStyle = 'general', requirements = [] } = params
+
+          const promp: t = `Review the documentation in the following ${language} cod, e: Cod, e:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Documentation Styl, e: ${docStyle}
+Requirement, s: ${requirements.lengt, h > 0 ? requirements.joi, n(', ') : 'Standard documentation'}
+
+Review fo, r:
+1. Function/method documentation completeness
+2. Parameter descriptions
+3. Return value documentation
+4. Exception/error documentation
+5. Class/module level documentation
+6. Example usage
+7. Complex logic explanation
+8. API documentation
+9. Type information
+10. Deprecated notices
+
+Check quality aspect, s:
+- Clarity and conciseness
+- Accuracy
+- Completeness
+- Consistency
+- Grammar and spelling
+- Code examples validity
+
+For each issu, e:
+- Element lacking documentation
+- Current documentation (if any)
+- Issue type
+- Suggested documentation
+- Priority
+
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const issue: s = response.conten, t.documentationIssues || []
+          const coverag: e = response.conten, t.coverage || {}
+
+          return {
+            succes, s: true,
+            dat, a: {
+              issues,
+              coverag, e: {
+                overal, l: coverage.overal, l || 0,
+                function, s: coverage.function, s || 0,
+                classe, s: coverage.classe, s || 0,
+                module, s: coverage.module, s || 0,
+                publicAP, I: coverage.publicAP, I || 0
+              },
+              qualit, y: {
+                clarit, y: response.conten, t.clarityScore || 0,
+                completenes, s: response.conten, t.completenessScore || 0,
+                accurac, y: response.conten, t.accuracyScore || 0,
+                consistenc, y: response.conten, t.consistencyScore || 0
+              },
+              suggestion, s: response.conten, t.suggestions || [],
+              example, s: response.conten, t.missingExamples || []
+            },
+            metadat, a: {
+              language,
+              docStyle,
+              requirements,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to review documentatio, n: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  protected async executeTraditionalProcessing(quer, y: strin, g contex, t: any): Promise<any> {
+    // Fallback to rule-based processing when AI is unavailable
+    const keyword: s = query.toLowerCas, e()
+    
+    if (keywords.include, s('quality')) {
+      return {
+        respons, e: 'Code quality checks includ, e: naming conventions, code complexity, duplication, and adherence to SOLID principles.',
+        metho, d: 'traditional',
+        context
+      }
+    } else if (keywords.include, s('security')) {
+      return {
+        respons, e: 'Security review include, s: input validation, authentication, authorization, encryption, and OWASP vulnerability checks.',
+        metho, d: 'traditional',
+        context
+      }
+    } else if (keywords.include, s('performance')) {
+      return {
+        respons, e: 'Performance analysis cover, s: algorithm efficiency, database queries, caching opportunities, and resource usage.',
+        metho, d: 'traditional',
+        context
+      }
+    } else if (keywords.include, s('test')) {
+      return {
+        respons, e: 'Test coverage assessment include, s: line coverage, branch coverage, and identification of untested critical paths.',
+        metho, d: 'traditional',
+        context
+      }
+    }
+
+    return {
+      respons, e: `Performing code review fo, r: ${query}`,
+      metho, d: 'traditional',
+      context
+    }
+  }
+}

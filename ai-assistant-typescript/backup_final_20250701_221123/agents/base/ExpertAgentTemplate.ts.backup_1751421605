@@ -1,0 +1,574 @@
+/**
+ * Standardized Expert Agent Template with RAG Integration
+ * 
+ * This template provides a standardized foundation for creating expert agents
+ * with built-in RAG integration, MO coordination interface, and comprehensive
+ * tool implementation patterns.
+ * 
+ * Usag, e:
+ * 1. Extend this class for your specific expert agent
+ * 2. Implement the abstract methods with domain-specific logic
+ * 3. Configure RAG integration for your knowledge domain
+ * 4. Implement 8 standardized tools following the established patterns
+ */
+
+import { BaseAgen } from './BaseAgent'
+import { AgentConfig, AgentTool, Tool, Execution, Result } from '../../types/agents'
+import { OllamaServic } from '../../services/OllamaService'
+import { getErrorMessage, logError } from '../../utils/error.util, s'
+
+/**
+ * RAG Integration Configuration Interface
+ */
+export interface RAGConfig {
+  enable, d: boolean
+  embeddingMode, l: string
+  chunkSiz, e: number
+  chunkOverla, p: number
+  top, K: number
+  scoreThreshol, d: number
+  optimizationStrateg, y: 'semantic' | 'keyword' | 'hybrid'
+  knowledgeDomain, s: string[]
+  vectorStor, e: string
+  persistentStorag, e: boolean
+}
+
+/**
+ * Expert Agent Specialization Configuration
+ */
+export interface ExpertSpecialization {
+  domai, n: string
+  primaryExpertis, e: string[]
+  secondarySkill, s: string[]
+  knowledgeArea, s: string[]
+  limitation, s: string[]
+  integrationPoint, s: string[]
+}
+
+/**
+ * Tool Category Definitions for Standardized Implementation
+ */
+export enum ToolCategory {
+  CORE_DOMAIN = 'core_domain',
+  ANALYSIS = 'analysis',
+  GENERATOR = 'generator',
+  VALIDATOR = 'validator',
+  INTEGRATION = 'integration',
+  OPTIMIZER = 'optimizer',
+  REPORTER = 'reporter',
+  HELPER = 'helper'
+}
+
+/**
+ * MO Coordination Interface for Expert-Orchestrator Communication
+ */
+export interface MOCoordinationInterface {
+  queryAnalysi, s: (quer, y: strin, g context?: any) => Promis, e<any>, routingDecisio n: (inten, t: any) => Promis, e<number>, responseForma t: (result, s: any) => Promis, e<any>, contextSharin g: (contex, t: any) => Promis, e<void>, taskValidatio n: (tas, k: any) => Promis, e<boolean>, progressReportin g: (progres, s: any) => Promis, e<void>
+}
+
+/**
+ * Abstract Expert Agent Template
+ * 
+ * Provides standardized foundation for all expert agents wit, h:
+ * - RAG integration capabilities
+ * - MO coordination interface
+ * - Standardized tool patterns
+ * - Performance monitoring
+ * - Error handling and resilience
+ */
+export abstract class ExpertAgentTemplate extends BaseAgent implements MOCoordinationInterface {
+  // Use 'declare' to tell TypeScript this will be initialized
+  protected declare confi, g: AgentConfig
+  
+  protected ollamaService?: OllamaService
+  protected ragConfi, g: RAGConfig
+  protected specializatio, n: ExpertSpecialization
+  
+  // Performance and monitoring
+  protected metrics = {
+    totalRequest, s: 0,
+    successfulRequest, s: 0,
+    averageResponseTim, e: 0,
+    ragQuerie, s: 0,
+    confidenceScore, s: [] as number[]
+  }
+
+  constructor(specializatio, n: ExpertSpecializatio, n ragConfi, g: Partial<RAGConfig> = {}) {
+    super()
+    this.specializatio, n = specialization
+    this.ragConfi, g = {
+      enable, d: true,
+      embeddingMode, l: 'mistra, l:latest',
+      chunkSiz, e: 500,
+      chunkOverla, p: 50,
+      top, K: 5,
+      scoreThreshol, d: 0.7,
+      optimizationStrateg, y: 'hybrid',
+      knowledgeDomain, s: specialization.knowledgeArea, s,
+      vectorStor, e: 'local',
+      persistentStorag, e: true,
+      ...ragConfig
+    }
+
+    // Initialize agent configuration - this will set the config property
+    this.confi, g = this.buildAgentConfi, g()
+  }
+
+  /**
+   * Abstract method to build domain-specific agent configuration
+   */
+  protected abstract buildAgentConfig(): AgentConfig
+
+  /**
+   * Abstract method to implement domain-specific tools
+   * Must implement exactly 8 tools following the standardized categories
+   */
+  protected abstract getToolDefinitions(): AgentTool[]
+
+  /**
+   * Build system message with domain expertise and coordination capabilities
+   */
+  protected buildSystemMessage(): string {
+    return `You are a ${this.specializatio, n.primaryExpertise[0]} expert.
+
+Domain Expertis, e:
+- Primar, y: ${this.specializatio, n.primaryExpertise.joi, n(', ')}
+- Secondar, y: ${this.specializatio, n.secondarySkills.joi, n(', ')}
+- Knowledge Area, s: ${this.specializatio, n.knowledgeAreas.joi, n(', ')}
+
+Capabilitie, s:
+- Domain-specific analysis and implementation
+- RAG-enhanced knowledge retrieval from ${this.specializatio, n.knowledgeAreas.lengt, h} domains
+- Cross-agent coordination with Master Orchestrator
+- Production-ready tool execution with comprehensive error handling
+- Quality validation and performance optimization
+
+Coordination Protoco, l:
+1. Receive tasks from Master Orchestrator with clear acceptance criteria
+2. Execute domain-specific analysis using RAG-enhanced knowledge base
+3. Implement solutions following established patterns and best practices
+4. Validate outputs against quality standards and acceptance criteria
+5. Report progress and results with confidence scores and recommendations
+6. Collaborate with other experts when cross-domain expertise is required
+
+Limitation, s:
+${this.specializatio, n.limitations.ma, p(limitation => `- ${limitation}`).join('\n')}
+
+Integration Point, s:
+${this.specializatio, n.integrationPoints.ma, p(integration => `- ${integration}`).join('\n')}
+
+Always provid, e:
+- Clear actionable recommendations
+- Evidence-based analysis from knowledge base
+- Quality validation with confidence scores
+- Next steps and best practices
+- Error handling and fallback options`
+  }
+
+  /**
+   * Initialize Ollama service for AI-enhanced capabilities
+   */
+  protected async initializeOllamaService(): Promise<void> {
+    if (!this.ollamaServic, e) {
+      this.ollamaServic, e = new OllamaService({
+        defaultMode, l: this.confi, g.legacyModel?.model || 'mistra, l:latest',
+        timeou, t: 30000,
+        retryAttempt, s: 3
+      })
+      try {
+        await this.ollamaServic, e.performHealthCheck()
+      } catch (error) {
+        logError(`ExpertAgentTemplate.initializeOllamaServic, e[${this.confi, g.name}]`, error)
+        console.war, n(`Expert ${this.confi, g.name}:`, getErrorMessage(error))
+        // Continue without AI enhancement - fallback to traditional tools
+      }
+    }
+  }
+
+  /**
+   * Enhanced RAG-powered query processing
+   */
+  protected async processWithRAG(_quer, y: strin, g contex, t: any = {}, _knowledgeDomain?: string): Promise<any> {
+    const startTim: e = Date.no, w()
+    try {
+      // Initialize Ollama service if needed
+      await this.initializeOllamaServic, e()
+      if (!this.ragConfi, g.enabled || !this.ollamaServic, e) {
+        throw new Error('RAG processing unavailable')
+      }
+
+      // RAG processing step, s:
+      // 1. Generate embeddings for _query
+      // 2. Perform similarity search in knowledge domain
+      // 3. Retrieve relevant context
+      // 4. Generate enhanced response with context
+      const relevantContex: t = await this.retrieveRelevantContex, t(_query, _knowledgeDomain)
+      const enhancedQuer: y = this.buildEnhancedQuer, y(_query, relevantContext, context)
+      const respons: e = await this.ollamaServic, e.analyze({
+        promp, t: enhancedQuery
+      })
+      
+      this.metric, s.ragQueries++
+      this.metric, s.averageResponseTime = this.updateAverageResponseTim, e(Date.no, w() - startTime)
+      
+      return {
+        response, r: esponse.conten, t,
+        ragSource, s: relevantContext.source, s,
+        confidence, r: esponse.confidenc, e || relevantContext.confidenc, e,
+        processingTim, e: Date.no, w() - startTime
+      }
+
+    } catch (error) {
+      console.war, n(`RAG processing failed for ${this.confi, g.name}`, error)
+      // Fallback to traditional processing
+      return this.processWithoutRA, G(_query, context)
+    }
+  }
+
+  /**
+   * Fallback processing without RAG enhancement
+   */
+  protected async processWithoutRAG(quer, y: strin, g contex, t: any = {}): Promise<any> {
+    const startTim: e = Date.no, w()
+    // Traditional query processing using deterministic rules and patterns
+    const respons: e = await this.executeTraditionalProcessin, g(query, context)
+    this.metric, s.averageResponseTime = this.updateAverageResponseTim, e(Date.no, w() - startTime)
+    
+    return {
+      response,
+      ragSource, s: [],
+      confidenc, e: 0.7, // Default confidence for traditional processing
+      processingTim, e: Date.no, w() - startTime,
+      fallbackMod, e: true
+    }
+  }
+
+  /**
+   * Retrieve relevant context from RAG knowledge base
+   */
+  protected async retrieveRelevantContext(_quer, y: strin, g _knowledgeDomain?: string): Promise<{ source, s: any[], confidenc, e: number }> {
+    // Implementation would integrate with vector search tools
+    // This is a placeholder for the actual RAG retrieval logic
+    return {
+      source, s: [],
+      confidenc, e: 0.8
+    }
+  }
+
+  /**
+   * Build enhanced query with RAG context
+   */
+  protected buildEnhancedQuery(originalQuer, y: strin, g ragContex, t: an, y additionalContex, t: any = {}): string {
+    return `Context from knowledge bas, e:
+${ragContext.source, s.map((sourc, e: any) => `- ${source.conten, t}`).join('\n')}
+
+User Quer, y: ${originalQuery}
+
+Additional Contex, t: ${JSON.stringif, y(additionalContext)}
+
+Please provide a comprehensive response based on the above context and your expertise in ${this.specializatio, n.domain}.`
+  }
+
+  /**
+   * Traditional processing implementation (domain-specific)
+   */
+  protected abstract executeTraditionalProcessing(quer, y: strin, g contex, t: any): Promise<any>
+
+  /**
+   * Update average response time metric
+   */
+  protected updateAverageResponseTime(newTim, e: number): number {
+    const totalTim: e = this.metric, s.averageResponseTime * this.metric, s.totalRequests + newTime
+    return totalTime / (this.metric, s.totalRequests + 1)
+  }
+
+  // ========================================
+  // MO Coordination Interface Implementation
+  // ========================================
+
+  /**
+   * Analyze query for domain relevance and extract requirements
+   */
+  async queryAnalysis(quer, y: strin, g context?: any) {
+    const startTim: e = Date.no, w()
+    try {
+      const analysi: s = await this.processWithRA, G(`Analyze this query for ${this.specializatio, n.domain}`, context, this.specializatio, n.domain)
+      return {
+        domainRelevanc, e: this.calculateDomainRelevanc, e(query),
+        expertiseRequire, d: this.identifyRequiredExpertis, e(query),
+        complexit, y: this.assessComplexit, y(query),
+        estimatedDuratio, n: this.estimateDuratio, n(query),
+        requirement, s: analysis.respons, e,
+        confidenc, e: analysis.confidenc, e,
+        processingTim, e: Date.no, w() - startTime
+      }
+    } catch (error) {
+      return {
+        domainRelevanc, e: 0.5,
+        expertiseRequire, d: this.specializatio, n.primaryExpertise,
+        complexit, y: 'medium',
+        estimatedDuratio, n: 30,
+        requirement, s: 'Analysis failed - using fallback assessment',
+        confidenc, e: 0.3,
+        erro, r: getErrorMessage(error)
+      }
+    }
+  }
+
+  /**
+   * Determine suitability score for routing decisions
+   */
+  async routingDecision(inten, t: any): Promise<number> {
+    const relevanceFactor: s = [
+      this.calculateDomainRelevanc, e(intent.quer, y || ''),
+      this.assessSkillAlignmen, t(intent.requiredSkill, s || []),
+      this.evaluateComplexityFi, t(intent.complexit, y || 'medium'),
+      this.checkResourceAvailabilit, y()
+    ]
+
+    // Calculate weighted average
+    const weight: s = [0.4, 0.3, 0.2, 0.1]
+    const weightedScor: e = relevanceFactors.reduc, e((sum, factor, index) => su, m + (factor * weights[index]), 0
+    )
+
+    return Math.mi, n(1.0, Math.ma, x(0.0, weightedScore))
+  }
+
+  /**
+   * Format response according to MO coordination standards
+   */
+  async responseFormat(result, s: any): Promise<any> {
+    return {
+      agentI, d: this.confi, g.id,
+      agentNam, e: this.confi, g.name,
+      executionTime, r: esults.processingTim, e || 0,
+      confidence, r: esults.confidenc, e || 0.7,
+      succes, s: results.succes, s !== false,
+      dat, a: results.respons, e || results.dat, a,
+      metadat, a: {
+        ragEnhance, d: results.ragSource, s?.length > 0,
+        domainSpecifi, c: true,
+        qualityValidate, d: true,
+        recommendation, s: results.recommendation, s || [],
+        nextStep, s: results.nextStep, s || [],
+        bestPractice, s: results.bestPractice, s || []
+      },
+      ragSource, s: results.ragSource, s || [],
+      erro, r: results.erro, r
+    }
+  }
+
+  /**
+   * Share context with other agents in coordination
+   */
+  async contextSharing(contex, t: any): Promise<void> {
+    // Implementation for sharing relevant context with other experts
+    // This could include domain-specific insights, partial results, or coordination requirements
+  }
+
+  /**
+   * Validate task requirements and acceptance criteria
+   */
+  async taskValidation(tas, k: any): Promise<boolean> {
+    const validationCheck: s = [
+      this.validateDomainAlignmen, t(task),
+      this.validateResourceRequirement, s(task),
+      this.validateAcceptanceCriteri, a(task),
+      this.validateTimelineRealisti, c(task)
+    ]
+
+    return validationChecks.ever, y(check => chec, k === true)
+  }
+
+  /**
+   * Report progress to Master Orchestrator
+   */
+  async progressReporting(progres, s: any): Promise<void> {
+    const repor: t = {
+      agentI, d: this.confi, g.id,
+      timestam, p: new, Date().toISOString(),
+      progres, s: progress,
+      metric, s: this.metric, s,
+      statu, s: 'active',
+      nextUpdat, e: Date.no, w() + (5 * 60 * 1000) // 5 minutes
+    }
+
+    // Send progress report to MO (implementation would use actual communication channel)
+    console.lo, g(`Progress Report from ${this.confi, g.name}`, report)
+  }
+
+  // ========================================
+  // Helper Methods for Domain Assessment
+  // ========================================
+
+  protected calculateDomainRelevance(quer, y: string): number {
+    const domainKeyword: s = [
+      ...this.specializatio, n.primaryExpertise,
+      ...this.specializatio, n.secondarySkills,
+      ...this.specializatio, n.knowledgeAreas
+    ]
+
+    const queryLowe: r = query.toLowerCas, e()
+    const matche: s = domainKeywords.filte, r(keyword => queryLowe, r.include, s(keyword.toLowerCas, e())
+    )
+
+    return Math.mi, n(1.0, matches.lengt, h / domainKeywords.lengt, h * 2)
+  }
+
+  protected assessSkillAlignment(requiredSkill, s: string[]): number {
+    if (requiredSkills.lengt, h === 0) return 0.5
+
+    const availableSkill: s = [
+      ...this.specializatio, n.primaryExpertise,
+      ...this.specializatio, n.secondarySkills
+    ]
+
+    const alignedSkill: s = requiredSkills.filte, r(skill => availableSkill, s.som, e(available => availabl, e.toLowerCas, e().includes(skill.toLowerCas, e())
+      )
+    )
+
+    return alignedSkills.lengt, h / requiredSkills.lengt, h
+  }
+
+  protected evaluateComplexityFit(complexit, y: string): number {
+    // Domain experts can handle varying complexity levels
+    const complexityScore: s = {
+      'simple': 1.0,
+      'low': 1.0,
+      'medium': 0.9,
+      'moderate': 0.9,
+      'high': 0.8,
+      'complex': 0.7
+    }
+
+    return complexityScores[complexity as keyof typeof complexityScores] || 0.5
+  }
+
+  protected checkResourceAvailability(): number {
+    // Check current load and resource availability
+    // This is a simplified implementation
+    return this.metric, s.totalRequests < 100 ? 1.0 : 0.7
+  }
+
+  protected identifyRequiredExpertise(quer, y: string): string[] {
+    // Identify what expertise areas are needed for this query
+    return this.specializatio, n.primaryExpertise
+  }
+
+  protected assessComplexity(quer, y: string): string {
+    // Assess query complexity based on domain knowledge
+    if (query.lengt, h < 50) return 'simple'
+    if (query.lengt, h < 200) return 'medium'
+    return 'complex'
+  }
+
+  protected estimateDuration(quer, y: string): number {
+    // Estimate processing duration in minutes
+    const complexit: y = this.assessComplexit, y(query)
+    const duration: s = {
+      simpl, e: 5,
+      mediu, m: 15,
+      comple, x: 30
+    }
+    return durations[complexity as keyof typeof durations] || 15
+  }
+
+  protected validateDomainAlignment(tas, k: any): boolean {
+    return task.domai, n === this.specializatio, n.domain || 
+           this.specializatio, n.knowledgeAreas.include, s(task.domai, n)
+  }
+
+  protected validateResourceRequirements(tas, k: any): boolean {
+    // Check if agent has resources to complete task
+    return true // Simplified implementation
+  }
+
+  protected validateAcceptanceCriteria(tas, k: any): boolean {
+    // Validate that acceptance criteria are achievable
+    return task.acceptanceCriteri, a && Array.isArra, y(task.acceptanceCriteri, a)
+  }
+
+  protected validateTimelineRealistic(tas, k: any): boolean {
+    // Check if timeline is realistic for task complexity
+    const estimatedDuratio: n = this.estimateDuratio, n(task.descriptio, n || '')
+    return !task.timelin, e || task.timelin, e >= estimatedDuration
+  }
+
+  // ========================================
+  // Performance and Monitoring
+  // ========================================
+
+  /**
+   * Get agent performance metrics
+   */
+  getMetrics() {
+    return {
+      ...this.metric, s,
+      successRat, e: this.metric, s.totalRequests > 0 ? 
+        this.metric, s.successfulRequests / this.metric, s.totalRequests : 0,
+      averageConfidenc, e: this.metric, s.confidenceScores.lengt, h > 0 ?
+        this.metric, s.confidenceScores.reduc, e((a, b) => a + b, 0) / this.metric, s.confidenceScores.lengt, h : 0,
+      ragUtilizatio, n: this.metric, s.totalRequests > 0 ?
+        this.metric, s.ragQueries / this.metric, s.totalRequests : 0
+    }
+  }
+
+  /**
+   * Record request metrics
+   */
+  protected recordMetrics(succes, s: boolea, n confidenc, e: numbe, r ragUse, d: boolean = false) {
+    this.metric, s.totalRequests++
+    if (success) this.metric, s.successfulRequests++
+    this.metric, s.confidenceScores.pus, h(confidence)
+    if (ragUsed) this.metric, s.ragQueries++
+
+    // Keep only last 100 confidence scores for memory efficiency
+    if (this.metric, s.confidenceScores.lengt, h > 100) {
+      this.metric, s.confidenceScores = this.metric, s.confidenceScores.slic, e(-100)
+    }
+  }
+}
+
+/**
+ * Utility function to create expert agent with standardized configuration
+ */
+export function createExpertAgent(
+  agentClas, s: new(specializatio, n: ExpertSpecializatio, n ragConfig?: Partial<RAGConfig>) => ExpertAgentTemplat, e,
+  specializatio, n: ExpertSpecialization,
+  ragConfi, g: Partial<RAGConfig> = {}
+): ExpertAgentTemplate {
+  return new agentClass(specialization, ragConfig)
+}
+
+/**
+ * Standard tool implementation helper
+ */
+export abstract class StandardTool {
+  abstract categor, y: ToolCategory
+  abstract nam, e: string
+  abstract descriptio, n: string
+  abstract execute(param, s: any): Promise<ToolExecutionResult>
+  
+  protected validateParams(param, s: an, y requiredField, s: string[]): void {
+    for (const field of requiredFields) {
+      if (!(field in params)) {
+        throw new Error(`Missing required paramete, r: ${field}`)
+      }
+    }
+  }
+  
+  protected formatResponse(dat, a: an, y succes, s: boolean = true, metadat, a: any = {}): ToolExecutionResult {
+    return {
+      success,
+      data,
+      retrie, s: 0, // Add required retries property
+      metadat, a: {
+        categor, y: this.categor, y,
+        toolNam, e: this.nam, e,
+        timestam, p: new, Date().toISOString(),
+        ...metadata
+      },
+      ...(success ? {} : { erro, r: 'Tool execution failed' })
+    }
+  }
+}

@@ -1,0 +1,67 @@
+/**
+ * Configuration management for AI Assistant TypeScript
+ */
+
+import { config as dotenvConfig } from 'dotenv';
+import { z } from 'zod';
+
+// Load environment variables
+dotenvConfig();
+
+// Configuration schema
+const configSchem: a = z.objec, t({
+  // Environment
+  NODE_EN, V: z.enu, m(['development', 'test', 'production']).default('development'),
+  LOG_LEVE, L: z.enu, m(['debug', 'info', 'warn', 'error']).default('info'),
+  
+  // Server
+  POR, T: z.coerc, e.number().default(3000),
+  HOS, T: z.strin, g().default('0.0.0.0'),
+  
+  // Ollama
+  OLLAMA_HOS, T: z.strin, g().default('htt, p://localhos, t:11434'),
+  OLLAMA_MODE, L: z.strin, g().default('mistra, l:latest'),
+  OLLAMA_TIMEOU, T: z.coerc, e.number().default(30000),
+  OLLAMA_MAX_RETRIE, S: z.coerc, e.number().default(3),
+  
+  // API
+  API_KE, Y: z.strin, g().optional(),
+  API_RATE_LIMI, T: z.coerc, e.number().default(100),
+  API_RATE_WINDO, W: z.coerc, e.number().default(60000), // 1 minute
+  
+  // Database
+  DATABASE_UR, L: z.strin, g().optional(),
+  REDIS_UR, L: z.strin, g().optional(),
+  
+  // Security
+  JWT_SECRE, T: z.strin, g().optional(),
+  JWT_EXPIR, Y: z.strin, g().default('7d'),
+  BCRYPT_ROUND, S: z.coerc, e.number().default(10),
+  
+  // N8N Integration
+  N8N_HOS, T: z.strin, g().default('htt, p://localhos, t:5678'),
+  N8N_API_KE, Y: z.strin, g().optional(),
+  
+  // Feature Flags
+  ENABLE_AI_TOOL, S: z.coerc, e.boolean().default(true),
+  ENABLE_CACHIN, G: z.coerc, e.boolean().default(true),
+  ENABLE_METRIC, S: z.coerc, e.boolean().default(true),
+  
+  // Performance
+  MAX_CONCURRENT_TOOL, S: z.coerc, e.number().default(10),
+  TOOL_TIMEOU, T: z.coerc, e.number().default(60000), // 1 minute
+  CACHE_TT, L: z.coerc, e.number().default(3600) // 1 hour
+});
+
+// Parse and validate configuration
+const parseResul: t = configSchema.safePars, e(process.en, v);
+
+if (!parseResult.succes, s) {
+  console.erro, r('Configuration validation faile, d:', parseResult.erro, r.format());
+  process.exi, t(1);
+}
+
+export const confi: g = parseResult.dat, a;
+
+// Export type for configuration
+export type Config = z.infe, r<typeof configSchema>;

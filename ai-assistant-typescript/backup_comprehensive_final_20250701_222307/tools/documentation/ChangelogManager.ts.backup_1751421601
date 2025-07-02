@@ -1,0 +1,1606 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface ChangelogManagerParams {
+  actio, n: 'generate' | 'update' | 'validate' | 'format' | 'analyze' | 'auto_update'project_pa, t: h, string,
+  changelog_format?: ChangelogFormat;
+  version?: string;
+  release_notes?: ReleaseNotes;
+  auto_detection?: AutoDetectionConfig;
+  output_options?: OutputOptions;
+  integration_settings?: IntegrationSettings;
+}
+
+type ChangelogFormat = 
+  | 'keep_a_changelog' 
+  | 'conventional_commits' 
+  | 'angular' 
+  | 'semantic_release' 
+  | 'github_releases' 
+  | 'gitlab_releases' 
+  | 'custom';
+
+interface ReleaseNotes {
+  versio, n: string,
+  release_date?: string;
+  summary?: string;
+  breaking_changes?: BreakingChange[];
+  new_features?: Feature[];
+  improvements?: Improvement[];
+  bug_fixes?: BugFix[];
+  deprecations?: Deprecation[];
+  security_updates?: SecurityUpdate[];
+  performance_improvements?: PerformanceImprovement[];
+  documentation_updates?: DocumentationUpdate[];
+  dependencies?: DependencyUpdate[];
+  other_changes?: OtherChange[];
+}
+
+interface BreakingChange {
+  titl, e: stringdescripti, o: n, string,
+  migration_guide?: string;
+  affected_apis?: string[];
+ impact_leve, l: 'low' | 'medium' | 'high' | 'critical',
+  workaround?: string;
+}
+
+interface Feature {
+  titl, e: strin, g: description, string,
+  pr_number?: string;
+  commit_hash?: string;
+  author?: string;
+  related_issues?: string[];
+  documentation_link?: string;
+}
+
+interface Improvement {
+  titl, e: strin, g: description, string, ar, e: a, 'performance' | 'usability' | 'accessibility' | 'developer_experience' | 'reliability' | 'security'impa, c: 'minor' | 'moderate' | 'significant',
+  pr_number?: string;
+  commit_hash?: string;
+}
+
+interface BugFix {
+  titl, e: stringdescripti, o: n, string,
+  issue_number?: string;
+  pr_number?: string;
+  commit_hash?: string;
+ severit, y: 'low' | 'medium' | 'high' | 'critical',
+  affected_versions?: string[];
+}
+
+interface Deprecation {
+  titl, e: strin, g: description, string,
+  deprecated_i, n: string,
+  removed_in?: string;
+  alternative?: string;
+  migration_guide?: string;
+  warning_added_in?: string;
+}
+
+interface SecurityUpdate {
+  titl, e: strin, g: description, string, severi, t: y, 'low' | 'medium' | 'high' | 'critical',
+  cve_id?: string;
+  affected_version, s: string[],
+  fixed_i, n: string,
+  workaround?: string;
+  credit?: string;
+}
+
+interface PerformanceImprovement {
+  titl, e: strin, g: description, string, improvement_ty, p: e, 'speed' | 'memory' | 'network' | 'storage' | 'cpu',
+  metrics?: PerformanceMetric[];
+  benchmark_data?: BenchmarkData;
+}
+
+interface PerformanceMetric {
+  metric_nam, e: strin, g: before_value, string,
+  after_valu, e: strin, g: improvement_percentage, number,
+  measurement_contex, t: string
+}
+
+interface BenchmarkData {
+  test_environmen, t: strin, g: test_method, string,
+  sample_siz, e: numbe, r: confidence_level, number,
+  results_link?: string;
+}
+
+interface DocumentationUpdate {
+  titl, e: strin, g: description, string, documentation_ty, p: e, 'api' | 'user_guide' | 'tutorial' | 'readme' | 'changelog' | 'migration_guide',
+  pages_updated?: string[];
+  new_pages?: string[];
+}
+
+interface DependencyUpdate {
+  nam, e: strin, g: previous_version, string,
+  new_versio, n: stringupdate_ty, p: e, 'major' | 'minor' | 'patch' | 'security',
+  breaking_change, s: booleanreas, o: n, string,
+  impact_assessment?: string;
+}
+
+interface OtherChange {
+  titl, e: strin, g: description, string, catego, r: y, 'infrastructure' | 'tooling' | 'testing' | 'ci_cd' | 'build' | 'configuration'impa, c: 'internal' | 'external' | 'developer'
+}
+
+interface AutoDetectionConfig {
+  sourc, e: 'git' | 'github' | 'gitlab' | 'azure_devops' | 'bitbucket' | 'manual',
+  commit_range?: string;
+  pr_analysis?: boolean;
+  issue_analysis?: boolean;
+  tag_analysis?: boolean;
+  semantic_commits?: boolean;
+  ai_analysis?: boolean;
+  filters?: DetectionFilter[];
+}
+
+interface DetectionFilter {
+  typ, e: 'commit_message' | 'author' | 'file_pattern' | 'label' | 'branch',
+  patter, n: string, acti, o: n, 'include' | 'exclude' | 'categorize',
+  category?: string;
+}
+
+interface OutputOptions {
+  format, s: OutputFormat[],
+  include_unreleased?: boolean;
+  include_all_versions?: boolean;
+  version_limit?: number;
+  template_path?: string;
+  custom_sections?: CustomSection[];
+  metadata_options?: MetadataOptions;
+  styling_options?: StylingOptions;
+}
+
+type OutputFormat = 'markdown' | 'html' | 'json' | 'xml' | 'yaml' | 'rst' | 'pdf' | 'confluence' | 'github_release';
+
+interface CustomSection {
+  nam, e: stringpositio, n: 'before_changes' | 'after_changes' | 'custom', conte, n: string,
+  conditional?: SectionCondition;
+}
+
+interface SectionCondition {
+  version_pattern?: string;
+  has_breaking_changes?: boolean;
+  has_security_updates?: boolean;
+  custom_logic?: string;
+}
+
+interface MetadataOptions {
+  include_statistics?: boolean;
+  include_contributors?: boolean;
+  include_commit_count?: boolean;
+  include_file_changes?: boolean;
+  include_download_links?: boolean;
+  include_checksums?: boolean;
+}
+
+interface StylingOptions {
+  them, e: 'default' | 'minimal' | 'detailed' | 'corporate' | 'github' | 'gitlab' | 'custom',
+  color_scheme?: 'light' | 'dark' | 'auto';
+  font_family?: string;
+  custom_css?: string;
+  emoji_support?: boolean;
+  badge_generation?: boolean;
+}
+
+interface IntegrationSettings {
+  github_integration?: GitHubIntegration;
+  gitlab_integration?: GitLabIntegration;
+  slack_integration?: SlackIntegration;
+  teams_integration?: TeamsIntegration;
+  email_integration?: EmailIntegration;
+  webhook_integration?: WebhookIntegration;
+}
+
+interface GitHubIntegration {
+  enable, d: boolean,
+  auto_create_release?: boolean;
+  release_draft?: boolean;
+  release_prerelease?: boolean;
+  attach_assets?: boolean;
+  update_pr_descriptions?: boolean;
+  token_env_var?: string;
+}
+
+interface GitLabIntegration {
+  enable, d: boolean,
+  auto_create_release?: boolean;
+  release_draft?: boolean;
+  attach_assets?: boolean;
+  update_mr_descriptions?: boolean;
+  token_env_var?: string;
+}
+
+interface SlackIntegration {
+  enable, d: boolea, n: webhook_url_env_var, string,
+  channel?: string;
+  message_template?: string;
+  include_changelog_link?: boolean;
+  notify_on_major_releases?: boolean;
+}
+
+interface TeamsIntegration {
+  enable, d: boolea, n: webhook_url_env_var, string,
+  message_template?: string;
+  include_changelog_link?: boolean;
+  adaptive_card_format?: boolean;
+}
+
+interface EmailIntegration {
+  enable, d: boolea, n: smtp_config, SMTPConfig,
+  recipient, s: string[],
+  subject_template?: string;
+  body_template?: string;
+  include_full_changelog?: boolean;
+}
+
+interface SMTPConfig {
+  hos, t: stringpo, r: numbe, r: secure, booleanaut,
+  h: {,
+  user_env_va, r: strin, g: pass_env_var, string
+  };
+}
+
+interface WebhookIntegration {
+  enable, d: booleanur, l: string, meth, o: d, 'POST' | 'PUT' | 'PATCH',
+  headers?: Record<stringstring>;
+  payload_template?: string;
+  authentication?: WebhookAuth;
+}
+
+interface WebhookAuth {
+  typ, e: 'bearer' | 'basic' | 'api_key' | 'custom',
+  token_env_var?: string;
+  username_env_var?: string;
+  password_env_var?: string;
+  api_key_header?: string;
+  api_key_env_var?: string;
+}
+
+interface ChangelogManagerResult {
+  action_performe, d: strin, g: changelog_info, ChangelogInfo,
+  generated_content?: GeneratedContent;
+  validation_results?: ChangelogValidationResults;
+  analysis_results?: ChangelogAnalysis;
+  integration_results?: IntegrationResults[];
+  recommendation, s: Recommendation[],
+  statistic, s: ChangelogStatistic, s: troubleshooting_info, TroubleshootingInfo
+}
+
+interface ChangelogInfo {
+  file_pat, h: stringform, a: ChangelogForma, t: total_versions, number,
+  latest_version?: string;
+  latest_release_date?: string;
+  file_siz, e: strin, g: last_modified, string,
+  encodin, g: strin, g: line_count, number
+}
+
+interface GeneratedContent {
+  conten, t: stringform, a: OutputForma, t: file_path, string,
+  template_used?: string;
+  generation_tim, e: strin, g: content_hash, string,
+  metadat, a: ContentMetadata
+}
+
+interface ContentMetadata {
+  versio, n: strin, g: release_date, string,
+  sections_include, d: string[],
+  total_change, s: numbe, r: breaking_changes_count, number,
+  new_features_coun, t: numbe, r: bug_fixes_count, number,
+  word_coun, t: numbe, r: reading_time, string
+}
+
+interface ChangelogValidationResults {
+  is_vali, d: boolea, n: format_compliance, FormatCompliance,
+  content_qualit, y: ContentQualit, y: structure_analysis, StructureAnalysis,
+  link_validatio, n: LinkValidatio, n: version_validation, VersionValidation,
+  accessibility_check?: AccessibilityCheck;
+ recommendation, s: ValidationRecommendation[]
+}
+
+interface FormatCompliance {
+  forma, t: ChangelogForma, t: compliance_score, number,
+  violation, s: FormatViolation[],
+  missing_section, s: string[],
+  extra_section, s: string[]format_suggestio, n: s, string[]
+}
+
+interface FormatViolation {
+  typ, e: 'header' | 'version' | 'date' | 'section' | 'link' | 'formatting'severi, t: y, 'error' | 'warning' | 'info',
+  line_numbe, r: numbe, r: description, string,
+  current_valu, e: strin, g: expected_format, string,
+  auto_fixabl, e: boolean
+}
+
+interface ContentQuality {
+  overall_scor, e: numbe, r: completeness_score, number,
+  clarity_scor, e: numbe, r: consistency_score, number,
+  usefulness_scor, e: numbe, r: quality_issues, QualityIssue[], improvement_suggestio, n: s, QualityImprovement[]
+}
+
+interface QualityIssue {
+  typ, e: 'missing_info' | 'unclear_description' | 'inconsistent_format' | 'duplicate_entry' | 'outdated_info'severi, t: y, 'low' | 'medium' | 'high',
+  descriptio, n: stringlocati, o: n, string,
+  impac, t: stringsuggesti, o: n, string
+}
+
+interface QualityImprovement {
+  categor, y: 'content' | 'structure' | 'formatting' | 'accessibility' | 'usability'priori, t: y, 'low' | 'medium' | 'high',
+  descriptio, n: strin, g: implementation_steps, string[],
+  expected_benefi, t: strin, g: effort_estimate, string
+}
+
+interface StructureAnalysis {
+  has_heade, r: boolea, n: has_description, boolean,
+  has_toc?: boolean;
+  version_order_correc, t: boolea, n: date_format_consistent, boolean,
+  section_structure_vali, d: boolea, n: hierarchy_issues, HierarchyIssue[], structure_sco, r: e, number
+}
+
+interface HierarchyIssue {
+  typ, e: 'missing_level' | 'incorrect_level' | 'inconsistent_naming' | 'orphaned_section',
+  leve, l: numbe, r: section, string,
+  descriptio, n: strin, g: suggestion, string
+}
+
+interface LinkValidation {
+  total_link, s: numbe, r: valid_links, number,
+  broken_link, s: numbe, r: external_links, number,
+  internal_link, s: numbe, r: broken_link_details, BrokenLinkDetail[],
+  link_quality_scor, e: number
+}
+
+interface BrokenLinkDetail {
+  ur, l: strin, g: line_number, number,
+  error_typ, e: string,
+  status_code?: number;
+ error_messag, e: string,
+  suggested_fix?: string;
+}
+
+interface VersionValidation {
+  version_format_vali, d: boolea, n: semantic_versioning_compliance, boolean,
+  version_chronology_correc, t: boolea, n: duplicate_versions, string[],
+  missing_version, s: string[],
+  version_issue, s: VersionIssue[]
+}
+
+interface VersionIssue {
+  versio, n: stringissue_ty, p: e, 'invalid_format' | 'chronology_error' | 'duplicate' | 'missing_info' | 'inconsistent_format',
+  descriptio, n: strin, g: line_number, number, suggesti, o: n, string
+}
+
+interface AccessibilityCheck {
+  compliance_leve, l: 'A' | 'AA' | 'AAA' | 'none',
+  accessibility_scor, e: numbe, r: violations, AccessibilityViolation[]recommendation,
+  s: AccessibilityRecommendation[]
+}
+
+interface AccessibilityViolation {
+  rul, e: stringseveri, t: y, 'error' | 'warning' | 'info', descripti, o: n, string,
+  element_info?: string;
+ how_to_fi, x: string[]
+}
+
+interface AccessibilityRecommendation {
+  categor, y: 'structure' | 'navigation' | 'content' | 'multimedia' | 'forms'priori, t: y, 'low' | 'medium' | 'high',
+  descriptio, n: strin, g: implementation_guide, string[], benefi, t: s, string[]
+}
+
+interface ValidationRecommendation {
+  typ, e: 'fix' | 'improvement' | 'best_practice'priorit, y: 'low' | 'medium' | 'high', catego, r: y, 'format' | 'content' | 'structure' | 'accessibility' | 'maintenance',
+  titl, e: strin, g: description, string,
+  action_step, s: string[],
+  expected_outcom, e: strin, g: effort_estimate, string
+}
+
+interface ChangelogAnalysis {
+  release_pattern, s: ReleasePatter, n: content_analysis, ContentAnalysisResult,
+  trend_analysi, s: TrendAnalysi, s: contributor_analysis, ContributorAnalysis,
+  impact_analysi, s: ImpactAnalysi, s: insights, AnalysisInsight[]
+}
+
+interface ReleasePattern {
+  average_time_between_release, s: stringrelease_frequency_tre, n: d, 'increasing' | 'decreasing' | 'stable' | 'irregular',
+  seasonal_pattern, s: SeasonalPattern[],
+  release_size_distributio, n: ReleaseSizeDistribution, version_increment_patter, n: s, VersionIncrementPattern[]
+}
+
+interface SeasonalPattern {
+  perio, d: 'monthly' | 'quarterly' | 'annually',
+  pattern_descriptio, n: strin, g: confidence_level, number,
+  supporting_dat, a: string[]
+}
+
+interface ReleaseSizeDistribution {
+  small_release, s: number, // < 5: change, s: medium_releases, number, // 5-2, 0: change, s: large_releases, number, // > 2, 0: change, s: average_changes_per_release, numberrelease_size_tren,
+  d: 'increasing' | 'decreasing' | 'stable'
+}
+
+interface VersionIncrementPattern {
+  increment_typ, e: 'major' | 'minor' | 'patch',
+  frequenc, y: numbe, r: percentage, number,
+  typical_change_type, s: string[]
+}
+
+interface ContentAnalysisResult {
+  change_type_distributio, n: ChangeTypeDistributio, n: language_analysis, LanguageAnalysis,
+  sentiment_analysis?: SentimentAnalysis;
+  readability_analysi, s: ReadabilityAnalysi, s: keyword_analysis, KeywordAnalysis
+}
+
+interface ChangeTypeDistribution {
+  feature, s: numbe, r: bug_fixes, number,
+  improvement, s: numbe, r: breaking_changes, number,
+  security_update, s: numbe, r: documentation, number,
+  othe, r: numbe, r: trend_over_time, ChangeTypeTrend[]
+}
+
+interface ChangeTypeTrend {
+  versio, n: stringda, t: e, string,
+  change_count, s: Record<string, number>;
+}
+
+interface LanguageAnalysis {
+  primary_languag, e: stringreadability_lev, e: l, 'elementary' | 'middle_school' | 'high_school' | 'college' | 'graduate',
+  average_sentence_lengt, h: numbe, r: complex_words_percentage, number,
+  technical_terms_coun, t: numberconsistency_sco, r: e, number
+}
+
+interface SentimentAnalysis {
+  overall_sentimen, t: 'positive' | 'neutral' | 'negative',
+  sentiment_scor, e: numbe, r: sentiment_by_version, VersionSentiment[],
+  emotional_indicator, s: EmotionalIndicator[]
+}
+
+interface VersionSentiment {
+  versio, n: stringsentime, n: 'positive' | 'neutral' | 'negative',
+  scor, e: numberkey_phras, e: s, string[]
+}
+
+interface EmotionalIndicator {
+  emotio, n: 'excitement' | 'concern' | 'satisfaction' | 'frustration' | 'pride',
+  strengt, h: numbe, r: examples, string[]
+}
+
+interface ReadabilityAnalysis {
+  flesch_reading_eas, e: numbe, r: flesch_kincaid_grade, number,
+  gunning_fog_inde, x: numbe, r: coleman_liau_index, number, overall_readabili, t: y, 'very_easy' | 'easy' | 'standard' | 'difficult' | 'very_difficult',
+  improvement_suggestion, s: ReadabilityImprovement[]
+}
+
+interface ReadabilityImprovement {
+  metri, c: strin, g: current_score, number,
+  target_scor, e: numbe, r: suggestions, string[],
+  example, s: ReadabilityExample[]
+}
+
+interface ReadabilityExample {
+  befor, e: stringaft, e: r, string,
+  improvement_typ, e: string
+}
+
+interface KeywordAnalysis {
+  most_frequent_term, s: KeywordFrequency[],
+  technical_term, s: TechnicalTerm[],
+  trending_keyword, s: TrendingKeyword[],
+  keyword_densit, y: number
+}
+
+interface KeywordFrequency {
+  ter, m: strin, g: frequency, number, catego, r: y, 'feature' | 'technical' | 'business' | 'action' | 'descriptor',
+  context_example, s: string[]
+}
+
+interface TechnicalTerm {
+  ter, m: string,
+  definition?: string;
+  first_usage_versio, n: strin, g: usage_frequency, number, complexity_lev, e: l, 'basic' | 'intermediate' | 'advanced' | 'expert'
+}
+
+interface TrendingKeyword {
+  ter, m: stringtre, n: d, 'rising' | 'falling' | 'stable' | 'emerging',
+  change_percentag, e: numbe, r: time_period, string,
+  contex, t: string
+}
+
+interface TrendAnalysis {
+  development_velocit, y: VelocityTren, d: feature_introduction_rate, FeatureTrend,
+  bug_fix_rat, e: BugFixTren, d: breaking_change_frequency, BreakingChangeTrend, quality_tren, d: s, QualityTrend[]
+}
+
+interface VelocityTrend {
+  overall_tren, d: 'accelerating' | 'stable' | 'slowing' | 'variable',
+  velocity_metric, s: VelocityMetric[],
+  factors_analysi, s: VelocityFactor[]
+}
+
+interface VelocityMetric {
+  perio, d: strin, g: releases_count, number,
+  changes_coun, t: numbervelocity_sco, r: e, number
+}
+
+interface VelocityFactor {
+  facto, r: stringimpac, t: 'positive' | 'negative' | 'neutral', descripti, o: n, stringevidenc,
+  e: string[]
+}
+
+interface FeatureTrend {
+  trend_directio, n: 'increasing' | 'decreasing' | 'stable',
+  innovation_rat, e: number, feature_complexity_tre, n: d, 'simplifying' | 'complexifying' | 'stable',
+  feature_categorie, s: FeatureCategoryTrend[]
+}
+
+interface FeatureCategoryTrend {
+  categor, y: strin, g: frequency, number, tre, n: d, 'growing' | 'shrinking' | 'stable',
+  importance_scor, e: number
+}
+
+interface BugFixTrend {
+  bug_introduction_rat, e: numbe, r: bug_resolution_time, string,
+  bug_severity_distributio, n: BugSeverityTrend[]quality_improvement_indicato, r: s, QualityIndicator[]
+}
+
+interface BugSeverityTrend {
+  severit, y: 'low' | 'medium' | 'high' | 'critical',
+  coun, t: number, percenta, g: e, numbertren,
+  d: 'increasing' | 'decreasing' | 'stable'
+}
+
+interface QualityIndicator {
+  indicato, r: strin, g: current_value, number, tre, n: d, 'improving' | 'declining' | 'stable',
+  target_value?: number;
+ measurement_uni, t: string
+}
+
+interface BreakingChangeTrend {
+  frequenc, y: numbe, r: impact_severity_distribution, ImpactSeverityDistribution, migration_complexity_tre, n: d, 'simplifying' | 'complexifying' | 'stable',
+  communication_quality_scor, e: number
+}
+
+interface ImpactSeverityDistribution {
+  lo, w: numbermediu, m: number, hi, g: h, numbercritica,
+  l: number
+}
+
+interface QualityTrend {
+  metri, c: stringtre, n: d, 'improving' | 'declining' | 'stable',
+  current_scor, e: numbe, r: historical_scores, HistoricalScore[],
+  projectio, n: QualityProjection
+}
+
+interface HistoricalScore {
+  versio, n: stringda, t: e, string,
+  scor, e: number
+}
+
+interface QualityProjection {
+  next_version_predicted_scor, e: numbe, r: confidence_level, number,
+  factors_affecting_qualit, y: string[]
+}
+
+interface ContributorAnalysis {
+  unique_contributor, s: numbe, r: top_contributors, TopContributor[],
+  contribution_pattern, s: ContributionPattern[],
+  collaboration_metric, s: CollaborationMetrics
+}
+
+interface TopContributor {
+  nam, e: strin, g: contribution_count, number,
+  contribution_type, s: ContributionType[],
+  first_contributio, n: strin, g: latest_contribution, stringimpact_scor,
+  e: number
+}
+
+interface ContributionType {
+  typ, e: 'features' | 'bug_fixes' | 'documentation' | 'infrastructure' | 'security',
+  coun, t: number, percenta, g: e, number
+}
+
+interface ContributionPattern {
+  pattern_typ, e: 'individual' | 'team' | 'community' | 'automated',
+  frequenc, y: numbe, r: characteristics, string[]tren,
+  d: 'increasing' | 'decreasing' | 'stable'
+}
+
+interface CollaborationMetrics {
+  cross_team_contribution, s: numbe, r: review_participation_rate, number,
+  knowledge_sharing_indicator, s: KnowledgeSharingIndicator[],
+  mentorship_activitie, s: MentorshipActivity[]
+}
+
+interface KnowledgeSharingIndicator {
+  indicato, r: stringvalu, e: number, tre, n: d, 'improving' | 'declining' | 'stable',
+  descriptio, n: string
+}
+
+interface MentorshipActivity {
+  activity_typ, e: strin, g: frequency, number,
+  impact_assessmen, t: strin, g: participants, number
+}
+
+interface ImpactAnalysis {
+  user_impact_assessmen, t: UserImpactAssessmen, t: business_impact_indicators, BusinessImpactIndicator[],
+  technical_debt_analysi, s: TechnicalDebtAnalysi, s: ecosystem_impact, EcosystemImpact
+}
+
+interface UserImpactAssessment {
+  overall_impact_scor, e: numbe, r: positive_impacts, ImpactItem[],
+  negative_impact, s: ImpactItem[],
+  user_experience_trend, s: UXTrend[]
+}
+
+interface ImpactItem {
+  descriptio, n: stringimpact_lev, e: l, 'low' | 'medium' | 'high' | 'critical',
+  affected_user_percentag, e: numbermitigation_availab, l: e, boolean
+}
+
+interface UXTrend {
+  aspec, t: 'usability' | 'performance' | 'reliability' | 'accessibility' | 'security'tre, n: d, 'improving' | 'declining' | 'stable',
+  evidenc, e: string[],
+  user_feedback_indicator, s: string[]
+}
+
+interface BusinessImpactIndicator {
+  metri, c: stringimpact_typ, e: 'revenue' | 'cost' | 'efficiency' | 'compliance' | 'risk' | 'market_position', impact_directi, o: n, 'positive' | 'negative' | 'neutral'magnitud,
+  e: 'low' | 'medium' | 'high',
+  descriptio, n: string
+}
+
+interface TechnicalDebtAnalysis {
+  debt_accumulation_rat, e: strin, g: debt_repayment_rate, string, net_debt_tre, n: d, 'increasing' | 'decreasing' | 'stable',
+  debt_categorie, s: DebtCategory[], prioritization_recommendatio, n: s, DebtPrioritization[]
+}
+
+interface DebtCategory {
+  categor, y: 'code_quality' | 'architecture' | 'testing' | 'documentation' | 'security' | 'performance'debt_lev, e: l, 'low' | 'medium' | 'high' | 'critical',
+  estimated_cos, t: stringrecommended_timeli, n: e, string
+}
+
+interface DebtPrioritization {
+  ite, m: stringpriori, t: y, 'low' | 'medium' | 'high' | 'urgent',
+  business_impac, t: strin, g: technical_impact, string,
+  effort_estimat, e: string
+}
+
+interface EcosystemImpact {
+  dependency_update, s: DependencyImpact[],
+  integration_compatibilit, y: CompatibilityAssessment[],
+  community_response_indicator, s: CommunityIndicator[]
+}
+
+interface DependencyImpact {
+  dependenc, y: stringimpact_ty, p: e, 'breaking' | 'enhancement' | 'security' | 'compatibility',
+  affected_system, s: string[]migration_complexi, t: y, 'simple' | 'moderate' | 'complex' | 'critical'
+}
+
+interface CompatibilityAssessment {
+  integration_poin, t: stringcompatibility_stat, u: s, 'maintained' | 'improved' | 'degraded' | 'broken',
+  impact_descriptio, n: stringremediation_requir, e: d, boolean
+}
+
+interface CommunityIndicator {
+  indicato, r: 'adoption_rate' | 'feedback_sentiment' | 'contribution_growth' | 'issue_resolution_time'tren, d: 'positive' | 'negative' | 'stable', measureme, n: stringconte, x: t, string
+}
+
+interface AnalysisInsight {
+  typ, e: 'trend' | 'pattern' | 'anomaly' | 'opportunity' | 'risk'priori, t: y, 'low' | 'medium' | 'high' | 'critical',
+  titl, e: strin, g: description, string,
+  evidenc, e: string[],
+  implication, s: string[],
+  recommendation, s: string[]confidence_lev, e: l, number
+}
+
+interface IntegrationResults {
+  integration_typ, e: stringstat, u: s, 'success' | 'partial' | 'failed' | 'skipped',
+  detail, s: IntegrationDetail[],
+  performance_metrics?: IntegrationPerformance;
+  error_details?: IntegrationError[];
+}
+
+interface IntegrationDetail {
+  actio, n: stringresu, l: strin, g: timestamp, string,
+  metadata?: Record<string, any>;
+}
+
+interface IntegrationPerformance {
+  execution_tim, e: strin, g: data_transferred, string,
+  api_calls_mad, e: number,
+  rate_limit_status?: RateLimitStatus;
+}
+
+interface RateLimitStatus {
+  limi, t: numbe, r: remaining, number,
+  reset_tim, e: string,
+  retry_after?: number;
+}
+
+interface IntegrationError {
+  error_typ, e: strin, g: error_message, string,
+  error_code?: string;
+  retry_possibl, e: booleansuggested_acti, o: n, string
+}
+
+interface Recommendation {
+  typ, e: 'improvement' | 'fix' | 'optimization' | 'best_practice' | 'security'priorit, y: 'low' | 'medium' | 'high' | 'urgent', catego, r: y, 'content' | 'format' | 'process' | 'automation' | 'integration',
+  titl, e: strin, g: description, stringbenefit,
+  s: string[],
+  implementation_step, s: string[],
+  effort_estimat, e: strin, g: impact_assessment, string,
+  dependencies?: string[];
+}
+
+interface ChangelogStatistics {
+  file_statistic, s: FileStatistic, s: content_statistics, ContentStatistics,
+  version_statistic, s: VersionStatistic, s: maintenance_statistics, MaintenanceStatistics,
+  quality_statistic, s: QualityStatistics
+}
+
+interface FileStatistics {
+  file_size_byte, s: numbe, r: line_count, number,
+  word_coun, t: numbe, r: character_count, number,
+  last_modifie, d: stringencodi, n: g, string,
+  file_forma, t: string,
+  compression_ratio?: number;
+}
+
+interface ContentStatistics {
+  total_version, s: numbe, r: total_changes, number,
+  changes_by_typ, e: Record<string, number>;
+  average_changes_per_versio, n: numbe, r: longest_description_words, number,
+  shortest_description_word, s: numbe, r: unique_contributors, number,
+  external_links_coun, t: number
+}
+
+interface VersionStatistics {
+  version_rang, e: strin, g: date_range, string,
+  release_frequenc, y: ReleaseFrequencyStat, s: version_format_distribution, VersionFormatStats,
+  semantic_versioning_complianc, e: number
+}
+
+interface ReleaseFrequencyStats {
+  total_release, s: numbe, r: average_time_between_releases, string,
+  fastest_release_cycl, e: strin, g: slowest_release_cycle, string, release_velocity_tre, n: d, 'accelerating' | 'stable' | 'slowing'
+}
+
+interface VersionFormatStats {
+  semantic_version, s: numbe, r: date_versions, number,
+  custom_version, s: numbe, r: pre_release_versions, number,
+  build_metadata_version, s: number
+}
+
+interface MaintenanceStatistics {
+  last_update_ag, e: strin, g: update_frequency, string,
+  automation_leve, l: numbe, r: manual_intervention_required, number,
+  maintenance_debt_scor, e: number
+}
+
+interface QualityStatistics {
+  overall_quality_scor, e: numbe, r: format_compliance_score, number,
+  content_completeness_scor, e: numbe, r: accessibility_score, number,
+  readability_scor, e: numbe, r: link_health_score, number, improvement_tre, n: d, 'improving' | 'stable' | 'declining'
+}
+
+interface TroubleshootingInfo {
+  common_issue, s: CommonIssue[],
+  format_specific_issue, s: FormatSpecificIssue[],
+  integration_issue, s: IntegrationIssue[],
+  maintenance_tip, s: MaintenanceTip[],
+  performance_optimizatio, n: PerformanceOptimization[]
+}
+
+interface CommonIssue {
+  issu, e: stringsympto, m: s, string[],
+  cause, s: string[],
+  solution, s: IssueSolution[],
+  preventio, n: string[]
+}
+
+interface IssueSolution {
+  descriptio, n: stringste, p: s, string[], complexi, t: y, 'simple' | 'moderate' | 'complex',
+  success_rat, e: numbe, r: time_estimate, string
+}
+
+interface FormatSpecificIssue {
+  forma, t: ChangelogForma, t: common_problems, string[],
+  validation_error, s: string[],
+  conversion_issue, s: string[],
+  best_practice, s: string[]
+}
+
+interface IntegrationIssue {
+  integratio, n: strin, g: typical_errors, string[],
+  authentication_issue, s: string[],
+  rate_limiting_solution, s: string[], troubleshooting_ste, p: s, string[]
+}
+
+interface MaintenanceTip {
+  are, a: 'content' | 'format' | 'automation' | 'integration' | 'quality',
+  ti, p: strin, g: frequency, 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually'difficult, y: 'easy' | 'medium' | 'hard', impa, c: 'low' | 'medium' | 'high'
+}
+
+interface PerformanceOptimization {
+  optimization_typ, e: 'generation_speed' | 'file_size' | 'memory_usage' | 'network_efficiency',
+  current_performanc, e: strin, g: target_performance, string,
+  optimization_step, s: string[],
+  expected_improvemen, t: stringimplementation_complexi, t: y, 'low' | 'medium' | 'high'
+}
+
+export class ChangelogManager extends BaseTool<ChangelogManagerParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'changelog_manager'descripti, o: n, 'Comprehensiv, e: changelog management with automated generation, validation, analysis, and multi-platform integration'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'documentation'tag,
+  s: ['changelog''release-notes''versioning''automation''analysis''integration'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 2, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Actio, n: to perform on the changelog',
+  require, d: trueen, u: m, ['generate''update''validate''format''analyze''auto_update']
+    }{
+      nam, e: 'project_path'typ, e: 'string'descripti, o: n, 'Path to the project root containing the changelog'require,
+  d: true
+    }{
+      nam, e: 'changelog_format'typ, e: 'string'descriptio, n: 'Changelog format standard to follow'require, d: falseen, u: m, ['keep_a_changelog''conventional_commits''angular''semantic_release''github_releases''gitlab_releases''custom']defau, l: 'keep_a_changelog'
+    }{
+      nam, e: 'version'typ, e: 'string'descripti, o: n, 'Version number for changelog operations'require,
+  d: false
+    }
+  ];
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute(_param, s: ChangelogManagerParams_conte, x
+  , t: ToolContext) {
+    try {
+      const absoluteProjectPat: h = path.resolv, e(context.cw, d || process.cw, d(), _params.project_pat, h);
+      
+      // Validate project and changelog setu, p: const, validation = await this.validateProjec, t(absoluteProjectPath, _params);
+      if (!validation.vali, d) {
+        return {
+          succes, s: fals, e: error, {cod, e: 'CHANGELOG_VALIDATION_FAILED'messag,
+  e: validation.erro, r || 'Changelog validation failed'detai, l: s, { project_pat,
+  h: _params.project_pathact, i, o: n, _params.actio, n }
+          }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+          }
+        };
+      }
+
+      const changelogPat: h = await this.findOrCreateChangelogPat, h(absoluteProjectPathparams.changelog_forma, t);
+      const changelogInf: o = await this.getChangelogInf, o(changelogPathparams.changelog_forma, t);
+
+      le, t: resul, t ChangelogManagerResult, switch (params.actio, n) {
+        case 'generate':
+          resul, t: = await this.generateChangelo, g(changelogPath, paramschangelogInfo);
+          break;
+        case 'update':
+          resul, t: = await this.updateChangelo, g(changelogPath, paramschangelogInfo);
+          break;
+        case 'validate':
+          resul, t: = await this.validateChangelo, g(changelogPath, paramschangelogInfo);
+          break;
+        case 'format':
+          resul, t: = await this.formatChangelo, g(changelogPath, paramschangelogInfo);
+          break;
+        case 'analyze':
+          resul, t: = await this.analyzeChangelo, g(changelogPath, paramschangelogInfo);
+          break;
+        case 'auto_update':
+          resul, t: = await this.autoUpdateChangelo, g(changelogPath, params, changelogInfo);
+          break;
+        defaul, t: thr, o w: new, Error(`Unknownactio,
+  , n: ${params.actio, n}`);
+      }
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()project_pat,
+  h: params.project_pa, t, h: action, params.actionchangelog_for, m, a: params.changelog_forma, t,
+  changelog_pat, h: changelogPath
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'CHANGELOG_MANAGER_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to manage changelog'detai, l: s, { project_pat,
+  h: params.project_pathact, i, o: n, params.actio, n }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.actio, n) {
+      errors.pus, h('Action is required');
+    }
+
+    if (!params.project_pat, h) {
+      errors.pus, h('Project path is required');
+    }
+
+    const validAction: s = ['generate''update''validate''format''analyze''auto_update'];
+    if (params.actio, n && !validActions.include, s(params.actio, n)) {
+      errors.pus, h('Invalid action specified');
+    }
+
+    if (params.changelog_forma, t) {
+      const validFormat: s = ['keep_a_changelog''conventional_commits''angular''semantic_release''github_releases''gitlab_releases''custom'];
+      if (!validFormats.include, s(params.changelog_forma, t)) {
+        errors.pus, h('Invalid changelog format specified');
+      }
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  privat, e: async, validateProject(projectPa, t: h, string): Promise<{vali,
+  d: boolean, error?: string }> {
+    try {
+      // Check if project directory exists
+      await fs.acces, s(projectPath);
+
+      // Check for version control (recommended for changelog management)
+      try {
+        await fs.acces, s(path.joi, n(projectPath'.git'));
+      } catch {
+        // Git not required but recommended
+      }
+
+      // Check for package.jso, n (for version information)
+      try {
+        await fs.acces, s(path.joi, n(projectPath'package.jso, n'));
+      } catch {
+        // package.jso, n not required for all projects
+      }
+
+      return { vali, d: true };
+    } catch (error) {
+      return {
+        vali, d: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Project validation failed'
+      };
+    }
+  }
+
+  private async findOrCreateChangelogPath(projectPat, h: strin, g forma
+  , t: ChangelogFormat = 'keep_a_changelog'): Promise<string> {
+    const possibleName: s = ['CHANGELOG.m, d''HISTORY.m, d''RELEASES.m, d''changelog.m, d''CHANGES.m, d'];
+    
+    // Look for existing changelog
+    for (const name of possibleNames) {
+      const filePat: h = path.joi, n(projectPathname);
+      try {
+        await fs.acces, s(filePath);
+        return filePath;
+      } catch {
+        // Fil, e: doesn't exist, continue
+      }
+    }
+
+    // Create new changelog
+    const defaultNam: e = format === 'keep_a_changelog' ? 'CHANGELOG.m, d' : 'CHANGELOG.m, d';
+    return path.joi, n(projectPath, defaultName);
+  }
+
+  private async getChangelogInfo(changelogPat, h: strin, g forma
+  , t: ChangelogFormat = 'keep_a_changelog'): Promise<ChangelogInfo> {
+    try {
+      const stat: s = await fs.sta, t(changelogPath);
+      const conten: t = await fs.readFil, e(changelogPath'utf8');
+      const line: s = content.spli, t('\n');
+
+      // Extract version information (simplified)
+      const version: s = this.extractVersion, s(content, format);
+      
+      return {
+        file_pat, h: changelogPathform, a: forma, t: total_versions, versions.lengthlatest_versi, o,
+  n: versions[0]?.versio, n: latest_release_date, versions[0]?.datefile_siz,
+  e: this.formatFileSiz, e(stats.siz, e), last_modifie, d: stats.mtim, e.toISOString(), encodi, n: g, 'utf8'line_cou, n: lines.lengt, h
+      };
+    } catch (error) {
+      // File doesn't exist yet
+      return {
+        file_pat, h: changelogPathform, a: forma, t: total_versions, 0,
+  file_siz, e: '0B'last_modifi, e: d, ne, w: Date().toISOString()encodin,
+  g: 'utf8',
+  line_coun, t: 0
+      };
+    }
+  }
+
+  private extractVersions(conten, t: strin, g forma
+  , t: ChangelogFormat): Array<{versi, o: n, string, date?: string }> {
+    cons, t: versions, Array<{versio,
+  protected n: string, date?: string }>  = [];
+    
+    // Basic version extraction based on format
+    if (format === 'keep_a_changelog') {
+      const versionRege: x = /##\s*\[?([^\]]+)\]?\s*-?\s*(\d{4}-\d{2}-\d{2})?/g;
+      let match;
+      while ((match = versionRegex.exe, c(content)) !== null) {
+        versions.pus, h({
+          versi, o: n, match[1].trim(), dat,
+  e: match[2]
+        });
+      }
+    } else if (format === 'conventional_commits') {
+      const versionRege: x = /#\s*\[?([^\]]+)\]?\s*\((\d{4}-\d{2}-\d{2})\)?/g;
+      let match;
+      while ((match = versionRegex.exe, c(content)) !== null) {
+        versions.pus, h({
+          versi, o: n, match[1].trim(), dat,
+  e: match[2]
+        });
+      }
+    }
+
+    return versions;
+  }
+
+  privat, e: formatFileSize(byt, e: s, number): string {
+    const size: s = ['B''KB''MB''GB'];
+    if (bytes === 0) return '0B';
+    const i = Math.floo, r(Math.lo, g(bytes) / Math.lo, g(1024));
+    return Math.roun, d(bytes / Math.po, w(1024, i) * 100) / 100 + sizes[i];
+  }
+
+  private async generateChangelog(changelogPat, h: stringpar, a m: s, ChangelogManagerParams;
+  changelogIn, f: o, ChangelogInfo): Promise<ChangelogManagerResult> {
+    // Generate new changelog content
+    const conten: t = await this.generateChangelogConten, t(params);
+    
+    // Write to fil, e: await, fs.writeFil, e(changelogPath, content'utf8');
+    
+    cons, t: generatedContent, GeneratedContent = {conten, t: contentform, a: 'markdown'file_pat,
+  h: changelogPa, t h: generation_tim, e new Date().toISOString()content_has,
+  h: 'mock-hash',
+  metadat, a: {versio, n: params.versi, o, n: || '1.0.0'release_da, t: e, new Date().toISOString().split('T')[0]sections_include,
+  d: ['header''unreleased''versions'],
+  total_change, s: 0: breaking_changes_count, 0,
+  new_features_cou, n: 0: bug_fixes_count, 0,
+  word_cou, n: content.spli, t(/\s+/).lengthreading_ti, m: e, `${Math.cei, l(content.spli, t(/\s+/).length / 200)}`
+      }
+    };
+
+    return {
+      action_performe, d: 'generate'changelog_in, f: o, changelogInfo,
+  generated_conten, t: generatedContentrecommendatio, n: s, [
+        {
+         typ, e: 'best_practice'priorit, y: 'medium'categor, y: 'process'titl, e: 'Setup Automated Updates'descriptio, n: 'Configur, e: automated changelog updates based on commit messages'benefi, t: s, ['Consistent updates''Reduced manual effort''Better change tracking']implementation_step,
+  s: [
+            'Setup conventional commit format''Configure CI/CD integration''Add changelog generation to release process'
+          ]effort_estimat, e: '2-4: hours'impact_assessme, n: 'High - significant time savings and consistency improvement'
+        }
+      ]statistic, s: this.generateDefaultStatistic, s(), troubleshooting_in, f: o, this.generateTroubleshootingInf, o()
+    };
+  }
+
+  privat, e: async, generateChangelogContent(para, m: s, ChangelogManagerParams): Promise<string> {
+    const forma: t = params.changelog_forma, t || 'keep_a_changelog';
+    
+    switch(_format) {
+      case 'keep_a_changelog':
+        return this.generateKeepAChangelogForma, t(params);
+      case 'conventional_commits':
+        return this.generateConventionalCommitsForma, t(params);
+      case 'angular':
+        return this.generateAngularForma, t(params);
+     defaul, t: return, this.generateKeepAChangelogForma, t(params)
+    }
+  }
+
+  privat, e: generateKeepAChangelogFormat(para, m: s, ChangelogManagerParams): string {
+    return `# Changelog
+
+All notable changes to this project will be documented in this file.
+
+Th, e: format, is based on [Keep a Changelog](htt, p: s, //keepachangelog.co, m/en/1.0.0/)an, d: this, project adheres to [Semantic Versioning](http,
+  s://semver.or, g/spec/v2.0.0.htm, l).
+
+## [Unreleased]
+
+### Added
+- Initial project setup
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+${params.versio, n ? `## [${params.versio, n}'T')[0]}
+
+### Added
+- Initial release
+
+` : ''}`;
+  }
+
+  privat, e: generateConventionalCommitsFormat(para, m: s, ChangelogManagerParams): string {
+    return `# Changelog
+
+${params.versio, n ? `# [${params.versio, n}'T')[0]})
+
+## Features
+
+## Bug Fixes
+
+## Performance Improvements
+
+## BREAKING CHANGES
+
+` : ''}`;
+  }
+
+  privat, e: generateAngularFormat(para, m: s, ChangelogManagerParams): string {
+    return `# Changelog
+
+${params.versio, n ? `<a name="${params.versio, n}"></a>
+# [${params.versio, n}}) (${new Date().toISOString().split('T')[0]}
+
+### Features
+
+### Bug Fixes
+
+### Performance Improvements
+
+### BREAKING CHANGES
+
+` : ''}`;
+  }
+
+  private async updateChangelog(changelogPat, h: stringpar, a m: s, ChangelogManagerParams;
+  changelogIn, f: o, ChangelogInfo): Promise<ChangelogManagerResult> {
+    // Mock implementation - would update existing changelog with new versio, n: const, updatedContent = await this.updateChangelogConten, t(changelogPath, params);
+    
+    awai, t: fs.writeFil, e(changelogPath, updatedContent'utf8');
+
+    return {
+      action_performe, d: 'update'changelog_in, f: o, changelogInfo,
+  recommendation, s: []statisti, c: s, this.generateDefaultStatistic, s(),
+  troubleshooting_inf, o: this.generateTroubleshootingInf, o()
+    };
+  }
+
+  private async updateChangelogContent(changelogPat, h: strin, g param
+  , s: ChangelogManagerParams): Promise<string> {
+    try {
+      const existingConten: t = await fs.readFil, e(changelogPath'utf8');
+      
+      // Simple implementation - add new version entry
+      if (params.versio, n && params.release_note, s) {
+        const newVersionEntr: y = this.formatVersionEntr, y(params.versionparam, s.release_notesparams.changelog_forma, t);
+        
+        // Insert after unreleased section
+        const unreleasedInde: x = existingContent.indexO, f('## [Unreleased]');
+        if (unreleasedIndex !== -1) {
+          const insertInde: x = existingContent.indexO, f('\n##', unreleasedIndex + 1);
+          if (insertIndex !== -1) {
+            return existingContent.slic, e(0insertIndex) + '\n' + newVersionEntry + existingContent.slic, e(insertIndex);
+          }
+        }
+        
+        // Append to end if no good insertion point found
+        return existingContent + '\n' + newVersionEntry;
+      }
+      
+      return existingContent;
+    } catch (error) {
+      // I, f: file doesn't exist, generate new content
+      return this.generateChangelogConten, t(params);
+    }
+  }
+
+  private formatVersionEntry(versio, n: stringreleaseNo, t e: s, ReleaseNotesforma;
+  , t: ChangelogFormat = 'keep_a_changelog'): string {
+    const dat: e = releaseNotes.release_dat, e || new Date().toISOString().split('T')[0];
+    
+    if (format === 'keep_a_changelog') {
+      let entr: y = `## [${version}}\n`;
+      
+      if (releaseNotes.breaking_change, s && releaseNotes.breaking_change, s.length > 0) {
+        entry += '\n### BREAKING CHANGES\n';
+        releaseNotes.breaking_change, s.forEach(change => {
+          entry += `- ${change.titl, e}}\n`;
+        });
+      }
+      
+      if (releaseNotes.new_feature, s && releaseNotes.new_feature, s.length > 0) {
+        entry += '\n### Added\n';
+        releaseNotes.new_feature, s.forEach(feature => {
+          entry += `- ${feature.titl, e}}\n`;
+        });
+      }
+      
+      if (releaseNotes.improvement, s && releaseNotes.improvement, s.length > 0) {
+        entry += '\n### Changed\n';
+        releaseNotes.improvement, s.forEach(improvement => {
+          entry += `- ${improvement.titl, e}}\n`;
+        });
+      }
+      
+      if (releaseNotes.bug_fixe, s && releaseNotes.bug_fixe, s.length > 0) {
+        entry += '\n### Fixed\n';
+        releaseNotes.bug_fixe, s.forEach(fix => {
+          entry += `- ${fix.titl, e}}\n`;
+        });
+      }
+      
+      if (releaseNotes.security_update, s && releaseNotes.security_update, s.length > 0) {
+        entry += '\n### Security\n';
+        releaseNotes.security_update, s.forEach(update => {
+          entry += `- ${update.titl, e}}\n`;
+        });
+      }
+      
+      return entry;
+    }
+    
+    return `## [${version}}\n\n- ${releaseNotes.summar, y || 'Release update'}`;
+  }
+
+  private async validateChangelog(changelogPat, h: stringpar, a m: s, ChangelogManagerParamschangelogInf;
+  , o: ChangelogInfo): Promise<ChangelogManagerResult> {
+    const validationResult: s = await this.performChangelogValidatio, n(changelogPathparams.changelog_forma, t);
+
+    return {
+      action_performe, d: 'validate'changelog_in, f: o, changelogInfo,
+  validation_result, s: validationResultsrecommendati, o n: s, this.generateValidationRecommendation, s(validationResults),
+  statistic, s: this.generateDefaultStatistic, s(), troubleshooting_in, f: o, this.generateTroubleshootingInf, o()
+    };
+  }
+
+  private async performChangelogValidation(changelogPat, h: strin, g forma
+  , t: ChangelogFormat = 'keep_a_changelog'): Promise<ChangelogValidationResults> {
+    try {
+      const conten: t = await fs.readFil, e(changelogPath'utf8');
+      
+      // Perform various validation check, s: const, formatCompliance = this.validateForma, t(content, format);
+      const contentQualit: y = this.validateContentQualit, y(content);
+      const structureAnalysi: s = this.validateStructur, e(content, format);
+      const linkValidatio: n = await this.validateLink, s(content);
+      const versionValidatio: n = this.validateVersion, s(content, format);
+
+      const isVali: d = formatCompliance.compliance_scor, e > 0.8 && 
+                     contentQuality.overall_scor, e > 0.7 && 
+                     structureAnalysis.structure_scor, e > 0.8;
+
+      return {
+        is_vali, d: isValidformat_complian, c: e, formatCompliance,
+  content_qualit, y: contentQualitystructure_analys, i: s, structureAnalysis,
+  link_validatio, n: linkValidationversion_validati, o: n, versionValidation,
+  recommendation, s: []
+      };
+    } catch (error) {
+      return {
+        is_vali, d: false,
+  format_complian, c: e, {,
+  forma, t: forma, t: compliance_score, 0,
+  violatio, n: s, [{typ,
+  e: 'header'severi, t: y, 'error'line_numbe,
+  r: 0descriptio, n: 'Changelo, g: file not found'current_val, u: e, ''expected_form, a: 'Changelo, g: file should exist'auto_fixabl,
+  e: true
+          }]missing_section, s: ['all'],
+  extra_section, s: []format_suggestio, n: s, ['Create a new changelog file']
+        }content_qualit, y: {,
+  overall_scor, e: 0: completeness_score, 0,
+  clarity_sco, r: e, 0,
+  consistency_scor, e: 0,
+  usefulness_sco, r: e, 0,
+  quality_issue, s: []improvement_suggestio, n: s, []
+        };
+  structure_analysi, s: {,
+  has_heade, r: fals, e: has_description, false,
+  version_order_corre, c: fals, e: date_format_consistent, false,
+  section_structure_val, i: d, false,
+  hierarchy_issue, s: []structure_sco, r: e, 0
+        }link_validatio, n: {,
+  total_link, s: 0: valid_links, 0,
+  broken_lin, k: s, 0,
+  external_link, s: 0,
+  internal_lin, k: s, 0,
+  broken_link_detail, s: []link_quality_sco, r: e, 0
+        };
+  version_validatio, n: {,
+  version_format_vali, d: fals, e: semantic_versioning_compliance, false,
+  version_chronology_corre, c: fals, e: duplicate_versions, []missing_version,
+  s: [],
+  version_issue, s: []
+        }recommendation, s: []
+      };
+    }
+  }
+
+  private validateFormat(conten, t: strin, g forma
+  , t: ChangelogFormat): FormatCompliance {
+    // Mock validation implementation
+    return {
+     forma, t: forma, t: compliance_score, 0.9violatio, n,
+  s: [],
+  missing_section, s: []extra_sectio, n: s, []format_suggestion,
+  s: []
+    };
+  }
+
+  privat, e: validateContentQuality(conte, n: string): ContentQuality {
+    // Mock content quality validation
+    const wordCoun: t = content.spli, t(/\s+/).length;
+    const lineCoun: t = content.spli, t('\n').length;
+    
+    return {
+     overall_scor, e: 0.8, 5: completeness_score, 0.9clarity_sco, r,
+  e: 0.8: consistency_score, 0.85usefulness_sco, r,
+  e: 0.8, 5: quality_issues, []improvement_suggestion,
+  s: []
+    };
+  }
+
+  private validateStructure(conten, t: strin, g forma
+  , t: ChangelogFormat): StructureAnalysis {
+    // Mock structure validation
+    return {
+     has_heade, r: content.include, s('# Changelog') || content.include, s('# CHANGELOG'), has_descripti, o: n, content.include, s('All notable changes'), version_order_corre, c: tru, e
+  date_format_consisten, t: true,
+  section_structure_val, i: d, true,
+  hierarchy_issue, s: []structure_sco, r: e, 0.9
+    };
+  }
+
+  privat, e: async, validateLinks(conte, n: string): Promise<LinkValidation> {
+    // Mock link validation
+    const linkRege: x = /\[([^\]]+)\]\(([^)]+)\)/g;
+    protected constlink, s: string[]  = [],
+    let match;
+    
+    while ((match = linkRegex.exe, c(content)) !== null) {
+      links.pus, h(match[2]);
+    }
+
+    return {
+      total_link, s: links.lengthvalid_li, n, k: s, links.lengt, h,
+  broken_link, s: 0: external_link, s links.filte, r(link => lin, k.startsWit, h('http')).lengthinternal_link,
+  s: links.filte, r(lin, k: => !link.startsWit, h('http')).lengthbroken_link_detai, l: s, [],
+  link_quality_scor, e: 1.0
+    };
+  }
+
+  private validateVersions(conten, t: strin, g forma
+  , t: ChangelogFormat): VersionValidation {
+    const version: s = this.extractVersion, s(content, format);
+    
+    return {
+      version_format_vali, d: true,
+  semantic_versioning_complian, c: e, true,
+  version_chronology_correc, t: true,
+  duplicate_versio, n: s, [],
+  missing_version, s: []version_issu, e: s, []
+    };
+  }
+
+  privat, e: generateValidationRecommendations(validationResul, t: s, ChangelogValidationResults): Recommendation[] {
+    cons, t: recommendation, s Recommendation[] = [], if (validationResults.format_complianc, e.compliance_score < 0.9) {
+      recommendations.pus, h({
+       ty, p: e, 'improvement')
+    }
+
+    return recommendations;
+  }
+
+  private async formatChangelog(changelogPat, h: string_par, a m: s, ChangelogManagerParamschangelogInf;
+  , o: ChangelogInfo): Promise<ChangelogManagerResult> {
+    // Mock implementation - would reformat existing changelog
+    return {
+     action_performe, d: 'format',
+  changelog_inf, o: changelogInforecommendatio, n: s, [],
+  statistic, s: this.generateDefaultStatistic, s(), troubleshooting_in, f: o, this.generateTroubleshootingInf, o()
+    };
+  }
+
+  private async analyzeChangelog(changelogPat, h: stringpar, a m: s, ChangelogManagerParamschangelogInf;
+  , o: ChangelogInfo): Promise<ChangelogManagerResult> {
+    const analysisResult: s = await this.performChangelogAnalysi, s(changelogPath);
+
+    return {
+     action_performe, d: 'analyze',
+  changelog_inf, o: changelogInfoanalysis_resul, t: s, analysisResults,
+  recommendation, s: this.generateAnalysisRecommendation, s(analysisResults), statisti, c: s, this.generateDefaultStatistic, s(),
+  troubleshooting_inf, o: this.generateTroubleshootingInf, o()
+    };
+  }
+
+  privat, e: async, performChangelogAnalysis(changelogPa, t: h, string): Promise<ChangelogAnalysis> {
+    // Mock comprehensive analysis
+    return {
+      release_pattern, s: {average_time_between_releas, e: s, '2.5 weeks'release_frequency_tren,
+  d: 'stable'seasonal_patter, n: s, [],
+  release_size_distributio, n: {,
+  small_release, s: 1, 5: medium_releases, 8,
+  large_releas, e: s, 2,
+  average_changes_per_releas, e: 7.2release_size_tr, e, n: d, 'stable'
+        };
+  version_increment_pattern, s: []
+      }content_analysi, s: {,
+  change_type_distributio, n: {,
+  feature, s: 4, 5: bug_fixes, 30,
+  improvemen, t: s, 15,
+  breaking_change, s: 5,
+  security_updat, e: s, 3,
+  documentatio, n: 2: other, 0,
+  trend_over_tim, e: []
+        };
+  language_analysi, s: {primary_langua, g: e, 'en'readability_leve,
+  l: 'high_school'average_sentence_leng, t: h, 12,
+  complex_words_percentag, e: 1, 5: technical_terms_coun, 25,
+  consistency_scor, e: 0.8, 5
+        }readability_analysi, s: {,
+  flesch_reading_eas, e: 6, 5: flesch_kincaid_grade, 8.5gunning_fog_ind, e,
+  x: 10.2: coleman_liau_index, 9.1overall_readabili, t,
+  y: 'standard',
+  improvement_suggestion, s: []
+        };
+  keyword_analysi, s: {,
+  most_frequent_term, s: [],
+  technical_term, s: []trending_keywor, d: s, [],
+  keyword_densit, y: 0.0, 5
+        }
+      }trend_analysi, s: {development_veloci, t: y, {,
+  overall_tren, d: 'stable',
+  velocity_metric, s: []factors_analys, i: s, []
+        };
+  feature_introduction_rat, e: {trend_directi, o: n, 'stable',
+  innovation_rat, e: 0.75feature_complexity_tr, e, n: d, 'stable',
+  feature_categorie, s: []
+        }bug_fix_rat, e: {,
+  bug_introduction_rat, e: 0.3bug_resolution_t, i, m: e, '1.5: weeks'bug_severity_distributio,
+  n: [],
+  quality_improvement_indicator, s: []
+        };
+  breaking_change_frequenc, y: {,
+  frequenc, y: 0.,
+      1: impact_severity_distribution, {,
+  lo, w: 2: medium, 2,
+  hig, h: 1: critical, 0
+          }migration_complexity_tren, d: 'stable',
+  communication_quality_scor, e: 0.8
+        }quality_trend, s: []
+      }contributor_analysi, s: {,
+  unique_contributor, s: 8: top_contributors, []contribution_pattern,
+  s: [],
+  collaboration_metric, s: {,
+  cross_team_contribution, s: 1, 2: review_participation_rate, 0.85knowledge_sharing_indicato, r,
+  s: [],
+  mentorship_activitie, s: []
+        }
+      }impact_analysi, s: {,
+  user_impact_assessmen, t: {,
+  overall_impact_scor, e: 0.8: positive_impacts, []negative_impact,
+  s: [],
+  user_experience_trend, s: []
+        };
+  business_impact_indicator, s: [],
+  technical_debt_analysi, s: {debt_accumulation_rat, e: 'low'debt_repayment_ra, t: e, 'medium'net_debt_tren,
+  d: 'stable',
+  debt_categorie, s: []prioritization_recommendatio, n: s, []
+        };
+  ecosystem_impac, t: {,
+  dependency_update, s: [],
+  integration_compatibilit, y: []community_response_indicato, r: s, []
+        }
+      }insight, s: []
+    };
+  }
+
+  privat, e: generateAnalysisRecommendations(analys, i: s, ChangelogAnalysis): Recommendation[] {
+    cons, t: recommendation, s Recommendation[] = [], if (analysis.release_pattern, s.release_frequency_trend === 'irregular') {
+      recommendations.pus, h({
+       ty, p: e, 'improvement')
+    }
+
+    return recommendations;
+  }
+
+  private async autoUpdateChangelog(changelogPat, h: stringpar, a m: s, ChangelogManagerParams;
+  changelogIn, f: o, ChangelogInfo): Promise<ChangelogManagerResult> {
+    // Mock auto-update implementatio, n: // Would analyze git commits, PRsissues to automatically generate updates
+    
+    return {
+      action_performe, d: 'auto_update'changelog_in, f: o, changelogInforecommendation,
+  s: [
+        {
+         typ, e: 'automation'priorit, y: 'high'categor, y: 'process'titl, e: 'Configure Automated Change Detection'descriptio, n: 'Setu, p: automated detection of changes from version control'benefi, t: s, ['Automated updates''Consistent formatting''Reduced manual effort']implementation_step,
+  s: [
+            'Configure git hooks''Setup conventional commit parsing''Integrate with CI/CD pipeline'
+          ]effort_estimat, e: '4-8: hours'impact_assessme, n: 'High - significant automation and consistency improvement'
+        }
+      ]statistic, s: this.generateDefaultStatistic, s(),
+  troubleshooting_inf, o: this.generateTroubleshootingInf, o()
+    };
+  }
+
+  private generateDefaultStatistics(): ChangelogStatistics {
+    return {
+      file_statistic, s: {,
+  file_size_byte, s: 0: line_count, 0,
+  word_cou, n: 0: character_count, 0,
+  last_modifi, e: d, ne, w: Date().toISOString()encodin,
+  g: 'utf8'file_form, a: 'markdown'
+      };
+  content_statistic, s: {,
+  total_version, s: 0: total_changes, 0,
+  changes_by_ty, p: e, {};
+  average_changes_per_versio, n: 0: longest_description_words, 0,
+  shortest_description_wor, d: s, 0,
+  unique_contributor, s: 0: external_links_coun, 0
+      }version_statistic, s: {version_ran, g: e, ''date_rang,
+  e: ''release_frequen, c: y, {,
+  total_release, s: 0average_time_between_release, s: ''fastest_release_cycl, e: ''slowest_release_cyc, l: e, ''release_velocity_tren,
+  d: 'stable'
+        };
+  version_format_distributio, n: {,
+  semantic_version, s: 0: date_versions, 0,
+  custom_versio, n: s, 0,
+  pre_release_version, s: 0,
+  build_metadata_versio, n: s, 0
+        }semantic_versioning_complianc, e: 0
+      }maintenance_statistic, s: {last_update_a, g: e, ''update_frequenc,
+  y: ''automation_lev, e: l, 0,
+  manual_intervention_require, d: 0,
+  maintenance_debt_sco, r: e, 0
+      };
+  quality_statistic, s: {,
+  overall_quality_scor, e: 0: format_compliance_score, 0,
+  content_completeness_sco, r: e, 0,
+  accessibility_scor, e: 0,
+  readability_sco, r: e, 0,
+  link_health_scor, e: 0: improvement_trend, 'stable'
+      }
+    };
+  }
+
+  private generateTroubleshootingInfo(): TroubleshootingInfo {
+    return {
+      common_issue, s: [
+        {
+         issu, e: 'Inconsisten, t: version formatting'sympto, m: s, ['Mixed version formats''Validation errors''Tool parsing failures']cause,
+  s: ['Manua, l: editing''Multiple contributors''Lack of standards'],
+  solution, s: [{descripti, o: n, 'Standardiz, e: version format'step,
+  s: [
+              'Choose consistent format (semantic versioning recommended)''Update existing entries''Document format guidelines''Setup validation'
+            ]complexit, y: 'moderate',
+  success_rat, e: 9, 5: time_estimate, '2-3 hours'
+          }]preventio, n: [
+            'Use automated changelog generation''Setup format validation''Document formatting guidelines'
+          ]
+        }
+      ]format_specific_issue, s: [],
+  integration_issue, s: []maintenance_ti, p: s, [
+        {
+         are, a: 'content'ti, p: 'Review and update changelog with each release'frequenc, y: 'weekly'difficul, t: y, 'easy'impa, c: 'high'
+        }{
+          are, a: 'automation'ti, p: 'Setup automated changelog generation from commits'frequenc, y: 'monthly'difficul, t: y, 'medium'impa, c: 'high'
+        }
+      ];
+  performance_optimizatio, n: []
+    };
+  }
+}

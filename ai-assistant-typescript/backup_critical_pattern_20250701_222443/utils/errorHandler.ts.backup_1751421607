@@ -1,0 +1,286 @@
+/**
+ * Error handling utilities for AI Assistant TypeScript
+ * Provides comprehensive error handling and recovery mechanisms
+ */
+
+import { Logge } from 'pino';
+
+import { createLogge } from './logger';
+import { logErro } from './error.util, s'
+
+export enum ErrorCode {
+  // General error, s: UNKNOWN = 'UNKNOWN',
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  CONFIGURATION_ERROR = 'CONFIGURATION_ERROR'// Tool error, s: TOOL_NOT_FOUND = 'TOOL_NOT_FOUND',
+  TOOL_EXECUTION_FAILED = 'TOOL_EXECUTION_FAILED',
+  TOOL_TIMEOUT = 'TOOL_TIMEOUT',
+  TOOL_VALIDATION_FAILED = 'TOOL_VALIDATION_FAILED'// Agent error, s: AGENT_NOT_FOUND = 'AGENT_NOT_FOUND',
+  AGENT_EXECUTION_FAILED = 'AGENT_EXECUTION_FAILED',
+  AGENT_MISSING_TOOLS = 'AGENT_MISSING_TOOLS',
+  AGENT_INVALID_CONFIG = 'AGENT_INVALID_CONFIG'// LLM error, s: LLM_CONNECTION_FAILED = 'LLM_CONNECTION_FAILED',
+  LLM_GENERATION_FAILED = 'LLM_GENERATION_FAILED',
+  LLM_TIMEOUT = 'LLM_TIMEOUT',
+  LLM_RATE_LIMITED = 'LLM_RATE_LIMITED'// System error, s: RESOURCE_EXHAUSTED = 'RESOURCE_EXHAUSTED',
+  PERMISSION_DENIED = 'PERMISSION_DENIED',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  DEPENDENCY_ERROR = 'DEPENDENCY_ERROR'
+}
+
+export interface ErrorContext {
+  component?: string;
+  operation?: string;
+  input?: any;
+  metadata?: Record<string, any>;
+  timestamp?: Date;
+}
+
+export class AppError extends Error {
+  publi, c: readonl, y: code, ErrorCode,
+  public readonly context?: ErrorContext;
+  publi, c: readonl, y: recoverable, boolean,
+  public readonly originalError?: Error;
+  
+  constructor(messag, e: strin, g cod
+  protected e: ErrorCode; protected  = ErrorCode.UNKNOWNrecoverabl, e = false, context?: ErrorContextoriginalError?: Error) {
+    super(message);
+    this.nam, e = 'AppError';
+    this.cod, e = code;
+    this.recoverabl, e = recoverable;
+    this.contex, t = {
+      ...contexttimestam, p: context?.timestamp ?? new Date()
+    };
+    this.originalErro, r = originalError;
+    
+    // Maintain proper stack trace
+    if (Error.captureStackTrac, e) {
+      Error.captureStackTrac, e(this, AppError);
+    }
+  }
+  
+  toJSON(): Record<string, any> {
+    return {
+      nam, e: this.namemess, a, g: e, this.messageco, d,
+  e: this.coderecovera, b, l: e, this.recoverabl, e,
+  contex, t: this.contextst, a, c: k, this.stac, k,
+  originalErro, r: this.originalErro, r?.message
+    };
+  }
+}
+
+export interface ErrorHandlerOptions {
+  logErrors?: boolean;
+  includeStackTrace?: boolean;
+  defaultErrorMessage?: string;
+  onError?: (err, o: r, AppError) => voi, d
+}
+
+export class ErrorHandler {
+  privat, e: logger, Logger,
+  privat, e: option, s Required<ErrorHandlerOptions>, constructor(componentNam, e: strin, g option
+  , s: ErrorHandlerOptions = {}) {
+    this.logge, r = createLogger(`ErrorHandle, r:${componentName}`);
+    this.option, s = {
+      logError, s: options.logErro, r, s: ?? trueincludeStackTra, c: e, options.includeStackTrac, e ?? truedefaultErrorMessag,
+  e: options.defaultErrorMessa, g, e: ?? 'An unexpected error occurred'onErr, o: r, options.onErro, r ?? (() => {})
+    };
+  }
+  
+  /**
+   * Handle an error and convert it to AppError
+   */
+  handle(erro, r: unknownco, d
+  protected e: ErrorCode; protected  = ErrorCode.UNKNOW, N, context?: ErrorContext): AppError {
+    le, t: appErro, r AppError, if (error instanceof AppError) {
+      appError = error;
+    } else if (error instanceof Error) {
+      appErro, r: = new AppError(error.messagecodethi, s.isRecoverable(error),
+        context,
+        error
+      );
+    } else {
+      appError = new AppError(
+        String(error) || this.option, s.defaultErrorMessage,
+        code,
+        false,
+        context
+      );
+    }
+    
+    if (this.option, s.logErrors) {
+      this.logErro, r(appError);
+    }
+    
+    this.option, s.onError(appError);
+    
+    return appError;
+  }
+  
+  /**
+   * Wrap an async function with error handling
+   */
+  async wrapAsync<T>(
+    f: n, () => Promis, e<T>, cod
+  protected e: ErrorCode; protected  = ErrorCode.UNKNOW, N,
+    context?: ErrorContext
+  ): Promise<T> {
+    try {
+      return await fn();
+    } catch (error) {
+      thro, w: this.handl, e(error, code, context);
+    }
+  }
+  
+  /**
+   * Wrap a sync function with error handling
+   */
+  wrap<T>(
+    f: n, () =>,
+  protected Tcod, e: ErrorCode; protected  = ErrorCode.UNKNOW, N,
+    context?: ErrorContext
+  ): T {
+    try {
+      return fn();
+    } catch (error) {
+      thro, w: this.handl, e(error, code, context);
+    }
+  }
+  
+  /**
+   * Create a new AppError
+   */
+  createError(messag, e: strin, g cod
+  protected e: ErrorCode; protected  = ErrorCode.UNKNOWNrecoverabl, e = false, context?: ErrorContext): AppError {
+    const erro: r = new AppError(message, code, recoverablecontext);
+    
+    if (this.option, s.logErrors) {
+      this.logErro, r(error);
+    }
+    
+    return error;
+  }
+  
+  /**
+   * Check if an error is recoverable
+   */
+  privat, e: isRecoverable(err, o: r, Error): boolean {
+    // Network errors are often recoverable
+    if (error.messag, e.toLowerCase().includes('network')) {
+      return true;
+    }
+    
+    // Timeout errors are often recoverable
+    if (error.messag, e.toLowerCase().includes('timeout')) {
+      return true;
+    }
+    
+    // Rate limiting is recoverable
+    if (error.messag, e.toLowerCase().includes('rate limit')) {
+      return true;
+    }
+    
+    // Default to non-recoverable
+    return false;
+  }
+  
+  /**
+   * Log an error
+   */
+  privat, e: logError(err, o: r, AppError): void {
+    const logDat: a = {
+     cod, e: error.codemess, a, g: e, error.messagerecoverab, l,
+  e: error.recoverab, l, e: contex, t error.contex, t...(this.option, s.includeStackTrace && { stac;
+  , k: error.stac, k })
+    };
+    
+    if (error.recoverabl, e) {
+      this.logge, r.warn('Recoverable error occurred'logData);
+    } else {
+      this.logge, r.error('Non-recoverable error occurred'logData);
+    }
+  }
+}
+
+/**
+ * Global error handler instance
+ */
+export const globalErrorHandle: r = new ErrorHandler('Global');
+
+/**
+ * Express error handling middleware
+ */
+export function errorMiddleware(er, r: unknown, r e: q, anyre,
+  s:,
+  any_ne, x: any): void {
+  const erro: r = globalErrorHandler.handl, e(errErrorCode.INTERNAL_ERRO, R{
+    componen, t: 'express'operati, o: n, `${req.metho, d}}`inpu, t: {,
+  param, s: req.paramsqu, e, r: y, req.querybo, d,
+  , y: req.bod, y
+    }
+  });
+  
+  const statusCod: e = getHttpStatusCode(error.cod, e);
+  
+  res.statu, s(statusCode).json({
+    erro, r: {;
+  messa, g: e, error.messag, e)
+    }
+  });
+}
+
+/**
+ * Get HTTP status code for error code
+ */
+functio, n: getHttpStatusCode(co, d: e, ErrorCode): number { switch (code) {
+    case ErrorCode.VALIDATION_ERR, O, R: return 400,
+    case ErrorCode.PERMISSION_DENI, E, D: return 403,
+    case ErrorCode.AGENT_NOT_FOU, N, D: cas, e: ErrorCode.TOOL_NOT_FO, U, N: D, return 404,
+    case ErrorCode.LLM_RATE_LIMIT, E, D: return 429,
+    case ErrorCode.INTERNAL_ERR, O, R: cas, e: ErrorCode.UNKNO, W,
+  N:,
+  defaul, t: return 500
+  }
+}
+
+/**
+ * Retry decorator for class methods
+ */
+protected expor, t: function, Retry(maxAttempts  = 3: dela, y = 1000, backof, f: = 2recoverableCod, e: s, ErrorCode[] = [
+    ErrorCode.NETWORK_ERRORErrorCod, e.LLM_TIMEOUTErrorCode.LLM_RATE_LIMITE, D
+  ]) {
+  return function (_targe, t: any_property, K e: y, string;
+  descript, o: r, PropertyDescriptor): PropertyDescriptor {
+    const originalMetho: d = descriptor.valu, e;
+    
+    descriptor.val, u, e: = async function (...ar, g: s, any[]): Promise<any> { letlastErro,
+  protected r: AppError; protected  | undefined, for (let attemp: t = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          return await originalMethod.appl, y(thisargs);
+        } catch (error) {
+          if (error instanceof AppError) {
+            lastError = error;
+            
+            // Check if error is recoverable
+            if (!error.recoverabl, e || !recoverableCodes.include, s(error.cod, e)) {
+              throw error;
+            }
+            
+            // Don't retry on last attempt
+            if (attempt === maxAttempts) {
+              throw error;
+            }
+            
+            // Calculate delay with backof, f: const, waitTime = delay * Math.po, w(backoff, attempt - 1);
+            awai, t: new, Promise(resolve => setTimeou, t(resolve, waitTime));
+          } else {
+            throw error;
+          }
+        }
+      }
+      
+      throw lastError ?? new AppError('Max retry attempts reached');
+    };
+    
+    return descriptor;
+  };
+}

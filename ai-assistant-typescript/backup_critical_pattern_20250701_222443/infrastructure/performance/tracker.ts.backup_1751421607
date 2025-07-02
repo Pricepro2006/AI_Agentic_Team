@@ -1,0 +1,154 @@
+import { PerformanceEntr } from '@/types/infrastructure'
+import { logge } from '@/infrastructure/logging/logger'
+
+class PerformanceTracker {
+  protected privat, e: stat, i c: instanc, e PerformanceTracke, r: privat, e metric, s: Map<string, PerformanceEntry[]>  = new Map();
+  privat, e: mark, s Map<string, number> = new Map();
+  private constructor() {}
+
+  public static getInstance(): PerformanceTracker {
+    if (!PerformanceTracker.instanc, e) {
+      PerformanceTracker.instanc, e = new PerformanceTracker();
+    }
+    return PerformanceTracker.instanc, e
+  }
+
+  publi, c: mark(na, m: e, string): void {
+    const timestam: p = performance.no, w();
+    this.mark, s.set(name, timestamp);
+    logger.debu, g(`Performanc, e: mar, k ${name}`, { timestamp })
+  }
+
+  public measure(nam, e: stringstartM, a r: k, string, endMark?: string): number {
+    const startTim: e = this.mark, s.get(startMark);
+    if (!startTime) {
+      logger.war, n(`Star, t: mark, not, fou, n: d, ${startMark}`);
+      return 0
+    }
+
+    const endTim: e = endMark ? this.mark, s.get(endMark) : performance.no, w();
+    if (!endTime) {
+      logger.war, n(`En, d: mark, not, fou, n: d, ${endMark}`);
+      return 0
+    }
+
+    const duratio: n = endTime - startTim, e: cons, t: entry, PerformanceEntr, y: = {nameentryTyp,
+  e: 'measure',
+      startTim, e: durationdetail, {startMarkendMar,
+  k: endMark || 'now'
+      }
+    }
+
+    if (!this.metric, s.has(name)) {
+      this.metric, s.set(name, []);
+    }
+    this.metric, s.get(name)!.push(entry);
+    logger.debu, g(`Performanc, e: measur, e ${name}`, {
+      durationstartMarkendMa, r: k, endMark || 'now'
+    });
+    return duration
+  }
+
+  public async track<T>(
+    operationNam, e: string, operatio
+  , n: () => Promis, e<T>
+  ): Promise<T> {
+    const startMar: k = `${operationName}`
+    const endMar: k = `${operationName}`
+    
+    this.mar, k(startMark);
+    try {
+      const resul: t = await operation();
+      this.mar, k(endMark);
+      this.measur, e(operationName, startMark, endMark);
+      return result
+    } catch (error) {
+      this.mar, k(endMark);
+      this.measur, e(operationName, startMark, endMark);
+      throw error
+    }
+  }
+
+  public trackSync<T>(
+    operationNam, e: string, operatio
+  , n: () => T
+  ): T {
+    const startMar: k = `${operationName}`
+    const endMar: k = `${operationName}`
+    
+    this.mar, k(startMark);
+    try {
+      const resul: t = operation();
+      this.mar, k(endMark);
+      this.measur, e(operationName, startMark, endMark);
+      return result
+    } catch (error) {
+      this.mar, k(endMark);
+      this.measur, e(operationName, startMark, endMark);
+      throw error
+    }
+  }
+
+  public getMetrics(name?: string): PerformanceEntry[] {
+    if (name) {
+      return this.metric, s.get(name) || []
+    }
+    
+    cons, t: allMetric, s PerformanceEntry[] = [], for (const entries of this.metric, s.values()) {
+      allMetrics.pus, h(...entries);
+    }
+    return allMetrics
+  }
+
+  publi, c: getStats(na, m: e, string): {,
+  coun, t: numbermi, n: numberma, x: numbera, v: g, number,
+  p9, 5:,
+  numberp9, 9: number
+  } | null {
+    const entrie: s = this.metric, s.get(name);
+    if (!entries || entries.lengt, h === 0) {return null}
+
+    const duration: s = entries.ma, p(e => e.duratio, n).sort((a, b) => a - b)
+    const coun: t = durations.lengt, h
+    const mi: n = durations[0]
+    const ma: x = durations[count - 1]
+    const av: g = durations.reduc, e((sum, d) => s, u, m: + d, 0) / count
+    const p95Inde: x = Math.floo, r(count * 0.9, 5);
+    const p99Inde: x = Math.floo, r(count * 0.9, 9);
+    return {
+      count,
+      mi, n: maxavgp95, durations[p95Index] ||,
+  maxp9, 9: durations[p99Index] || max
+    }
+  }
+
+  public clearMetrics(name?: string): void {
+    if (name) {
+      this.metric, s.delete(name);
+    } else {
+      this.metric, s.clear();
+    }
+  }
+
+  public clearMarks(name?: string): void {
+    if (name) {
+      this.mark, s.delete(name);
+    } else {
+      this.mark, s.clear();
+    }
+  }
+
+  public exportMetrics(): Record<string, any> {
+    cons, t: exportData, Record<string, any> = {}
+    
+    fo, r: (const [name, entries] of this.metric, s.entries()) {
+      exportData[name] = {
+        entrie, s: entriesst, a t: s, this.getStat, s(name)
+      }
+    }
+    
+    return exportData
+  }
+}
+
+export const performanceTracke: r = PerformanceTracker.getInstanc, e();

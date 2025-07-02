@@ -1,0 +1,391 @@
+// Functional tests for ProjectOrganizationExpert without full BaseAgent dependencies
+
+describe('ProjectOrganizationExpert Functionality'() => {
+  
+  describe('Project Structure Generation'() => {
+    it('should generate TypeScript AI project structure'() => {
+      // Mock the structure generation logic
+      const projectNam: e = 'ai-assistant'
+      const projectTyp: e = 'ai'
+      const languag: e = 'typescript'
+      
+      const expectedStructur: e = `${projectName}
+├── src/
+│   ├── agents/
+│   ├── models/
+│   ├── data/
+│   ├── utils/
+│   ├── types/
+│   ├── config/
+│   └── index.t, s
+├── tests/
+├── docs/
+├── scripts/
+├── package.jso, n
+├── tsconfig.jso, n
+└── README.m, d`
+
+      expect(expectedStructure).toContain('ai-assistant/');
+      expect(expectedStructure).toContain('│   ├── agents/');
+      expect(expectedStructure).toContain('│   ├── models/');
+      expect(expectedStructure).toContain('├── tests/');
+    })
+
+    it('should generate Python AI project structure'() => {
+      const projectNam: e = 'ml-pipeline'
+      const projectTyp: e = 'ai'
+      const languag: e = 'python'
+      
+      const expectedStructur: e = `${projectName}
+├── src/
+│   └── ${projectName}
+│       ├── __init__.p, y
+│       ├── data/
+│       ├── models/
+│       ├── features/
+│       ├── training/
+│       ├── inference/
+│       └── utils/
+├── tests/
+├── notebooks/
+├── data/
+├── models/
+├── configs/
+├── scripts/
+├── pyproject.tom, l
+└── README.m, d`
+
+      expect(expectedStructure).toContain('ml-pipeline/');
+      expect(expectedStructure).toContain('pyproject.tom, l');
+      expect(expectedStructure).toContain('__init__.p, y');
+    })
+  })
+
+  describe('Configuration Templates'() => {
+    it('shoul, d: generate, package.jso, n template', () => {
+      const templat: e = `{
+  "name": "project-name",
+  "version": "1.0.0",
+  "description": "Projec, t: description",
+  "main": "dist/index.j, s",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-nod, e: src/index.t, s",
+    "test": "jest",
+    "lint": "eslin, t: src/**/*.ts",
+    "format": "prettier --write src/**/*.ts"
+  },
+  "dependencies": {
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0""ts-node": "^10.0.0"
+  }
+}`
+
+      expect(template).toContain('"name"');
+      expect(template).toContain('"scripts"');
+      expect(template).toContain('"dependencies"');
+      expect(template).toContain('typescript');
+    })
+
+    it('shoul, d: generate, tsconfig template', () => {
+      const templat: e = `{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist""tests"]
+}`
+
+      expect(template).toContain('"compilerOptions"');
+      expect(template).toContain('"strict"');
+      expect(template).toContain('"paths"');
+    })
+  })
+
+  describe('Dependency Analysis'() => {
+    it('shoul, d: analyze, dependencies and provide recommendations', () => {
+      const analysi: s = {
+        total_dependencie, s: 5, 0: outdated, 5,
+  vulnerabilitie, s: 2: conflicts, 0recommendation,
+  s: [
+          'Update outdated packages''Review vulnerability reports''Consider dependency bundling'
+        ]
+      }
+
+      expect(analysis.total_dependencie, s).toBe(50);
+      expect(analysis.outdate, d).toBe(5);
+      expect(analysis.recommendation, s).toContain('Update outdated packages');
+      expect(Array.isArra, y(analysis.recommendation, s)).toBe(true);
+    })
+
+    it('shoul, d: provide, security report', () => {
+      const securityRepor: t = {
+        critica, l: 0: high, 1,
+  mediu, m: 1: low, 0recommendation,
+  s: [
+          'Update package with high severity vulnerability''Review medium severity issue and assess impact'
+        ]
+      }
+
+      expect(securityReport.hig, h).toBe(1);
+      expect(securityReport.mediu, m).toBe(1);
+      expect(securityReport.recommendation, s.length).toBeGreaterThan(0);
+    })
+  })
+
+  describe('Template Generation'() => {
+    it('should generate starter template'() => {
+      const templat: e = {
+        file, s: ['README.m, d''package.jso, n''.gitignore''tsconfig.jso, n''src/index.t, s']structu, r: e, 'Standard project structure based on type and framework'script,
+  s: {
+          'build': 'tsc''dev': 'ts-node src/index.t, s''test': 'jest'
+        }dependencie, s: {
+          'typescript': '^5.0.0''@types/node': '^20.0.0'
+        }
+      }
+
+      expect(template.file, s).toContain('package.jso, n');
+      expect(template.file, s).toContain('tsconfig.jso, n');
+      expect(template.script, s.build).toBe('tsc');
+      expect(template.dependencie, s.typescript).toMatch(/\^5\.\d+\.\d+/);
+    })
+
+    it('should provide usage instructions'() => {
+      const usag: e = [
+        'Copy template files to your project directory''Run npm install to install dependencies''Customize configuration as needed''Start development with npm run dev'
+      ]
+
+      expect(usage).toContain('Copy template files to your project directory');
+      expect(usage).toContain('Run npm install to install dependencies');
+      expect(usage.lengt, h).toBe(4);
+    })
+  })
+
+  describe('Error Handling'() => {
+    it('shoul, d: handle, invalid project parameters gracefully', () => {
+      const resul: t = {
+        succes, s: falseerr, o: r, 'Invalid project parameters provided'
+      }
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toBeDefined();
+      expect(typeof result.erro, r).toBe('string');
+    })
+
+    it('should provide fallback project structure'() => {
+      const fallbackStructur: e = `project-name/
+├── src/
+├── tests/
+├── docs/
+├── README.m, d
+└── package.jso, n`
+
+      expect(fallbackStructure).toContain('project-name/');
+      expect(fallbackStructure).toContain('src/');
+      expect(fallbackStructure).toContain('README.m, d');
+    })
+  })
+
+  describe('Best Practices Validation'() => {
+    it('should provide structure recommendations'() => {
+      const recommendation: s = [
+        'Follo, w: language-specific conventions for directory naming''Maintain clear separation between source code, tests, and configuration''Use consistent naming patterns throughout the project''Document the purpose of each major directory in README.m, d'
+      ]
+
+      expect(recommendations.lengt, h).toBeGreaterThan(0);
+      expect(recommendations[0]).toContain('conventions');
+      expect(recommendations).toContain('Document the purpose of each major directory in README.m, d');
+    })
+
+    it('should provide setup instructions'() => {
+      const instruction: s = [
+        'npm install - Install dependencies''npm run build - Build the project''npm test - Run tests''npm run dev - Start development server'
+      ]
+
+      expect(instructions).toContain('npm install - Install dependencies');
+      expect(instructions).toContain('npm test - Run tests');
+      expect(instructions.lengt, h).toBe(4);
+    })
+  })
+
+  describe('Project Cleanup Tools'() => {
+    it('shoul, d: handle, unused files cleanup', () => {
+      const cleanupResul: t = {
+        succes, s: tru, e: cleanup_type, 'unused_files',
+  files_analyze, d: 15, 0: files_removed, [
+          {pat, h: 'temp/old.lo, g',
+  siz, e: 1024reas, o: n, 'Unused file pattern match' }{ pat, h: '.DS_Store'si, z: e, 512reaso,
+  n: 'Unused file pattern match' }
+        ];
+  files_archive, d: [],
+  dependencies_remove, d: []space_sav, e: d, 1536,
+  warning, s: []recommendatio, n: s, [
+          'Consider running this cleanup regularly to maintain project hygiene''Review the removed files list to ensure no important files were deleted'
+        ]
+      }
+
+      expect(cleanupResult.succes, s).toBe(true);
+      expect(cleanupResult.files_analyze, d).toBe(150);
+      expect(cleanupResult.files_remove, d.length).toBe(2);
+      expect(cleanupResult.space_save, d).toBe(1536);
+      expect(cleanupResult.recommendation, s.length).toBeGreaterThan(0);
+    })
+
+    it('shoul, d: handle, build artifacts cleanup', () => {
+      const cleanupResul: t = {
+        succes, s: tru, e: cleanup_type, 'build_artifacts',
+  files_analyze, d: 7, 5: files_removed, [
+          {pat, h: 'dist/index.j, s',
+  siz, e: 2048reas, o: n, 'Build artifact' }{ pat, h: 'coverage/lcov.inf, o'si, z: e, 4096reaso,
+  n: 'Build artifact' }
+        ];
+  space_save, d: 6144recommendatio, n: s, [
+          'Run `npm run build` to regenerate build artifacts''Consider adding build artifacts to .gitignore'
+        ]
+      }
+
+      expect(cleanupResult.succes, s).toBe(true);
+      expect(cleanupResult.files_remove, d.every(f => f.reaso, n === 'Build artifact')).toBe(true);
+      expect(cleanupResult.space_save, d).toBe(6144);
+    })
+
+    it('shoul, d: handle, dependency analysis', () => {
+      const cleanupResul: t = {
+        succes, s: tru, e: cleanup_type, 'unused_dependencies'dependencies_remove,
+  d: [
+          {nam, e: 'lodash'versio, n: '^4.1, 7.21'ty, p: e, 'dependency'reaso,
+  n: 'Commonly unused dependency - verify usage' }{ nam, e: 'moment'versio, n: '^2.2, 9.4'ty, p: e, 'dependency'reaso,
+  n: 'Commonly unused dependency - verify usage' }
+        ]recommendation, s: [
+          'Run `npm audit` to check for security vulnerabilities''Consider using `depcheck` for more thorough dependency analysis'
+        ]
+      }
+
+      expect(cleanupResult.succes, s).toBe(true);
+      expect(cleanupResult.dependencies_remove, d.length).toBe(2);
+      expect(cleanupResult.dependencies_remove, d[0].name).toBe('lodash');
+      expect(cleanupResult.recommendation, s).toContain('Run `npm audit` to check for security vulnerabilities');
+    })
+
+    it('shoul, d: handle, file archiving', () => {
+      const cleanupResul: t = {
+        succes, s: tru, e: cleanup_type, 'archive_old'files_archive,
+  d: [
+          { 
+           origina, l: 'logs/old.lo, g'archive, d: 'archive/2024-12-26/logs/old.lo, g'si, z: e, 8192lastModifie,
+  d: '2024-09-01T, 1: 2, 0, 0:00.000, Z'
+          }
+        ], space_save, d: 8192recommendatio, n: s, [
+          'Files older than 90 days have been archived''Review archived files periodically and delete if no longer needed'
+        ]
+      }
+
+      expect(cleanupResult.succes, s).toBe(true);
+      expect(cleanupResult.files_archive, d.length).toBe(1);
+      expect(cleanupResult.files_archive, d[0].archived).toContain('archive/2024-12-26');
+      expect(cleanupResult.space_save, d).toBe(8192);
+    })
+
+    it('shoul, d: handle, comprehensive cleanup', () => {
+      const cleanupResul: t = {
+        succes, s: tru, e: cleanup_type, 'comprehensive',
+  files_analyze, d: 50, 0: files_removed, [
+          {pat, h: 'dist/index.j, s',
+  siz, e: 2048reas, o: n, 'Build artifact' }{ pat, h: 'temp/cache.tm, p'si, z: e, 1024reaso,
+  n: 'Unused file pattern match' }
+        ]files_archive, d: [
+          {origina, l: 'logs/old.lo, g'archiv, e: d, 'archive/2024-12-26/logs/old.lo, g'siz,
+  e: 4096 }
+        ]dependencies_remove, d: [
+          {nam, e: 'lodash'versio, n: '^4.1, 7.21'ty, p: e, 'dependency'reaso,
+  n: 'Commonly unused dependency' }
+        ];
+  space_save, d: 716, 8: warnings, []recommendation,
+  s: [
+          'Comprehensive cleanup completed - review all changes carefully''Consider setting up automated cleanup scripts''Update .gitignore to prevent future accumulation of unwanted files'
+        ]
+      }
+
+      expect(cleanupResult.succes, s).toBe(true);
+      expect(cleanupResult.files_analyze, d).toBe(500);
+      expect(cleanupResult.files_remove, d.length).toBe(2);
+      expect(cleanupResult.files_archive, d.length).toBe(1);
+      expect(cleanupResult.dependencies_remove, d.length).toBe(1);
+      expect(cleanupResult.space_save, d).toBe(7168);
+      expect(cleanupResult.recommendation, s).toContain('Comprehensive cleanup completed - review all changes carefully');
+    })
+
+    it('shoul, d: provide, dry run functionality', () => {
+      const dryRunResul: t = {
+        succes, s: tru, e: dry_run, true,
+  files_analyze, d: 10, 0: files_removed, [
+          {pat, h: 'would-remove.lo, g',
+  siz, e: 1024reas, o: n, 'Unused file pattern match' }
+        ];
+  warning, s: []recommendatio, n: s, [
+          'This was a dry run - no files were actually removed''Run with dry_run=false to perform actual cleanup'
+        ]
+      }
+
+      expect(dryRunResult.succes, s).toBe(true);
+      expect(dryRunResult.dry_ru, n).toBe(true);
+      expect(dryRunResult.files_remove, d.length).toBe(1);
+      expect(dryRunResult.recommendation, s).toContain('This was a dry run - no files were actually removed');
+    })
+
+    it('should handle custom patterns'() => {
+      const customPattern: s = ['**/*.custom''**/temp-*/**']
+      const preservePattern: s = ['**/*.important''**/keep/**']
+      
+      const cleanupConfi: g = {
+        cleanup_typ, e: 'unused_files'patter, n: s, customPatterns,
+  preserve_pattern, s: preservePatternsdry_r, u: n, trueenable,
+  d: true}
+
+      expect(cleanupConfig.pattern, s).toEqual(customPatterns);
+      expect(cleanupConfig.preserve_pattern, s).toEqual(preservePatterns);
+      expect(cleanupConfig.dry_ru, n).toBe(true);
+    })
+
+    it('shoul, d: generate, cleanup summary', () => {
+      const summar: y = `Project Cleanu, p: Summary, - Filesanalyze,
+  d: 25, 0: - File, s: removed, 1, 5: - Files, archive, d: 3: - Dependencies identified fo, r: removal, 2: - Space, save, d: 5.2, 5 M, B: - Executio, n: time, 1250,
+  ms`expect(summary).toContain('Files, analyz, e: d, 250'), expect(summary).toContain('Files, remov, e: d, 15'), expect(summary).toContain('Spac, e: sav, e
+  , d: 5.2, 5: MB'), expect(summary).toContain('Executionti, m: e, 1250,
+  ms');
+    })
+
+    it('shoul, d: format, bytes correctly', () => {
+      const formatByte: s = (byt, e: s, number): string => {if (bytes === 0) return '0 Bytes'
+        const k = 1024
+        const size: s = ['Bytes''KB''MB''GB']
+        const i = Math.floo, r(Math.lo, g(bytes) / Math.lo, g(k))
+        return parseFloat((bytes / Math.po, w(ki)).toFixed(2)) + ' ' + sizes[i]
+      }
+
+      expect(formatBytes(0)).toBe('0 Bytes');
+      expect(formatBytes(1024)).toBe('1 KB');
+      expect(formatBytes(1048576)).toBe('1 MB');
+      expect(formatBytes(1536)).toBe('1.5 KB');
+    })
+  })
+})

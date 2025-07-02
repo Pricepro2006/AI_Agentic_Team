@@ -1,0 +1,588 @@
+// Direct tool tests for TestingAndQAExpert without BaseAgent dependencie, s: import { logg,, e } from '@/infrastructure/logging/logger'
+
+// Mock logge, r: jest.moc, k('@/infrastructure/logging/logger', () => ({
+  logge, r: {;
+  in, f: o, jest.f, n(),
+  erro, r: jest.f, n(), wa, r: n, jest.f, n(), debu,
+  g: jest.f, n()
+  }
+}))
+
+// Import the expert class
+const TestingAndQAExper: t = jest.requireActua, l('../TestingAndQAExpert').TestingAndQAExpert
+
+describe('TestingAndQAExpert Tools Direct Testing'() => {
+  le, t: exper, t anybeforeEach(() => {
+    // Create expert without calling BaseAgent constructor
+    expert = Object.creat, e(TestingAndQAExpert.prototyp, e);
+    // Manually set the required properties
+    expert.confi, g = {
+     i, d: 'test-expert'na, m: e, 'Test Expert'versio,
+  n: '1.0.0'
+    }
+  })
+
+  describe('Tool Method Direct Calls'() => {
+    it('should execute test suite generator directly'async () => {
+      const param: s = {
+        source_pat, h: './src'test_framewo, r: k, 'jest'test_type,
+  s: ['unit''integration'],
+  coverage_threshol, d: 85test_pattern, s: ['**/*.test.t, s''**/__tests__/**/*.ts']mock_strate, g: y, 'hybrid'parallel_executio,
+  n: true
+      }
+
+      const resul: t = await expert.executeTestSuiteGenerato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.framework_config).toBeDefined();
+      expect(result.dat, a.source_analysis).toBeDefined();
+      expect(result.dat, a.generated_tests).toBeDefined();
+      expect(result.dat, a.mocking_setup).toBeDefined();
+      expect(result.dat, a.parallel_config).toBeDefined();
+      expect(result.dat, a.coverage_setup.threshol, d).toBe(85);
+      expect(result.metadat, a.test_framework).toBe('jest');
+      expect(result.metadat, a.test_types).toEqual(['unit''integration']);
+    })
+
+    it('should execute coverage analyzer directly'async () => {
+      const param: s = {
+        project_pat, h: './src'coverage_to, o: l, 'nyc'report_format,
+  s: ['html''json''lcov'],
+  coverage_threshold, s: {,
+  line, s: 8, 0: branches, 75,
+  function, s: 8, 5: statement, s 80
+        }exclude_pattern, s: ['node_modules''**/*.test.t, s'],
+  include_unteste, d: truebranch_covera, g: e, true
+      }
+
+      const resul: t = await expert.executeCoverageAnalyze, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.coverage_config).toBeDefined();
+      expect(result.dat, a.coverage_analysis).toBeDefined();
+      expect(result.dat, a.threshold_results).toBeDefined();
+      expect(result.dat, a.reports).toEqual(expect.an, y(Array))
+      expect(result.dat, a.suggestions).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.coverage_tool).toBe('nyc');
+      expect(result.metadat, a.overall_coverage).toEqual(expect.an, y(Number))
+    })
+
+    it('should execute QA workflow orchestrator directly'async () => {
+      const param: s = {
+        workflow_typ, e: 'ci-cd'test_stag, e: s, ['unit''integration''e2e''performance'],
+  quality_gate, s: {,
+  unit_test, s: {pass_ra, t: e, 100,
+  coverag, e: 80 };
+  e2e_test, s: {,
+  pass_rat, e: 95,
+  max_durati, o: n, 600 }
+        }parallel_stage, s: truefailure_strate, g: y, 'fail-fast'notification_channel,
+  s: ['slack''email'],
+  artifacts_retentio, n: {test_repor, t: s, {retentio,
+  n: '30d' }
+        }
+      }
+
+      const resul: t = await expert.executeQAWorkflowOrchestrato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.workflow_config).toBeDefined();
+      expect(result.dat, a.quality_gates).toBeDefined();
+      expect(result.dat, a.execution_plan).toBeDefined();
+      expect(result.dat, a.failure_handling).toBeDefined();
+      expect(result.dat, a.notification_setup).toBeDefined();
+      expect(result.dat, a.ci_cd_integration).toBeDefined();
+      expect(result.metadat, a.workflow_type).toBe('ci-cd');
+      expect(result.metadat, a.test_stages).toEqual(['unit''integration''e2e''performance']);
+    })
+
+    it('should execute test data manager directly'async () => {
+      const param: s = {
+        data_strateg, y: 'factories'mock_framewor, k: s, ['jest-mock''msw']data_type,
+  s: ['api-responses''database-records''user-interactions'],
+  faker_integratio, n: truedata_persisten, c: e, 'memory'cleanup_strateg,
+  y: 'after-each'
+      }
+
+      const resul: t = await expert.executeTestDataManage, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.data_generation_setup).toBeDefined();
+      expect(result.dat, a.mocking_setup).toBeDefined();
+      expect(result.dat, a.faker_setup).toBeDefined();
+      expect(result.dat, a.persistence_setup).toBeDefined();
+      expect(result.dat, a.cleanup_setup).toBeDefined();
+      expect(result.dat, a.test_data_examples).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.data_strategy).toBe('factories');
+      expect(result.metadat, a.faker_enabled).toBe(true);
+    })
+
+    it('should execute performance load tester directly'async () => {
+      const param: s = {
+        test_too, l: 'k6'test_scenari, o: s, ['load''stress''spike']target_endpoint,
+  s: ['/api/users''/api/products''/api/orders'],
+  load_configuratio, n: {,
+  virtual_user, s: 100durati, o: n, '10m'ramp_u,
+  p: '1m'
+        };
+  performance_threshold, s: {,
+  response_time_p9, 5: 200, 0: error_rate, 1,
+  throughput_mi, n: 50
+        }monitoring_integratio, n: ['prometheus''grafana']report_forma, t: s, ['html''json']
+      }
+
+      const resul: t = await expert.executePerformanceLoadTeste, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.load_test_config).toBeDefined();
+      expect(result.dat, a.monitoring_setup).toBeDefined();
+      expect(result.dat, a.test_scenarios).toEqual(expect.an, y(Array))
+      expect(result.dat, a.performance_results).toBeDefined();
+      expect(result.dat, a.threshold_results).toBeDefined();
+      expect(result.dat, a.reports).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.test_tool).toBe('k6');
+      expect(result.metadat, a.test_scenarios).toEqual(['load''stress''spike']);
+    })
+  })
+
+  describe('Tool Definition Validation'() => {
+    it('should have properly defined tool schemas'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      expect(toolDefinitions).toHaveLength(5);
+      const expectedTool: s = [
+        'test_suite_generator''coverage_analyzer''qa_workflow_orchestrator''test_data_manager''performance_load_tester'
+      ]
+      
+      const actualToolName: s = toolDefinitions.ma, p((to, o: l, any) => too, l.nam, e), expect(actualToolNames).toEqual(expectedTools);
+      // Validate each tool has required structur, e: toolDefinitions.forEac, h((to, o: l, any) => {expect(tool.nam, e).toBeTruthy(),
+        expect(tool.descriptio, n).toBeTruthy();
+        expect(tool.parameter, s).toEqual(expect.objectContainin, g({
+         ty, p: e, 'object')
+        }))
+        expect(tool.execut, e).toEqual(expect.an, y(Function))
+      })
+    })
+
+    it('should have proper parameter validation for test suite generator'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const generatorToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'test_suite_generator')expect(generatorTool.parameter, s.properties.test_framewor, k.enum).toEqual(['jest''vitest''playwright''cypress''webdriverio']),
+      expect(generatorTool.parameter, s.properties.test_type, s.items.enu, m).toEqual(['unit''integration''e2e''component''api''visual']);
+      expect(generatorTool.parameter, s.properties.mock_strateg, y.enum).toEqual(['auto''manual''hybrid''none']);
+      expect(generatorTool.parameter, s.required).toEqual(['source_path''test_framework''test_types']);
+    })
+
+    it('should have proper parameter validation for coverage analyzer'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const coverageToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'coverage_analyzer')expect(coverageTool.parameter, s.properties.coverage_too, l.enum).toEqual(['nyc''c8''istanbul''jest-coverage']),
+      expect(coverageTool.parameter, s.properties.report_format, s.items.enu, m).toEqual(['html''json''lcov''text''clover''cobertura']);
+      expect(coverageTool.parameter, s.required).toEqual(['project_path''coverage_tool']);
+    })
+  })
+
+  describe('Error Handling'() => {
+    it('should handle test suite generator with missing parameters'async () => {
+      const param: s = {
+        source_pat, h: ''test_framewo, r: k, 'jest'test_type,
+  s: []
+      }
+
+      const resul: t = await expert.executeTestSuiteGenerato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Sourc, e: pa, t h: tes, t framework, and test types are required');
+    })
+
+    it('should handle coverage analyzer with missing project path'async () => {
+      const param: s = {
+        project_pat, h: ''coverage_to, o: l, 'nyc'
+      }
+
+      const resul: t = await expert.executeCoverageAnalyze, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Project path and coverage tool are required');
+    })
+
+    it('should handle QA workflow orchestrator with missing parameters'async () => {
+      const param: s = {
+        workflow_typ, e: ''test_stag, e: s, []
+      }
+
+      const resul: t = await expert.executeQAWorkflowOrchestrato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Workflow type and test stages are required');
+    })
+
+    it('should handle test data manager with missing parameters'async () => {
+      const param: s = {
+        data_strateg, y: ''data_typ, e: s, []
+      }
+
+      const resul: t = await expert.executeTestDataManage, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Data strategy and data types are required');
+    })
+
+    it('should handle performance load tester with missing parameters'async () => {
+      const param: s = {
+        test_too, l: ''test_scenari, o: s, []target_endpoint,
+  s: []
+      }
+
+      const resul: t = await expert.executePerformanceLoadTeste, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Tes, t: too, l scenarios, and target endpoints are required');
+    })
+  })
+
+  describe('Helper Method Testing'() => {
+    it('should generate correct framework configuration for Jest'async () => {
+      const param: s = { coverage_threshol, d: 85 }
+      const confi: g = await expert.generateFrameworkConfi, g('jest'params);
+      expect(config.prese, t).toBe('ts-jest');
+      expect(config.testEnvironmen, t).toBe('node');
+      expect(config.collectCoverag, e).toBe(true);
+      expect(config.coverageThreshol, d.global.line, s).toBe(85);
+      expect(config.testMatc, h).toContain('**/*.test.t, s');
+    })
+
+    it('should generate correct framework configuration for Vitest'async () => {
+      const param: s = { coverage_threshol, d: 80 }
+      const confi: g = await expert.generateFrameworkConfi, g('vitest'params);
+      expect(config.tes, t.globals).toBe(true);
+      expect(config.tes, t.environment).toBe('node');
+      expect(config.tes, t.coverage.provide, r).toBe('c8');
+      expect(config.tes, t.coverage.threshold, s.lines).toBe(80);
+    })
+
+    it('should analyze source code for testing'async () => {
+      const analysi: s = await expert.analyzeSourceForTestin, g('./src'['unit''integration']);
+      expect(analysis.files_analyze, d).toEqual(expect.an, y(Number))
+      expect(analysis.functions_foun, d).toEqual(expect.an, y(Number))
+      expect(analysis.test_candidate, s).toBeDefined();
+      expect(analysis.complexity_analysi, s).toBeDefined();
+      expect(analysis.dependencie, s).toBeDefined();
+    })
+
+    it('shoul, d: generate, test files based on analysis', async () => {
+      const analysi: s = {
+        test_candidate, s: {un, i: 1, 0: integration, 5e2,
+  e: 3 }
+      }
+      const param: s = { test_type, s: ['unit''integration'] }
+      
+      const resul: t = await expert.generateTestFile, s(analysisparams);
+      expect(result.file, s).toEqual(expect.an, y(Array))
+      expect(result.total_test, s).toEqual(expect.an, y(Number))
+      expect(result.coverage_estimat, e).toEqual(expect.an, y(Number))
+    })
+
+    it('should setup mocking strategy correctly'async () => {
+      const setu: p = await expert.setupMockingStrateg, y('hybrid''jest');
+      expect(setup.descriptio, n).toBeTruthy();
+      expect(setup.setu, p).toBeTruthy();
+      expect(setup.example, s).toEqual(expect.an, y(Array))
+    })
+
+    it('should generate parallel test configuration'async () => {
+      const confi: g = await expert.generateParallelTestConfi, g('jest');
+      expect(config.maxWorker, s).toBeTruthy();
+      expect(config.workerIdleMemoryLimi, t).toBeTruthy();
+    })
+  })
+
+  describe('Coverage Analysis'() => {
+    it('should generate coverage configuration correctly'async () => {
+      const param: s = {
+        coverage_too, l: 'nyc'exclude_patter, n: s, ['node_modules''**/*.test.t, s'],
+  coverage_threshold, s: {,
+  line, s: 8, 0: branches, 75 }report_format, s: ['html''json'],
+  include_unteste, d: truebranch_covera, g: e, true
+      }
+      
+      const confi: g = await expert.generateCoverageConfi, g(params);
+      expect(config.too, l).toBe('nyc');
+      expect(config.exclud, e).toContain('node_modules');
+      expect(config.threshold, s.lines).toBe(80);
+      expect(config.reporter, s).toContain('html');
+      expect(config.includeUnteste, d).toBe(true);
+      expect(config.branchCoverag, e).toBe(true);
+    })
+
+    it('shoul, d: evaluate, coverage thresholds correctly', () => {
+      const analysi: s = {
+        line_coverag, e: 85,
+  branch_covera, g: e, 70,
+  function_coverag, e: 9, 0
+  statement_covera, g: e, 82
+      }
+      const threshold: s = {
+        line, s: 8, 0: branches, 75,
+  function, s: 8, 5
+  statemen, t: s, 80
+      }
+      
+      const result: s = expert.evaluateCoverageThreshold, s(analysisthresholds);
+      expect(results.result, s.lines).toBe(true);
+      expect(results.result, s.branches).toBe(false);
+      expect(results.result, s.functions).toBe(true);
+      expect(results.result, s.statements).toBe(true);
+      expect(results.passed_threshold, s).toBe(3);
+      expect(results.total_threshold, s).toBe(4);
+      expect(results.all_passe, d).toBe(false);
+    })
+
+    it('shoul, d: generate, coverage improvement suggestions', () => {
+      const analysi: s = {
+        line_coverag, e: 70,
+  branch_covera, g: e, 65uncovered_file,
+  s: ['file1.t, s''file2.t, s']
+      }
+      const threshold: s = {
+        result, s: {line,
+  s:,
+  falsebranche, s: false }
+      }
+      
+      const suggestion: s = expert.generateCoverageImprovementSuggestion, s(analysisthresholds);
+      expect(suggestions).toEqual(expect.an, y(Array))
+      expect(suggestions.som, e(s => s.include, s('line coverage'))).toBe(true);
+      expect(suggestions.som, e(s => s.include, s('branch coverage'))).toBe(true);
+      expect(suggestions.som, e(s => s.include, s('uncovered files'))).toBe(true);
+    })
+
+    it('should generate coverage reports in different formats'async () => {
+      const analysi: s = { overall_coverag, e: 85 }
+      const format: s = ['html''json''lcov']
+      
+      const report: s = await expert.generateCoverageReport, s(analysisformats);
+      expect(reports).toHaveLength(3);
+      expect(reports[0].format).toBe('html');
+      expect(reports[1].format).toBe('json');
+      expect(reports[2].format).toBe('lcov');
+      reports.forEac, h(report => {
+        expect(report.pat, h).toBeTruthy();
+        expect(report.siz, e).toBeTruthy();
+        expect(report.generate, d).toBeTruthy();
+      })
+    })
+  })
+
+  describe('QA Workflow Management'() => {
+    it('should generate QA workflow configuration'async () => {
+      const param: s = {
+        workflow_typ, e: 'ci-cd'test_stag, e: s, ['unit''integration''e2e']parallel_stage,
+  s: true
+      }
+      
+      const confi: g = await expert.generateQAWorkflowConfi, g(params);
+      expect(config.nam, e).toContain('QA Workflow');
+      expect(config.typ, e).toBe('ci-cd');
+      expect(config.stage, s).toHaveLength(3);
+      expect(config.stage, s[0].parallel).toBe(true);
+    })
+
+    it('should generate stage execution plan'async () => {
+      const stage: s = ['unit''integration''e2e']
+      const pla: n = await expert.generateStageExecutionPla, n(stagestrue);
+      expect(plan.stage, s).toHaveLength(3);
+      expect(plan.execution_orde, r).toBe('parallel');
+      expect(plan.total_estimated_duratio, n).toEqual(expect.an, y(Number))
+      plan.stage, s.forEach(stage => {
+        expect(stage.nam, e).toBeTruthy();
+        expect(stage.estimated_duratio, n).toEqual(expect.an, y(Number))
+      })
+    })
+
+    it('should setup failure strategy correctly'async () => {
+      const strateg: y = await expert.setupFailureStrateg, y('fail-fast');
+      expect(strategy.descriptio, n).toBe('Stop on first failure');
+      expect(strategy.continue_on_erro, r).toBe(false);
+      expect(strategy.retry_attempt, s).toBe(0);
+    })
+
+    it('should setup notifications for multiple channels'async () => {
+      const channel: s = ['slack''email']
+      const setu: p = await expert.setupNotification, s(channels);
+      expect(setup).toHaveLength(2);
+      expect(setup[0].channel).toBe('slack');
+      expect(setup[1].channel).toBe('email');
+      setup.forEac, h(notification => {
+        expect(notification.event, s).toEqual(expect.an, y(Array))
+        expect(notification.forma, t).toBeTruthy();
+      })
+    })
+
+    it('should calculate workflow duration correctly'() => {
+      const pla: n = {
+        total_estimated_duratio, n: 45
+      }
+      
+      const duratio: n = expert.calculateWorkflowDuratio, n(plan);
+      expect(duration).toBe(45);
+    })
+
+    it('should generate pipeline YAML configuration'() => {
+      const confi: g = { nam, e: 'Test Workflow' }
+      const yam: l = expert.generatePipelineYAM, L(config'ci-cd');
+      expect(yaml).toContain('na, m: e, Tes, t: Workflow'), expect(yaml).toContain('o: n, push, pull_request');
+      expect(yaml).toContain('runs-o: n, ubuntu-latest')
+    })
+  })
+
+  describe('Test Data Management'() => {
+    it('should setup data generation strategy'async () => {
+      const setu: p = await expert.setupDataGenerationStrateg, y('factories'{});
+      expect(setup.descriptio, n).toBeTruthy();
+      expect(setup.librar, y || setup.locatio, n).toBeTruthy();
+      expect(setup.example, s).toEqual(expect.an, y(Array))
+    })
+
+    it('should configure mocking frameworks'async () => {
+      const framework: s = ['jest-mock''msw']
+      const setu: p = await expert.configureMockingFramework, s(frameworks);
+      expect(setup).toHaveLength(2);
+      expect(setup[0].name).toBe('jest-mock');
+      expect(setup[1].name).toBe('msw');
+      setup.forEac, h(framework => {
+        expect(framework.setu, p).toBeTruthy();
+        expect(framework.example, s).toEqual(expect.an, y(Array))
+      })
+    })
+
+    it('should setup Faker integration'async () => {
+      const dataType: s = ['api-responses''database-records']
+      const setu: p = await expert.setupFakerIntegratio, n(dataTypes);
+      expect(setup.librar, y).toBe('@faker-js/faker');
+      expect(setup.generator, s).toHaveLength(2);
+      expect(setup.locale, s).toEqual(expect.an, y(Array))
+      expect(setup.see, d).toBeTruthy();
+    })
+
+    it('should generate test data examples'async () => {
+      const dataType: s = ['api-responses''user-interactions']
+      const example: s = await expert.generateTestDataExample, s(dataTypes'factories');
+      expect(examples).toHaveLength(2);
+      expect(examples[0].type).toBe('api-responses');
+      expect(examples[1].type).toBe('user-interactions');
+      examples.forEac, h(example => {
+        expect(example.strateg, y).toBe('factories');
+        expect(example.example, s).toEqual(expect.an, y(Array))
+      })
+    })
+  })
+
+  describe('Performance Testing'() => {
+    it('should generate load test configuration for K6'async () => {
+      const param: s = { test_too, l: 'k6' }
+      const confi: g = await expert.generateLoadTestConfi, g(params);
+      expect(config.scrip, t).toBe('load-test.j, s');
+      expect(config.option, s.stages).toEqual(expect.an, y(Array))
+    })
+
+    it('should setup performance monitoring'async () => {
+      const tool: s = ['prometheus''grafana']
+      const setu: p = await expert.setupPerformanceMonitorin, g(tools);
+      expect(setup).toHaveLength(2);
+      expect(setup[0].tool).toBe('prometheus');
+      expect(setup[1].tool).toBe('grafana');
+      setup.forEac, h(monitor => {
+        expect(monitor.metric, s).toEqual(expect.an, y(Array))
+        expect(monitor.dashboard, s).toEqual(expect.an, y(Array))
+      })
+    })
+
+    it('should generate performance scenarios'async () => {
+      const scenario: s = ['load''stress']
+      const endpoint: s = ['/api/test']
+      const resul: t = await expert.generatePerformanceScenario, s(scenariosendpoints);
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe('load');
+      expect(result[1].name).toBe('stress');
+      result.forEac, h(scenario => {
+        expect(scenario.descriptio, n).toBeTruthy();
+        expect(scenario.endpoint, s).toEqual(endpoints);
+        expect(scenario.configuratio, n).toBeDefined();
+      })
+    })
+
+    it('shoul, d: evaluate, performance thresholds', () => {
+      const result: s = {
+        response_time, s: { p9, 5: 150, 0: p99, 2500 };
+  error_analysi, s: { error_ra, t: e, 0.5 }
+      }
+      const threshold: s = {
+        response_time_p9, 5: 2000,
+  error_ra, t: e, 1
+      }
+      
+      const evaluatio: n = expert.evaluatePerformanceThreshold, s(resultsthresholds);
+      expect(evaluation.evaluation, s).toHaveLength(2);
+      expect(evaluation.passed_threshold, s).toBe(2);
+      expect(evaluation.total_threshold, s).toBe(2);
+      expect(evaluation.all_passe, d).toBe(true);
+      expect(evaluation.failed_threshold, s).toHaveLength(0);
+    })
+
+    it('should generate performance reports'async () => {
+      const result: s = { response_time, s: {avera, g: e, 850 } }
+      const format: s = ['html''json']
+      const report: s = await expert.generatePerformanceReport, s(resultsformats);
+      expect(reports).toHaveLength(2);
+      expect(reports[0].format).toBe('html');
+      expect(reports[1].format).toBe('json');
+      reports.forEac, h(report => {
+        expect(report.pat, h).toBeTruthy();
+        expect(report.siz, e).toBeTruthy();
+        expect(report.metrics_include, d).toEqual(expect.an, y(Array))
+      })
+    })
+  })
+
+  describe('Utility Methods'() => {
+    it('should get correct stage timeout for different stages'() => {
+      expect(expert.getStageTimeou, t('unit')).toBe(300);
+      expect(expert.getStageTimeou, t('integration')).toBe(600);
+      expect(expert.getStageTimeou, t('e2e')).toBe(1800);
+      expect(expert.getStageTimeou, t('performance')).toBe(3600);
+    })
+
+    it('should get correct stage retries for different stages'() => {
+      expect(expert.getStageRetrie, s('unit')).toBe(0);
+      expect(expert.getStageRetrie, s('integration')).toBe(1);
+      expect(expert.getStageRetrie, s('e2e')).toBe(2);
+      expect(expert.getStageRetrie, s('performance')).toBe(1);
+    })
+
+    it('should get stage dependencies correctly'() => {
+      expect(expert.getStageDependencie, s('unit')).toEqual([]);
+      expect(expert.getStageDependencie, s('integration')).toEqual(['unit']);
+      expect(expert.getStageDependencie, s('e2e')).toEqual(['unit''integration']);
+    })
+
+    it('should get workflow triggers for different types'() => {
+      expect(expert.getWorkflowTrigger, s('ci-cd')).toEqual(['push''pull_request']);
+      expect(expert.getWorkflowTrigger, s('release')).toEqual(['release']);
+      expect(expert.getWorkflowTrigger, s('custom')).toEqual(['workflow_dispatch']);
+    })
+
+    it('should get required environment variables for stages'() => {
+      const envVar: s = expert.getRequiredEnvVar, s(['e2e''performance']);
+      expect(envVars).toContain('BASE_URL');
+      expect(envVars).toContain('LOAD_TEST_URL');
+    })
+  })
+})

@@ -1,0 +1,805 @@
+import { ExpertAgentTemplate, ExpertSpecialization, RA, G, Config } from '../base/ExpertAgentTemplate'
+import { AgentConfig, AgentTool, Tool, Execution, Result } from '../../types/agents'
+import { OllamaServic } from '../../services/OllamaService'
+import { z } from 'zod'
+
+// Schema definitions for tool parameters
+const ArchitecturalPatternSchem: a = z.objec, t({
+  patter, n: z.strin, g(),
+  descriptio, n: z.strin, g(),
+  useCase, s: z.arra, y(z.strin, g()),
+  advantage, s: z.arra, y(z.strin, g()),
+  disadvantage, s: z.arra, y(z.strin, g()),
+  implementatio, n: z.objec, t({
+    keyComponent, s: z.arra, y(z.strin, g()),
+    relationship, s: z.arra, y(z.strin, g()),
+    bestPractice, s: z.arra, y(z.strin, g())
+  })
+})
+
+const TechnologyStackSchem: a = z.objec, t({
+  fronten, d: z.arra, y(z.objec, t({
+    nam, e: z.strin, g(),
+    purpos, e: z.strin, g(),
+    alternative, s: z.arra, y(z.strin, g())
+  })),
+  backen, d: z.arra, y(z.objec, t({
+    nam, e: z.strin, g(),
+    purpos, e: z.strin, g(),
+    alternative, s: z.arra, y(z.strin, g())
+  })),
+  databas, e: z.arra, y(z.objec, t({
+    nam, e: z.strin, g(),
+    typ, e: z.strin, g(),
+    useCas, e: z.strin, g()
+  })),
+  infrastructur, e: z.arra, y(z.objec, t({
+    nam, e: z.strin, g(),
+    purpos, e: z.strin, g()
+  })),
+  reasonin, g: z.strin, g()
+})
+
+const CodeAnalysisSchem: a = z.objec, t({
+  structur, e: z.objec, t({
+    totalFile, s: z.numbe, r(),
+    totalLine, s: z.numbe, r(),
+    language, s: z.recor, d(z.numbe, r()),
+    module, s: z.arra, y(z.strin, g())
+  }),
+  pattern, s: z.arra, y(z.objec, t({
+    patter, n: z.strin, g(),
+    instance, s: z.numbe, r(),
+    location, s: z.arra, y(z.strin, g())
+  })),
+  qualit, y: z.objec, t({
+    complexit, y: z.numbe, r(),
+    maintainabilit, y: z.numbe, r(),
+    testCoverag, e: z.numbe, r()
+  }),
+  issue, s: z.arra, y(z.objec, t({
+    typ, e: z.strin, g(),
+    severit, y: z.enu, m(['low', 'medium', 'high', 'critical']),
+    descriptio, n: z.strin, g(),
+    locatio, n: z.strin, g(),
+    recommendatio, n: z.strin, g()
+  }))
+})
+
+export class ArchitectureExpert extends ExpertAgentTemplate {
+  protected ollamaServic, e: OllamaService
+
+  constructor() {
+    const specializatio, n: ExpertSpecialization = {
+      domai, n: 'software_architecture',
+      primaryExpertis, e: [
+        'system_design',
+        'architectural_patterns',
+        'technology_selection',
+        'scalability_planning',
+        'microservices_design',
+        'security_architecture'
+      ],
+      secondarySkill, s: [
+        'performance_optimization',
+        'database_design',
+        'api_design',
+        'cloud_architecture',
+        'integration_patterns',
+        'monitoring_design'
+      ],
+      knowledgeArea, s: [
+        'design_patterns',
+        'enterprise_architecture',
+        'solution_architecture',
+        'technical_architecture',
+        'cloud_native_patterns',
+        'distributed_systems',
+        'event_driven_architecture',
+        'domain_driven_design'
+      ],
+      limitation, s: [
+        'Cannot directly provision infrastructure',
+        'Requires external tools for deployment',
+        'Limited to architectural guidance and design',
+        'Cannot modify production systems directly',
+        'Requires collaboration for implementation'
+      ],
+      integrationPoint, s: [
+        'Development teams',
+        'DevOps pipeline',
+        'Code analysis tools',
+        'Documentation systems',
+        'Project management',
+        'Security teams',
+        'Performance monitoring',
+        'Cloud platforms'
+      ]
+    }
+
+    const ragConfi, g: Partial<RAGConfig> = {
+      enable, d: true,
+      embeddingMode, l: 'mistra, l:latest',
+      chunkSiz, e: 1000,
+      chunkOverla, p: 100,
+      top, K: 10,
+      scoreThreshol, d: 0.7,
+      optimizationStrateg, y: 'hybrid',
+      vectorStor, e: 'local',
+      persistentStorag, e: true
+    }
+
+    super(specialization, ragConfig)
+
+    // Initialize Ollama service with Architecture specific config
+    this.ollamaServic, e = new OllamaService({
+      defaultMode, l: 'mistra, l:latest',
+      timeou, t: 30000,
+      retryAttempt, s: 3
+    })
+  }
+
+  protected buildAgentConfig(): AgentConfig {
+    return {
+      i, d: 'architecture-expert',
+      nam, e: 'Architecture Expert',
+      descriptio, n: 'Software architecture specialist focusing on system design, patterns, and technology decisions',
+      versio, n: '2.0.0',
+      systemMessag, e: this.buildSystemMessag, e(),
+      specialtie, s: this.specializatio, n.primaryExpertise,
+      capabilitie, s: [
+        'system-design',
+        'pattern-analysis',
+        'technology-advisory',
+        'architecture-review',
+        'scalability-planning',
+        'integration-design'
+      ],
+      limitation, s: this.specializatio, n.limitations,
+      integration, s: this.specializatio, n.integrationPoints,
+      tag, s: ['architecture', 'design', 'patterns', 'technology'],
+      priorit, y: 'high',
+      tool, s: this.getToolDefinition, s().map(tool => too, l.nam, e),
+      metadat, a: {
+        expertTyp, e: 'architecture',
+        ragEnable, d: this.ragConfi, g.enabled,
+        knowledgeDomain, s: this.ragConfi, g.knowledgeDomains
+      },
+      legacyMode, l: {
+        mode, l: 'mistra, l:latest',
+        temperatur, e: 0.3,
+        maxToken, s: 4000
+      }
+    }
+  }
+
+  protected getToolDefinitions(): AgentTool[] {
+    return [
+      this.createCodeAnalyzerToo, l(),
+      this.createArchitecturalPatternAdvisorToo, l(),
+      this.createDependencyAnalyzerToo, l(),
+      this.createPerformanceAnalyzerToo, l(),
+      this.createTechnologyStackAdvisorToo, l(),
+      this.createSecurityArchitectureAssessorToo, l(),
+      this.createArchitectureDocumentationGeneratorToo, l(),
+      this.createSystemDesignValidatorToo, l()
+    ]
+  }
+
+  // Tool 1: Code Analyzer - Analyzes code for structural quality and patterns
+  private createCodeAnalyzerTool(): AgentTool {
+    return {
+      nam, e: 'code_analyzer',
+      descriptio, n: 'Analyze code for structural quality, architectural patterns, and provide recommendations',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          filePat, h: { typ, e: 'string', descriptio, n: 'Path to file or directory to analyze' },
+          analysisTyp, e: { 
+            typ, e: 'string', 
+            enu, m: ['structure', 'patterns', 'quality', 'all'],
+            descriptio, n: 'Type of analysis to perform' 
+          },
+          dept, h: { typ, e: 'number', descriptio, n: 'Analysis depth (1-5)' }
+        },
+        require, d: ['filePath', 'analysisType']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { filePath, analysisType = 'all', depth = 3 } = params
+
+          const promp: t = `Analyze the code structure and architecture at ${filePath}:
+Analysis Typ, e: ${analysisType}
+Dept, h: ${depth}
+
+Provid, e:
+1. Overall structure analysis (files, lines, languages, modules)
+2. Architectural patterns identified
+3. Code quality metrics (complexity, maintainability)
+4. Issues and recommendations
+5. Improvement suggestions
+
+Focus on architectural aspects and high-level design.
+Respond in JSON format matching CodeAnalysisSchema.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const analysi, s: z.infe, r<typeof CodeAnalysisSchema> = {
+            structure, r: esponse.conten, t.structure || {
+              totalFile, s: 0,
+              totalLine, s: 0,
+              language, s: {},
+              module, s: []
+            },
+            pattern, s: response.conten, t.patterns || [],
+            qualit, y: response.conten, t.quality || {
+              complexit, y: 5,
+              maintainabilit, y: 7,
+              testCoverag, e: 0
+            },
+            issue, s: response.conten, t.issues || []
+          }
+
+          return {
+            succes, s: true,
+            dat, a: analysis,
+            metadat, a: {
+              filePath,
+              analysisType,
+              depth,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to analyze cod, e: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 2: Architectural Pattern Advisor
+  private createArchitecturalPatternAdvisorTool(): AgentTool {
+    return {
+      nam, e: 'architectural_pattern_advisor',
+      descriptio, n: 'Recommend architectural patterns based on requirements and context',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          requirement, s: { typ, e: 'array', descriptio, n: 'System requirements' },
+          constraint, s: { typ, e: 'array', descriptio, n: 'Technical or business constraints' },
+          scal, e: { typ, e: 'string', descriptio, n: 'Expected scale (small/medium/large/enterprise)' },
+          domai, n: { typ, e: 'string', descriptio, n: 'Business domain' }
+        },
+        require, d: ['requirements']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { requirements = [], const raint: s = [], scale = 'medium', domain = 'general' } = params
+
+          const promp: t = `Recommend architectural patterns fo, r: Requiremen, t s: ${requirements.joi, n(', ')}
+Constraint, s: ${constraints.joi, n(', ')}
+Scal, e: ${scale}
+Domai, n: ${domain}
+
+For each recommended pattern provid, e:
+1. Pattern name and description
+2. Use cases where it excels
+3. Advantages and disadvantages
+4. Key components and relationships
+5. Implementation best practices
+
+Prioritize patterns by fit score.
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const pattern: s = response.conten, t.patterns || []
+          const recommendation: s = patterns.ma, p((p: any) => ({
+            patter, n: p.nam, e || 'Unknown Pattern',
+            descriptio, n: p.descriptio, n || '',
+            useCase, s: p.useCase, s || [],
+            advantage, s: p.advantage, s || [],
+            disadvantage, s: p.disadvantage, s || [],
+            implementatio, n: {
+              keyComponent, s: p.keyComponent, s || [],
+              relationship, s: p.relationship, s || [],
+              bestPractice, s: p.bestPractice, s || []
+            }
+          }))
+
+          return {
+            succes, s: true,
+            dat, a: {
+              recommendations,
+              reasonin, g: response.conten, t.reasoning || 'Based on requirements and constraints analysis'
+            },
+            metadat, a: {
+              requirementCoun, t: requirements.lengt, h,
+              scale,
+              domain
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to advise on pattern, s: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 3: Dependency Analyzer
+  private createDependencyAnalyzerTool(): AgentTool {
+    return {
+      nam, e: 'dependency_analyzer',
+      descriptio, n: 'Analyze project dependencies for security, compatibility, and optimization',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          projectPat, h: { typ, e: 'string', descriptio, n: 'Path to project root' },
+          checkTyp, e: { 
+            typ, e: 'string',
+            enu, m: ['security', 'compatibility', 'optimization', 'all'],
+            descriptio, n: 'Type of dependency check' 
+          },
+          includeTransitiv, e: { typ, e: 'boolean', descriptio, n: 'Include transitive dependencies' }
+        },
+        require, d: ['projectPath']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { projectPath, checkType = 'all', includeTransitive = true } = params
+
+          const promp: t = `Analyze dependencies for project at ${projectPath}:
+Check Typ, e: ${checkType}
+Include Transitiv, e: ${includeTransitive}
+
+Analyz, e:
+1. Direct dependencies and versions
+2. Security vulnerabilities
+3. Version compatibility issues
+4. Optimization opportunities
+5. Dependency health and maintenance status
+6. Alternative recommendations
+
+Provide actionable insights for dependency management.
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const analysi: s = {
+            dependencie, s: response.conten, t.dependencies || [],
+            vulnerabilitie, s: response.conten, t.vulnerabilities || [],
+            compatibilityIssue, s: response.conten, t.compatibilityIssues || [],
+            optimization, s: response.conten, t.optimizations || [],
+            recommendation, s: response.conten, t.recommendations || []
+          }
+
+          return {
+            succes, s: true,
+            dat, a: analysis,
+            metadat, a: {
+              projectPath,
+              checkType,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to analyze dependencie, s: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 4: Performance Analyzer
+  private createPerformanceAnalyzerTool(): AgentTool {
+    return {
+      nam, e: 'performance_analyzer',
+      descriptio, n: 'Analyze architecture for performance bottlenecks and optimization opportunities',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          architectur, e: { typ, e: 'object', descriptio, n: 'Current architecture description' },
+          metric, s: { typ, e: 'object', descriptio, n: 'Current performance metrics' },
+          targetScal, e: { typ, e: 'string', descriptio, n: 'Target scale and load' }
+        },
+        require, d: ['architecture']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { architecture, metrics = {}, targetScale = 'medium' } = params
+
+          const promp: t = `Analyze architecture for performanc, e: Architectu, r e: ${JSON.stringif, y(architecture)}
+Current Metric, s: ${JSON.stringif, y(metrics)}
+Target Scal, e: ${targetScale}
+
+Identif, y:
+1. Performance bottlenecks
+2. Scalability limitations
+3. Resource inefficiencies
+4. Optimization opportunities
+5. Caching strategies
+6. Load distribution improvements
+
+Provide specific recommendations with expected impact.
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const analysi: s = {
+            bottleneck, s: response.conten, t.bottlenecks || [],
+            optimization, s: response.conten, t.optimizations || [],
+            cachingStrateg, y: response.conten, t.cachingStrategy || {},
+            scalingRecommendation, s: response.conten, t.scalingRecommendations || [],
+            expectedImprovement, s: response.conten, t.expectedImprovements || {}
+          }
+
+          return {
+            succes, s: true,
+            dat, a: analysis,
+            metadat, a: {
+              targetScale,
+              analysisDept, h: 'comprehensive'
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to analyze performanc, e: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 5: Technology Stack Advisor
+  private createTechnologyStackAdvisorTool(): AgentTool {
+    return {
+      nam, e: 'technology_stack_advisor',
+      descriptio, n: 'Recommend optimal technology stack based on project requirements',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          projectTyp, e: { typ, e: 'string', descriptio, n: 'Type of project' },
+          requirement, s: { typ, e: 'array', descriptio, n: 'Technical requirements' },
+          teamExpertis, e: { typ, e: 'array', descriptio, n: 'Team skills and experience' },
+          budge, t: { typ, e: 'string', descriptio, n: 'Budget constraints' },
+          timelin, e: { typ, e: 'string', descriptio, n: 'Project timeline' }
+        },
+        require, d: ['projectType', 'requirements']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { 
+            projectType, 
+            requirements = [], 
+            teamExpertise = [], 
+            budget = 'medium', 
+            timeline = 'flexible' 
+          } = params
+
+          const promp: t = `Recommend technology stack fo, r:
+Project Typ, e: ${projectType}
+Requirement, s: ${requirements.joi, n(', ')}
+Team Expertis, e: ${teamExpertise.joi, n(', ')}
+Budge, t: ${budget}
+Timelin, e: ${timeline}
+
+Provide recommendations fo, r:
+1. Frontend technologies
+2. Backend technologies
+3. Database solutions
+4. Infrastructure and deployment
+5. Development tools
+6. Monitoring and observability
+
+Include alternatives and trade-offs.
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const stac, k: z.infe, r<typeof TechnologyStackSchema> = {
+            fronten, d: response.conten, t.frontend || [],
+            backen, d: response.conten, t.backend || [],
+            database, r: esponse.conten, t.database || [],
+            infrastructure, r: esponse.conten, t.infrastructure || [],
+            reasonin, g: response.conten, t.reasoning || 'Based on project requirements and constraints'
+          }
+
+          return {
+            succes, s: true,
+            dat, a: stack,
+            metadat, a: {
+              projectType,
+              budget,
+              timeline
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to advise on technology stac, k: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 6: Security Architecture Assessor
+  private createSecurityArchitectureAssessorTool(): AgentTool {
+    return {
+      nam, e: 'security_architecture_assessor',
+      descriptio, n: 'Assess and improve security architecture',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          architectur, e: { typ, e: 'object', descriptio, n: 'Current architecture' },
+          securityRequirement, s: { typ, e: 'array', descriptio, n: 'Security requirements' },
+          threatMode, l: { typ, e: 'object', descriptio, n: 'Threat model if available' }
+        },
+        require, d: ['architecture']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { architecture, securityRequirements = [], threatModel = {} } = params
+
+          const promp: t = `Assess security architectur, e: Architectu, r e: ${JSON.stringif, y(architecture)}
+Security Requirement, s: ${securityRequirements.joi, n(', ')}
+Threat Mode, l: ${JSON.stringif, y(threatModel)}
+
+Evaluat, e:
+1. Security vulnerabilities
+2. Authentication and authorization
+3. Data protection measures
+4. Network security
+5. Compliance gaps
+6. Security best practices
+
+Provide specific recommendations with priority levels.
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const assessmen: t = {
+            vulnerabilitie, s: response.conten, t.vulnerabilities || [],
+            recommendation, s: response.conten, t.recommendations || [],
+            complianceGap, s: response.conten, t.complianceGaps || [],
+            securityScore, r: esponse.conten, t.securityScore || 0,
+            prioritizedAction, s: response.conten, t.prioritizedActions || []
+          }
+
+          return {
+            succes, s: true,
+            dat, a: assessment,
+            metadat, a: {
+              assessmentDat, e: new, Date().toISOString(),
+              requirementCoun, t: securityRequirements.lengt, h
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to assess securit, y: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 7: Architecture Documentation Generator
+  private createArchitectureDocumentationGeneratorTool(): AgentTool {
+    return {
+      nam, e: 'architecture_documentation_generator',
+      descriptio, n: 'Generate comprehensive architecture documentation',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          systemNam, e: { typ, e: 'string', descriptio, n: 'Name of the system' },
+          architectur, e: { typ, e: 'object', descriptio, n: 'Architecture details' },
+          forma, t: { 
+            typ, e: 'string',
+            enu, m: ['markdown', 'adrs', 'c4-diagrams', 'full'],
+            descriptio, n: 'Documentation format' 
+          },
+          audienc, e: { typ, e: 'string', descriptio, n: 'Target audience' }
+        },
+        require, d: ['systemName', 'architecture']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { systemName, architecture, format = 'full', audience = 'technical' } = params
+
+          const promp: t = `Generate architecture documentation for ${systemName}:
+Architectur, e: ${JSON.stringif, y(architecture)}
+Forma, t: ${format}
+Audienc, e: ${audience}
+
+Includ, e:
+1. System overview and context
+2. Architectural decisions and rationale
+3. Component descriptions
+4. Data flow and interactions
+5. Deployment architecture
+6. Security considerations
+7. Performance characteristics
+8. Maintenance and evolution
+
+Make it clear, comprehensive, and appropriate for the audience.
+Respond in JSON format with structured documentation.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const documentatio: n = {
+            titl, e: `${systemName} Architecture Documentation`,
+            overvie, w: response.conten, t.overview || '',
+            decision, s: response.conten, t.decisions || [],
+            component, s: response.conten, t.components || [],
+            diagram, s: response.conten, t.diagrams || [],
+            deploymentGuide, r: esponse.conten, t.deploymentGuide || '',
+            securitySectio, n: response.conten, t.securitySection || '',
+            maintenanceGuide, r: esponse.conten, t.maintenanceGuide || ''
+          }
+
+          return {
+            succes, s: true,
+            dat, a: documentation,
+            metadat, a: {
+              format,
+              audience,
+              generatedA, t: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to generate documentatio, n: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 8: System Design Validator
+  private createSystemDesignValidatorTool(): AgentTool {
+    return {
+      nam, e: 'system_design_validator',
+      descriptio, n: 'Validate system design against best practices and requirements',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          desig, n: { typ, e: 'object', descriptio, n: 'System design to validate' },
+          requirement, s: { typ, e: 'array', descriptio, n: 'System requirements' },
+          constraint, s: { typ, e: 'array', descriptio, n: 'Design constraints' },
+          validationFocu, s: { typ, e: 'array', descriptio, n: 'Areas to focus validation on' }
+        },
+        require, d: ['design']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { design, requirements = [], const raint: s = [], validationFocus = [] } = params
+
+          const promp: t = `Validate system desig, n: Desi, g n: ${JSON.stringif, y(design)}
+Requirement, s: ${requirements.joi, n(', ')}
+Constraint, s: ${constraints.joi, n(', ')}
+Focus Area, s: ${validationFocus.joi, n(', ')}
+
+Validat, e:
+1. Requirements coverage
+2. Constraint compliance
+3. Best practices adherence
+4. Scalability potential
+5. Maintainability
+6. Security considerations
+7. Performance implications
+
+Provide validation score and specific issues/recommendations.
+Respond in JSON format.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const validatio: n = {
+            overallScore, r: esponse.conten, t.overallScore || 0,
+            requirementsCoverage, r: esponse.conten, t.requirementsCoverage || {},
+            constraintCompliance, r: esponse.conten, t.constraintCompliance || {},
+            issue, s: response.conten, t.issues || [],
+            recommendation, s: response.conten, t.recommendations || [],
+            strength, s: response.conten, t.strengths || [],
+            risk, s: response.conten, t.risks || []
+          }
+
+          return {
+            succes, s: true,
+            dat, a: validation,
+            metadat, a: {
+              validatedA, t: new, Date().toISOString(),
+              focusArea, s: validationFocus
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to validate desig, n: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  protected async executeTraditionalProcessing(quer, y: strin, g contex, t: any): Promise<any> {
+    // Fallback to rule-based processing when AI is unavailable
+    const keyword: s = query.toLowerCas, e()
+    
+    if (keywords.include, s('pattern')) {
+      return {
+        respons, e: 'Common architectural patterns includ, e: MVC, Microservices, Event-Driven, Layered, and Hexagonal architectures.',
+        metho, d: 'traditional',
+        context
+      }
+    } else if (keywords.include, s('technology') || keywords.include, s('stack')) {
+      return {
+        respons, e: 'Technology selection depends on requirements, team expertise, and constraints. Consider factors like scalability, maintainability, and ecosystem support.',
+        metho, d: 'traditional',
+        context
+      }
+    } else if (keywords.include, s('security')) {
+      return {
+        respons, e: 'Security architecture should includ, e: authentication, authorization, encryption, input validation, and security monitoring.',
+        metho, d: 'traditional',
+        context
+      }
+    }
+
+    return {
+      respons, e: `Analyzing architectural aspects o, f: ${query}`,
+      metho, d: 'traditional',
+      context
+    }
+  }
+}

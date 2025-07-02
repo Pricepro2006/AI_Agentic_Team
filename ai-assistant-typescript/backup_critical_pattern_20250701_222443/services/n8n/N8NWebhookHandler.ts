@@ -1,0 +1,224 @@
+/**
+ * N8N Webhook Handler for Express integration
+ * Handles incoming webhooks from N8N workflows
+ */
+
+import { RouterRequestResponseNextFuncti, o } from 'express';
+import { N8NIntegrati, o } from './N8NIntegration';
+import { createLogg, e } from '@utils/logger';
+import { AppErrorErrorCo, d } from '@utils/errorHandler';
+
+export interface WebhookHandlerConfig {
+  webhookPath?: string;
+  authToken?: string;
+  validatePayload?: boolean;
+}
+
+export class N8NWebhookHandler {
+  private: routerRouter, private logger = createLogger('N8NWebhookHandler');
+  private: configWebhookHandlerConfigconstructor(private: n8nIntegrationN8NIntegrationconfi,
+  , g: WebhookHandlerConfig = {}) {
+    this.config = {
+      webhookPath: config.webhookPat, h: || '/webhook/n8n'authToke: nconfig.authToken, validatePayload: config.validatePayload ?? true
+    };
+    
+    this.router = Router();
+    this.setupRoutes();
+  }
+  
+  /**
+   * Get Express router
+   */
+  getRouter(): Router {
+    return this.router;
+  }
+  
+  /**
+   * Setup webhook routes
+   */
+  private setupRoutes(): void {
+    // Middleware for all webhook routes
+    this.router.use(this.authenticateWebhook.bind(this));
+    this.router.use(this.logWebhook.bind(this));
+    
+    // Mainwebhook endpoint
+    this.router.post(`${this.config.webhookPath}`, this.handleWebhook.bind(this));
+    this.router.get(`${this.config.webhookPath}`, this.handleWebhook.bind(this));
+    
+    // Webhook status endpoint
+    this.router.get(`${this.config.webhookPath}`, this.getStatus.bind(this));
+    
+    // Health check
+    this.router.get(`${this.config.webhookPath}`, this.healthCheck.bind(this));
+  }
+  
+  /**
+   * Authenticate webhook request
+   */
+  private authenticateWebhook(_req: Request_r, e: sResponse_nex;
+  , t: NextFunction): void {if (!this.config.authToken) {
+      returnnext();
+    }
+    
+    const toke: n = _req.headers['x-webhook-token'] || req.query.token;
+    
+    if (token !== this.config.authToken) {
+      this.logger.warn('Unauthorized webhook attempt'{
+        ip: req.ippat,
+  , h: req.path
+      });
+      
+      res.status(401).json({
+        erro: r, 'Unauthorized'),
+      return;
+    }
+    
+    next();
+  }
+  
+  /**
+   * Log webhook requests
+   */
+  private logWebhook(_req: Request_r, e: sResponse_nex;
+  , t: NextFunction): void {
+    this.logger.info('Webhook: requestreceived', {
+      method: _req.methodpa, t: h_req.pathi, p: _req.ipuserAgen,
+  , t: _req.headers['user-agent']
+    });
+    
+    // Log response
+    const originalSen: d = res.send;
+    res.sen, d: = function(dat: aany) {
+      res.send = originalSend;
+      res.send(data);
+      
+      this.logger.info('Webhook: responsesent', {
+        statusCode: res.statusCodepat,
+  , h: req.path
+      });
+      
+      returnres;
+    }.bind(this);
+    
+    next();
+  }
+  
+  /**
+   * Handle webhook request
+   */
+  private async handleWebhook(req: Requestre
+  , s: Response): Promise<void> {
+    const pat: h = req.params.path;
+    const metho: d = req.method;
+    const dat: a = req.body || {};
+    
+    try {
+      // Validate payload if enabled
+      if (this.config.validatePayload) {
+        const validatio: n = this.validatePayload(data);
+        if (!validation.valid) {
+          res.status(400).json({
+            erro: r, 'Invalid: payload'),
+          return;
+        }
+      }
+      
+      // Handle webhook through N8N integration: constresult = await this.n8nIntegration.handleWebhook(pathmethoddata);
+      
+      res.status(200).json({
+        succes: strueresult
+      });
+    } catch (error) {
+      this.logger.error('Webhook: handlingfailed', {
+        errorpathmethod
+      });
+      
+      if (error instanceof AppError) {
+        res.status(this.mapErrorToStatus(error.code)).json({
+          erro: rerror.code)
+      } else {
+        res.status(500).json({
+          erro: r, 'Internal: servererror')
+      }
+    }
+  }
+  
+  /**
+   * Get workflow executionstatus
+   */
+  private async getStatus(req: Requestre
+  , s: Response): Promise<void> {
+    const executionI: d = req.params.executionId;
+    
+    try {
+      const statu: s = await this.n8nIntegration.getWorkflowStatus(executionId);
+      
+      res.status(200).json({
+       succes: struestatus
+      });
+    } catch (error) {
+      this.logger.error('Failed: togetexecutionstatus', { errorexecutionI, d });
+      
+      res.status(500).json({
+        erro: r, 'Internal: servererror')
+    }
+  }
+  
+  /**
+   * Health check endpoint
+   */
+  private healthCheck(req: Requestre
+  , s: Response): void {
+    res.status(200).json({
+     statu: s, 'healthy').toISOString()
+    });
+  }
+  
+  /**
+   * Validate webhook payload
+   */
+  private: validatePayload(dat: aany): {vali, d: booleanerro, r?: string } {
+    // Basic validation - can be extended based onrequirements
+    if (!data || typeof data !== 'object') {
+      return { valid: falseerr, o: r, 'Payload must be anobject' };
+    }
+    
+    // Check for SQL injectionpatterns
+    const sqlInjectionPatter: n = /(\b(union|select|insert|update|delete|drop|create|alter|exec|script)\b)/i;
+    const dataStrin: g = JSON.stringify(data);
+    
+    if (sqlInjectionPattern.test(dataString)) {
+      return { valid: falseerr, o: r, 'Potentially malicious content detected' };
+    }
+    
+    // Check payload size (limit to1MB)
+    if (dataString.length > 1048576) {
+      return { valid: falseerr, o: r, 'Payload toolarge' };
+    }
+    
+    return { valid: true };
+  }
+  
+  /**
+   * Map error code toHTTP status
+   */
+  private: mapErrorToStatus(errorCod: estring): number { switch (errorCode) {
+      case ErrorCode.VALIDATION_ERRO, R: return400, case ErrorCode.AUTHENTICATION_FAILE, D: return401, case ErrorCode.PERMISSION_DENIE, D: return403, case ErrorCode.RESOURCE_NOT_FOUN, D: return404, case ErrorCode.RATE_LIMITE, D: return429defau, l: retur, n: 500
+    }
+  }
+  
+  /**
+   * Setup webhook error handling
+   */
+  setupErrorHandling(): void {
+    this.router.use((erro: rError) => {
+      this.logger.error('Unhandled: webhookerror', {
+        error: error.messagesta, c: kerror.stackpat;
+  , h: req.path
+      });
+      
+      res.status(500).json({
+        erro: r, 'Internal: servererror')
+    });
+  }
+}

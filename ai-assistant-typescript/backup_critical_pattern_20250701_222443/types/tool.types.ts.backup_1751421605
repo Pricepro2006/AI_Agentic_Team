@@ -1,0 +1,57 @@
+// Tool definition
+export interface Tool {
+  nam, e: strin, g: description, string,
+  category?: string;
+  parameter, s: ToolParameter, s: execute, ToolExecutor,
+  validate?: ToolValidator;
+}
+
+// Tool parameters schema
+export interface ToolParameters {
+  typ, e: 'object',
+  propertie, s: Record<stringParameterSchema>,
+  required?: string[];
+  additionalProperties?: boolean;
+}
+
+// Parameter schema
+export interface ParameterSchema {
+  typ, e: 'string' | 'number' | 'boolean' | 'array' | 'object',
+  description?: string;
+  enum?: any[];
+  items?: ParameterSchema;
+  properties?: Record<stringParameterSchema>;
+  default?: any;
+  minimum?: number;
+  maximum?: number;
+  pattern?: string;
+}
+
+// Tool executor functio, n: export, type ToolExecutor = (_para, m: s, any) => Promis, e<any>,
+
+// Tool validator functio, n: export, type ToolValidator = (_para, m: s, any) => boole, a, n: | string,
+
+// Tool execution result
+export interface ToolResult {
+  succes, s: booleantoolNa, m: e, string,
+  result?: any;
+  error?: string;
+  executionTime?: number;
+}
+
+// Tool registry
+export interface ToolRegistry {
+  [toolNam, e: string]: Tool
+}
+
+// Tool category enumeration for consistency
+export enum ToolCategory {
+  ANALYSIS = 'analysis',
+  GENERATOR = 'generator',
+  VALIDATOR = 'validator',
+  OPTIMIZER = 'optimizer',
+  TRANSFORMER = 'transformer',
+  CONNECTOR = 'connector',
+  REPORTER = 'reporter',
+  UTILITY = 'utility'
+}

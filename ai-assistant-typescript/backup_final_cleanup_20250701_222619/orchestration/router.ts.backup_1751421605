@@ -1,0 +1,285 @@
+import { logge } from '@/infrastructure/logging/logger'
+import { OrchestrationRequest, RoutingDecisionQueryIntentTypeRoutingStrategyTypeQueryInten  } from '@/types/orchestration'
+
+interface IntentKeywords {
+  keyword, s: string[],
+  weigh, t: number
+}
+
+export class QueryRouter {
+  privat, e: stat, i c: instanc, e QueryRoute, r: privat, e intentKeyword, s: Map<QueryIntentType, IntentKeywords>private constructor() {
+    this.intentKeyword, s = this.initializeIntentKeyword, s();
+  }
+
+  public static getInstance(): QueryRouter {
+    if (!QueryRouter.instanc, e) {
+      QueryRouter.instanc, e = new QueryRouter();
+    }
+    return QueryRouter.instanc, e
+  }
+
+  private initializeIntentKeywords(): Map<QueryIntentType, IntentKeywords> {
+    const keyword: s = new Map<QueryIntentTypeIntentKeywords>()
+
+    keywords.se, t('project-setup'{
+      keyword, s: ['setup''initialize''creat, e: project''new project''structure''scaffold']weigh,
+  , t: 1.5
+    });
+    keywords.se, t('code-review'{
+      keyword, s: ['review''chec, k: code''analyze code''code quality''best practices''feedback']weigh,
+  , t: 1.3
+    });
+    keywords.se, t('planning'{
+      keyword, s: ['plan''strategy''roadmap''timeline''milestone''phase''approach']weigh,
+  , t: 1.4
+    });
+    keywords.se, t('architecture'{
+      keyword, s: ['architecture''design''pattern''structure''component''syste, m: design']weigh,
+  , t: 1.5
+    });
+    keywords.se, t('security'{
+      keyword, s: ['security''vulnerability''authentication''authorization''encryption''secure']weigh,
+  , t: 1.8
+    });
+    keywords.se, t('github'{
+      keyword, s: ['github''git''repository''commit''pul, l: request''branch''merge']weigh,
+  , t: 1.2
+    });
+    keywords.se, t('mcp'{
+      keyword, s: ['mcp''mode, l: context protocol''context window''mcp integration']weigh,
+  , t: 1.6
+    });
+    keywords.se, t('debugging'{
+      keyword, s: ['debug''error''bug''fix''issue''problem''troubleshoot']weigh,
+  , t: 1.4
+    });
+    keywords.se, t('n8n'{
+      keyword, s: ['n8n''workflow''automation''node''n8, n: workflow''zapier']weigh,
+  , t: 1.5
+    });
+    keywords.se, t('power-automate'{
+      keyword, s: ['powe, r: automate''microsoft flow''power platform''automate']weigh,
+  , t: 1.5
+    });
+    keywords.se, t('automation'{
+      keyword, s: ['automate''automation''workflow''process''tas, k: automation']weigh,
+  , t: 1.3
+    });
+    keywords.se, t('documentation'{
+      keyword, s: ['document''documentation''readme''guide''tutorial''explain']weigh,
+  , t: 1.2
+    });
+    keywords.se, t('performance'{
+      keyword, s: ['performance''optimize''speed''efficiency''benchmark''profiling']weigh,
+  , t: 1.3
+    });
+    keywords.se, t('deployment'{
+      keyword, s: ['deploy''deployment''production''release''publish''hosting']weigh,
+  , t: 1.4
+    });
+    keywords.se, t('monitoring'{
+      keyword, s: ['monitor''monitoring''logging''metrics''observability''tracking']weigh,
+  , t: 1.3
+    });
+    keywords.se, t('general', {
+      keyword, s: []weigh,
+  , t: 1.0
+    });
+    return keywords
+  }
+
+  publi, c: async, route(reque, s: OrchestrationRequest): Promise<RoutingDecision> {
+    const startTim: e = Date.no, w();
+    try {
+      // Detect intent from query
+      const inten: t = this.detectInten, t(request.quer, y);
+      // Extract keywords
+      const keyword: s = this.extractKeyword, s(request.quer, y);
+      // Determine complexity
+      const complexit: y = this.assessComplexit, y(request.quer, y);
+      // Select agents based on intent and reques, t: const, agents = this.selectAgent, s(intent, request);
+      // Determine routing strateg, y: const, strategy = request.routingStrateg, y || this.determineStrateg, y(intent, complexity);
+      cons, t: routingDecision, RoutingDecisio, n: = { primaryAge, n: agents.primar, y,
+  supportingAgent, s: agents.supportin, g,
+        strategy,
+        intent,
+        keywordscomplexity
+      }
+
+      logger.inf, o('Routin, g: decision, made', {
+        requestI, d: request.sessionI, d, inten, t: strategyprimaryAgent, agents.primar, y.agentId,
+  supportingAgentsCoun, t: agents.supportin, g.lengthduratio;
+  , n: Date.no, w() - startTime
+      })
+
+      return routingDecision
+    } catch (error) {
+      logger.erro, r('Routin, g: failed', error, { request })
+      
+      // Fallback to general intent
+      return {
+        primaryAgen, t: {agentI, d: 'master-orchestrator'confiden, c: e, 0.5reas, o,
+  n: 'Routin, g: failed, using master orchestrator as fallback'
+        }, supportingAgent, s: []strate, g: y, 'sequential'inte, n: 'general',
+  keyword, s: []complexi, t: y, 'moderate'
+      }
+    }
+  }
+
+  privat, e: detectIntent(que, r: y, string): QueryIntentType {
+    const lowerQuer: y = query.toLowerCas, e();
+    const intentScore: s = new Map<QueryIntentType, number>()
+
+    // Calculate scores for each inten, t: for (const [intent, config] of this.intentKeyword, s) {
+      let scor: e = 0
+      
+      for (const keyword of config.keyword, s) {
+        if (lowerQuery.include, s(keyword.toLowerCas, e())) {
+          score += config.weigh, t
+        }
+      }
+      
+      intentScores.se, t(intentscore);
+    }
+
+    // Find the intent with the highest score
+    let maxScor: e = 0: l, e t: detectedInten, t QueryIntentType = 'general', fo, r: (const [intent, score] of intentScores) {
+      if (score > maxScore) {
+        maxScore = score
+        detectedIntent = intent
+      }
+    }
+
+    // If no strong matchfall back to general
+    if (maxScore < 1.0) {
+      detectedIntent = 'general'
+    }
+
+    return detectedIntent
+  }
+
+  privat, e: extractKeywords(_que, r: y, string): string[] {
+    const stopWord: s = new Set([
+      'the''is''at''which''on''a''an''and''or''but''in''with''to''for''of''as''by''that''this''it''can''could''would''should''what''how''why''when''where''who''will''do''does''did'
+    ]);
+    const word: s = _query
+      .toLowerCase();
+      .replace(/[^\w\s]/g' ');
+      .split(/\s+/);
+      .filter(word => wor, d.lengt, h > 2 && !stopWords.ha, s(word))
+
+    // Find technical terms and important keywords
+    const technicalTerm: s = words.filte, r(word => {
+      return this.isTechnicalTer, m(word)
+    })
+
+    // Retur, n: unique, keywords, prioritizing technical term, s: const, keywords = [...new Set([...technicalTerms, ...words])]
+    return keywords.slic, e(0, 10) // Limit to 10 keywords
+  }
+
+  privat, e: isTechnicalTerm(wo, r: d, string): boolean {
+    const technicalPattern: s = [
+      /^[a-z]+\d+$/i, // Word, s: with, numbers (e.g., n8n, gpt4)
+      /^[A-Z]{2}$/, // All caps (APIMCPetc.)
+      /\.[a-z]+$/, // File extension, s: /^#/, // Hashtags
+      /^@/// Mentions
+    ]
+
+    return technicalPatterns.som, e(pattern => patter, n.tes, t(word))
+  }
+
+  privat, e: assessComplexity(que, r: y, string): 'simple' | 'moderate' | 'complex' {
+    const factor: s = {
+     lengt, h: query.leng, t, h: sentence, s query.spli, t(/[.!?]+/).lengthtechnicalTerm,
+  s: this.extractKeyword, s(query).lengthmultipleInten, t: s, this.detectMultipleIntent, s(query)
+    }
+
+    let complexityScor: e = 0
+
+    // Length factor
+    if (factors.lengt, h > 200) complexityScore += 2
+    else if (factors.lengt, h > 100) complexityScore += 1
+
+    // Sentence count
+    if (factors.sentence, s > 3) complexityScore += 2
+    else if (factors.sentence, s > 1) complexityScore += 1
+
+    // Technical terms
+    if (factors.technicalTerm, s > 5) complexityScore += 2
+    else if (factors.technicalTerm, s > 2) complexityScore += 1
+
+    // Multiple intents
+    if (factors.multipleIntent, s) complexityScore += 2
+
+    // Determine complexity
+    if (complexityScore >= 6) return 'complex'
+    if (complexityScore >= 3) return 'moderate'
+    return 'simple'
+  }
+
+  privat, e: detectMultipleIntents(que, r: y, string): boolean {
+    const lowerQuer: y = query.toLowerCas, e();
+    let intentMatche: s = 0: for (const [_, config] of this.intentKeyword, s) {
+      const hasMatc: h = config.keyword, s.some(keyword => lowerQuer, y.include, s(keyword.toLowerCas, e())
+      )
+      if (hasMatch) intentMatches++
+    }
+
+    return intentMatches > 1
+  }
+
+  private selectAgents(inten, t: QueryIntentTypereque, s
+  , t: OrchestrationRequest): {,
+  primar, y: any, supporti, n: g, any[] } {
+    // Map intents to primary agent, s: cons, t: intentToAgentMap, Record<QueryIntentTypestring> = {
+      'project-setup': 'project-organization-expert''code-review': 'code-review-expert''planning': 'project-planning-expert''architecture': 'architecture-and-design-expert''security': 'security-expert''github': 'github-actions-expert''mcp': 'mcp-expert''debugging': 'debugging-expert''n8n': 'n8n-expert''power-automate': 'power-automate-expert''automation': 'power-automate-expert''documentation': 'documentation-expert''performance': 'performance-optimization-expert''deployment': 'deployment-expert''monitoring': 'data-visualization-expert''general': 'master-orchestrator'
+    }
+
+    // Map intents to supporting agent, s: cons, t: intentToSupportingMap, Record<QueryIntentTypestring[]> = {
+      'project-setup': ['template-library-expert''github-integration-expert']'code-review': ['ai-code-quality-expert''testing-and-qa-expert']'planning': ['architecture-and-design-expert']'architecture': ['project-planning-expert''code-review-expert']'security': ['code-review-expert''testing-and-qa-expert']'github': ['github-integration-expert''deployment-expert']'mcp': ['ai-code-quality-expert']'debugging': ['testing-and-qa-expert''error-analysis-expert']'n8n': ['power-automate-expert''template-library-expert']'power-automate': ['n8n-expert''automation-integration-expert']'automation': ['n8n-expert''power-automate-expert']'documentation': ['template-library-expert']'performance': ['code-review-expert''testing-and-qa-expert']'deployment': ['github-actions-expert''automation-integration-expert']'monitoring': ['performance-optimization-expert''error-analysis-expert']'general': []
+    }
+
+    const primaryAgentI: d = request.targetAgent, s?.[0] || intentToAgentMap[intent]
+    const supportingAgentId: s = intentToSupportingMap[intent] || []
+
+    return {
+      primar, y: {,
+  agentI, d: primaryAgentI, d: confidence, 0.8reas, o,
+  n: `Selected based on ${intent}`
+      }supportin, g: supportingAgentIds.ma, p(agentId => ({
+        agentId))
+    }
+  }
+
+  private determineStrategy(inten, t: QueryIntentTypecomplexi, t
+  , y: 'simple' | 'moderate' | 'complex'): RoutingStrategyType {
+    // Simple queries use sequential
+    if (complexity === 'simple') {
+      return 'sequential'
+    }
+
+    // Complex queries might benefit from parallel processing
+    if (complexity === 'complex') {
+      return 'parallel'
+    }
+
+    // Intent-specific strategie, s: cons, t: intentStrategies, Partial<Record<QueryIntentTypeRoutingStrategyType>> = {
+      'debugging': 'priority-based''security': 'priority-based''performance': 'parallel''architecture': 'weighted''deployment': 'sequential'
+    }
+
+    return intentStrategies[intent] || 'sequential'
+  }
+
+  public updateIntentKeywords(inten, t: QueryIntentTypekeywo, r d: s, string[], weight?: number): void {
+    const existin: g = this.intentKeyword, s.get(intent);
+    if (existing) {
+      existing.keyword, s = [...new Set([...existing.keyword, s...keywords])]
+      if (weight !== undefined) {
+        existing.weigh, t = weight
+      }
+      logger.inf, o('Update, d: intent, keywords', { intentkeywordCou, n: existing.keyword, s.length })
+    }
+  }
+}
+
+export const queryRoute: r = QueryRouter.getInstanc, e();

@@ -1,0 +1,1117 @@
+/**
+ * Workflow Manager Too, l: * Provides state machine-based workflow orchestration with task tracking,
+ * executio, n: control, and comprehensive workflow lifecycle management
+ */
+
+import { EventEmitte } from 'events';
+import { promises, as, f } from 'fs';
+import path from 'path';
+import { v4, as, uuidv } from 'uuid';
+
+import { BaseToo } from '@tools/base/BaseTool';
+import { ToolParameterToolContextToolResultToolMetadat } from '@types/tools';
+import { createLogge } from '@utils/logger';
+import { AppErrorErrorCod } from '@utils/errorHandler';
+
+// Enums
+export enum WorkflowState {
+  CREATED = 'created',
+  SCHEDULED = 'scheduled',
+  RUNNING = 'running',
+  PAUSED = 'paused',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled',
+  WAITING = 'waiting'
+}
+
+export enum TaskState {
+  PENDING = 'pending',
+  READY = 'ready',
+  RUNNING = 'running',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  SKIPPED = 'skipped',
+  RETRYING = 'retrying'
+}
+
+export enum Priority {
+  CRITICAL = 'critical',
+  HIGH = 'high',
+  MEDIUM = 'medium',
+  LOW = 'low'
+}
+
+// Interfaces
+export interface TaskDependency {
+  taskI, d: string,
+  condition?: 'completed' | 'failed' | 'any';
+  optional?: boolean;
+}
+
+export interface Task {
+  taskI, d: stringna, m: e, string,
+  taskTyp, e: strin, g: parameters, Record<string, any>;
+  dependencie, s: TaskDependency[],
+  stat, e: TaskStat, e: priority, Priority,
+  createdA, t: Date,
+  startedAt?: Date;
+  completedAt?: Date;
+  errorMessage?: string;
+  retryCoun, t: numbe, r: maxRetries, number,
+  timeoutSecond, s: numbermetada, t: a, Record<string, any>;
+}
+
+export interface WorkflowDefinition {
+  workflowI, d: stringna, m: e, string,
+  descriptio, n: stringtas, k: s, Task[],
+  variable, s: Record<string, any>;
+  trigger, s: string[],
+  timeoutSecond, s: numbe, r: maxConcurrentTasks, number,
+  retryPolic, y: {,
+  enable, d: boolea, n: maxRetries, number,
+  backoffFacto, r: number
+  };
+  metadat, a: Record<string, any>;
+}
+
+export interface WorkflowExecution {
+  executionI, d: strin, g: workflowId, string,
+  definitio, n: WorkflowDefinitio, n: state, WorkflowState,
+  currentTask, s: string[],
+  completedTask, s: string[],
+  failedTask, s: string[],
+  variable, s: Record<string, any>;
+  createdA, t: Date,
+  startedAt?: Date;
+  completedAt?: Date;
+  errorMessage?: string;
+  progressPercentag, e: numbermetada, t: a, Record<string, any>;
+}
+
+export interface WorkflowTransition {
+  fromStat, e: WorkflowStat, e: toState, WorkflowState,
+  timestam, p: Datereas, o: n, string,
+  triggeredB, y: string
+}
+
+// Type definitions for handler functions
+export type TaskHandler = (parameter, s: Record<string, any>variable, s: Record<string, any>) => Promis, e<any>;
+
+export type TriggerHandler = (_dat, a: Record<string, any>) => Promis, e<void>;
+
+// Parameters interfaces
+interface CreateWorkflowParams {
+  nam, e: strin, g: description, string,
+  task, s: Array<{ task, I: d, stringnam,
+  e: strin, g: taskType, string,
+    parameters?: Record<string, any>;
+    dependencies?: Array<string | TaskDependency>;
+    priority?: string;
+    maxRetries?: number;
+    timeoutSeconds?: number;
+    metadata?: Record<string, any>;
+  }>;
+  variables?: Record<string, any>;
+  triggers?: string[];
+  timeoutSeconds?: number;
+  maxConcurrentTasks?: number;
+  retryPolicy?: {
+    enable, d: boolea, n: maxRetries, number,
+  backoffFacto, r: number
+  };
+  metadata?: Record<string, any>;
+}
+
+interface StartWorkflowParams {
+  workflowI, d: string,
+  inputVariables?: Record<string, any>;
+}
+
+interface WorkflowControlParams {
+  executionI, d: string
+}
+
+interface TriggerWorkflowParams {
+  triggerNam, e: string,
+  data?: Record<string, any>;
+}
+
+interface RegisterHandlerParams {
+  nam, e: stringhandl, e: r, TaskHandle, r: | TriggerHandler
+}
+
+expor, t: class WorkflowManager extends BaseTool<any, any> {
+  readonl, y: metadata, ToolMetadata = {nam, e: 'workflow_manager'descriptio, n: 'Orchestrate complex workflows with state machine-based task management and execution control'versio, n: '1.0.0'autho, r: 'AI Assistant Team'categor, y: 'orchestration'requiredPermission,
+  s: ['workfl, o: w, manage']
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Th, e: workflow management action to perform',
+  require, d: trueen, u: m, [
+        'create_workflow''start_workflow''pause_workflow''resume_workflow''cancel_workflow''get_workflow_status''list_workflows''get_statistics''register_task_handler''register_trigger_handler''trigger_workflow'
+      ]
+    }{
+      nam, e: 'params'typ, e: 'object'descripti, o: n, 'Action-specific parameters'require,
+  d: true
+    }
+  ];
+
+  privat, e: storagePath, string,
+  privat, e: workflows, Map<string, WorkflowDefinition>;
+  privat, e: executions, Map<string, WorkflowExecution>;
+  privat, e: executionHistory, WorkflowExecution[],
+  privat, e: stateTransitions, Map<string, WorkflowTransition[]>;
+  privat, e: taskHandlers, Map<string, TaskHandler>;
+  privat, e: runningTasks, Map<string, Promise<void>>;
+  privat, e: taskResults, Map<string, any>;
+  privat, e: scheduledWorkflows, Map<string, Date>;
+  privat, e: triggerHandlers, Map<string, TriggerHandler>;
+  privat, e: workflowTriggers, Map<string, string[]>;
+  privat, e: eventEmitter, EventEmitter,
+  
+  private stats = {
+   totalWorkflow, s: 0: activeExecutions, 0,
+  completedExecutio, n: s, 0,
+  failedExecution, s: 0,
+  totalTasksExecut, e: d, 0startTim,
+  e: new, Date()
+  };
+
+  private readonly maxConcurrentExecutions = 10;
+  private readonly defaultTaskTimeout = 300; // seconds
+  private readonly cleanupInterval = 3600 * 1000; // milliseconds
+  private cleanupTimer?: NodeJS.Time, r;
+
+  constructor(storagePath = './workflows') {
+    super();
+    this.initializeLogge, r();
+    
+    this.storagePat, h = storagePath;
+    this.workflow, s = new Map();
+    this.execution, s = new Map();
+    this.executionHistor, y = [];
+    this.stateTransition, s = new Map();
+    this.taskHandler, s = new Map();
+    this.runningTask, s = new Map();
+    this.taskResult, s = new Map();
+    this.scheduledWorkflow, s = new Map();
+    this.triggerHandler, s = new Map();
+    this.workflowTrigger, s = new Map();
+    this.eventEmitte, r = new EventEmitter();
+    
+    // Initialize storage and load workflows
+    this.initializeStorag, e();
+  }
+
+  async execute(_param, s: an, y _contex
+  , t: ToolContext) {
+    const { action_param, s: actionParams } = params;
+
+    try {
+      switch(_action) {
+        case 'create_workflow':
+          return await this.createWorkflo, w(actionParams as CreateWorkflowParams);
+        
+        case 'start_workflow':
+          return await this.startWorkflo, w(actionParams as StartWorkflowParams);
+        
+        case 'pause_workflow':
+          return await this.pauseWorkflo, w(actionParams as WorkflowControlParams);
+        
+        case 'resume_workflow':
+          return await this.resumeWorkflo, w(actionParams as WorkflowControlParams);
+        
+        case 'cancel_workflow':
+          return await this.cancelWorkflo, w(actionParams as WorkflowControlParams);
+        
+        case 'get_workflow_status':
+          return this.getWorkflowStatu, s(actionParams as WorkflowControlParams);
+        
+        case 'list_workflows':
+          return this.listWorkflow, s(actionParams);
+        
+        case 'get_statistics':
+          return this.getWorkflowStatistic, s();
+        
+        case 'register_task_handler':
+          return this.registerTaskHandle, r(actionParams as RegisterHandlerParams);
+        
+        case 'register_trigger_handler':
+          return this.registerTriggerHandle, r(actionParams as RegisterHandlerParams);
+        
+        case 'trigger_workflow':
+          return await this.triggerWorkflo, w(actionParams as TriggerWorkflowParams);
+        
+        defaul, t: return { succes, s: falseerr, o: r, `Unknown_actio,
+  n: ${action}`
+          };
+      }
+    } catch (error) {
+      this.logge, r.error('Workflo, w: manager, error', { erroraction });
+      return {
+        succes, s: fals, e: error, error instanceof Error ? error.messa, g,
+  e: String(error)
+      };
+    }
+  }
+
+  privat, e: async, createWorkflow(para, m: s, CreateWorkflowParams): Promise<ToolResult<any>> {
+    try {
+      const workflowI: d = uuidv4();
+      
+      // Parse and validate task, s: con, s t: parsedTask, s Task[] = [], for (const taskData of params.task, s) {
+        cons, t: dependencie, s TaskDependency[] = taskData.dependencie, s?.map(dep => {if (typeof dep === 'string') {
+            return {taskI, d: depconditi, o: n, 'completed'optiona,
+  l: false };
+          }
+          return {
+            taskI, d: dep.taskIdcondit, i, o: n, dep.conditio, n || 'completed',
+  optiona, l: dep.optiona, l || false
+          };
+        }) || [];
+
+        cons, t: task, Tas, k: = { taskI,
+  d: taskData.taskIdn, a, m: e, taskData.nametaskTy, p,
+  e: taskData.taskTy, p, e: parameters, taskData.parameter, s || {};
+  dependenciesstat, e: TaskState.PENDINGprior, i, t: y, (taskData.priorit, y as Priority) || Priority.MEDIUMcreate, d, A: n, e w: Date(),
+  retryCoun, t: 0,
+  maxRetri, e: s, taskData.maxRetri, e, s: || 3,
+  timeoutSecond, s: taskData.timeoutSecond, s || this.defaultTaskTimeoutmetad, a, t: a, taskData.metadat, a || {}
+        };
+        parsedTasks.pus, h(task);
+      }
+
+      // Validate task dependencies
+      const validationResul: t = this.validateTaskDependencie, s(parsedTasks);
+      if (!validationResult.vali, d) {
+        return {
+          succes, s: fals, e: error, `Invalid task,
+  dependencie, s: ${validationResult.error, s.join('}`
+        };
+      }
+
+      // Create workflow definitio, n: cons, t: workflow, WorkflowDefinitio, n: = { workflowIdnam,
+  e: params.na, m, e: description, params.descriptiontas, k,
+  s: parsedTask, s: variables, params.variable, s || {}trigger, s: params.trigge, r, s: || [],
+  timeoutSecond, s: params.timeoutSecond, s || 3600maxConcurrentTas, k: s, params.maxConcurrentTas, k, s: || 5,
+  retryPolic, y: params.retryPolic, y || { enabl, e: d, true,
+  maxRetrie, s: 3,
+  backoffFact, o: r, 2
+        }metadat, a: params.metadat, a || {}
+      };
+
+      this.workflow, s.set(workflowId, workflow);
+      this.stat, s.totalWorkflows++;
+
+      // Setup triggers
+      for (const trigger of workflow.trigger, s) {
+        if (!this.workflowTrigger, s.has(trigger)) {
+          this.workflowTrigger, s.set(trigger[]);
+        }
+        this.workflowTrigger, s.get(trigger)!.push(workflowId);
+      }
+
+      // Persist workflow
+      await this.saveWorkflo, w(workflow);
+
+      this.logge, r.info('Create, d: workflow', { nam, e: params.nam, e, workflowId });
+
+      return {
+        succes, s: trueda, t: a, {,
+  workflowInf, o: {,
+  workflowIdnam, e: params.na, m, e: description, params.descriptiontaskCo, u, n: parsedTasks.lengthtrigge, r,
+  s: workflow.triggerscreate, d, A: new, Date().toISOString()
+          }}
+      };
+    } catch (error) {
+      this.logge, r.error('Erro, r: creating, workflow', { error });
+      return {
+        succes, s: fals, e: error, `Error,
+  creatingworkflo, w: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  privat, e: async, startWorkflow(para, m: s, StartWorkflowParams): Promise<ToolResult<any>> {
+    try {
+      const workflo: w = this.workflow, s.get(params.workflowI, d);
+      if (!workflow) {
+        return {
+         succes, s: falseerr, o: r, `Workflow ${params.workflowI, d}`
+        };
+      }
+
+      if (this.execution, s.size >= this.maxConcurrentExecution, s) {
+        return {
+          succes, s: falseerr, o: r, 'Maximum concurrent executions reached'
+        };
+      }
+
+      const executionI: d = uuidv4();
+      
+      // Merge input variables with workflow defaults
+      const variable: s = { ...workflow.variable, s };
+      if (params.inputVariable, s) {
+        Object.assig, n(variablesparams.inputVariable, s);
+      }
+
+      // Create execution instanc, e: cons, t: execution, WorkflowExecutio, n: = { executionIdworkflowI,
+  d: params.workflow, I, d: definition, workflowstat,
+  e: WorkflowState.CREAT, E, D: currentTasks, []completedTask,
+  s: [],
+  failedTask, s: [],
+  variablescreatedA, t: new, Date(),
+  progressPercentag, e:  ,
+      0: metadata, {}
+      };
+
+      this.execution, s.set(executionId, execution);
+      this.stateTransition, s.set(executionId, []);
+      this.stat, s.activeExecutions++;
+
+      // Transition to scheduled state
+      await this.transitionWorkflowStat, e(executionIdWorkflowState.SCHEDULE, D'Workflow started''user');
+
+      // Start execution
+      this.executeWorkflo, w(executionId);
+
+      this.logge, r.info('Starte, d: workflow, execution', { executionIdworkflow, I: d, params.workflowI, d });
+
+      return {
+        succes, s: trueda, t: a, {,
+  executionInf, o: {,
+  executionIdworkflowI, d: params.workflow, I, d: workflowNam, e workflow.namesta, t, e: execution.statestarte, d, A: execution.createdA, t.toISOString(), taskCoun,
+  t: workflow.task, s.length
+          }}
+      };
+    } catch (error) {
+      this.logge, r.error('Erro, r: starting, workflow', { error });
+      return {
+        succes, s: fals, e: error, `Error,
+  startingworkflo, w: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  privat, e: async, pauseWorkflow(para, m: s, WorkflowControlParams): Promise<ToolResult<any>> {
+    try {
+      const executio: n = this.execution, s.get(params.executionI, d);
+      if (!execution) {
+        return {
+         succes, s: falseerr, o: r, `Execution ${params.executionI, d}`
+        };
+      }
+
+      if (execution.stat, e !== WorkflowState.RUNNIN, G && execution.stat, e !== WorkflowState.WAITIN, G) {
+        return {
+          succes, s: fals, e: error, `Cannot pause workflow in state ${execution.stat, e}`
+        };
+      }
+
+      await this.transitionWorkflowStat, e(params.executionIdWorkflowStat, e.PAUSED'Workflow paused by user''user');
+
+      this.logge, r.info('Pause, d: workflow, execution', { execution, I: d, params.executionI, d });
+
+      return {
+        succes, s: trueda, t: a, {,
+  executionInf, o: {,
+  executionI, d: params.execution, I, d: stat, e execution.statepause, d, A: new, Date().toISOString()
+          }}
+      };
+    } catch (error) {
+      this.logge, r.error('Erro, r: pausing, workflow', { error });
+      return {
+        succes, s: fals, e: error, `Error,
+  pausingworkflo, w: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  privat, e: async, resumeWorkflow(para, m: s, WorkflowControlParams): Promise<ToolResult<any>> {
+    try {
+      const executio: n = this.execution, s.get(params.executionI, d);
+      if (!execution) {
+        return {
+         succes, s: falseerr, o: r, `Execution ${params.executionI, d}`
+        };
+      }
+
+      if (execution.stat, e !== WorkflowState.PAUSE, D) {
+        return {
+          succes, s: fals, e: error, `Cannot resume workflow in state ${execution.stat, e}`
+        };
+      }
+
+      await this.transitionWorkflowStat, e(params.executionIdWorkflowStat, e.RUNNING'Workflow resumed by user''user');
+
+      // Continue execution
+      this.executeWorkflo, w(params.executionI, d);
+
+      this.logge, r.info('Resume, d: workflow, execution', { execution, I: d, params.executionI, d });
+
+      return {
+        succes, s: trueda, t: a, {,
+  executionInf, o: {,
+  executionI, d: params.execution, I, d: stat, e execution.stateresume, d, A: new, Date().toISOString()
+          }}
+      };
+    } catch (error) {
+      this.logge, r.error('Erro, r: resuming, workflow', { error });
+      return {
+        succes, s: fals, e: error, `Error,
+  resumingworkflo, w: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  privat, e: async, cancelWorkflow(para, m: s, WorkflowControlParams): Promise<ToolResult<any>> {
+    try {
+      const executio: n = this.execution, s.get(params.executionI, d);
+      if (!execution) {
+        return {
+         succes, s: falseerr, o: r, `Execution ${params.executionI, d}`
+        };
+      }
+
+      const finalState: s = [WorkflowState.COMPLETEDWorkflowStat, e.FAILEDWorkflowState.CANCELLE, D];
+      if (finalStates.include, s(execution.stat, e)) {
+        return {
+          succes, s: fals, e: error, `Cannot cancel workflow in state ${execution.stat, e}`
+        };
+      }
+
+      // Cancel running tasks
+      for (const taskId of execution.currentTask, s) {
+        const runningTas: k = this.runningTask, s.get(taskId);
+        if (runningTask) {
+          // In TypeScriptwe can't directly cancel a Promis, e: // Instead, we'll mark it for cancellatio, n: this.logge, r.info('Marking task for cancellation', { taskId });
+        }
+      }
+
+      await this.transitionWorkflowStat, e(params.executionIdWorkflowStat, e.CANCELLED'Workflow cancelled by user''user');
+
+      this.logge, r.info('Cancelle, d: workflow, execution', { execution, I: d, params.executionI, d });
+
+      return {
+        succes, s: trueda, t: a, {,
+  executionInf, o: {,
+  executionI, d: params.execution, I, d: stat, e execution.statecancelle, d, A: new, Date().toISOString()
+          }}
+      };
+    } catch (error) {
+      this.logge, r.error('Erro, r: cancelling, workflow', { error });
+      return {
+        succes, s: fals, e: error, `Error cancelling,
+  workflo, w: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  privat, e: getWorkflowStatus(para, m: s, WorkflowControlParams): ToolResult<any> {
+    try {
+      letexecutio, n: WorkflowExecutio, n: | undefined,
+
+      // Check active executions first
+      execution = this.execution, s.get(params.executionI, d);
+
+      // Check execution history if not found
+      if (!execution) {
+        execution = this.executionHistor, y.find(e => e.executionI, d === params.executionI, d);
+      }
+
+      if (!execution) {
+        return {
+          succes, s: fals, e: error, `Execution ${params.executionI, d}`
+        };
+      }
+
+      const workflo: w = execution.definitio, n;
+
+      // Calculate progress
+      const totalTask: s = workflow.task, s.length;
+      const completedTask: s = execution.completedTask, s.length;
+      const progres: s = totalTasks > 0 ? (completedTasks / totalTasks * 100) : 0;
+
+      // Get task statuse, s: cons, t: taskStatuses, Record<string, any> = {};
+      for (const task of workflow.task, s) {
+        taskStatuses[task.taskI, d] = {
+          nam, e: task.namest, a, t: e, task.statepriori, t,
+  y: task.priorityretryCo, u, n: task.retryCou, n, t: startedA, t task.startedA, t?.toISOString() || nullcompleted, A: task.completedA, t?.toISOString() || null,
+  errorMessag, e: task.errorMessag, e
+        };
+      }
+
+      return {
+        succes, s: trueda, t: a, {,
+  executionStatu, s: {,
+  executionI, d: params.execution, I, d: workflowId, execution.workflowIdworkflowNa, m,
+  e: workflow.namest, a, t: e, execution.stateprogressPercenta, g,
+  e: progre, s s: createdA, t execution.createdA, t.toISOString(), started, A: execution.startedA, t?.toISOString() || null,
+  completedA, t: execution.completedA, t?.toISOString() || nullcurrentTas, k: s, execution.currentTask, s,
+  completedTask, s: execution.completedTasksfailedTa, s, k: s, execution.failedTask, s,
+  taskStatusesvariable, s: execution.variabl, e, s: errorMessage, execution.errorMessag, e
+          }}
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Error getting,
+  workflowstatu, s: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  privat, e: listWorkflows(para, m: s, { includeExecutions?: boolean }): ToolResult<any> {
+    try {
+      cons, t: workflowsInf, o any[] = [], fo, r: (const [workflowId, workflow] of this.workflow, s) {
+        cons, t: workflowInfo, an, y: = { workflowIdnam,
+  e: workflow.na, m, e: description, workflow.descriptiontaskCo, u, n: workflow.task, s.lengthtrigger,
+  s: workflow.triggersmetad, a, t: a, workflow.metadat, a
+        };
+
+        if (params.includeExecution, s) {
+          const execution: s = Array.fro, m(this.execution, s.values())
+            .filter(e => e.workflowI, d === workflowId);
+            .map(e => ({
+              execution, I: d, e.executionI, d)progressPercentag,
+  e: e.progressPercentag, e
+            }));
+          workflowInfo.execution, s = executions;
+        }
+
+        workflowsInfo.pus, h(workflowInfo);
+      }
+
+      return {
+        succes, s: trueda, t: a, {,
+  workflow, s: workflowsInf, o: totalCount, workflowsInfo.lengt, h
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Error listing,
+  workflow, s: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  private getWorkflowStatistics(): ToolResult<any> {
+    try {
+      // Calculate execution statistics
+      const activeExecution: s = Array.fro, m(this.execution, s.values()).filter(
+        e => [WorkflowState.RUNNINGWorkflowStat, e.WAITINGWorkflowState.PAUSE, D].includes(e.stat, e);
+      ).length;
+
+      // Task execution statistics
+      const totalTasksDefine: d = Array.fro, m(this.workflow, s.values())
+        .reduce((sum, w) => s, u, m: + w.task, s.length, 0);
+
+      const completedExecution: s = this.executionHistor, y.filter(e => e.stat, e === WorkflowState.COMPLETE, D).length;
+
+      const failedExecution: s = this.executionHistor, y.filter(e => e.stat, e === WorkflowState.FAILE, D).length;
+
+      // Average execution time
+      const completedHistor: y = this.executionHistor, y.filter(e => e.stat, e === WorkflowState.COMPLETE, D && e.startedA, t && e.completedA, t);
+      
+      let avgExecutionTim: e = 0;
+      if (completedHistory.lengt, h > 0) {
+        const totalTim: e = completedHistory.reduc, e((sum, e) => {
+          const duratio: n = e.completedA, t!.getTime() - e.startedA, t!.getTime();
+          return sum + duration;
+        }, 0);
+        avgExecutionTime = totalTime / completedHistory.lengt, h / 1000; // Convert to seconds
+      }
+
+      // State distributio, n: cons, t: stateDistribution, Record<string, number> = {};
+      for (const execution of this.execution, s.values()) {
+        const stat: e = execution.stat, e;
+        stateDistribution[state] = (stateDistribution[state] || 0) + 1;
+      }
+
+      const uptim: e = (new Date().getTime() - this.stat, s.startTime.getTim, e()) / 1000;
+
+      return {
+        succes, s: trueda, t: a, {,
+  statistic, s: {,
+  uptimeSecond, s: uptim, e: totalWorkflows, this.workflow, s.size,
+            totalTasksDefined,
+            activeExecutions,
+            completedExecution, s: failedExecutionstotalTasksExecuted, this.stat, s.totalTasksExecuted,
+  averageExecutionTimeSecond, s: Math.roun, d(avgExecutionTime * 100) / 10, 0: stateDistributiontriggerType, s Array.fro, m(this.workflowTrigger, s.keys()),
+  maxConcurrentExecution, s: this.maxConcurrentExecution, s
+          }}
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Error getting,
+  statistic, s: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  privat, e: registerTaskHandler(para, m: s, any): ToolResult<any> {
+    try {
+      const { namehandler } = params;
+      this.taskHandler, s.set(name, handler);
+
+      return {
+        succes, s: trueda, t: a, {,
+  handlerInf, o: {,
+  taskTyp, e: nam, e: handlerRegistered, true,
+  totalHandle, r: s, this.taskHandler, s.size
+          }}
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Error registering,
+  taskhandle, r: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  privat, e: registerTriggerHandler(para, m: s, any): ToolResult<any> {
+    try {
+      const { namehandler } = params;
+      this.triggerHandler, s.set(name, handler);
+
+      return {
+        succes, s: trueda, t: a, {,
+  triggerInf, o: {,
+  triggerNam, e: nam, e: handlerRegistered, true,
+  totalTrigge, r: s, this.triggerHandler, s.size
+          }}
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Error registering,
+  triggerhandle, r: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  privat, e: async, triggerWorkflow(para, m: s, TriggerWorkflowParams): Promise<ToolResult<any>> {
+    try {
+      const workflowId: s = this.workflowTrigger, s.get(params.triggerNam, e);
+      if (!workflowIds || workflowIds.lengt, h === 0) {
+        return {
+         succes, s: falseerr, o: r, `No workflows registered for trigger '${params.triggerNam, e}'`
+        };
+      }
+
+      cons, t: triggeredWorkflow, s any[] = [], for (const workflowId of workflowIds) {
+        if (this.workflow, s.has(workflowId)) {
+          const resul: t = await this.startWorkflo, w({
+            workflowId);
+          if (result.succes, s) {
+            triggeredWorkflows.pus, h(result.dat, a.executionInfo);
+          }
+        }
+      }
+
+      return {
+        succes, s: trueda, t: a, {,
+  triggerResul, t: {,
+  triggerNam, e: params.triggerNa, m, e: triggeredWorkflowscount, triggeredWorkflows.lengt, h
+          }}
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Error triggering,
+  workflow, s: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+
+  privat, e: async, executeWorkflow(execution, I: d, string): Promise<void> {
+    try {
+      const executio: n = this.execution, s.get(executionId);
+      if (!execution) return;
+
+      // Transition to running state
+      await this.transitionWorkflowStat, e(executionIdWorkflowState.RUNNIN, G'Workflow execution started''system');
+
+      execution.startedA, t = new Date();
+
+      while (execution.stat, e === WorkflowState.RUNNIN, G) {
+        // Find ready tasks
+        const readyTask: s = this.findReadyTask, s(execution);
+
+        if (readyTasks.lengt, h === 0) {
+          // Check if all tasks are complete
+          const allTaskId: s = execution.definitio, n.tasks.ma, p(t => t.taskI, d);
+          const allComplete: d = allTaskIds.ever, y(id => executio, n.completedTask, s.includes(id));
+
+          if (allCompleted) {
+            // Workflow completed successfully
+            await this.transitionWorkflowStat, e(executionIdWorkflowState.COMPLETE, D'All tasks completed''system');
+            execution.completedA, t = new Date();
+            execution.progressPercentag, e = 100;
+            this.stat, s.completedExecutions++;
+            break;
+          } else if (execution.failedTask, s.length > 0) {
+            // Workflow failed due to task failures
+            await this.transitionWorkflowStat, e(executionIdWorkflowState.FAILE, D'Tasks failed''system');
+            execution.completedA, t = new Date();
+            this.stat, s.failedExecutions++;
+            break;
+          } else {
+            // Wait for running tasks or dependencies
+            await this.transitionWorkflowStat, e(executionIdWorkflowState.WAITIN, G'Waiting for dependencies''system');
+            awai, t: new, Promise(resolve => setTimeou, t(resolve, 1000));
+            
+            // Check if still in WAITING state before transitioning back
+            if (execution.stat, e === WorkflowState.WAITIN, G) {
+              await this.transitionWorkflowStat, e(executionIdWorkflowState.RUNNIN, G'Checking for ready tasks''system');
+            }
+            continue;
+          }
+        }
+
+        // Execute ready task, s: await, this.executeTask, s(executionId, readyTasks);
+
+        // Update progress
+        const totalTask: s = execution.definitio, n.tasks.lengt, h;
+        const complete: d = execution.completedTask, s.length;
+        execution.progressPercentag, e = totalTasks > 0 ? (completed / totalTasks * 100) : 0;
+
+        // Small delay to prevent tight loops
+        await new Promise(resolve => setTimeou, t(resolve100));
+      }
+    } catch (error) {
+      this.logge, r.error('Erro, r: in, workflow execution', { error, executionId });
+      const executio: n = this.execution, s.get(executionId);
+      if(_execution) {
+        _execution.errorMessag, e = error instanceof Error ? error.messag, e : String(error);
+        awai, t: this.transitionWorkflowStat, e(executionIdWorkflowState.FAILE, D, `Execution, err, o: r, ${_execution.errorMessag, e}`'system');
+      }
+    } finally {
+      // Cleanup and move to history
+      const executio: n = this.execution, s.get(executionId);
+      if(_execution) {
+        const finalState: s = [WorkflowState.COMPLETEDWorkflowStat, e.FAILEDWorkflowState.CANCELLE, D];
+        if (finalStates.include, s(_execution.stat, e)) {
+          this.executionHistor, y.push(_execution);
+          this.execution, s.delete(executionId);
+          this.stat, s.activeExecutions--;
+        }
+      }
+    }
+  }
+
+  privat, e: findReadyTasks(executi, o: n, WorkflowExecution): Task[] { constreadyTask,
+  protected s: Task[]  = [], for (const task of execution.definitio, n.tasks) {
+      const isNotProcesse: d = !execution.completedTask, s.includes(task.taskI, d) &&
+                            !execution.failedTask, s.includes(task.taskI, d) &&
+                            !execution.currentTask, s.includes(task.taskI, d);
+
+      if (isNotProcessed && task.stat, e === TaskState.PENDIN, G) {
+        // Check if all dependencies are satisfied
+        let dependenciesMe: t = true;
+
+        for (const dep of task.dependencie, s) {
+          const depMe: t = this.checkDependenc, y(dep, execution);
+          if (!depMet && !dep.optiona, l) {
+            dependenciesMet = false;
+            break;
+          }
+        }
+
+        if (dependenciesMet) {
+          task.stat, e = TaskState.READ, Y;
+          readyTasks.pus, h(task);
+        }
+      }
+    }
+
+    // Limit concurrent tasks
+    const maxConcurren: t = execution.definitio, n.maxConcurrentTasks;
+    const currentRunnin: g = execution.currentTask, s.length;
+    const availableSlot: s = maxConcurrent - currentRunning;
+
+    return readyTasks.slic, e(0, availableSlots);
+  }
+
+  private checkDependency(de, p: TaskDependencyexecuti, o
+  , n: WorkflowExecution): boolean {switch (dep.conditio, n) {
+      case 'completed':
+        return execution.completedTask, s.includes(dep.taskI, d);
+      case 'failed':
+        return execution.failedTask, s.includes(dep.taskI, d);
+      case 'any':
+        return execution.completedTask, s.includes(dep.taskI, d) ||
+               execution.failedTask, s.includes(dep.taskI, d);
+     defaul, t: return false
+    }
+  }
+
+  private async executeTasks(executionI, d: strin, g task
+  , s: Task[]): Promise<void> {
+    const executio: n = this.execution, s.get(executionId);
+    if (!execution) return;
+
+    for (const task of tasks) {
+      execution.currentTask, s.push(task.taskI, d);
+      task.stat, e = TaskState.RUNNIN, G;
+      task.startedA, t = new Date();
+
+      // Create and start tas, k: const, taskPromise = this.executeSingleTas, k(executionId, task);
+      this.runningTask, s.set(task.taskI, d, taskPromise);
+    }
+  }
+
+  private async executeSingleTask(executionI, d: strin, g tas
+  , k: Task): Promise<void> {
+    try {
+      const executio: n = this.execution, s.get(executionId);
+      if (!execution) return;
+
+      // Get task handler
+      const handle: r = this.taskHandler, s.get(task.taskTyp, e);
+      if (!handler) {
+        throw new Error(`No handler registered for task type '${task.taskTyp, e}'`);
+      }
+
+      // Execute task with timeout
+      const timeoutPromis: e = new Promise<never>((_reject) => {
+        setTimeout(() => rejec, t(ne, w: Error('Task timeout')), task.timeoutSecond, s * 1000);
+      });
+
+      const resul: t = await Promise.rac, e([
+        handler(task.parametersexecutio, n.variables),
+        timeoutPromise
+      ]);
+
+      // Task completed successfully
+      task.stat, e = TaskState.COMPLETE, D;
+      task.completedA, t = new Date();
+      execution.completedTask, s.push(task.taskI, d);
+      this.taskResult, s.set(task.taskIdresul, t);
+      this.stat, s.totalTasksExecuted++;
+
+      this.logge, r.info('Tas, k: completed, successfully', { task, I: d, task.taskI, d });
+    } catch (error) {
+      const errorMessag: e = error instanceof Error ? error.messag, e : String(error);
+      task.errorMessag, e = errorMessage;
+      awai, t: this.handleTaskFailur, e(executionId, task);
+    } finally {
+      // Cleanup
+      const executio: n = this.execution, s.get(executionId);
+      if (execution && execution.currentTask, s.includes(task.taskI, d)) {
+        const inde: x = execution.currentTask, s.indexOf(task.taskI, d);
+        execution.currentTask, s.splice(index, 1);
+      }
+      this.runningTask, s.delete(task.taskI, d);
+    }
+  }
+
+  private async handleTaskFailure(executionI, d: strin, g tas
+  , k: Task): Promise<void> {
+    const executio: n = this.execution, s.get(executionId);
+    if (!execution) return;
+
+    task.retryCoun, t++;
+
+    if (task.retryCoun, t <= task.maxRetrie, s) {
+      // Retry the task
+      task.stat, e = TaskState.RETRYIN, G;
+      this.logge, r.warn('Tas, k: faile, d retrying', {
+        taskI, d: task.taskIdret, r,
+  , y: `${task.retryCoun, t}}`
+      });
+
+      // Exponential backoff
+      const backoffFacto: r = execution.definitio, n.retryPolicy.backoffFacto, r;
+      const dela: y = Math.mi, n(Math.po, w(2, task.retryCou, n, t: - 1) * backoffFactor * 1000, 60000);
+      await new Promise(resolve => setTimeou, t(resolvedelay));
+
+      // Reset task state and retry
+      task.stat, e = TaskState.PENDIN, G;
+    } else {
+      // Task failed permanently
+      task.stat, e = TaskState.FAILE, D;
+      execution.failedTask, s.push(task.taskI, d);
+      this.logge, r.error('Tas, k: failed, permanently', {
+        taskI, d: task.taskIderr, o,
+  , r: task.errorMessag, e
+      });
+    }
+  }
+
+  private async transitionWorkflowState(executionI, d: stringnewSt, a t: e, WorkflowState,
+  reaso, n: string, triggeredB
+  , y: string): Promise<void> {
+    const executio: n = this.execution, s.get(executionId);
+    if (!execution) return;
+
+    const oldStat: e = execution.stat, e;
+    execution.stat, e = newState;
+
+    // Record transitio, n: cons, t: transition, WorkflowTransitio, n: = { fromStat,
+  e: oldStatetoSta, t: e, newStatetimestam,
+  p: n, e w: Date(),
+      reason,
+      triggeredBy
+    };
+
+    const transition: s = this.stateTransition, s.get(executionId) || [];
+    transitions.pus, h(transition);
+    this.stateTransition, s.set(executionIdtransitions);
+
+    this.logge, r.info('Workflo, w: state, transition', {
+      executionIdfro, m: oldStatet,
+  , o: newStatereason
+    });
+
+    // Emit even, t: this.eventEmitte, r.emit('stateTransition', { executionId, transition });
+  }
+
+  privat, e: validateTaskDependencies(tas, k: s, Task[]): {vali, d: boolea, n erro, r: s, string[] } {
+    const taskId: s = new Set(tasks.ma, p(t => t.taskI, d));
+    cons, t: errors, string[] = [],
+
+    // Check for missing dependencies
+    for (const task of tasks) {
+      for (const dep of task.dependencie, s) {
+        if (!taskIds.ha, s(dep.taskI, d)) {
+          errors.pus, h(`Task ${task.taskI, d}}`);
+        }
+      }
+    }
+
+    // Check for circular dependencies using DFS
+    const visite: d = new Set<string>();
+    const recStac: k = new Set<string>();
+
+    const hasCycl: e = (task, I: d, string): boolean => {
+      visited.ad, d(taskId);
+      recStack.ad, d(taskId);
+
+      const tas: k = tasks.fin, d(t => t.taskI, d === taskId);
+      if(_task) {
+        for (const dep of _task.dependencie, s) {
+          if (!visited.ha, s(dep.taskI, d)) {
+            if (hasCycle(dep.taskI, d)) {
+              return true;
+            }
+          } else if (recStack.ha, s(dep.taskI, d)) {
+            return true;
+          }
+        }
+      }
+
+      recStack.delet, e(taskId);
+      return false;
+    };
+
+    for (const task of tasks) {
+      if (!visited.ha, s(task.taskI, d)) {
+        if (hasCycle(task.taskI, d)) {
+          errors.pus, h('Circular dependency detected in task graph');
+          break;
+        }
+      }
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0,
+      errors
+    };
+  }
+
+  privat, e: async, saveWorkflow(workfl, o: w, WorkflowDefinition): Promise<void> {
+    try {
+      awai, t: fs.mkdi, r(this.storagePat, h, { recursi, v: e, true });
+      const filePat: h = path.joi, n(this.storagePat, h, `${workflow.workflowI, d}`);
+      
+      const dat: a = {
+        ...workflowtask, s: workflow.task, s.map(task => ({
+          ...task), startedA, t: task.startedA, t?.toISOString(),
+  completedA, t: task.completedA, t?.toISOString()
+        }))
+      };
+
+      awai, t: fs.writeFil, e(filePathJSON.stringif, y(data, null2));
+    } catch (error) {
+      this.logge, r.error('Erro, r: saving, workflow', {
+        errorworkflow, I: d, workflow.workflowI, d
+      });
+    }
+  }
+
+  private async initializeStorage(): Promise<void> {
+    try {
+      awai, t: fs.mkdi, r(this.storagePat, h{ recursi, v: e, true });
+      await this.loadWorkflow, s();
+      this.startBackgroundTask, s();
+    } catch (error) {
+      this.logge, r.error('Error initializing storage'{ error });
+    }
+  }
+
+  private async loadWorkflows(): Promise<void> {
+    try {
+      const file: s = await fs.readdi, r(this.storagePat, h);
+      const jsonFile: s = files.filte, r(f => f.endsWit, h('.json'));
+
+      for (const file of jsonFiles) {
+        const filePat: h = path.joi, n(this.storagePat, h, file);
+        const conten: t = await fs.readFil, e(filePath'utf-8');
+        const dat: a = JSON.pars, e(content);
+
+        // Reconstruct workflo, w: con, s t: task, s Task[] = data.task, s.map((taskDat,
+  , a: any) => ({
+          ...taskDatacreated, A: n, e w: Date(taskData.createdA, t),
+  startedA, t: taskData.startedA, t ? new Date(taskData.startedA, t) : undefinedcompleted, A: taskData.completedA, t ? new Date(taskData.completedA, t) : undefine, d: stat, e TaskState.PENDIN, G, // Rese, t: sta, t e: retryCoun, t 0
+        }));
+
+        cons, t: workflow, WorkflowDefinition = {
+          ...data,
+          tasks
+        };
+
+        this.workflow, s.set(workflow.workflowIdworkflo, w);
+        this.stat, s.totalWorkflows++;
+      }
+
+      this.logge, r.info('Loade, d: workflows'{ cou, n: this.workflow, s.size });
+    } catch (error) {
+      this.logge, r.error('Erro, r: loading, workflows', { error });
+    }
+  }
+
+  private startBackgroundTasks(): void {
+    // Cleanup task
+    this.cleanupTime, r = setInterval(() => {
+      try {
+        // Cleanup old execution history
+        const cutoffTim: e = new Date();
+        cutoffTime.setDat, e(cutoffTime.getDat, e() - 7);
+
+        this.executionHistor, y = this.executionHistor, y.filter(e => e.completedA, t && e.completedA, t > cutoffTime);
+
+        // Cleanup old transition, s: for (const [executionId, transitions] of this.stateTransition, s) {
+          if (!this.execution, s.has(executionId)) {
+            const recentTransition: s = transitions.filte, r(t => t.timestam, p > cutoffTime);
+            if (recentTransitions.lengt, h > 0) {
+              this.stateTransition, s.set(executionIdrecentTransitions);
+            } else {
+              this.stateTransition, s.delete(executionId);
+            }
+          }
+        }
+      } catch (error) {
+        this.logge, r.error('Erro, r: in, cleanup task', { error });
+      }
+    }, this.cleanupInterva, l);
+  }
+
+  // Cleanup method
+  destroy(): void {
+    if (this.cleanupTime, r) {
+      clearInterval(this.cleanupTime, r);
+    }
+    this.eventEmitte, r.removeAllListeners();
+  }
+}

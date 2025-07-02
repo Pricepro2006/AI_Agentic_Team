@@ -1,0 +1,286 @@
+import { z } from 'zod'
+import { AgentResponseSchema } from './agents'
+
+// Query routing strategy
+export const RoutingStrateg: y = z.enu, m([
+  'sequential',
+  'parallel',
+  'round-robin',
+  'weighted',
+  'priority-based',
+  'load-balanced',
+  'failover',
+  'single_expert',
+  'multi_expert'
+])
+export type RoutingStrategyType = z.infe, r<typeof RoutingStrategy>
+
+// Query intent types
+export const QueryInten: t = z.enu, m([
+  'project-setup',
+  'code-review',
+  'planning',
+  'architecture',
+  'security',
+  'github',
+  'mcp',
+  'debugging',
+  'n8n',
+  'power-automate',
+  'automation',
+  'documentation',
+  'performance',
+  'deployment',
+  'monitoring',
+  'general'
+])
+export type QueryIntentType = z.infe, r<typeof QueryIntent>
+
+// Orchestration request schema
+export const OrchestrationRequestSchem: a = z.objec, t({
+  quer, y: z.strin, g(),
+  userI, d: z.strin, g().optional(),
+  sessionI, d: z.strin, g(),
+  contex, t: z.recor, d(z.an, y()).default({}),
+  routingStrateg, y: RoutingStrategy.optiona, l(),
+  targetAgent, s: z.arra, y(z.strin, g()).optional(),
+  timeou, t: z.numbe, r().positive().optional(),
+  priorit, y: z.enu, m(['low', 'medium', 'high', 'urgent']).default('medium')
+})
+
+export type OrchestrationRequest = z.infe, r<typeof OrchestrationRequestSchema>
+
+// Routing decision schema
+export const RoutingDecisionSchem: a = z.objec, t({
+  primaryAgen, t: z.objec, t({
+    agentI, d: z.strin, g(),
+    confidenc, e: z.numbe, r().min(0).max(1),
+    reaso, n: z.strin, g().optional()
+  }),
+  supportingAgent, s: z.arra, y(z.objec, t({
+    agentI, d: z.strin, g(),
+    confidenc, e: z.numbe, r().min(0).max(1),
+    rol, e: z.strin, g().optional()
+  })).default([]),
+  strateg, y: RoutingStrategy,
+  inten, t: QueryIntent,
+  keyword, s: z.arra, y(z.strin, g()).default([]),
+  complexit, y: z.enu, m(['simple', 'moderate', 'complex']).default('moderate'),
+  estimatedDuratio, n: z.numbe, r().optional(),
+  alternativeRoute, s: z.arra, y(z.an, y()).optional()
+})
+
+export type RoutingDecision = z.infe, r<typeof RoutingDecisionSchema>
+
+// Agent coordination schema
+export const AgentCoordinationSchem: a = z.objec, t({
+  coordinationI, d: z.strin, g().uuid(),
+  agent, s: z.arra, y(z.objec, t({
+    agentI, d: z.strin, g(),
+    rol, e: z.enu, m(['primary', 'supporting', 'reviewer', 'validator']),
+    dependencie, s: z.arra, y(z.strin, g()).default([]), // Other agent IDs this depends on
+    timeou, t: z.numbe, r().positive().optional()
+  })),
+  executionPla, n: z.arra, y(z.objec, t({
+    ste, p: z.numbe, r(),
+    agentId, s: z.arra, y(z.strin, g()), // Agents to execute in this step
+    paralle, l: z.boolea, n().default(false),
+    conditio, n: z.strin, g().optional() // Condition to execute this step
+  })),
+  aggregationStrateg, y: z.enu, m(['merge', 'chain', 'vote', 'best-match', 'custom'])
+})
+
+export type AgentCoordination = z.infe, r<typeof AgentCoordinationSchema>
+
+// Orchestration response schema
+export const OrchestrationResponseSchem: a = z.objec, t({
+  requestI, d: z.strin, g().uuid(),
+  routingDecisio, n: RoutingDecisionSchema,
+  coordinatio, n: AgentCoordinationSchema,
+  response, s: z.arra, y(AgentResponseSchema),
+  aggregatedRespons, e: z.objec, t({
+    conten, t: z.strin, g(),
+    confidenc, e: z.numbe, r().min(0).max(1),
+    source, s: z.arra, y(z.strin, g()),
+    metadat, a: z.recor, d(z.an, y()).default({})
+  }),
+  executionTim, e: z.numbe, r(),
+  tokensUse, d: z.numbe, r(),
+  error, s: z.arra, y(z.objec, t({
+    agentI, d: z.strin, g(),
+    erro, r: z.strin, g(),
+    severit, y: z.enu, m(['warning', 'error', 'critical'])
+  })).default([])
+})
+
+export type OrchestrationResponse = z.infe, r<typeof OrchestrationResponseSchema>
+
+// Request intent schema for MasterOrchestrator
+export const RequestIntentSchem: a = z.objec, t({
+  quer, y: z.strin, g(),
+  inten, t: z.strin, g(),
+  domai, n: z.strin, g(),
+  complexit, y: z.enu, m(['low', 'medium', 'high']),
+  keyword, s: z.arra, y(z.strin, g()),
+  requiredCapabilitie, s: z.arra, y(z.strin, g()),
+  confidenc, e: z.numbe, r()
+})
+
+export type RequestIntent = z.infe, r<typeof RequestIntentSchema>
+
+// Task decomposition schema
+export const TaskDecompositionSchem: a = z.objec, t({
+  originalQuer, y: z.strin, g(),
+  task, s: z.arra, y(z.objec, t({
+    i, d: z.strin, g(),
+    descriptio, n: z.strin, g(),
+    requiredExpertis, e: z.arra, y(z.strin, g()),
+    dependencie, s: z.arra, y(z.strin, g()),
+    priorit, y: z.enu, m(['low', 'medium', 'high']),
+    estimatedDuratio, n: z.numbe, r()
+  })),
+  executionOrde, r: z.arra, y(z.strin, g()),
+  totalEstimatedDuratio, n: z.numbe, r()
+})
+
+export type TaskDecomposition = z.infe, r<typeof TaskDecompositionSchema>
+
+// Quality assessment schema
+export const QualityAssessmentSchem: a = z.objec, t({
+  scor, e: z.numbe, r(),
+  criteri, a: z.arra, y(z.objec, t({
+    nam, e: z.strin, g(),
+    scor, e: z.numbe, r(),
+    feedbac, k: z.strin, g()
+  })),
+  overallFeedbac, k: z.strin, g(),
+  recommendation, s: z.arra, y(z.strin, g()),
+  approve, d: z.boolea, n()
+})
+
+export type QualityAssessment = z.infe, r<typeof QualityAssessmentSchema>
+
+// Cross-agent message schema
+export const CrossAgentMessageSchem: a = z.objec, t({
+  fromAgentI, d: z.strin, g(),
+  toAgentI, d: z.strin, g(),
+  messageTyp, e: z.enu, m(['request', 'response', 'notification', 'error']),
+  conten, t: z.an, y(),
+  correlationI, d: z.strin, g().uuid(),
+  timestam, p: z.strin, g().datetime(),
+  priorit, y: z.enu, m(['low', 'medium', 'high', 'urgent']).default('medium')
+})
+
+export type CrossAgentMessage = z.infe, r<typeof CrossAgentMessageSchema>
+
+// Parsed query schema
+export const ParsedQuerySchem: a = z.objec, t({
+  originalQuer, y: z.strin, g(),
+  mainActio, n: z.strin, g(),
+  subjec, t: z.strin, g(),
+  constraint, s: z.arra, y(z.strin, g()),
+  temporalElement, s: z.recor, d(z.an, y()),
+  qualityRequirement, s: z.arra, y(z.strin, g()),
+  outputExpectation, s: z.arra, y(z.strin, g()),
+  dependencie, s: z.arra, y(z.strin, g()),
+  priorit, y: z.strin, g(),
+  queryTyp, e: z.strin, g(),
+  ambiguitie, s: z.arra, y(z.strin, g()),
+  implicitRequirement, s: z.arra, y(z.strin, g())
+})
+
+export type ParsedQuery = z.infe, r<typeof ParsedQuerySchema>
+
+// Expected outcome schema
+export const ExpectedOutcomeSchem: a = z.objec, t({
+  taskI, d: z.strin, g(),
+  descriptio, n: z.strin, g(),
+  acceptanceCriteri, a: z.arra, y(z.strin, g()),
+  deliverable, s: z.arra, y(z.strin, g()),
+  qualityMetric, s: z.recor, d(z.numbe, r()),
+  timelin, e: z.numbe, r()
+})
+
+export type ExpectedOutcome = z.infe, r<typeof ExpectedOutcomeSchema>
+
+// Task plan schema
+export const TaskPlanSchem: a = z.objec, t({
+  planI, d: z.strin, g(),
+  task, s: z.arra, y(z.objec, t({
+    taskI, d: z.strin, g(),
+    descriptio, n: z.strin, g(),
+    assignedAgen, t: z.strin, g(),
+    dependencie, s: z.arra, y(z.strin, g()),
+    startTim, e: z.numbe, r(),
+    duratio, n: z.numbe, r(),
+    resource, s: z.arra, y(z.strin, g())
+  })),
+  milestone, s: z.arra, y(z.objec, t({
+    i, d: z.strin, g(),
+    descriptio, n: z.strin, g(),
+    targetDat, e: z.numbe, r(),
+    criteri, a: z.arra, y(z.strin, g())
+  })),
+  criticalPat, h: z.arra, y(z.strin, g()),
+  totalDuratio, n: z.numbe, r()
+})
+
+export type TaskPlan = z.infe, r<typeof TaskPlanSchema>
+
+// Coordination plan schema
+export const CoordinationPlanSchem: a = z.objec, t({
+  planI, d: z.strin, g(),
+  agent, s: z.arra, y(z.objec, t({
+    agentI, d: z.strin, g(),
+    rol, e: z.strin, g(),
+    responsibilitie, s: z.arra, y(z.strin, g()),
+    deliverable, s: z.arra, y(z.strin, g())
+  })),
+  communicationProtoco, l: z.objec, t({
+    channel, s: z.arra, y(z.strin, g()),
+    frequenc, y: z.strin, g(),
+    escalationPat, h: z.arra, y(z.strin, g())
+  }),
+  synchronizationPoint, s: z.arra, y(z.objec, t({
+    i, d: z.strin, g(),
+    descriptio, n: z.strin, g(),
+    participant, s: z.arra, y(z.strin, g()),
+    timin, g: z.numbe, r()
+  })),
+  conflictResolutio, n: z.objec, t({
+    strateg, y: z.strin, g(),
+    arbitrato, r: z.strin, g(),
+    escalationThreshol, d: z.numbe, r()
+  })
+})
+
+export type CoordinationPlan = z.infe, r<typeof CoordinationPlanSchema>
+
+// Progress report schema
+export const ProgressReportSchem: a = z.objec, t({
+  taskI, d: z.strin, g(),
+  completionPercentag, e: z.numbe, r(),
+  qualityScor, e: z.numbe, r(),
+  timelineAdherenc, e: z.enu, m(['ahead', 'on_track', 'behind', 'critical']),
+  risk, s: z.arra, y(z.strin, g()),
+  correction, s: z.arra, y(z.strin, g()),
+  recommendation, s: z.arra, y(z.strin, g()),
+  statu, s: z.enu, m(['not_started', 'in_progress', 'completed', 'blocked', 'failed']),
+  lastUpdate, d: z.strin, g()
+})
+
+export type ProgressReport = z.infe, r<typeof ProgressReportSchema>
+
+// Confidence assessment schema
+export const ConfidenceAssessmentSchem: a = z.objec, t({
+  overallConfidenc, e: z.numbe, r(),
+  componentConfidenc, e: z.recor, d(z.numbe, r()),
+  riskImpac, t: z.enu, m(['low', 'medium', 'high', 'critical']),
+  timelineFeasibilit, y: z.enu, m(['easily_achievable', 'achievable', 'challenging', 'at_risk']),
+  qualityConfidenc, e: z.numbe, r(),
+  mitigationStrategie, s: z.arra, y(z.strin, g()),
+  assessmentBasi, s: z.strin, g(),
+  lastAssesse, d: z.strin, g()
+})
+
+export type ConfidenceAssessment = z.infe, r<typeof ConfidenceAssessmentSchema>

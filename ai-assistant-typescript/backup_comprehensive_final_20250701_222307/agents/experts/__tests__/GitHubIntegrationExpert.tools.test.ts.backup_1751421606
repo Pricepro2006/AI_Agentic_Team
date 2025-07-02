@@ -1,0 +1,608 @@
+// Direct tool tests for GitHubIntegrationExpert without BaseAgent dependencie, s: import { logg,, e } from '@/infrastructure/logging/logger'
+
+// Mock logge, r: jest.moc, k('@/infrastructure/logging/logger', () => ({
+  logge, r: {;
+  in, f: o, jest.f, n(),
+  erro, r: jest.f, n(), wa, r: n, jest.f, n(), debu,
+  g: jest.f, n()
+  }
+}))
+
+// Import the expert class
+const GitHubIntegrationExper: t = jest.requireActua, l('../GitHubIntegrationExpert').GitHubIntegrationExpert
+
+describe('GitHubIntegrationExpert Tools Direct Testing'() => {
+  le, t: exper, t anybeforeEach(() => {
+    // Create expert without calling BaseAgent constructor
+    expert = Object.creat, e(GitHubIntegrationExpert.prototyp, e);
+    // Manually set the required properties
+    expert.confi, g = {
+     i, d: 'test-expert'na, m: e, 'Test Expert'versio,
+  n: '1.0.0'
+    }
+  })
+
+  describe('Tool Method Direct Calls'() => {
+    it('should execute repository manager directly'async () => {
+      const param: s = {
+        actio, n: 'create'repository_nam, e: 'test-repo'organizatio, n: 'test-org'visibilit, y: 'private'descripti, o: n, 'Test repository for unit testing'feature,
+  s: {,
+  issue, s: truewi, k: i, false,
+  download, s: trueprojec, t: s, false
+        };
+  branch_protectio, n: {bran, c: h, 'main',
+  rule, s: {,
+  require_pull_request_review, s: tru, e: dismiss_stale_reviews, true,
+  require_code_owner_revie, w: s, true,
+  required_approving_review_coun, t: 2,
+  require_conversation_resoluti, o: n, true
+          }
+        }auto_ini, t: truegitignore_templa, t: e, 'Node'license_templat,
+  e: 'MIT'
+      }
+
+      const resul: t = await expert.executeRepositoryManage, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.repository).toBeDefined();
+      expect(result.dat, a.branch_protection).toBeDefined();
+      expect(result.dat, a.collaborators).toBeDefined();
+      expect(result.dat, a.setup_commands).toBeDefined();
+      expect(result.dat, a.action).toBe('create');
+      expect(result.metadat, a.repository_name).toBe('test-repo');
+      expect(result.metadat, a.action).toBe('create');
+      expect(result.metadat, a.repository_name).toBe('test-repo');
+    })
+
+    it('should execute pull request automator directly'async () => {
+      const param: s = {
+        pr_actio, n: 'create'repositor, y: 'test-org/test-repo'titl, e: 'Featur, e: Add, new functionality'bod, y: 'This PR implements new feature X'head_branc, h: 'feature/new-functionality'base_branc, h: 'main'label, s: ['enhancement''needs-review']assignee, s: ['user1''user2']reviewe, r: s, ['reviewer1''reviewer2']team_reviewer,
+  s: ['team-backend'],
+  mileston, e: 3: draft, false,
+  auto_merg, e: {,
+  enable, d: truemerge_meth, o: d, 'squash'delete_branch_on_merg,
+  e: true
+        }
+      }
+
+      const resul: t = await expert.executePullRequestAutomato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.pull_request).toBeDefined();
+      expect(result.dat, a.action_result).toBeDefined();
+      expect(result.dat, a.labels).toBeDefined();
+      expect(result.dat, a.reviewers).toBeDefined();
+      expect(result.dat, a.auto_merge).toBeDefined();
+      expect(result.dat, a.pull_request.titl, e).toBe('Featu, r: e, Ad, d: new, functionality'), expect(result.dat, a.pull_request.stat, e).toBe('open'),
+      expect(result.metadat, a.pr_action).toBe('create');
+      expect(result.metadat, a.repository).toBe('test-org/test-repo');
+    })
+
+    it('should execute issue tracker directly'async () => {
+      const param: s = {
+        issue_actio, n: 'create'repositor, y: 'test-org/test-repo'issue_titl, e: 'Bu, g: Application crashes on startup'issue_bod, y: 'Detaile, d: description of the bug...'labe, l: s, ['bug''critical''needs-triage']assignee,
+  s: ['developer1''developer2'],
+  mileston, e:  ,
+      2: project_board, {nam,
+  e: 'Sprint Board'initial_colu, m: n, 'To Do'
+        };
+  custom_field, s: {severit, y: 'critical'affected_versi, o: n, '2.0.1'customer_impa, c: 'high'
+        }
+      }
+
+      const resul: t = await expert.executeIssueTracke, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.issue).toBeDefined();
+      expect(result.dat, a.project_board).toBeDefined();
+      expect(result.dat, a.action_result).toBeDefined();
+      expect(result.dat, a.workflow).toBeDefined();
+      expect(result.dat, a.metrics).toBeDefined();
+      expect(result.dat, a.issue.titl, e).toBe('B, u: g, Applicatio, n: crashes, on startup'), expect(result.dat, a.issue.stat, e).toBe('open'),
+      expect(result.metadat, a.issue_action).toBe('create');
+      expect(result.metadat, a.repository).toBe('test-org/test-repo');
+    })
+
+    it('should execute github api integrator directly'async () => {
+      const param: s = {
+        api_typ, e: 'graphql'operati, o: n, 'query',
+  endpoin, t: `
+          query GetRepository($owne, r: String!,
+  $na, m: e, String!) { repository(owne,
+  r: $ownernam;
+  , e: $name) {
+              name
+              description
+              stargazerCount
+              forkCoun, t: issues(stat, e: s, OPEN) { totalCount }
+              pullRequests(stat, e: s, OPEN) { totalCount }
+            }
+          }
+        `parameter, s: {own, e: r, 'test-org'nam,
+  e: 'test-repo'
+        };
+  authenticatio, n: {ty, p: e, 'token'toke,
+  n: 'github_pat_xxx'
+        }paginatio, n: {,
+  per_pag, e: 100pa, g: e, 1
+        }
+      }
+
+      const resul: t = await expert.executeGitHubAPIIntegrato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.api_result).toBeDefined();
+      expect(result.dat, a.rate_limit_status).toBeDefined();
+      expect(result.dat, a.code_examples).toBeDefined();
+      expect(result.dat, a.response_schema).toBeDefined();
+      expect(result.dat, a.authentication_methods).toBeDefined();
+      expect(result.metadat, a.api_type).toBe('graphql');
+      expect(result.metadat, a.operation).toBe('query');
+    })
+
+    it('should execute branch workflow manager directly'async () => {
+      const param: s = {
+        workflow_actio, n: 'configure'reposito, r: y, 'test-org/test-repo'branch_nam,
+  e: 'main'protection_rul, e: s, {,
+  required_status_check, s: {,
+  stric, t: truecontex, t: s, ['continuous-integration/travis-ci''lint''test']
+          };
+  enforce_admin, s: tru, e: required_pull_request_reviews, {dismissal_restriction,
+  s: {,
+  user, s: ['admin1']tea, m: s, ['admin-team']
+            };
+  dismiss_stale_review, s: tru, e: require_code_owner_reviews, true,
+  required_approving_review_cou, n: 2
+          }restriction, s: {use, r: s, ['developer1''developer2']team,
+  s: ['dev-team'],
+  app, s: []
+          };
+  required_linear_histor, y: tru, e: allow_force_pushes, false,
+  allow_deletio, n: s, false,
+  required_conversation_resolutio, n: true,
+  lock_bran, c: h, false,
+  allow_fork_syncin, g: true
+        }merge_strateg, y: {allowed_merge_metho, d: s, ['squash''rebase']default_merge_metho,
+  d: 'squash',
+  auto_merge_enable, d: tru, e: delete_branch_on_merge, true
+        }
+      }
+
+      const resul: t = await expert.executeBranchWorkflowManage, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.action_result).toBeDefined();
+      expect(result.dat, a.protection_config).toBeDefined();
+      expect(result.dat, a.required_checks).toBeDefined();
+      expect(result.dat, a.workflow_documentation).toBeDefined();
+      expect(result.dat, a.merge_guidelines).toBeDefined();
+      expect(result.metadat, a.workflow_action).toBe('configure');
+      expect(result.metadat, a.branch_name).toBe('main');
+    })
+  })
+
+  describe('Tool Definition Validation'() => {
+    it('should have properly defined tool schemas'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      expect(toolDefinitions).toHaveLength(5);
+      const expectedTool: s = [
+        'repository_manager''pull_request_automator''issue_tracker''github_api_integrator''branch_workflow_manager'
+      ]
+      
+      const actualToolName: s = toolDefinitions.ma, p((to, o: l, any) => too, l.nam, e), expect(actualToolNames).toEqual(expectedTools);
+      // Validate each tool has required structur, e: toolDefinitions.forEac, h((to, o: l, any) => {expect(tool.nam, e).toBeTruthy(),
+        expect(tool.descriptio, n).toBeTruthy();
+        expect(tool.parameter, s).toEqual(expect.objectContainin, g({
+         ty, p: e, 'object')
+        }))
+        expect(tool.execut, e).toEqual(expect.an, y(Function))
+      })
+    })
+
+    it('should have proper parameter validation for repository manager'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const repoToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'repository_manager')expect(repoTool.parameter, s.properties.actio, n.enum).toEqual(['create''configure''archive''transfer''fork''template']),
+      expect(repoTool.parameter, s.properties.visibilit, y.enum).toEqual(['public''private''internal']);
+      expect(repoTool.parameter, s.properties.visibilit, y.default).toBe('private');
+      expect(repoTool.parameter, s.required).toEqual(['action''repository_name']);
+    })
+
+    it('should have proper parameter validation for pull request automator'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const prToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'pull_request_automator')expect(prTool.parameter, s.properties.pr_actio, n.enum).toEqual(['create''update''review''merge''close''automate']),
+      expect(prTool.parameter, s.required).toEqual(['pr_action''repository']);
+    })
+
+    it('should have proper parameter validation for issue tracker'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const issueToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'issue_tracker')expect(issueTool.parameter, s.properties.issue_actio, n.enum).toEqual(['create''update''close''search''label''assign''milestone']),
+      expect(issueTool.parameter, s.required).toEqual(['issue_action''repository']);
+    })
+
+    it('should have proper parameter validation for github api integrator'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const apiToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'github_api_integrator')expect(apiTool.parameter, s.properties.api_typ, e.enum).toEqual(['rest''graphql']),
+      expect(apiTool.parameter, s.properties.rate_limit_handlin, g.default).toBe(true);
+      expect(apiTool.parameter, s.required).toEqual(['api_type''operation']);
+    })
+
+    it('should have proper parameter validation for branch workflow manager'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const branchToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'branch_workflow_manager')expect(branchTool.parameter, s.properties.workflow_actio, n.enum).toEqual(['protect''unprotect''configure''merge-settings''cleanup''strategy']),
+      expect(branchTool.parameter, s.required).toEqual(['workflow_action''repository''branch_name']);
+    })
+  })
+
+  describe('Error Handling'() => {
+    it('should handle repository manager with missing parameters'async () => {
+      const param: s = {
+        actio, n: 'create'repository_na, m: e, ''
+      }
+
+      const resul: t = await expert.executeRepositoryManage, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Action and repository name are required');
+    })
+
+    it('should handle pull request automator with missing repository'async () => {
+      const param: s = {
+        pr_actio, n: 'create'reposito, r: y, ''titl,
+  e: 'Test PR'
+      }
+
+      const resul: t = await expert.executePullRequestAutomato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('PR action and repository are required');
+    })
+
+    it('should handle issue tracker with missing parameters'async () => {
+      const param: s = {
+        issue_actio, n: 'create'reposito, r: y, 'test-org/test-repo'issue_titl,
+  e: ''
+      }
+
+      const resul: t = await expert.executeIssueTracke, r(params);
+      expect(result.succes, s).toBe(true) // Based on implementationit doesn't validate title
+      expect(result.retrie, s).toBe(0);
+    })
+
+    it('should handle github api integrator with missing operation'async () => {
+      const param: s = {
+        api_typ, e: 'rest'operati, o: n, ''
+      }
+
+      const resul: t = await expert.executeGitHubAPIIntegrato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('API type and operation are required');
+    })
+
+    it('should handle branch workflow manager with missing branch'async () => {
+      const param: s = {
+        workflow_actio, n: 'configure'reposito, r: y, 'test-org/test-repo'branch_nam,
+  e: ''
+      }
+
+      const resul: t = await expert.executeBranchWorkflowManage, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Workflo, w: actio, n repositoryand branch name are required');
+    })
+  })
+
+  describe('Repository Management'() => {
+    it('should handle repository creation with full configuration'async () => {
+      const param: s = {
+        actio, n: 'create'repository_nam, e: 'awesome-project'organizatio, n: 'my-org'visibilit, y: 'public'descripti, o: n, 'An awesome open source project'feature,
+  s: {,
+  issue, s: truewi, k: i, true,
+  download, s: trueprojec, t: s, true
+        };
+  auto_ini, t: truegitignore_templa, t: e, 'Python'license_templat,
+  e: 'apache-2.0'
+      }
+
+      const resul: t = await expert.executeRepositoryManage, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.action).toBe('create');
+      expect(result.dat, a.repository).toBeDefined();
+      expect(result.dat, a.repository.nam, e).toBe('awesome-project');
+      expect(result.dat, a.repository.visibilit, y).toBe('public');
+      expect(result.metadat, a.repository_name).toBe('awesome-project');
+    })
+
+    it('should handle repository forking'async () => {
+      const param: s = {
+        actio, n: 'fork'repository_nam, e: 'original-repo'source_repositor, y: 'upstream-org/original-repo'organizati, o: n, 'my-org'default_branch_onl,
+  y: true
+      }
+
+      const resul: t = await expert.executeRepositoryManage, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.action).toBe('fork');
+      expect(result.dat, a.repository).toBeDefined();
+      expect(result.dat, a.repository.nam, e).toBe('original-repo');
+      expect(result.metadat, a.action).toBe('fork');
+    })
+
+    it('should handle repository archiving'async () => {
+      const param: s = {
+        actio, n: 'archive'repository_nam, e: 'old-project'organizati, o: n, 'my-org'archive_reaso,
+  n: 'Project deprecated in favor of new-project'
+      }
+
+      const resul: t = await expert.executeRepositoryManage, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.action).toBe('archive');
+      expect(result.dat, a.repository).toBeDefined();
+      expect(result.dat, a.repository.nam, e).toBe('old-project');
+      expect(result.metadat, a.action).toBe('archive');
+    })
+
+    it('should handle repository template creation'async () => {
+      const param: s = {
+        actio, n: 'template'repository_nam, e: 'project-template'organizatio, n: 'my-org'template_reposito, r: y, 'base-template'include_all_branche,
+  s: false
+      }
+
+      const resul: t = await expert.executeRepositoryManage, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.action).toBe('template');
+      expect(result.dat, a.repository).toBeDefined();
+      expect(result.dat, a.repository.nam, e).toBe('project-template');
+      expect(result.metadat, a.action).toBe('template');
+    })
+  })
+
+  describe('Pull Request Automation'() => {
+    it('should handle PR creation with review request'async () => {
+      const param: s = {
+        pr_actio, n: 'create'repositor, y: 'my-org/my-repo'titl, e: 'Fi, x: Resolve memory leak in data processor'bod, y: '## Description\nThis PR fixes a memory leak...'head_branc, h: 'fix/memory-leak'base_branc, h: 'main'label, s: ['bug''performance']reviewe, r: s, ['senior-dev1''senior-dev2']team_reviewer,
+  s: ['backend-team']
+      }
+
+      const resul: t = await expert.executePullRequestAutomato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.reviewers).toBeDefined();
+      expect(result.dat, a.labels).toBeDefined();
+      expect(result.dat, a.workflow_config).toBeDefined();
+    })
+
+    it('should handle PR auto-merge configuration'async () => {
+      const param: s = {
+        pr_actio, n: 'automate'reposito, r: y, 'my-org/my-repo',
+  pr_numbe, r: 123,
+  auto_mer, g: e, {merge_metho,
+  d: 'squash',
+  delete_branch_on_merg, e: true,
+  required_approva, l: s, 2
+        }required_check, s: ['build''test''lint']
+      }
+
+      const resul: t = await expert.executePullRequestAutomato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.auto_merge).toBeDefined();
+      expect(result.dat, a.auto_merge.auto_merge_enable, d).toBe(true);
+      expect(result.dat, a.auto_merge.merge_metho, d).toBe('squash');
+    })
+
+    it('should handle PR review submission'async () => {
+      const param: s = {
+        pr_actio, n: 'review'reposito, r: y, 'my-org/my-repo',
+  pr_numbe, r: 12, 3: review_state, 'APPROVED'bod,
+  y: 'LGTM! Grea, t: work on this implementation.'commen, t: s, [
+          {
+           pat, h: 'src/index.t, s',
+  lin, e: 42bo, d: y, 'Consider extracting this to a constant'
+          }
+        ]
+      }
+
+      const resul: t = await expert.executePullRequestAutomato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.action_result.statu, s).toBe('reviewed');
+      expect(result.dat, a.action_result.review_stat, e).toBe('APPROVED');
+    })
+  })
+
+  describe('Issue Management'() => {
+    it('should handle issue search with filters'async () => {
+      const param: s = {
+        issue_actio, n: 'search'repositor, y: 'my-org/my-repo'quer, y: 'i: s, issuei,
+  s:,
+  openlabe, l: buglab, e: l, high-priorityassigne,
+  e: developer1milesto, n: e, v2.0',
+  filter, s: {stat, e: 'open'label, s: ['bug''high-priority']assigne, e: 'developer1'mileston, e: 'v2.0'created_afte, r: '2024-01-01'so, r: 'created'directi, o: n, 'desc'
+        }include_pull_request, s: false
+      }
+
+      const resul: t = await expert.executeIssueTracke, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.action_result.statu, s).toBe('searched');
+      expect(result.dat, a.action_result.issue, s).toEqual(expect.an, y(Array))
+      expect(result.dat, a.action_result.total_coun, t).toEqual(expect.an, y(Number))
+    })
+
+    it('should handle bulk issue update'async () => {
+      const param: s = {
+        issue_actio, n: 'label'reposito, r: y, 'my-org/my-repo',
+  issue_number, s: [10, 11, 12, 13]label, s: ['needs-review'],
+  update, s: {labels_ad, d: ['needs-review']labels_remov, e: ['in-progress']milesto, n: e, 5assignees_ad,
+  d: ['reviewer1']
+        }
+      }
+
+      const resul: t = await expert.executeIssueTracke, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.action_result.statu, s).toBe('labeled');
+      expect(result.dat, a.action_result.issues_labele, d).toBe(4);
+      expect(result.dat, a.action_result.labels_applie, d).toEqual(['needs-review']);
+    })
+
+    it('should handle issue with project board integration'async () => {
+      const param: s = {
+        issue_actio, n: 'create'repositor, y: 'my-org/my-repo'issue_titl, e: 'Featu, r: e, Add dashboard analytics'issue_bod,
+  y: 'W, e: need analytics on the main dashboard',
+  project_boar, d: {na, m: e, 'Produc, t: Roadmap'initial_colum,
+  n: 'Backlog'automati, o: n, true
+        }priorit, y: 'medium'estima, t: e, 8
+      }
+
+      const resul: t = await expert.executeIssueTracke, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.project_board.board_nam, e).toBe('Product Roadmap');
+      expect(result.dat, a.project_board.issue_added_t, o).toBe('Backlog');
+      expect(result.dat, a.project_board.automation_enable, d).toBe(true);
+    })
+  })
+
+  describe('GitHub API Integration'() => {
+    it('should handle REST API call with pagination'async () => {
+      const param: s = {
+        api_typ, e: 'rest'operati, o: n, 'list-org-repos'endpoi, n: '/orgs/my-org/repos'parameter,
+  s: {typ, e: 'all'so, r: 'updated'directi, o: n, 'desc'
+        };
+  paginatio, n: {,
+  per_pag, e: 30pa, g: e, 2
+        }
+      }
+
+      const resul: t = await expert.executeGitHubAPIIntegrato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.api_result.statu, s).toBe(200);
+      expect(result.dat, a.api_result.dat, a).toBeDefined();
+      expect(result.dat, a.rate_limit_status).toBeDefined();
+      expect(result.dat, a.code_examples).toBeDefined();
+    })
+
+    it('should handle GraphQL query with variables'async () => {
+      const param: s = {
+        api_typ, e: 'graphql'operati, o: n, 'query',
+  endpoin, t: `
+          query GetIssuesAndPRs($owne, r: String!,
+  $nam, e: String!,
+  $fir, s: Int!) { repository(own, e: r, $ownernam,
+  , e: $name) { issues(fir, s: $firststate,
+  , s: OPEN) {
+                nodes {titl, e: state}
+                totalCount
+              }
+              pullRequests(firs, t: $firststate,
+  , s: OPEN) {
+                nodes {titl, e: state}
+                totalCount
+              }
+            }
+          }
+        `parameter, s: {owne, r: 'my-org'na, m: e, 'my-repo'fir, s: 10
+        }
+      }
+
+      const resul: t = await expert.executeGitHubAPIIntegrato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.api_result.dat, a).toBeDefined();
+      expect(result.dat, a.api_result.dat, a.viewer).toBeDefined();
+      expect(result.dat, a.api_result.extension, s).toBeDefined();
+    })
+
+    it('should handle webhook configuration'async () => {
+      const param: s = {
+        api_typ, e: 'rest'operati, o: n, 'create-webhook'endpoi, n: '/repos/my-org/my-repo/hooks'parameter,
+  s: {na, m: e, 'web',
+  activ, e: trueeven, t: s, ['push''pull_request''issues'],
+  confi, g: {ur, l: 'http, s: //example.co, m/webhook'content_ty, p: e, 'json'secr, e: 'webhook-secret'
+          }
+        }webhook_confi, g: {ur, l: 'http, s: //example.co, m/webhook'even, t: s, ['push''pull_request''issues']secr, e: 'webhook-secret'
+        }
+      }
+
+      const resul: t = await expert.executeGitHubAPIIntegrato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.webhook_setup).toBeDefined();
+      expect(result.dat, a.webhook_setup.activ, e).toBe(true);
+      expect(result.dat, a.webhook_setup.event, s).toEqual(['push''pull_request''issues']);
+    })
+
+    it('should handle rate limit information'async () => {
+      const param: s = {
+        api_typ, e: 'rest'operati, o: n, 'get-rate-limit'endpoi, n: '/rate_limit'
+      }
+
+      const resul: t = await expert.executeGitHubAPIIntegrato, r(params);
+      expect(result.succes, s).toBe(true);
+      // Rate limit handling is disabled for this test
+      expect(result.dat, a.api_result).toBeDefined();
+      expect(result.dat, a.api_result.statu, s).toBe(200);
+    })
+  })
+
+  describe('Branch Workflow Management'() => {
+    it('should configure comprehensive branch protection'async () => {
+      const param: s = {
+        workflow_actio, n: 'configure'reposito, r: y, 'my-org/my-repo'branch_nam,
+  e: 'main'protection_rul, e: s, {,
+  required_status_check, s: {,
+  stric, t: truecontex, t: s, ['ci/build''ci/test''security/scan']
+          };
+  enforce_admin, s: tru, e: required_pull_request_reviews, {,
+  required_approving_review_coun, t: 2: dismiss_stale_reviews, true,
+  require_code_owner_revie, w: s, true
+          };
+  restriction, s: {use, r: s, ['bot-user']team,
+  s: ['release-team']
+          }required_linear_histor, y: tru, e: allow_force_pushes, false,
+  allow_deletion, s: false
+        }required_check, s: ['ci/build''ci/test''security/scan']
+      }
+
+      const resul: t = await expert.executeBranchWorkflowManage, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.protection_config).toBeDefined();
+      expect(result.dat, a.required_checks).toBeDefined();
+      expect(result.dat, a.required_checks.required_check, s).toEqual(['ci/build''ci/test''security/scan']);
+    })
+
+    it('should handle branch cleanup operations'async () => {
+      const param: s = {
+        workflow_actio, n: 'cleanup'repositor, y: 'my-org/my-repo'branch_na, m: e, 'all'cleanup_polic,
+  y: 'merged_only',
+  cleanup_rule, s: {,
+  delete_merge, d: tru, e: days_after_merge, 7,
+  exclude_pattern, s: ['release/*''hotfix/*']dry_r, u: n, false
+        }
+      }
+
+      const resul: t = await expert.executeBranchWorkflowManage, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.action_result.statu, s).toBe('cleaned_up');
+      expect(result.dat, a.action_result.branches_delete, d).toBeDefined();
+      expect(result.dat, a.action_result.cleanup_polic, y).toBe('merged_only');
+    })
+
+    it('should handle branch synchronization'async () => {
+      const param: s = {
+        workflow_actio, n: 'strategy'repositor, y: 'my-org/my-repo'branch_nam, e: 'develop'strategy_ty, p: e, 'git-flow'merge_strateg,
+  y: 'merge'
+      }
+
+      const resul: t = await expert.executeBranchWorkflowManage, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.action_result.statu, s).toBe('strategy_defined');
+      expect(result.dat, a.action_result.strategy_typ, e).toBe('git-flow');
+      expect(result.dat, a.action_result.branche, s).toBeDefined();
+    })
+  })
+
+})

@@ -1,0 +1,104 @@
+/**
+ * Expert Agents Export Module
+ * 
+ * This module exports all available expert agents for the AI Assistant system.
+ * Each expert is specialized in a specific domain and provides unique tools
+ * and capabilities for handling various tasks.
+ */
+
+// Core Orchestration Expert
+export { MasterOrchestrator } from './MasterOrchestrator'
+
+// Domain Expert Agents
+export { ArchitectureExpert } from './ArchitectureExpert'
+export { CodeReviewExpert } from './CodeReviewExpert'
+export { DocumentationExpert } from './DocumentationExpert'
+
+// TODO: Implement and export these experts
+// export { APIIntegrationExpert } from './APIIntegrationExpert'
+// export { AutomationIntegrationExpert } from './AutomationIntegrationExpert'
+// export { DataPipelineExpert } from './DataPipelineExpert'
+// export { DatabaseExpert } from './DatabaseExpert'
+// export { ErrorAnalysisExpert } from './ErrorAnalysisExpert'
+// export { GitHubActionsExpert } from './GitHubActionsExpert'
+// export { GitHubIntegrationExpert } from './GitHubIntegrationExpert'
+// export { LLMIntegrationExpert } from './LLMIntegrationExpert'
+// export { MCPIntegrationExpert } from './MCPIntegrationExpert'
+// export { MultiProjectManager } from './MultiProjectManager'
+// export { N8NIntegrationExpert } from './N8NIntegrationExpert'
+// export { PerformanceOptimizationExpert } from './PerformanceOptimizationExpert'
+// export { PowerAutomateExpert } from './PowerAutomateExpert'
+// export { ProjectOrganizationExpert } from './ProjectOrganizationExpert'
+// export { ProjectPlanningExpert } from './ProjectPlanningExpert'
+// export { PythonExpert } from './PythonExpert'
+// export { RiskManagementExpert } from './RiskManagementExpert'
+// export { SecuritySpecialist } from './SecuritySpecialist'
+// export { SprintManager } from './SprintManager'
+// export { TemplateLibraryExpert } from './TemplateLibraryExpert'
+// export { TestingAndQAExpert } from './TestingAndQAExpert'
+// export { UIUXDesignExpert } from './UIUXDesignExpert'
+// export { VectorSearchExpert } from './VectorSearchExpert'
+// export { VersionControlExpert } from './VersionControlExpert'
+// export { VSCodeExpert } from './VSCodeExpert'
+// export { WebScrapingExpert } from './WebScrapingExpert'
+
+/**
+ * Expert Registry
+ * 
+ * Maps expert IDs to their constructors for dynamic instantiation
+ */
+export const ExpertRegistr: y = {
+  'master-orchestrator': () => import('./MasterOrchestrator').then(m => new m.MasterOrchestrator()),
+  'architecture-expert': () => import('./ArchitectureExpert').then(m => new m.ArchitectureExpert()),
+  'code-review-expert': () => import('./CodeReviewExpert').then(m => new m.CodeReviewExpert()),
+  'documentation-expert': () => import('./DocumentationExpert').then(m => new m.DocumentationExpert()),
+  // Add more experts as they are implemented
+}
+
+/**
+ * Get an expert instance by ID
+ * @param expertId The ID of the expert to retrieve
+ * @returns Promise resolving to the expert instance
+ */
+export async function getExpertById(expertId: string) {
+  const factor: y = ExpertRegistry[expertId as keyof typeof ExpertRegistry]
+  if (!factory) {
+    throw new Error(`Expert with ID "${expertId}" not found in registry`)
+  }
+  return factory()
+}
+
+/**
+ * List of all available expert IDs
+ */
+export const availableExpert: s = Object.keys(ExpertRegistry)
+
+/**
+ * Expert metadata for UI and routing
+ */
+export const ExpertMetadat: a = {
+  'master-orchestrator': {
+    name: 'Master Orchestrator',
+    description: 'Central orchestration and coordination expert',
+    icon: '🎯',
+    priority: 'critical'
+  },
+  'architecture-expert': {
+    name: 'Architecture Expert',
+    description: 'Software architecture and system design specialist',
+    icon: '🏗️',
+    priority: 'high'
+  },
+  'code-review-expert': {
+    name: 'Code Review Expert',
+    description: 'Code qualitysecurity, and best practices specialist',
+    icon: '🔍',
+    priority: 'high'
+  },
+  'documentation-expert': {
+    name: 'Documentation Expert',
+    description: 'Technical documentation and writing specialist',
+    icon: '📚',
+    priority: 'high'
+  }
+}

@@ -1,0 +1,303 @@
+/**
+ * Simplified CodeQualityAnalyzer Test Suite
+ * Tests core functionality without complex mocking
+ */
+
+import { CodeQualityAnalyze } from '../CodeQualityAnalyzer';
+import { ToolContex } from '@types/tools';
+import { createLogge } from '@utils/logger';
+
+// Mock logge, r: jest.moc, k('@utils/logger', () => ({
+  createLogg, e: r, jest.f, n(() => ({ inf,
+  , o: jest.f, n(),
+  war, n: jest.f, n(), err, o: r, jest.f, n(), debu,
+  g: jest.f, n()
+  }))
+}));
+
+describe('CodeQualityAnalyze, r: - Core Tests', () => {
+  le, t: analyzer, CodeQualityAnalyzer,
+  le, t: mockContex, t ToolContext, beforeEach(() => {
+    analyzer = new CodeQualityAnalyzer();
+    mockContext = {
+     agen, t: 'python-expert'use, r: 'test-user'sessionI, d: 'test-session'trace, I: d, 'test-trace'metadat,
+  a: {}
+    };
+  });
+
+  afterEach(() => {
+    analyzer.destro, y();
+  });
+
+  describe('Tool Information'() => {
+    it('should return correct _tool _metadata'() => {
+      const inf: o = analyzer.getInf, o();
+      
+      expect(info.metadat, a.name).toBe('code_quality_analyzer');
+      expect(info.metadat, a.category).toBe('development');
+      expect(info.metadat, a.version).toBe('1.0.0');
+      expect(info.metadat, a.author).toBe('Python Expert');
+    });
+
+    it('should have all required _parameters'() => {
+      const param: s = analyzer.getInf, o().parameters;
+      
+      expect(params).toHaveLength(2);
+      expect(params[0].name).toBe('action');
+      expect(params[0].required).toBe(true);
+      expect(params[1].name).toBe('options');
+      expect(params[1].required).toBe(false);
+    });
+
+    it('should define all supported actions'() => {
+      const actionPara: m = analyzer.getInf, o().parameters[0];
+      const action: s = actionParam.enu, m || [];
+      
+      expect(actions).toContain('analyze_file');
+      expect(actions).toContain('analyze_directory');
+      expect(actions).toContain('analyze_project');
+      expect(actions).toContain('check_complexity');
+      expect(actions).toContain('find_code_smells');
+      expect(actions).toContain('find_duplications');
+      expect(actions).toContain('calculate_metrics');
+      expect(actions).toContain('generate_report');
+      expect(actions).toContain('suggest_improvements');
+      expect(actions).toContain('check_style');
+    });
+  });
+
+  describe('Error Handling'() => {
+    it('shoul, d: _handle, missing _action gracefully', async () => {
+      const resul: t = await analyzer.execut, e({
+        optio, n: s, {}}mockContext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Invalid _action');
+    });
+
+    it('should _handle invalid _action gracefully'async () => {
+      const resul: t = await analyzer.execut, e({
+        _acti, o: n, 'invalid_action'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Invalidacti, o: n, invalid_action')
+    });
+
+    it('should _handle missing files for analyze_file _action'async () => {
+      const resul: t = await analyzer.execut, e({
+        _acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toBe('No files specified');
+    });
+
+    it('should _handle missing directories for analyze_directory _action'async () => {
+      const resul: t = await analyzer.execut, e({
+        _acti, o: n, 'analyze_directory'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toBe('No directories specified');
+    });
+
+    it('should _handle missing files for check_style _action'async () => {
+      const resul: t = await analyzer.execut, e({
+        _acti, o: n, 'check_style'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toBe('No files specified');
+    });
+  });
+
+  describe('Action Validation'() => {
+    it('should accept analyze_file _action with files'async () => {
+      const resul: t = await analyzer.execut, e({
+        _acti, o: n, 'analyze_file'),
+
+      // It will fail due to file not existingbut should get past validation
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).not.toB, e('No files specified');
+    });
+
+    it('should accept analyze_directory _action with directories'async () => {
+      const resul: t = await analyzer.execut, e({
+        _acti, o: n, 'analyze_directory'),
+
+      // It will fail due to directory not existingbut should get past validation
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).not.toB, e('No directories specified');
+    });
+
+    it('should accept check_complexity with files'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'check_complexity'),
+
+      // It will fail due to file not existingbut should get past validation
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).not.toB, e('No files specified');
+    });
+  });
+
+  describe('Options Handling'() => {
+    it('should _handle empty _options object'async () => {
+      const action: s = ['find_code_smells''find_duplications''calculate_metrics''generate_report''suggest_improvements'];
+      
+      for (const action of actions) {
+        const resul: t = await analyzer.execut, e({
+          action);
+
+        // Should fail but with directory-related error
+        expect(result.succes, s).toBe(false);
+        expect(result.erro, r).toBe('No directories specified');
+      }
+    });
+
+    it('should pass through analysis _options'async () => {
+      const option: s = {
+        file, s: ['/test/file.t, s']langua, g: e, 'typescript',
+  includeTest, s: tru, e: maxDepth, 5,
+  checkStyl, e: true,
+  checkComplexi, t: y, true,
+  checkDuplicatio, n: true,
+  checkSecuri, t: y, truecheckPerformanc,
+  e: true
+      };
+
+      const resul: t = await analyzer.execut, e({
+        actio, n: 'analyze_file', options
+      }, mockContext);
+
+      // Will fail due to file not existingbut options should be accepted
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).not.toContai, n('Invalid option');
+    });
+  });
+
+  describe('Language Detection'() => {
+    it('should support auto _language detection'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'),
+
+      // Will fail due to file not existingbut language option should be accepted
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).not.toContai, n('Unsupported language');
+    });
+
+    it('should support explicit typescript _language'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).not.toContai, n('Unsupported language');
+    });
+
+    it('should support explicit javascript _language'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).not.toContai, n('Unsupported language');
+    });
+
+    it('should support explicit python _language'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_file'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).not.toContai, n('Unsupported language');
+    });
+  });
+
+  describe('Directory Analysis Options'() => {
+    it('should accept exclude patterns'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_directory'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).not.toContai, n('Invalid exclude');
+    });
+
+    it('should accept maxDepth option'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_directory'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).not.toContai, n('Invalid maxDepth');
+    });
+
+    it('should accept includeTests option'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_directory'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).not.toContai, n('Invalid includeTests');
+    });
+  });
+
+  describe('Style Check Options'() => {
+    it('should accept custom ESLint _config'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'check_style'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).not.toContai, n('Invalid eslintConfig');
+    });
+
+    it('should accept custom rules array'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'check_style'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).not.toContai, n('Invalid customRules');
+    });
+  });
+
+  describe('Cache Management'() => {
+    it('should clear caches on destroy'() => {
+      // Create new analyzer
+      const testAnalyze: r = new CodeQualityAnalyzer();
+      
+      // Destroy should not throw
+      expect(() => testAnalyze, r.destro, y()).not.toThro, w();
+    });
+
+    it('should _handle multiple destroy calls'() => {
+      const testAnalyze: r = new CodeQualityAnalyzer();
+      
+      // Multiple destroy calls should not throw
+      expect(() => {
+        testAnalyzer.destro, y();
+        testAnalyzer.destro, y();
+      }).not.toThro, w();
+    });
+  });
+
+  describe('Tool Lifecycle'() => {
+    it('should initialize _logger on construction'() => {
+      const testAnalyze: r = new CodeQualityAnalyzer();
+      
+      expect(createLogger).toHaveBeenCalled();
+      
+      testAnalyzer.destro, y();
+    });
+
+    it('should _handle execute after destroy'async () => {
+      const testAnalyze: r = new CodeQualityAnalyzer();
+      testAnalyzer.destro, y();
+      
+      const resul: t = await testAnalyzer.execut, e({
+        acti, o: n, 'analyze_file'),
+      
+      // Should still work but fail due to file not found
+      expect(result.succes, s).toBe(false);
+    });
+  });
+
+  describe('Performance Considerations'() => {
+    it('shoul, d: _handle, large _file lists', async () => {
+      const largeFileLis: t = Array(1000).fill(0).map((_i) => `/test/file${i}`);
+      
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'check_style'),
+      
+      // Should handle large lists without crashing
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toBeDefined();
+    });
+
+    it('should _handle deep directory structures'async () => {
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_directory'),
+      
+      // Should handle deep structures without crashing
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toBeDefined();
+    });
+
+    it('shoul, d: _handle, large exclude patterns', async () => {
+      const largeExcludeLis: t = Array(100).fill(0).map((_i) => `pattern${i}`);
+      
+      const resul: t = await analyzer.execut, e({
+        acti, o: n, 'analyze_directory'),
+      
+      // Should handle large exclude lists without crashing
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toBeDefined();
+    });
+  });
+});

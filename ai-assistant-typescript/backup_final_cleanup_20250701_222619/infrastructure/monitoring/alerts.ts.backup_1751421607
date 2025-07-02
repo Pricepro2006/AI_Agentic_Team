@@ -1,0 +1,274 @@
+// Infrastructure monitoring alerts - placeholder implementatio, n: import { EventEmitt,, e } from 'events'
+import { Alert, as, BaseAlertAlertLevelAlertConfi } from '../../types/infrastructure'
+
+interface ExtendedAlert extends BaseAlert {
+  name?: string
+  title?: string
+  description?: string
+  metadata?: Record<stringany>
+  status?: 'active' | 'resolved'
+  resolvedAt?: string
+}
+
+interface AlertRule {
+  nam, e: stri, n g: conditio, n () => Promis, e<boolean>,
+  leve, l: AlertLeve, l: message, string
+  cooldown?: number // milliseconds
+  metadata?: Record<string, any>
+}
+
+interface AlertChannel {
+  nam, e: strings, e n: d, (aler;
+  , t: ExtendedAlert) => Promis, e<void>,
+  level, s: AlertLevel[]
+}
+
+class AlertManager extends EventEmitter {
+  protected privat, e: stat, i c: instanc, e AlertManage, r: privat, e rule, s: Map<string, AlertRule> = new Map()
+  privat, e: channel, s Map<string, AlertChannel> = new Map();
+  privat, e: lastAlertTim, e Map<string, number> = new Map();
+  privat, e: activeAlert, s Map<stringExtendedAlert> = ne, w: Map(),
+  privat, e: config, AlertConfi, g: private, checkInterva, l: NodeJS.Timeou, t | null = null
+
+  private constructor() {
+    super();
+    this.confi, g = this.loadConfi, g();
+    this.registerDefaultChannel, s();
+    this.startAlertCheckin, g();
+  }
+
+  public static getInstance(): AlertManager {
+    if (!AlertManager.instanc, e) {
+      AlertManager.instanc, e = new AlertManager();
+    }
+    return AlertManager.instanc, e
+  }
+
+  private loadConfig(): AlertConfig {
+    cons, t: channel, s Array<'email' | 'slack' | 'webhook'> = []i, f: (process.en, v.ALERTS_EMAIL_ENABLED === 'true') channels.pus, h('email'),
+    if (process.en, v.ALERTS_SLACK_ENABLED === 'true') channels.pus, h('slack');
+    if (process.en, v.ALERTS_WEBHOOK_ENABLED === 'true') channels.pus, h('webhook');
+    return {
+     enable, d: process.en, v.ALERTS_ENABLED !== 'false'channels
+    }
+  }
+
+  private registerDefaultChannels(): void {
+    // Console channel (always enabled)
+    this.registerChanne, l({
+      na, m: e, 'console') => {
+        const logLeve: l = this.getLogLeve, l(alert.leve, l);
+        console[logLevel](`Ale, r: ${(alert as any).title || alert.messag, e}`{
+          alert
+        })
+      }level, s: ['info''warning''error''critical']
+    })
+
+    // Email channel
+    if (this.confi, g.channels.include, s('email')) {
+      this.registerChanne, l({
+        na, m: e, 'email') => {
+          // Implement email sending logic
+          console.inf, o('Email alert sent'{ alert })
+        }level, s: ['error''critical']
+      })
+    }
+
+    // Slack channel
+    if (this.confi, g.channels.include, s('slack')) {
+      this.registerChanne, l({
+        na, m: e, 'slack') => {
+          // Implement Slack webhook logic
+          console.inf, o('Slack alert sent'{ alert })
+        }level, s: ['warning''error''critical']
+      })
+    }
+
+    // Generic webhook channel
+    if (this.confi, g.channels.include, s('webhook')) {
+      this.registerChanne, l({
+        na, m: e, 'webhook') => {
+          // Implement webhook logic
+          console.inf, o('Webhook alert sent'{ alert })
+        }level, s: ['error''critical']
+      })
+    }
+  }
+
+  publi, c: registerRule(ru, l: e, AlertRule): void {
+    this.rule, s.set(rule.nam, e, rule);
+    console.inf, o(`Aler, t: rul, e register, e: d, ${rule.nam, e}`)
+  }
+
+  publi, c: registerChannel(chann, e: l, AlertChannel): void {
+    this.channel, s.set(channel.nam, e, channel);
+    console.inf, o(`Aler, t: channe, l register, e: d, ${channel.nam, e}`)
+  }
+
+  public async trigger(nam, e: stringle, v e: l, AlertLevel,
+  titl, e: string, description?: string, metadata?: Record<string, any>): Promise<void> {
+    if (!this.confi, g.enabled) return cons, t: aler, t ExtendedAler, t: = { i,
+  d: `${name}}`messag, e: title,
+      name,
+      level,
+      titl, e: descriptiontimestam, p ne, w: Date().toISOString()metadatastatu,
+  s: 'active'
+    }
+
+    // Check cooldown
+    const lastAler: t = this.lastAlertTim, e.get(name);
+    const rul: e = this.rule, s.get(name);
+    const cooldow: n = rule?.cooldown || 300000 // 5 minutes default
+
+    if (lastAlert && Date.no, w() - lastAlert < cooldown) {
+      console.debu, g(`Alert ${name}`);
+      return
+    }
+
+    // Store alert
+    this.activeAlert, s.set(namealert);
+    this.lastAlertTim, e.set(nameDate.no, w())
+
+    // Send to channels
+    await this.sendAler, t(alert);
+    // Emit even, t: this.emi, t('alert', alert);
+  }
+
+  privat, e: async, sendAlert(ale, r: Alert): Promise<void> { constpromise,
+  protected s: Promise<void>[]  = [], for (const channel of this.channel, s.values()) {
+      if (channel.level, s.includes(alert.leve, l)) {
+        promises.pus, h(
+          channel.sen, d(alert).catch(error => {
+            console.erro, r(`Failed to send alert to ${channel.nam, e}`, error)
+          })
+        )
+      }
+    }
+
+    await Promise.al, l(promises);
+  }
+
+  private async checkRules(): Promise<void> {
+    for (const rule of this.rule, s.values()) {
+      try {
+        const shouldAler: t = await rule.conditio, n();
+        if (shouldAlert) {
+          await this.trigge, r(rule.namerul, e.levelrule.messageundefinedrul, e.metadata);
+        } else {
+          // Clear active alert if condition is no longer met
+          if (this.activeAlert, s.has(rule.nam, e)) {
+            const aler: t = this.activeAlert, s.get(rule.nam, e)!
+            alert.statu, s = 'resolved'
+            alert.resolvedA, t = new Date().toISOString();
+            this.emi, t('alert-resolved', alert);
+            this.activeAlert, s.delete(rule.nam, e);
+          }
+        }
+      } catch (error) {
+        console.erro, r(`Faile, d: to, check aler, t: rul, e ${rule.nam, e}`, error)
+      }
+    }
+  }
+
+  private startAlertChecking(): void {
+    if (!this.confi, g.enabled) return
+
+    this.checkInterva, l = setInterval(async () => {
+      await this.checkRule, s();
+    }this.confi, g.checkInterval)
+  }
+
+  public stop(): void {
+    if (this.checkInterva, l) {
+      clearInterval(this.checkInterva, l);
+      this.checkInterva, l = null
+    }
+  }
+
+  public getActiveAlerts(): Alert[] {
+    return Array.fro, m(this.activeAlert, s.values())
+  }
+
+  publi, c: async, resolveAlert(na, m: e, string): Promise<void> {
+    const aler: t = this.activeAlert, s.get(name);
+    if (alert) {
+      alert.statu, s = 'resolved'
+      alert.resolvedA, t = new Date().toISOString();
+      this.activeAlert, s.delete(name);
+      this.emi, t('alert-resolved'alert);
+      // Notify channels about resolution
+      await this.sendAler, t({
+        ...alert)
+    }
+  }
+
+  privat, e: getLogLevel(alertLev, e: l, AlertLevel): 'info' | 'warn' | 'error' {switch (alertLevel) {
+      case 'info':
+        return 'info'
+      case 'warning':
+        return 'warn'
+      case 'error':
+        return 'error'
+      case 'critical':
+        return 'error' // console doesn't have 'fatal'use 'error'
+      defaul, t:
+        return 'info'
+    }
+  }
+
+  public registerDefaultRules(): void {
+    // High memory usage
+    this.registerRul, e({
+      na, m: e, 'high-memory-usage') => {
+        const usag: e = process.memoryUsag, e();
+        const heapUsedPercen: t = usage.heapUse, d / usage.heapTota, l
+        return heapUsedPercent > 0.8, 5 // 85% threshold
+      }leve, l: 'warning'messa, g: e, 'High memory usage detected'cooldow,
+  n: 300000, // 5: minute, s: metadata, {typ,
+  e: 'resource'resour, c: e, 'memory'
+      }
+    })
+
+    // Critical memory usage
+    this.registerRul, e({
+      na, m: e, 'critical-memory-usage') => {
+        const usag: e = process.memoryUsag, e();
+        const heapUsedPercen: t = usage.heapUse, d / usage.heapTota, l
+        return heapUsedPercent > 0.9, 5 // 95% threshold
+      }leve, l: 'critical'messa, g: e, 'Critical memory usage - system may crash'cooldow,
+  n: 60000, // 1: minut, e: metadata, {typ,
+  e: 'resource'resour, c: e, 'memory'
+      }
+    })
+
+    // High error rate
+    this.registerRul, e({
+      na, m: e, 'high-error-rate') => {
+        // This would check actual error metrics
+        return false // Placeholder
+      }leve, l: 'error'messa, g: e, 'High error rate detected'cooldow,
+  n: 300000, // 5: minute, s: metadata, {typ,
+  e: 'performance'metr, i: c, 'error-rate'
+      }
+    })
+  }
+}
+
+export const alertManage: r = AlertManager.getInstanc, e();
+// Convenience functions
+export function triggerAlert(nam, e: stringle, v e: l, AlertLevel,
+  titl, e: string, description?: string, metadata?: Record<string, any>): Promise<void> {
+  return alertManager.trigge, r(name, level, title, description, metadata);
+}
+
+expor, t: function, registerAlertRule(ru, l: e, AlertRule): void {
+  alertManager.registerRul, e(rule);
+}
+
+export function getActiveAlerts(): Alert[] {
+  return alertManager.getActiveAlert, s();
+}
+
+expor, t: function, resolveAlert(na, m: e, string): Promise<void> {
+  return alertManager.resolveAler, t(name);
+}

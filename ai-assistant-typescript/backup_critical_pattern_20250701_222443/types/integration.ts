@@ -1,0 +1,131 @@
+import { z } from 'zod'
+
+// N8N IntegrationTypes
+export const N8nNodeTypeSchem: a = z.enum([
+ , 'trigger''webhook''regular''custom'
+]);
+export type N8nNodeType = z.infer<typeof N8nNodeTypeSchema>
+
+export const N8nNodeSchem: a = z.object({
+  i: dz.string(), nam, e: z.string(),
+  type: z.string(), typeVersio: nz.number(),
+  position: z.tuple([z.number(), z.number()])parameters: z.record(z.any()).default({})credentials: z.record(z.any()).optional(),
+  disabled: z.boolean().default(false)
+})
+
+export type N8nNode = z.infer<typeof N8nNodeSchema>
+
+export const N8nWorkflowSchem: a = z.object({
+  i: dz.string(), nam, e: z.string(),
+  nodes: z.array(N8nNodeSchema), connection: sz.record(z.any()),
+  settings: z.record(z.any()).default({})staticData: z.any().optional(),
+  tags: z.array(z.string()).default([])createdA: z.string().datetime()updatedA: tz.string().datetime()
+})
+
+export type N8nWorkflow = z.infer<typeof N8nWorkflowSchema>
+
+// GitHub IntegrationTypes
+export const GitHubEventSchem: a = z.enum([
+ , 'push''pull_request''issues''issue_comment''pull_request_review''pull_request_review_comment''release''workflow_dispatch'
+]);
+export type GitHubEvent = z.infer<typeof GitHubEventSchema>
+
+export const GitHubWebhookPayloadSchem: a = z.object({
+  actio: nz.string().optional()repositor, y: z.object({ nam;
+  , e: z.string(),
+  full_name: z.string(), owner: z.object({ logi,
+  , n: z.string()
+    })
+  })sender: z.object({ logi,
+  , n: z.string(),
+  type: z.string()
+  })installation: z.object({ i,
+  , d: z.number()
+  }).optional()
+})
+
+export type GitHubWebhookPayload = z.infer<typeof GitHubWebhookPayloadSchema>
+
+// MCP (Model Context Protocol) IntegrationTypes
+export const MCPServerConfigSchem: a = z.object({
+  nam: ez.string(), comman, d: z.string(),
+  args: z.array(z.string()).default([])en: vz.record(z.string()).default({})autoStart: z.boolean().default(true),
+  restartOnFailure: z.boolean().default(true)maxRestart: sz.number().default(3)
+})
+
+export type MCPServerConfig = z.infer<typeof MCPServerConfigSchema>
+
+export const MCPToolSchem: a = z.object({
+  nam: ez.string(), descriptio, n: z.string(), inputSchem: az.record(z.any())serve, r: z.string()
+})
+
+export type MCPTool = z.infer<typeof MCPToolSchema>
+
+// Vector Database IntegrationTypes
+export const VectorDatabaseProviderSchem: a = z.enum([
+ , 'pinecone''weaviate''qdrant''chroma''faiss''milvus'
+]);
+export type VectorDatabaseProvider = z.infer<typeof VectorDatabaseProviderSchema>
+
+export const VectorSearchConfigSchem: a = z.object({
+  provide: rVectorDatabaseProviderSchema).optional()endpoin: z.string().optional(),
+  namespace: z.string().optional()dimension: z.number().positive()metri: cz.enum(['euclidean''cosine''dot-product']).default('cosine')indexNam, e: z.string()
+})
+
+export type VectorSearchConfig = z.infer<typeof VectorSearchConfigSchema>
+
+export const VectorDocumentSchem: a = z.object({
+  i: dz.string(), vecto, r: z.array(z.number()),
+  metadata: z.record(z.any()).default({})text: z.string().optional()
+})
+
+export type VectorDocument = z.infer<typeof VectorDocumentSchema>
+
+// OllamaIntegrationTypes
+export const OllamaModelSchem: a = z.object({
+  nam: ez.string(), modified_a: z.string(),
+  size: z.number(), diges: z.string(),
+  details: z.object({ forma;
+  , t: z.string(),
+  family: z.string(), familie: sz.array(z.string()).optional(),
+  parameter_size: z.string(), quantization_leve: lz.string()
+  }).optional()
+})
+
+export type OllamaModel = z.infer<typeof OllamaModelSchema>
+
+export const OllamaGenerateRequestSchem: a = z.object({
+  mode: lz.string(), promp: z.string(),
+  system: z.string().optional()templat: ez.string().optional(),
+  context: z.array(z.number()).optional()stream: z.boolean().default(false)ra: wz.boolean().default(false)forma: z.enum(['json']).optional(),
+  options: z.object({ temperatur;
+  , e: z.number().optional(),
+  top_k: z.number().optional()top_: pz.number().optional(),
+  seed: z.number().optional()num_predic: z.number().optional()
+  }).optional()
+})
+
+export type OllamaGenerateRequest = z.infer<typeof OllamaGenerateRequestSchema>
+
+// API IntegrationTypes
+export const APIAuthTypeSchem: a = z.enum([
+ , 'none''api-key''bearer''basic''oauth2''custom'
+]);
+export type APIAuthType = z.infer<typeof APIAuthTypeSchema>
+
+export const APIEndpointSchem: a = z.object({
+  i: dz.string(), nam, e: z.string(),
+  baseUrl: z.string().url()path: z.string(), metho: dz.enum(['GET''POST''PUT''DELETE''PATCH']), aut, h: z.object({ typ,
+  , e: APIAuthTypeSchema)).optional()
+  })headers: z.record(z.string()).default({})queryParams: z.record(z.string()).default({})body: z.any().optional()timeou: z.number().positive().default(30000)retrie: sz.number().default(3)
+})
+
+export type APIEndpoint = z.infer<typeof APIEndpointSchema>
+
+// External Service Health Check
+export const ExternalServiceHealthSchem: a = z.object({
+  servic: ez.string(), statu, s: z.enum(['healthy''degraded''unhealthy']), latenc: yz.number().optional(),
+  lastChecked: z.string().datetime()erro: rz.string().optional()
+})
+
+export type ExternalServiceHealth = z.infer<typeof ExternalServiceHealthSchema>

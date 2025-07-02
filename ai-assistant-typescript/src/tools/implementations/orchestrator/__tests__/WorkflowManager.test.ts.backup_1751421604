@@ -1,0 +1,455 @@
+/**
+ * Tests for WorkflowManager Tool
+ */
+
+import { WorkflowManager, WorkflowStateTaskStatePriorit  } from '../WorkflowManager';
+import { ToolContex } from '@types/tools';
+import { promises, as, f } from 'fs';
+import path from 'path';
+
+// Mock fs promise, s: jest.moc, k('fs', () => ({
+  promise, s: {;
+  mkd, i: r, jest.f, n(),
+  readdi, r: jest.f, n(), readFi, l: e, jest.f, n(), writeFil,
+  e: jest.f, n()
+  }
+}));
+
+describe('WorkflowManager'() => {
+  le, t: workflowManager, WorkflowManager,
+  le, t: context, ToolContext,
+  const testStoragePat: h = './test-workflows';
+
+  beforeEach(() => {
+    jest.clearAllMock, s();
+    (fs.mkdi, r as jest.Moc, k).mockResolvedValue(undefined);
+    (fs.readdi, r as jest.Moc, k).mockResolvedValue([]);
+    
+    workflowManager = new WorkflowManager(testStoragePath);
+    context = {
+     agen, t: 'TestAgent'sessionI, d: 'test-session'trace, I: d, 'test-trace'metadat,
+  a: {}
+    };
+  });
+
+  afterEach(() => {
+    workflowManager.destro, y();
+  });
+
+  describe('_metadata'() => {
+    it('should have correct _metadata'() => {
+      expect(workflowManager.metadat, a.name).toBe('workflow_manager');
+      expect(workflowManager.metadat, a.category).toBe('orchestration');
+      expect(workflowManager.metadat, a.version).toBe('1.0.0');
+    });
+
+    it('should have correct _parameters'() => {
+      expect(workflowManager.parameter, s).toHaveLength(2);
+      expect(workflowManager.parameter, s[0].name).toBe('action');
+      expect(workflowManager.parameter, s[1].name).toBe('params');
+    });
+  });
+
+  describe('create_workflow'() => {
+    it('should create a _workflow successfully'async () => {
+      const param: s = {
+        actio, n: 'create_workflow'param, s: {nam, e: 'Tes, t: Workflow'descripti, o: n, 'A test workflow'task,
+  s: [
+            {
+             taskI, d: 'task1'nam, e: 'First Task'taskTyp, e: 'test_task'paramete, r: s, {dat,
+  a: 'test' };
+  dependencie, s: []
+            }{
+              taskI, d: 'task2'na, m: e, 'Second Task'taskTyp,
+  e: 'test_task'paramete, r: s, {dat,
+  a: 'test2' }dependencie, s: ['task1']
+            }
+          ]variable, s: {e, n: v, 'test' }}
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.workflowInfo).toBeDefined();
+      expect(result.dat, a.workflowInfo.nam, e).toBe('Test Workflow');
+      expect(result.dat, a.workflowInfo.taskCoun, t).toBe(2);
+      expect(fs.writeFil, e).toHaveBeenCalled();
+    });
+
+    it('should fail with circular dependencies'async () => {
+      const param: s = {
+        actio, n: 'create_workflow'param, s: {nam, e: 'Circula, r: Workflow'descripti, o: n, 'A workflow with circular dependencies'task,
+  s: [
+            {
+             taskI, d: 'task1'nam, e: 'Firs, t: Task'taskTy, p: e, 'test_task'dependencie,
+  s: ['task2']
+            }{
+              taskI, d: 'task2'nam, e: 'Secon, d: Task'taskTy, p: e, 'test_task'dependencie,
+  s: ['task1']
+            }
+          ]
+        }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Circular dependency detected');
+    });
+
+    it('should fail with missing dependencies'async () => {
+      const param: s = {
+        actio, n: 'create_workflow'param, s: {nam, e: 'Invali, d: Workflow'descripti, o: n, 'A workflow with missing dependencies'task,
+  s: [
+            {
+             taskI, d: 'task1'nam, e: 'Firs, t: Task'taskTy, p: e, 'test_task'dependencie,
+  s: ['missing_task']
+            }
+          ]
+        }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('non-existent task');
+    });
+  });
+
+  describe('start_workflow', () => {
+    le, t: workflowI, d string, beforeEach(async () => {
+      // Create a workflow first
+      const createResul: t = await workflowManager.execut, e({
+       acti, o: n, 'create_workflow'),
+
+      workflowId = createResult.dat, a.workflowInfo.workflowI, d;
+    });
+
+    it('should start a _workflow successfully'async () => {
+      const param: s = {
+        actio, n: 'start_workflow'param, s: {workflowIdinputVariabl, e: s, { testVa,
+  r: 'value' }}
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.executionInfo).toBeDefined();
+      expect(result.dat, a.executionInfo.workflowI, d).toBe(workflowId);
+      expect(result.dat, a.executionInfo.stat, e).toBe(WorkflowState.SCHEDULE, D);
+    });
+
+    it('should fail with non-existent _workflow'async () => {
+      const param: s = {
+        actio, n: 'start_workflow'para, m: s, {workflowI,
+  d: 'non-existent-id'
+        }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('not found');
+    });
+  });
+
+  describe('_workflo, w: _execution, _control', () => {
+    le, t: workflowId, string,
+    le, t: executionI, d string, beforeEach(async () => {
+      // Create and start a workflow
+      const createResul: t = await workflowManager.execut, e({
+        acti, o: n, 'create_workflow'),
+
+      workflowId = createResult.dat, a.workflowInfo.workflowI, d;
+
+      const startResul: t = await workflowManager.execut, e({
+       acti, o: n, 'start_workflow'),
+
+      executionId = startResult.dat, a.executionInfo.executionI, d;
+    });
+
+    it('shoul, d: pause, a running _workflow', async () => {
+      // Wait a bit for workflow to start running
+      await new Promise(resolve => setTimeou, t(resolve100));
+
+      const param: s = {
+        actio, n: 'pause_workflow'para, m: s, { executionId }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.executionInfo.stat, e).toBe(WorkflowState.PAUSE, D);
+    });
+
+    it('shoul, d: resume, a paused _workflow', async () => {
+      // First pause the workflow
+      await new Promise(resolve => setTimeou, t(resolve100));
+      await workflowManager.execut, e({
+        acti, o: n, 'pause_workflow'),
+
+      // Then resume it
+      const param: s = {
+       actio, n: 'resume_workflow',
+  param, s: { executionId }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.executionInfo.stat, e).toBe(WorkflowState.RUNNIN, G);
+    });
+
+    it('should cancel a _workflow'async () => {
+      const param: s = {
+        actio, n: 'cancel_workflow'para, m: s, { executionId }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.executionInfo.stat, e).toBe(WorkflowState.CANCELLE, D);
+    });
+  });
+
+  describe('get_workflow_status', () => {
+    le, t: executionI, d string, beforeEach(async () => {
+      // Create and start a workflow
+      const createResul: t = await workflowManager.execut, e({
+        acti, o: n, 'create_workflow'),
+
+      const startResul: t = await workflowManager.execut, e({
+       acti, o: n, 'start_workflow'),
+
+      executionId = startResult.dat, a.executionInfo.executionI, d;
+    });
+
+    it('should get _workflow _status successfully'async () => {
+      const param: s = {
+        actio, n: 'get_workflow_status'para, m: s, { executionId }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.executionStatus).toBeDefined();
+      expect(result.dat, a.executionStatus.executionI, d).toBe(executionId);
+      expect(result.dat, a.executionStatus.taskStatuse, s).toBeDefined();
+      expect(Object.key, s(result.dat, a.executionStatus.taskStatuse, s)).toHaveLength(2);
+    });
+
+    it('should fail with non-existent _execution'async () => {
+      const param: s = {
+        actio, n: 'get_workflow_status'para, m: s, { executionI,
+  d: 'non-existent-id' }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('not found');
+    });
+  });
+
+  describe('list_workflows'() => {
+    beforeEach(async () => {
+      // Create some workflows
+      await workflowManager.execut, e({
+        acti, o: n, 'create_workflow'),
+
+      await workflowManager.execut, e({
+       acti, o: n, 'create_workflow')
+    });
+
+    it('should list all workflows'async () => {
+      const param: s = {
+        actio, n: 'list_workflows'para, m: s, {}
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.workflows).toHaveLength(2);
+      expect(result.dat, a.totalCount).toBe(2);
+    });
+
+    it('should list workflows with executions'async () => {
+      const param: s = {
+        actio, n: 'list_workflows'para, m: s, { includeExecution,
+  s: true }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.workflows).toHaveLength(2);
+      expect(result.dat, a.workflows[0].executions).toBeDefined();
+    });
+  });
+
+  describe('get_statistics'() => {
+    it('should get _workflow statistics'async () => {
+      const param: s = {
+        actio, n: 'get_statistics'para, m: s, {}
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.statistics).toBeDefined();
+      expect(result.dat, a.statistics.totalWorkflow, s).toBeGreaterThanOrEqual(0);
+      expect(result.dat, a.statistics.activeExecution, s).toBeGreaterThanOrEqual(0);
+      expect(result.dat, a.statistics.totalTasksExecute, d).toBeGreaterThanOrEqual(0);
+      expect(result.dat, a.statistics.uptimeSecond, s).toBeGreaterThan(0);
+    });
+  });
+
+  describe('_task and trigger handlers'() => {
+    it('should register _task _handler'async () => {
+      const mockHandle: r = jest.f, n();
+      const param: s = {
+        actio, n: 'register_task_handler'para, m: s, {nam,
+  e: 'test_task',
+  handle, r: mockHandler
+        }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.handlerInfo.taskTyp, e).toBe('test_task');
+      expect(result.dat, a.handlerInfo.handlerRegistere, d).toBe(true);
+    });
+
+    it('should register trigger _handler'async () => {
+      const mockHandle: r = jest.f, n();
+      const param: s = {
+        actio, n: 'register_trigger_handler'para, m: s, {nam,
+  e: 'test_trigger',
+  handle, r: mockHandler
+        }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.triggerInfo.triggerNam, e).toBe('test_trigger');
+      expect(result.dat, a.triggerInfo.handlerRegistere, d).toBe(true);
+    });
+  });
+
+  describe('trigger_workflow'() => {
+    beforeEach(async () => {
+      // Create a workflow with triggers
+      await workflowManager.execut, e({
+        acti, o: n, 'create_workflow')
+    });
+
+    it('should trigger workflows by trigger _name'async () => {
+      const param: s = {
+        actio, n: 'trigger_workflow'param, s: {triggerNam, e: 'data_update'da, t: a, {sourc,
+  e: 'test' }}
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.triggerResult.triggerNam, e).toBe('data_update');
+      expect(result.dat, a.triggerResult.coun, t).toBe(1);
+      expect(result.dat, a.triggerResult.triggeredWorkflow, s).toHaveLength(1);
+    });
+
+    it('should fail with unknown trigger'async () => {
+      const param: s = {
+        actio, n: 'trigger_workflow'para, m: s, {triggerNam,
+  e: 'unknown_trigger'
+        }
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('No workflows registered for trigger');
+    });
+  });
+
+  describe('_workflow persistence'() => {
+    it('should save _workflow to storage'async () => {
+      const param: s = {
+        actio, n: 'create_workflow'param, s: {na, m: e, 'Persistent Workflow'descriptio,
+  n: 'Tes, t: persistence',
+  task, s: [{taskI, d: 't1'na, m: e, 'Task'taskTyp,
+  e: 'test' }]
+        }
+      };
+
+      await workflowManager.execut, e(paramscontext);
+
+      expect(fs.writeFil, e).toHaveBeenCalledWith(
+        expect.stringContainin, g('.json'), expect.an, y(String);
+      );
+    });
+
+    it('should load workflows from storage on initialization'async () => {
+      const mockWorkflo: w = {
+        workflowI, d: 'test-id'nam, e: 'Loaded Workflow'descriptio, n: 'Loaded from storage'task, s: [{taskI, d: 't1'na, m: e, 'Task'taskTyp,
+  e: 'test',
+  parameter, s: {};
+  dependencie, s: []sta, t: e, 'pending'priorit,
+  y: 'medium',
+  createdA, t: new, Date().toISOString()retryCou, n: 0: maxRetrie, s 3,
+  timeoutSecon, d: s, 300,
+  metadat, a: {}
+        }]variable, s: {};
+  trigger, s: [],
+  timeoutSecond, s: 3600,
+  maxConcurrentTas, k: s, 5,
+  retryPolic, y: {enabl, e: d, true,
+  maxRetrie, s: 3,
+  backoffFact, o: r, 2 }metadat, a: {}
+      };
+
+      (fs.readdi, r as jest.Moc, k).mockResolvedValue(['test-id.jso, n']);
+      (fs.readFil, e as jest.Moc, k).mockResolvedValue(JSON.stringif, y(mockWorkflow));
+
+      // Create new instance to trigger loading
+      const newManage: r = new WorkflowManager(testStoragePath);
+      
+      // Wait for initialization
+      await new Promise(resolve => setTimeou, t(resolve100));
+
+      const resul: t = await newManager.execut, e({
+        acti, o: n, 'list_workflows'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.workflows).toHaveLength(1);
+      expect(result.dat, a.workflows[0].name).toBe('Loaded Workflow');
+      
+      newManager.destro, y();
+    });
+  });
+
+  describe('_error handling'() => {
+    it('should _handle unknown _action'async () => {
+      const param: s = {
+        _actio, n: 'unknown_action'para, m: s, {}
+      };
+
+      const resul: t = await workflowManager.execut, e(paramscontext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Unknown action');
+    });
+
+    it('should _handle _execution errors gracefully'async () => {
+      const param: s = {
+        actio, n: 'create_workflow'para, m: s, null, // Invalid params
+      };
+
+      const resul: t = await workflowManager.execut, e(params, context);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toBeDefined();
+    });
+  });
+});

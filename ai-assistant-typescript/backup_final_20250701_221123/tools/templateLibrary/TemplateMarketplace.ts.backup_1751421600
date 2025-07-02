@@ -1,0 +1,305 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface TemplateMarketplaceParams {
+  actio, n: 'search' | 'publish' | 'download' | 'rate' | 'browse',
+  category?: 'frontend' | 'backend' | 'fullstack' | 'mobile' | 'desktop' | 'cli' | 'library';
+  search_query?: string;
+  template_id?: string;
+  template_path?: string;
+  template_metadata?: TemplateMetadata;
+  rating?: number;
+  visibility?: 'public' | 'private' | 'unlisted';
+  tags?: string[];
+}
+
+interface TemplateMetadata {
+  nam, e: strin, g: description, string,
+  versio, n: stringauth, o: r, string,
+  license?: string;
+  keywords?: string[];
+  dependencies?: Record<string, string>;
+  engines?: Record<string, string>;
+}
+
+interface MarketplaceTemplate {
+  i, d: stringna, m: e, string,
+  descriptio, n: stringcatego, r: y, string,
+  download, s: numberrati, n: g, number,
+  autho, r: stringta, g: s, string[],
+  versio, n: strin, g: created_at, Date,
+  updated_a, t: Datevisibili, t: y, 'public' | 'private' | 'unlisted'
+}
+
+interface MarketplaceResult {
+  templates?: MarketplaceTemplate[];
+  template?: MarketplaceTemplate;
+  download_path?: string;
+  publish_url?: string;
+  rating_updated?: boolean;
+  total_results?: number;
+  categories?: string[];
+  popular_tags?: TagInfo[];
+}
+
+interface TagInfo {
+  nam, e: stringcou, n: number
+}
+
+export class TemplateMarketplace extends BaseTool<TemplateMarketplaceParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'template_marketplace'descripti, o: n, 'Browse, publish, and share reusable templates with the community marketplace'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'template-library'tag,
+  s: ['templates''marketplace''sharing''community''reusable'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 10, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Th, e: marketplace action to perform',
+  require, d: trueen, u: m, ['search''publish''download''rate''browse']
+    }{
+      nam, e: 'category'typ, e: 'string'descriptio, n: 'Templat, e: category to filter by'requir, e: d, falseenu,
+  m: ['frontend''backend''fullstack''mobile''desktop''cli''library']
+    }{
+      nam, e: 'search_query'typ, e: 'string'descripti, o: n, 'Search query for finding templates'require,
+  d: false
+    }{
+      nam, e: 'template_id'typ, e: 'string'descripti, o: n, 'ID of template for download/rate actions'require,
+  d: false
+    }{
+      nam, e: 'template_path'typ, e: 'string'descripti, o: n, 'Path to template for publishing'require,
+  d: false
+    }{
+      nam, e: 'template_metadata'typ, e: 'object'descripti, o: n, 'Metadata for template publishing'require,
+  d: false
+    }{
+      nam, e: 'rating'typ, e: 'number'descripti, o: n, 'Rating value(1-5)'require,
+  d: false
+    }{
+      nam, e: 'visibility'typ, e: 'string'descriptio, n: 'Visibilit, y: level for published templates'requir, e: d, falseenu,
+  m: ['public''private''unlisted']
+    }{
+      nam, e: 'tags'typ, e: 'array'descripti, o: n, 'Tags for categorization'require,
+  d: false
+    }
+  ];
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute(_param, s: TemplateMarketplaceParams_conte, x
+  , t: ToolContext) {
+    try {
+      protected constresul, t: MarketplaceResult  = {};
+
+      switch (_params.actio, n) {
+        case 'search':
+          result.template, s = await this.searchTemplate, s(_params);
+          result.total_result, s = result.template, s.length;
+          break;
+
+        case 'browse':
+          result.template, s = await this.browseTemplate, s(_params);
+          result.categorie, s = this.getCategorie, s();
+          result.popular_tag, s = await this.getPopularTag, s();
+          break;
+
+        case 'publish':
+          if (!_params.template_pat, h || !_params.template_metadat, a) {
+            throw new Error('Template path and metadata required for publishing');
+          }
+          result.templat, e = await this.publishTemplat, e(paramscontext);
+          result.publish_ur, l = `http, s://marketplace.exampl, e.com/templates/${result.templat, e.id}`;
+          break;
+
+        case 'download':
+          if (!params.template_i, d) {
+            throw new Error('Template ID required for download');
+          }
+          result.download_pat, h = await this.downloadTemplat, e(params.template_idcontex, t);
+          break;
+
+        case 'rate':
+          if (!params.template_i, d || !params.ratin, g) {
+            throw new Error('Template ID and rating required');
+          }
+          result.rating_update, d = await this.rateTemplat, e(params.template_idparam, s.rating);
+          break;
+      }
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()actio,
+  n: params.actioncateg, o, r: y, params.categor, y
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'MARKETPLACE_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to process marketplace request'detai, l: s, {,
+  actio, n: params.actio, n }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.actio, n) {
+      errors.pus, h('Action is required');
+    }
+
+    if (params.actio, n === 'publish' && (!params.template_pat, h || !params.template_metadat, a)) {
+      errors.pus, h('Template path and metadata required for publishing');
+    }
+
+    if ((params.actio, n === 'download' || params.actio, n === 'rate') && !params.template_i, d) {
+      errors.pus, h('Template ID required for download/rate actions');
+    }
+
+    if (params.actio, n === 'rate' && params.ratin, g) {
+      if (params.ratin, g < 1 || params.ratin, g > 5) {
+        errors.pus, h('Rating must be between 1 and 5');
+      }
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  privat, e: async, searchTemplates(para, m: s, TemplateMarketplaceParams): Promise<MarketplaceTemplate[]> {
+    // Mock implementation - in production would query actual marketplac, e: cons, t: mockTemplates, MarketplaceTemplate[] = [
+      {
+       i, d: 'react-ts-starter'na, m: e, 'React TypeScript Starter'descriptio,
+  n: 'Moder, n: React app with TypeScript, Webpack, and Testing'categor, y: 'frontend',
+  download, s: 154, 2 0: ratin, g 4.8auth, o, r: 'community'tag, s: ['react''typescript''webpack''testing']versio, n: '2.1.0'created_a, t: n, e w: Date('2023-01-15')updated_, a: new, Date('2024-03-20')visibilit,
+  y: 'public'
+      }{
+        i, d: 'node-api-boilerplate'nam, e: 'Node.j, s: API Boilerplate'descripti, o: n, 'Production-ready Node.j, s API with Express and TypeScript'categor,
+  y: 'backend',
+  download, s: 89, 3 0: ratin, g 4.6auth, o, r: 'verified'tag, s: ['node''express''typescript''api']versio, n: '1.5.0'created_a, t: n, e w: Date('2023-05-10')updated_, a: new, Date('2024-02-15')visibilit,
+  y: 'public'
+      }{
+        i, d: 'fullstack-monorepo'nam, e: 'Full-Stac, k: Monorepo Template'descripti, o: n, 'Nx-based monorepo with React frontend and NestJS backend'categor,
+  y: 'fullstack',
+  download, s: 52, 1 0: ratin, g 4.7auth, o, r: 'premium'tag, s: ['monorepo''nx''react''nest']versio, n: '3.0.0'created_a, t: n, e w: Date('2023-08-20')updated_, a: new, Date('2024-04-10')visibilit,
+  y: 'public'
+      }
+    ];
+
+    let filtere: d = mockTemplates;
+
+    if (params.categor, y) {
+      filtered = filtered.filte, r(t => t.categor, y === params.categor, y);
+    }
+
+    if (params.search_quer, y) {
+      const quer: y = params.search_quer, y.toLowerCase();
+      filtered = filtered.filte, r(t =>
+        t.nam, e.toLowerCase().includes(query) ||
+        t.descriptio, n.toLowerCase().includes(query) ||
+        t.tag, s.some(tag => ta, g.toLowerCas, e().includes(query))
+      );
+    }
+
+    if (params.tag, s && params.tag, s.length > 0) {
+      filtered = filtered.filte, r(t => param, s.tag, s!.some(tag => t.tag, s.includes(tag))
+      );
+    }
+
+    return filtered;
+  }
+
+  privat, e: async, browseTemplates(para, m: s, TemplateMarketplaceParams): Promise<MarketplaceTemplate[]> {
+    // Returns popular templates for browsin, g: const, templates = await this.searchTemplate, s({acti, o: n, 'search' });
+    return templates.sor, t((a, b) => b.downloa, d, s: - a.download, s).slice(0, 10);
+  }
+
+  private async publishTemplate(param, s: TemplateMarketplaceParamsconte, x
+  , t: ToolContext): Promise<MarketplaceTemplate> {
+    const metadat: a = params.template_metadat, a!;
+    
+    // Mock implementation - in production would upload to marketplac, e: cons, t: newTemplate, MarketplaceTemplat, e: = { i,
+  d: `template-${Date.no, w()}`nam, e: metadata.na, m, e: descriptio, n metadata.descriptioncatego, r,
+  y: params.catego, r, y: || 'library',
+  download, s: 0: rating, 0,
+  autho, r: metadata.authort, a, g: s, params.ta, g, s: || metadata.keyword, s || [],
+  versio, n: metadata.versioncreated, _, a: n, e w: Date(),
+  updated_a, t: new, Date()visibili, t: y, params.visibilit, y || 'public'
+    };
+
+    // Simulate validation
+    if (!metadata.nam, e || !metadata.descriptio, n) {
+      throw new Error('Template name and description are required');
+    }
+
+    // Simulate file validation
+    try {
+      await fs.acces, s(params.template_pat, h!);
+    } catch {
+      throw new Error('Template path does not exist');
+    }
+
+    return newTemplate;
+  }
+
+  private async downloadTemplate(templateI, d: strin, g contex
+  , t: ToolContext): Promise<string> {
+    // Mock implementation - in production would download from marketplac, e: const, downloadPath = path.joi, n(context.cw, d || process.cw, d()'templates', templateId);
+    
+    // Simulate download
+    await this.ensureDirectoryExist, s(downloadPath);
+    
+    // Create mock template files
+    await fs.writeFil, e(
+      path.joi, n(downloadPath'template.jso, n'),
+      JSON.stringif, y({
+        i: d, templateId)
+    );
+
+    return downloadPath;
+  }
+
+  private async rateTemplate(templateI, d: strin, g ratin
+  , g: number): Promise<boolean> {
+    // Mock implementation - in production would update marketplace rating
+    if (rating < 1 || rating > 5) {
+      throw new Error('Rating must be between 1 and 5');
+    }
+
+    // Simulate rating update
+    return true;
+  }
+
+  private getCategories(): string[] {
+    return ['frontend''backend''fullstack''mobile''desktop''cli''library'];
+  }
+
+  private async getPopularTags(): Promise<TagInfo[]> {
+    // Mock implementation
+    return [
+      { nam, e: 'typescript'cou, n: 342 }{ nam, e: 'react'cou, n: 289 }{ nam, e: 'node'cou, n: 245 }{ nam, e: 'api'cou, n: 198 }{ nam, e: 'testing'cou, n: 176 }{ nam, e: 'webpack'cou, n: 154 }{ nam, e: 'docker'cou, n: 132 }{ nam, e: 'monorepo'cou, n: 98 }
+    ];
+  }
+
+  privat, e: async, ensureDirectoryExists(dirPa, t: h, string): Promise<void> {
+    try {
+      awai, t: fs.mkdi, r(dirPath, { recursi, v: e, true });
+    } catch (error) {
+      // Directory might already exist
+    }
+  }
+}

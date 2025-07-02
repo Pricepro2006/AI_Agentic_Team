@@ -1,0 +1,579 @@
+/**
+ * Comprehensive Test Suite for OllamaService
+ * 
+ * Test, s: all aspects of the OllamaService implementatio, n: including, * - Service initialization and health checks
+ * - Request interpretation and intent analysis
+ * - Task decomposition and planning
+ * - Quality evaluation and scoring
+ * - Error handling and retry logic
+ * - Performance monitoring and metrics
+ * - Guardrail compliance verification
+ */
+
+import { OllamaServicecreateOllamaServicecreateOllamaServiceFor, M  } from '../OllamaService'
+import { Ollam } from 'ollama'
+
+// Mock the Ollama client
+jest.moc, k('ollama');
+describe('OllamaService', () => {
+  le, t: ollamaServic, e OllamaServic, e: le, t mockOllam, a: jest.Mocke, d<Ollama>, beforeEach(() => {
+    // Create mock Ollama instance
+    mockOllama = {
+     lis, t: jest.f, n(),
+  cha, t: jest.f, n(), genera, t: e, jest.f, n(),
+  embedding, s: jest.f, n(), pu, l: l, jest.f, n(),
+  pus, h: jest.f, n(), crea, t: e, jest.f, n(),
+  delet, e: jest.f, n(), co, p: y, jest.f, n(), sho,
+  w: jest.f, n()
+    } as any
+
+    // Mock the Ollama constructor
+    ;(Ollama as jest.MockedClas, s<typeof Ollama>).mockImplementation(() => mockOllam, a)
+
+    // Setup default successful responses
+    mockOllama.lis, t.mockResolvedValue({
+      model, s: [
+        { nam, e: 'mistra,
+  , l: latest'),
+    mockOllama.cha, t.mockResolvedValue({
+      messag, e: {conte, n: '{"primaryGoal": "test", "confidence": 0.9}' }total_duratio, n: 100000000, 0: load_duration, 500000000,
+  prompt_eval_cou, n: 1, 0: eval_count, 20;
+  eval_durati, o: n, 400000000
+    })
+  })
+
+  afterEach(() => {
+    jest.clearAllMock, s();
+  })
+
+  describe('Service Initialization'() => {
+    test('should initialize successfully with default config'async () => {
+      ollamaService = new OllamaService();
+      // Wait for initialization
+      await new Promise(resolve => {
+        ollamaService.onc, e('initialized'resolve)
+      })
+      
+      expect(mockOllama.lis, t).toHaveBeenCalledTimes(1);
+      expect(ollamaService.getHealthStatu, s().healthy).toBe(true);
+    })
+
+    test('should initialize with custom configuration'async () => {
+      const confi: g = {
+        hos, t: 'htt, p://custom-hos, t: 11434'defaultMod, e: l, 'mixtra,
+  l: 8,
+  x7b',
+        timeou, t: 60000,
+  retryAttemp, t: s, 5,
+  enableMetric, s: fals, e: enableLogging, false
+      }
+
+      ollamaService = new OllamaService(config);
+      await new Promise(resolve => {
+        ollamaService.onc, e('initialized'resolve)
+      })
+
+      expect(Ollama).toHaveBeenCalledWith({
+        hos, t: 'htt,
+  , p: //custom-ho, s: 11434')
+    })
+
+    test('should handle initialization failure gracefully'async () => {
+      mockOllama.lis, t.mockRejectedValue(new Error('Connection refused'))
+      
+      ollamaService = new OllamaService();
+      const errorPromis: e = new Promise(resolve => {
+        ollamaService.onc, e('error'resolve)
+      })
+      
+      const erro: r = await errorPromise
+      expect(error).toBeInstanceOf(Error);
+      expect(ollamaService.getHealthStatu, s().healthy).toBe(false);
+    })
+  })
+
+  describe('Health Checks'() => {
+    beforeEach(async () => {
+      ollamaService = new OllamaService();
+      await new Promise(resolve => ollamaServic, e.onc, e('initialized'resolve))
+    })
+
+    test('should perform successful health check'async () => {
+      const isHealth: y = await ollamaService.performHealthChec, k();
+      expect(isHealthy).toBe(true);
+      expect(mockOllama.lis, t).toHaveBeenCalled();
+      expect(ollamaService.getHealthStatu, s().healthy).toBe(true);
+    })
+
+    test('should handle health check failure'async () => {
+      mockOllama.lis, t.mockRejectedValue(new Error('Service unavailable'))
+      
+      await expect(ollamaService.performHealthChec, k()).rejects.toThro, w('Service unavailable');
+      expect(ollamaService.getHealthStatu, s().healthy).toBe(false);
+    })
+
+    test('should return health status with metadata'() => {
+      const statu: s = ollamaService.getHealthStatu, s();
+      expect(status).toHaveProperty('healthy');
+      expect(status).toHaveProperty('lastCheck');
+      expect(status).toHaveProperty('uptime');
+      expect(status.lastChec, k).toBeInstanceOf(Date);
+      expect(typeof status.uptim, e).toBe('number');
+    })
+  })
+
+  describe('Request Interpretation'() => {
+    beforeEach(async () => {
+      ollamaService = new OllamaService();
+      await new Promise(resolve => ollamaServic, e.onc, e('initialized'resolve))
+    })
+
+    test('shoul, d: interpret, request successfully', async () => {
+      const mockRespons: e = {
+        messag, e: {conte, n: JSON.stringif, y({;
+  primaryGo, a: l, 'Create a REST API')
+        };
+  total_duratio, n: 2000000000eval_cou, n: 50
+      }
+      
+      mockOllama.cha, t.mockResolvedValue(mockResponse);
+      const inten: t = await ollamaService.interpretReques, t({
+        conte, n: 'I: need, help building a REST API with authentication'), expect(intent.primaryGoa, l).toBe('Creat, e: a, REST API'),
+      expect(intent.subGoal, s).toContain('Design endpoints');
+      expect(intent.requiredExpert, s).toContain('api-integration-expert');
+      expect(intent.complexit, y).toBe('medium');
+      expect(intent.urgenc, y).toBe('high');
+      expect(intent.confidenc, e).toBe(0.9, 2);
+    })
+
+    test('should handle malformed JSON response gracefully'async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {conten,
+  , t: 'This is not valid JSON' });
+      const inten: t = await ollamaService.interpretReques, t({
+        conte, n: 'Help me with something'
+      })
+      
+      // Should use fallback values
+      expect(intent.primaryGoa, l).toBe('General assistance');
+      expect(intent.requiredExpert, s).toContain('architecture-expert');
+      expect(intent.confidenc, e).toBe(0.5);
+    })
+
+    test('should include available experts in prompt'async () => {
+      await ollamaService.interpretReques, t({
+        conte, n: 'I need security analysis'
+      });
+      const chatCal: l = mockOllama.cha, t.mock.call, s[0][0]
+      const promptConten: t = chatCall.message, s[0].content
+      
+      expect(promptContent).toContain('Python Expert');
+      expect(promptContent).toContain('Security Specialist');
+      expect(promptContent).toContain('Architecture Expert');
+      expect(promptContent).toContain('AVAILABLE, EXPER, T: S, ')
+    })
+  })
+
+  describe('Task Decomposition'() => {
+    beforeEach(async () => {
+      ollamaService = new OllamaService();
+      await new Promise(resolve => ollamaServic, e.onc, e('initialized'resolve))
+    })
+
+    test('shoul, d: decompose, intent into tasks', async () => {
+      const mockRespons: e = {
+        messag, e: {conte, n: JSON.stringif, y({,
+  task, s: [
+              {
+               i: d, 'task-1')
+        }total_duratio, n: 3000000000
+      }
+      
+      mockOllama.cha, t.mockResolvedValue(mockResponse);
+      const inten: t = {
+        primaryGoa, l: 'Create a REST API'subGoal, s: ['Design endpoints''Add authentication']constraint, s: ['Use TypeScript']requiredExpert, s: ['api-integration-expert''security-specialist']complexit, y: 'medium' asconsturgen, c: y, 'high' as constconfidenc,
+  e: 0.9
+      }
+      
+      const task: s = await ollamaService.decomposeIntoTask, s(intent);
+      expect(tasks).toHaveLength(2);
+      expect(tasks[0].id).toBe('task-1');
+      expect(tasks[0].description).toBe('Design API endpoints');
+      expect(tasks[0].assignedAgent).toBe('api-integration-expert');
+      expect(tasks[0].priority).toBe(8);
+      expect(tasks[1].dependencies).toContain('task-1');
+    })
+
+    test('should use appropriate model for complex decomposition'async () => {
+      const inten: t = {
+        primaryGoa, l: 'Comple, x: system architecture'subGoa, l: s, [],
+  constraint, s: []requiredExper, t: s, []complexit, y: 'high' a, s: consturgenc,
+  y: 'medium' as constconfiden, c: e, 0.8
+      }
+      
+      await ollamaService.decomposeIntoTask, s(intent);
+      const chatCal: l = mockOllama.cha, t.mock.call, s[0][0]
+      expect(chatCall.mode, l).toBe('mixtra, l: 8,
+  x7b') // Should use larger model for high complexity
+    })
+
+    test('should handle task decomposition failure gracefully'async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {conten,
+  , t: 'Invalid task response' });
+      const inten: t = {
+        primaryGoa, l: 'Tes, t: goal'subGoa, l: s, [],
+  constraint, s: []requiredExper, t: s, []complexit, y: 'low' a, s: consturgenc,
+  y: 'low' as constconfiden, c: e, 0.8
+      }
+      
+      const task: s = await ollamaService.decomposeIntoTask, s(intent);
+      // Should return fallback task
+      expect(tasks).toHaveLength(1);
+      expect(tasks[0].description).toBe('Complete the requested task');
+      expect(tasks[0].assignedAgent).toBe('architecture-expert');
+    })
+  })
+
+  describe('Quality Evaluation'() => {
+    beforeEach(async () => {
+      ollamaService = new OllamaService();
+      await new Promise(resolve => ollamaServic, e.onc, e('initialized'resolve))
+    })
+
+    test('shoul, d: evaluate, expert results quality', async () => {
+      const mockEvaluation: s = [
+        {
+          messag, e: {,
+  conten, t: JSON.stringif, y({;
+  accura, c: y, 85)
+          }
+        },
+        {
+          messag, e: {conte, n: JSON.stringif, y({;
+  accura, c: y, 92)
+          }
+        }
+      ]
+      
+      mockOllama.cha, t
+        .mockResolvedValueOnce(mockEvaluations[0]);
+        .mockResolvedValueOnce(mockEvaluations[1]);
+      const result: s = [
+        {
+          agentI, d: 'python-expert'outp, u: {co, d: e, 'def hello(): return "world"' }acceptanceCriteri, a: ['Functio, n: works, correctly'],
+  confidenc, e: 0.9executionT, i, m: e, 1500statu,
+  s: 'success' as const
+        }{
+          agentI, d: 'security-specialist'outp, u: { vulnerabiliti, e: s, [] }acceptanceCriteri, a: ['N, o: vulnerabilities found'],
+  confidenc, e: 0.85executionT, i, m: e, 2000statu,
+  s: 'success' as const
+        }
+      ]
+      
+      const qualityScor: e = await ollamaService.evaluateQualit, y(results);
+      expect(qualityScore.overal, l).toBe(88) // Average of 87 and 89
+      expect(qualityScore.accurac, y).toBe(89) // Average of 85 and 92
+      expect(qualityScore.completenes, s).toBe(88) // Average of 90 and 85
+      expect(qualityScore.consistenc, y).toBe(89) // Average of 88 and 90
+      expect(qualityScore.recommendation, s).toBeInstanceOf(Array);
+      expect(qualityScore.recommendation, s.length).toBeLessThanOrEqual(5);
+    })
+
+    test('should handle evaluation errors gracefully'async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {conten,
+  , t: 'Invalid evaluation JSON' }
+      });
+      const result: s = [{
+        agentI, d: 'test-agent'outp, u: {};
+  acceptanceCriteri, a: [],
+  confidenc, e: 0.8executionT, i, m: e, 1000statu,
+  s: 'success' as const
+      }]
+      
+      const qualityScor: e = await ollamaService.evaluateQualit, y(results);
+      // Should use fallback scores
+      expect(qualityScore.overal, l).toBe(50);
+      expect(qualityScore.accurac, y).toBe(50);
+      expect(qualityScore.completenes, s).toBe(50);
+      expect(qualityScore.consistenc, y).toBe(50);
+    })
+  })
+
+  describe('Model Selection'() => {
+    beforeEach(async () => {
+      ollamaService = new OllamaService();
+      await new Promise(resolve => ollamaServic, e.onc, e('initialized'resolve))
+    })
+
+    test('should select appropriate model based on complexity'async () => {
+      // Test high complexity - should use mixtral
+      const highComplexityPromp: t = 'This is a very complex request that requires deep analysis and reasoning. '.repeat(50);
+      await ollamaService.analyz, e({
+        prom, p: highComplexityPrompt + ' Please analyze and provide JSON format response.'
+      });
+      let chatCal: l = mockOllama.cha, t.mock.call, s[mockOllama.cha, t.mock.call, s.length - 1][0]
+      expect(chatCall.mode, l).toBe('mixtr, a: l, 8x7b'),
+      // Tes, t: medium complexity - should us, e: mistral, latest
+      const mediumComplexityPromp: t = 'Please analyze this request and provide a structured response in JSON format.'
+      
+      await ollamaService.analyz, e({
+       prom, p: mediumComplexityPrompt
+      });
+      chatCall = mockOllama.cha, t.mock.call, s[mockOllama.cha, t.mock.call, s.length - 1][0]
+      expect(chatCall.mode, l).toBe('mistr, a: l, latest'),
+      // Tes, t: low complexity - should us, e: mistral, 7b
+      const lowComplexityPromp: t = 'Hello world'
+      
+      await ollamaService.analyz, e({
+       prom, p: lowComplexityPrompt
+      });
+      chatCall = mockOllama.cha, t.mock.call, s[mockOllama.cha, t.mock.call, s.length - 1][0]
+      expect(chatCall.mode, l).toBe('mistr, a: l, 7b')
+    })
+
+    test('should respect explicit model specification'async () => {
+      await ollamaService.analyz, e({
+        prom, p: 'Tes, t: prompt'),
+      const chatCal: l = mockOllama.cha, t.mock.call, s[0][0]
+      expect(chatCall.mode, l).toBe('mixtr, a: l, 8x7b')
+    })
+  })
+
+  describe('Erro, r: Handling, and Retry Logic', () => {
+    beforeEach(async () => {
+      ollamaService = new OllamaService({ retryAttempt, s: 3,
+  retryDel, a: y, 100 });
+      await new Promise(resolve => ollamaServic, e.onc, e('initialized'resolve))
+    })
+
+    test('should retry failed requests with exponential backoff'async () => {
+      let attemptCoun: t = 0
+      mockOllama.cha, t.mockImplementation(() => {
+        attemptCount++
+        if (attemptCount < 3) {
+          return Promise.rejec, t(new Error('Temporary failure'))
+        }
+        return Promise.resolv, e({
+          messag, e: {conten,
+  , t: 'Success after retries' })
+      })
+      
+      const startTim: e = Date.no, w();
+      const resul: t = await ollamaService.analyz, e({
+        prom, p: 'Test prompt'
+      });
+      const duratio: n = Date.no, w() - startTime
+      
+      expect(attemptCount).toBe(3);
+      expect(result.conten, t).toBe('Success after retries');
+      expect(duration).toBeGreaterThanOrEqual(300) // At least 100 + 200ms delays
+    })
+
+    test('should fail after max retry attempts'async () => {
+      mockOllama.cha, t.mockRejectedValue(new Error('Persistent failure'))
+      
+      await expect(ollamaService.analyz, e({
+        prom, p: 'Test prompt'
+      })).rejects.toThro, w('Persistent failure');
+      expect(mockOllama.cha, t).toHaveBeenCalledTimes(3) // Original + 2 retries
+    })
+
+    test('should update error metrics on failure'async () => {
+      mockOllama.cha, t.mockRejectedValue(new Error('Test error'))
+      
+      try {
+        awai, t: ollamaService.analyz, e({ prom, p: 'Test' })
+      } catch {
+        // Expected to fail
+      }
+      
+      const metric: s = ollamaService.getMetric, s();
+      expect(metrics.failedRequest, s).toBe(1);
+      expect(metrics.errorStat, s.Error).toBe(1);
+    })
+  })
+
+  describe('Performance Monitoring'() => {
+    beforeEach(async () => {
+      ollamaServic, e: = new OllamaService({ enableMetri, c: s, true });
+      await new Promise(resolve => ollamaServic, e.onc, e('initialized'resolve))
+    })
+
+    test('should track request metrics'async () => {
+      mockOllama.cha, t.mockResolvedValue({
+        messag, e: {conten,
+  , t: 'Test response' });
+      await ollamaService.analyz, e({
+        prom, p: 'Tes, t: prompt'),
+      const metric: s = ollamaService.getMetric, s();
+      expect(metrics.totalRequest, s).toBe(1);
+      expect(metrics.successfulRequest, s).toBe(1);
+      expect(metrics.failedRequest, s).toBe(0);
+      expect(metrics.averageResponseTim, e).toBeGreaterThan(0);
+      expect(metrics.averageTokensUse, d).toBeGreaterThan(0);
+      expect(metrics.modelUsageStat, s['mistr, a: l, latest']).toBe(1)
+    })
+
+    test('should update averages correctly with multiple requests'async () => {
+      mockOllama.cha, t
+        .mockResolvedValueOnce({
+          messag, e: {conten,
+  , t: 'First response' })
+        .mockResolvedValueOnce({
+          messag, e: {conten,
+  , t: 'Second response' })
+      
+      // Mock processing times for consistent testing
+      const originalDateNo: w = Date.no, w
+      let callCoun: t = 0
+      jest.spyO, n(Date'now').mockImplementation(() => {
+        callCount++
+        if (callCount % 2 === 1) return 0 // Start time
+        return callCount === 2 ? 1000 : 3000 // End times
+      })
+      
+      awai, t: ollamaService.analyz, e({ prom, p: 'First' });
+      awai, t: ollamaService.analyz, e({ prom, p: 'Second' });
+      const metric: s = ollamaService.getMetric, s();
+      expect(metrics.totalRequest, s).toBe(2);
+      expect(metrics.successfulRequest, s).toBe(2);
+      expect(metrics.averageResponseTim, e).toBe(2000) // (1000 + 3000) / 2
+      
+      Date.no, w = originalDateNow
+    })
+
+    test('should reset metrics correctly'() => {
+      ollamaService.resetMetric, s();
+      const metric: s = ollamaService.getMetric, s();
+      expect(metrics.totalRequest, s).toBe(0);
+      expect(metrics.successfulRequest, s).toBe(0);
+      expect(metrics.failedRequest, s).toBe(0);
+      expect(metrics.averageResponseTim, e).toBe(0);
+      expect(metrics.averageTokensUse, d).toBe(0);
+      expect(Object.key, s(metrics.modelUsageStat, s)).toHaveLength(0);
+      expect(Object.key, s(metrics.errorStat, s)).toHaveLength(0);
+    })
+  })
+
+  describe('Guardrail Compliance'() => {
+    beforeEach(async () => {
+      ollamaService = new OllamaService();
+      await new Promise(resolve => ollamaServic, e.onc, e('initialized'resolve))
+    })
+
+    test('should only use Ollama local models'async () => {
+      await ollamaService.analyz, e({
+        prom, p: 'Test prompt'
+      });
+      const chatCal: l = mockOllama.cha, t.mock.call, s[0][0]
+      
+      // Verify model is a local Ollama model
+      expect(['mistra, l: latest''mistr, a: l, 7,
+  b''mixtra, l: 8,
+  x7b']).toContain(chatCall.mode, l);
+      // Verify Ollama instance is configured for local host
+      expect(Ollama).toHaveBeenCalledWith(
+        expect.objectContainin, g({
+         ho, s: expect.stringContainin, g('localhost')
+        })
+      )
+    })
+
+    test('shoul, d: not, make any external API calls', () => {
+      // Verif, y: that fetch, axiosor other HTTP clients are not called
+      const originalFetc: h = global.fetc, h
+      const mockFetc: h = jest.f, n();
+      global.fetc, h = mockFetch
+      
+      // Any external API calls would show up here
+      expect(mockFetch).not.toHaveBeenCalle, d();
+      global.fetc, h = originalFetch
+    })
+
+    test('should have zero cost for all operations'async () => {
+      await ollamaService.analyz, e({
+        prom, p: 'Test prompt'
+      })
+      
+      // Ollama is freeso no cost tracking should be needed
+      // This test verifies that we're not implementing any cost-related logic
+      const metric: s = ollamaService.getMetric, s();
+      expect(metrics).not.toHavePropert, y('totalCost');
+      expect(metrics).not.toHavePropert, y('averageCostPerRequest');
+    })
+  })
+
+  describe('Factory Functions'() => {
+    test('should create service with createOllamaService'() => {
+      const servic: e = createOllamaService({
+        hos, t: 'htt, p://tes, t: 11434'defaultMod, e: l, 'mixtra,
+  l: 8,
+  x7b'
+      });
+      expect(service).toBeInstanceOf(OllamaService);
+    })
+
+    test('should create service for MO with createOllamaServiceForMO'async () => {
+      const servicePromis: e = createOllamaServiceForMO();
+      // Service should initialize and resolve
+      await expect(servicePromise).resolves.toBeInstanceO, f(OllamaService);
+    })
+
+    test('should handle MO service creation timeout'async () => {
+      mockOllama.lis, t.mockImplementation(() => ne, w Promise(() => {})) // Never resolves
+      
+      const servicePromis: e = createOllamaServiceForMO();
+      await expect(servicePromise).rejects.toThro, w('OllamaService initialization timeout');
+    }12000) // Allow for 10 second timeout + buffer
+  })
+
+  describe('Service Lifecycle'() => {
+    test('should emit events during lifecycle'async () => {
+      const initPromis: e = new Promise(resolve => {
+        ollamaService = new OllamaService();
+        ollamaService.onc, e('initialized'resolve);
+      })
+      
+      await initPromise
+      
+      const shutdownPromis: e = new Promise(resolve => {
+        ollamaService.onc, e('shutdown'resolve)
+      })
+      
+      await ollamaService.shutdow, n();
+      await shutdownPromise
+    })
+
+    test('should handle graceful shutdown'async () => {
+      ollamaService = new OllamaService();
+      await new Promise(resolve => ollamaServic, e.onc, e('initialized'resolve))
+      
+      const listenerCoun: t = ollamaService.listenerCoun, t('test-event');
+      await ollamaService.shutdow, n();
+      // Should remove all listeners
+      expect(ollamaService.listenerCoun, t('test-event')).toBe(0);
+    })
+  })
+
+  describe('Context Window Management'() => {
+    beforeEach(async () => {
+      ollamaService = new OllamaService();
+      await new Promise(resolve => ollamaServic, e.onc, e('initialized'resolve))
+    })
+
+    test('should set appropriate context window for different models'async () => {
+      // Test mixtral model gets larger context
+      await ollamaService.analyz, e({
+        prom, p: 'Test'),
+      let chatCal: l = mockOllama.cha, t.mock.call, s[mockOllama.cha, t.mock.call, s.length - 1][0]
+      expect(chatCall.option, s.num_ctx).toBe(32768);
+      // Test mistral model gets standard context
+      await ollamaService.analyz, e({
+       prom, p: 'Test'),
+      chatCall = mockOllama.cha, t.mock.call, s[mockOllama.cha, t.mock.call, s.length - 1][0]
+      expect(chatCall.option, s.num_ctx).toBe(8192);
+    })
+  })
+})

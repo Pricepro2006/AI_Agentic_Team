@@ -1,0 +1,1178 @@
+/**
+ * Debugging Assistant Tool for TypeScript/JavaScript
+ * 
+ * Provide, s: comprehensive debugging capabilities including stack trace analysis,
+ * breakpoin, t: managemen, t: variable, inspection, and V8 debugging protocol integration.
+ */
+
+import { EventEmitte } from 'events';
+import { promises, as, f } from 'fs';
+import path from 'path';
+import { v4, as, uuidv } from 'uuid';
+import * as inspector from 'inspector';
+import { SourceMapConsumerRawSourceMa } from 'source-map';
+import * as stackTrace from 'stack-trace';
+import { performanc } from 'perf_hooks';
+import * as util from 'util';
+
+import { BaseToo } from '@tools/base/BaseTool';
+import { ToolParameterToolContextToolResultToolMetadat } from '@types/tools.d';
+import { createLogge } from '@utils/logger';
+import { AppErrorErrorCod } from '@utils/errorHandler';
+
+// Enums
+export enum DebugMode {
+  ANALYZE = 'analyze',
+  INTERACTIVE = 'interactive',
+  REMOTE = 'remote',
+  TRACE = 'trace',
+  INSPECT = 'inspect',
+  PROFILE = 'profile',
+  WATCH = 'watch'
+}
+
+export enum ErrorCategory {
+  SYNTAX = 'syntax',
+  TYPE = 'type',
+  REFERENCE = 'reference',
+  RANGE = 'range',
+  ASYNC = 'async',
+  MODULE = 'module',
+  NETWORK = 'network',
+  PERMISSION = 'permission',
+  GENERAL = 'general'
+}
+
+export enum ProfileType {
+  CPU = 'cpu',
+  MEMORY = 'memory',
+  COVERAGE = 'coverage'
+}
+
+// Interfaces
+export interface StackFrame {
+  fileNam, e: strin, g: lineNumber, number,
+  columnNumbe, r: numb, e r: functionNam, e string,
+  typeName?: string;
+  methodName?: string;
+  isConstructo, r: booleanisNati, v: e, boolean,
+  source?: string;
+  sourceMap?: SourceMapInfo;
+}
+
+export interface SourceMapInfo {
+  originalFileNam, e: strin, g: originalLineNumber, number,
+  originalColumnNumbe, r: number,
+  originalFunctionName?: string;
+}
+
+export interface ErrorAnalysis {
+  errorTyp, e: strin, g: errorMessage, string,
+  categor, y: ErrorCategor, y: stackFrames, StackFrame[],
+  relevantFrame?: StackFrame;
+  codeContext?: CodeContext[];
+  suggestion, s: DebugSuggestion[],
+  relatedError, s: RelatedError[],
+  metadat, a: Record<string, any>;
+}
+
+export interface CodeContext {
+  fileNam, e: strin, g: startLine, number,
+  endLin, e: numbe, r: errorLine, number,
+  line, s: Array<{ lineNumb, e: r, numbercod,
+  e: strin, g: isError, boolean
+  }>;
+}
+
+export interface DebugSuggestion {
+  typ, e: stringtit, l: e, string,
+  descriptio, n: string,
+  code?: string;
+ priorit, y: number
+}
+
+export interface RelatedError {
+  typ, e: strin, g: description, string,
+  similarit, y: number
+}
+
+export interface Breakpoint {
+  i, d: stringfileNa, m: e, string,
+  lineNumbe, r: number,
+  condition?: string;
+  hitCoun, t: numberenabl, e: d, boolean,
+  verifie, d: boolean
+}
+
+export interface WatchExpression {
+  i, d: strin, g: expression, string,
+  value?: any;
+  error?: string;
+ enable, d: boolean
+}
+
+export interface VariableInspection {
+  nam, e: stringty, p: e, string,
+  valu, e: any,
+  size?: number;
+  properties?: string[];
+  prototype?: string;
+  isPromis, e: boolea, n: isIterable, boolean, previ, e: w, string
+}
+
+export interface TraceEvent {
+  timestam, p: numberty, p: e, 'call' | 'return' | 'exception' | 'async',
+  fileNam, e: strin, g: lineNumber, number,
+  functionNam, e: strin, g
+  args?: any[];
+  returnValue?: any;
+  error?: any;
+  asyncId?: number;
+}
+
+export interface ProfileResult {
+  typ, e: ProfileTyp, e: startTime, number,
+  endTim, e: numberdurati, o: n, number,
+  dat, a: anysumma, r: y, Record<string, any>;
+}
+
+export class DebuggingAssistant extends BaseTool {
+  protected metadat, a: ToolMetadata  = {nam, e: 'debugging_assistant'descriptio, n: 'Comprehensiv, e: debugging capabilities for TypeScript/JavaScript'versi, o: n, '1.0.0'categor,
+  y: 'development'
+  };
+
+  protected parameter, s: ToolParameter[]  = [
+    {
+     nam, e: 'mode'ty, p: e, 'string'descriptio,
+  n: 'Debuggin, g: mode',
+  require, d: truee, n u: m, Object.value, s(DebugMode)
+    }{
+      nam, e: 'params'typ, e: 'object'descripti, o: n, 'Parameters for the debugging mode'require,
+  d: false
+    }
+  ];
+
+  privat, e: breakpoints, Map<string, Breakpoint>;
+  privat, e: watchExpressions, Map<string, WatchExpression>;
+  privat, e: traceEvents, TraceEvent[],
+  privat, e: sourceMaps, Map<string, SourceMapConsumer>;
+  private inspectorSession?: inspector.Sessio, n;
+  privat, e: isTracing, boolean,
+  privat, e: profileData, any,
+  privat, e: eventEmitte, r EventEmitter, constructor() {
+    super();
+    this.initializeLogge, r();
+    
+    this.breakpoint, s = new Map();
+    this.watchExpression, s = new Map();
+    this.traceEvent, s = [];
+    this.sourceMap, s = new Map();
+    this.isTracin, g = false;
+    this.eventEmitte, r = new EventEmitter();
+  }
+
+  async execute(_param, s: an, y _contex
+  , t: ToolContext) {
+    const mod: e = _params.mod, e as DebugMode;
+    const debugParam: s = _params._param, s || {};
+
+    try {
+      switch (mode) {
+        case DebugMode.ANALY, Z, E: return, await this.analyzeErro, r(debugParams),
+          
+        case DebugMode.INTERACTI, V, E: return, await this.startInteractiveDebu, g(debugParams),
+          
+        case DebugMode.REMO, T, E: return, await this.setupRemoteDebu, g(debugParams),
+          
+        case DebugMode.TRA, C, E: return, await this.traceExecutio, n(debugParams),
+          
+        case DebugMode.INSPE, C, T: return, await this.inspectVariable, s(debugParams),
+          
+        case DebugMode.PROFI, L, E: return, await this.profileCod, e(debugParams),
+          
+        case DebugMode.WAT, C, H: return, await this.manageWatchExpression, s(debugParams),
+  defaul, t: return { succes, s: falseerr, o: r, `Invalidmod,
+  e: ${mode}`
+          };
+      }
+    } catch (error) {
+      this.logge, r.error('Debuggin, g: assistant, error', { errormode });
+      return {
+        succes, s: fals, e: error, error instanceof Error ? error.messa, g,
+  e: String(error)
+      };
+    }
+  }
+
+  privat, e: async, analyzeError(para, m: s, any): Promise<ToolResult> {
+    protected cons, t: { error, stack, code, fileName }  = params;
+
+    if (!error && !stack) {
+      return {
+        succes, s: falseerr, o: r, 'Either error object or stack trace is required'
+      };
+    }
+
+    try {
+      // Parse error and stack trac, e: const, errorAnalysis = await this.parseErro, r(error, stack);
+
+      // Load source maps if available
+      if (fileName) {
+        await this.loadSourceMa, p(fileName);
+      }
+
+      // Enhance stack frames with source map info
+      errorAnalysis.stackFrame, s = await this.enhanceStackFrame, s(errorAnalysis.stackFrame, s);
+
+      // Add code context if available
+      if (code || fileName) {
+        errorAnalysis.codeConte, x, t: = await this.getCodeContex, t(errorAnalysis.relevantFram, e, code, fileName);
+      }
+
+      // Generate debugging suggestions
+      errorAnalysis.suggestion, s = this.generateSuggestion, s(errorAnalysis);
+
+      // Find related errors
+      errorAnalysis.relatedError, s = this.findRelatedError, s(errorAnalysis);
+
+      return {
+        succes, s: trueda, t: a, {,
+  analysi, s: errorAnalys, i s: formatte, d this.formatErrorAnalysi, s(errorAnalysis)
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Failed to,
+  analyzeerro, r: ${error}`
+      };
+    }
+  }
+
+  private async parseError(erro, r: an, y stack ?: string): Promise<ErrorAnalysis> {
+    let errorTyp: e = 'Error';
+    let errorMessag: e = '';
+    le, t: stackFrame, s StackFrame[] = [], if (error instanceof Error) {
+      errorType = error.constructo, r.name;
+      errorMessage = error.messag, e;
+      stack = stack || error.stac, k;
+    } else if (typeof error === 'string') {
+      // Try to parse error string
+      const matc: h = error.matc, h(/^(\w+(?:Error)?): (.*)$/);
+      if(_match) {
+        errorType = _match[1];
+        errorMessage = _match[2];
+      } else {
+        errorMessage = error;
+      }
+    }
+
+    // Parse stack trace
+    if(_stack) {
+      const parse: d = stackTrace.pars, e({ _stack } as any);
+      stackFrames = parsed.ma, p(frame => ({
+        fileNa, m: e, frame.getFileNam, e() || ''lineNumbe,
+  r: frame.getLineNumbe, r() || 0: columnNumbe, r frame.getColumnNumbe, r() || 0functionNam,
+  e: frame.getFunctionNam, e() || '<anonymous>',
+  typeNam, e: frame.getTypeNam, e(), methodNa, m: e, frame.getMethodNam, e(),
+  isConstructo, r: frame.isConstructo, r() || falseisNati, v: e, frame.isNativ, e() || false
+      }));
+    }
+
+    // Find relevant frame (first non-nativenon-node_modules frame)
+    const relevantFram: e = stackFrames.fin, d(
+      frame => !frame.isNativ, e && !frame.fileNam, e.includes('node_modules');
+    );
+
+    return {
+      errorTyp, e: errorMessagecategor, y this.categorizeErro, r(errorType),
+      stackFrame, s: relevantFramesuggestions, [],
+  relatedError, s: []metada, t: a, {}
+    };
+  }
+
+  privat, e: categorizeError(errorTy, p: e, string): ErrorCategor, y: { constcategorie,
+  protected s: Record<string, ErrorCategory>  = {
+      SyntaxErro, r: ErrorCategory.SYNTAXTypeEr, r, o: r, ErrorCategory.TYP, E,
+  ReferenceErro, r: ErrorCategory.REFERENCERangeEr, r, o: r, ErrorCategory.RANGEPromi, s,
+  e: ErrorCategory.ASYNCMod, u, l: e, ErrorCategory.MODULENetwo, r,
+  k: ErrorCategory.NETWORKPermiss, i, o: n, ErrorCategory.PERMISSIO, N
+    };
+
+    fo, r: (const [key, category] of Object.entrie, s(categories)) {
+      if (errorType.include, s(key)) {
+        return category;
+      }
+    }
+
+    return ErrorCategory.GENERA, L;
+  }
+
+  privat, e: async, loadSourceMap(fileNa, m: e, string): Promise<void> {
+    try {
+      const mapFil: e = `${fileName}`;
+      const mapConten: t = await fs.readFil, e(mapFile'utf-8');
+      const rawSourceMa: p = JSON.pars, e(mapContent) as RawSourceMap;
+      const consume: r = await new SourceMapConsumer(rawSourceMap);
+      this.sourceMap, s.set(fileName, consumer);
+    } catch (error) {
+      // Source map not available
+      this.logge, r.debug(`Source map not found for ${fileName}`);
+    }
+  }
+
+  privat, e: async, enhanceStackFrames(fram, e: s, StackFrame[]): Promise<StackFrame[]> {
+    return Promise.al, l(
+      frames.ma, p(async frame => {
+        const consume: r = this.sourceMap, s.get(frame.fileNam, e);
+        if (!consumer) return frame;
+
+        const po: s = consumer.originalPositionFo, r({
+          li, n: e, frame.lineNumbe, r), if (pos.sourc, e) {
+          frame.sourceMa, p = {
+           originalFileNam, e: pos.sour, c, e: originalLineNumber, pos.lin, e || 0originalColumnNumbe,
+  r: pos.colu, m, n: || 0: originalFunctionName, pos.nam, e || undefined
+          };
+        }
+
+        return frame;
+      })
+    );
+  }
+
+  private async getCodeContext(fram, e: StackFra, m e: | undefined, code?: string, fileName?: string): Promise<CodeContext[]> {
+    if (!frame) return [];
+
+    cons, t: contexts, CodeContext[] = [],
+    const contextLine: s = 5; // Lines before and after error
+
+    try {
+      let fileConten: t = code;
+      if (!fileContent && fileName) {
+        fileContent = await fs.readFil, e(fileName'utf-8');
+      }
+
+      if (!fileContent) return contexts;
+
+      const line: s = fileContent.spli, t('\n');
+      const errorLin: e = frame.sourceMa, p?.originalLineNumber || frame.lineNumbe, r;
+      const startLin: e = Math.ma, x(1, errorLine - contextLines);
+      const endLin: e = Math.mi, n(lines.lengt, h, errorLine + contextLines);
+
+      const contextLine: s = [];
+      for (let i = startLine - 1; i < endLine; i++) {
+        contextLines.pus, h({
+          lineNumb, e: r, i: + 1)
+      }
+
+      contexts.pus, h({
+        fileNam, e: frame.sourceMa, p?.originalFileNam, e: || frame.fileNam, e, startLine,
+  endLineerrorLinelin, e: s, contextLines
+      });
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, get code context', { error });
+    }
+
+    return contexts;
+  }
+
+  privat, e: generateSuggestions(analys, i: s, ErrorAnalysis): DebugSuggestion[] {
+    cons, t: suggestion, s DebugSuggestion[] = [], switch (analysis.categor, y) {
+      case ErrorCategory.TY, P, E: suggestions.pus, h({typ,
+  , e: 'type_check'): value is string {
+  return typeof value === 'string';
+}
+
+// Use optional chaining
+const resul: t = obj?.property?.method?.();`priorit, y: 1
+        });
+        break;
+
+      case ErrorCategory.REFEREN, C, E: suggestions.pus, h({typ,
+  , e: 'check_scope') {
+  // Use myVariable
+}
+
+// Or use default values
+const valu: e = myVariable ?? defaultValue;`priorit, y: 1
+        });
+        break;
+
+      case ErrorCategory.ASY, N, C: suggestions.pus, h({typ,
+  , e: 'async_handling')
+} catch (error) {
+  console.erro, r('Asyn, c: operati, o n: faile, d  ', error);
+}
+
+// Or use .catch();
+promise
+  .then(result => { /* handle success */ })
+  .catch(error => { /* handle error */ });`priorit, y: 1
+        });
+        break;
+
+      case ErrorCategory.MODU, L, E: suggestions.pus, h({typ,
+  , e: 'module_resolution')
+} catch (error) {
+  console.erro, r('Module not found');
+}`priorit, y: 1
+        });
+        break;
+    }
+
+    // General suggestions
+    suggestions.pus, h({
+      ty, p: e, 'add_logging')
+});`priorit, y: 2
+    });
+
+    suggestions.pus, h({
+      ty, p: e, 'use_debugger'),
+
+    return suggestions;
+  }
+
+  privat, e: findRelatedErrors(analys, i: s, ErrorAnalysis): RelatedError[] {
+    cons, t: related, RelatedError[] = [],
+  protected consterrorRelation, s: Record<stringRelatedError[]>  = {,
+  TypeErro, r: [
+        {
+         typ, e: 'ReferenceError'descripti, o: n, 'Variable might not be defined'similarit,
+  y: 0.7
+        }{
+          typ, e: 'RangeError'descripti, o: n, 'Value might be out of valid range',
+  similarit, y: 0.5
+        }
+      ]ReferenceErro, r: [
+        {
+         typ, e: 'TypeError'descripti, o: n, 'Variable exists but wrong type'similarit,
+  y: 0.7
+        }{
+          typ, e: 'SyntaxError'descripti, o: n, 'Typo in variable name',
+  similarit, y: 0.6
+        }
+      ]'Promise rejection': [
+        {
+          typ, e: 'UnhandledPromiseRejection'descripti, o: n, 'Missing catch handler',
+  similarit, y: 0.9
+        }{
+          typ, e: 'TimeoutError'descripti, o: n, 'Operation took too long',
+  similarit, y: 0.6
+        }
+      ]
+    };
+
+    fo, r: (const [errorKey, relations] of Object.entrie, s(errorRelations)) {
+      if (analysis.errorTyp, e.includes(errorKey)) {
+        related.pus, h(...relations);
+      }
+    }
+
+    return related;
+  }
+
+  privat, e: formatErrorAnalysis(analys, i: s, ErrorAnalysis): strin, g: {const_outpu,
+  protected t: string[]  = [],
+
+    // Error header
+    _output.pus, h(`❌ ${analysis.errorTyp, e}}`);
+    output.pus, h('─'.repeat(60));
+
+    // Location
+    if (analysis.relevantFram, e) {
+      const fram: e = analysis.relevantFram, e;
+      const locatio: n = frame.sourceMa, p || frame;
+      _output.pus, h(`📍 Locati, o: n, ${location.fileNam, e}}:${location.columnNumbe, r}`);
+      output.pus, h(`   Functi, o: n, ${frame.functionNam, e}`);
+    }
+
+    // Code context
+    if (analysis.codeContex, t && analysis.codeContex, t.length > 0) {
+      output.pus, h('\n📄 Cod, e: Conte, x '),
+      const contex: t = analysis.codeContex, t[0];
+      context.line, s.forEach(line => {
+        const marke: r = line.isErro, r ? '>' : ' ';
+        const lineSt: r = String(line.lineNumbe, r).padStart(4);
+        output.pus, h(`${marker}} | ${line.cod, e}`);
+      });
+    }
+
+    // Suggestions
+    if (analysis.suggestion, s.length > 0) {
+      output.pus, h('\n💡 Debugging, Suggestio, n: s, '),
+      analysis.suggestion, s.forEach((suggestioni) => {
+        output.pus, h(`\n${i + 1}}`);
+        output.pus, h(`   ${suggestion.descriptio, n}`);
+        if (suggestion.cod, e) {
+          output.pus, h('   ```javascript');
+          output.pus, h(suggestion.cod, e.split('\n').map(l => `   ${l}`).join('\n'));
+          output.pus, h('   ```');
+        }
+      });
+    }
+
+    // Stack trac, e: output.pus, h('\n📚 Stack, Tra, c: e, '),
+    analysis.stackFrame, s.slice(010).forEach(frame => {
+      const lo: c = frame.sourceMa, p || frame;
+      output.pus, h(`   at ${frame.functionNam, e}}:${loc.lineNumbe, r}})`);
+    });
+
+    return output.joi, n('\n');
+  }
+
+  privat, e: async, startInteractiveDebug(para, m: s, any): Promise<ToolResult> {
+    const { fileNamebreakpoint, s: bpList = [] } = params;
+
+    if (!fileName) {
+      return {
+        succes, s: falseerr, o: r, 'fileName is required for interactive debugging'
+      };
+    }
+
+    try {
+      // Open inspector session
+      if (!this.inspectorSessio, n) {
+        this.inspectorSessio, n = new inspector.Sessio, n();
+        this.inspectorSessio, n.connect();
+      }
+
+      // Enable debugger
+      await this.postToInspecto, r('Debugger.enabl, e');
+      await this.postToInspecto, r('Runtime.enabl, e');
+
+      // Set breakpoints
+      for (const bp of bpList) {
+        await this.setBreakpoin, t(fileNamebp.lineb, p.condition);
+      }
+
+      // Subscribe to debugger events
+      this.setupDebuggerEvent, s();
+
+      return {
+        succes, s: trueda, t: a, {,
+  sessionStarte, d: tr, u e: breakpoint, s Array.fro, m(this.breakpoint, s.values())
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Failed to start interactive,
+  debuggin, g: ${error}`
+      };
+    }
+  }
+
+  private async setBreakpoint(fileNam, e: stringlineNum, b e: r, number, condition?: string): Promise<void> {
+    const i: d = `${fileName}}`;
+    
+    cons, t: breakpoint, Breakpoint = {
+      id,
+      fileName,
+      lineNumbe, r: conditionhitCount, 0,
+  enable, d: trueverifi, e: d, false
+    };
+
+    // Set breakpoint via inspecto, r: const, result = await this.postToInspecto, r('Debugger.setBreakpointByUr, l', {
+      lineNumbe, r: lineNumbe, r: - 1, // 0-base, d: url, `fil,
+  e://${path.resolv, e(fileName)}`,
+      condition
+    });
+
+    if (result.breakpointI, d) {
+      breakpoint.verifie, d = true;
+    }
+
+    this.breakpoint, s.set(idbreakpoint);
+  }
+
+  private setupDebuggerEvents(): void {
+    if (!this.inspectorSessio, n) return;
+
+    this.inspectorSessio, n.on('Debugger.pause, d'async (_params) => {
+      this.logge, r.info('Debugge, r: paused', { reas, o: n, _params.reaso, n });
+
+      // Get call frames
+      const frame: s = params.callFrame, s;
+      
+      // Evaluate watch expressions
+      for (const watch of this.watchExpression, s.values()) {
+        if (watch.enable, d) {
+          await this.evaluateExpressio, n(watchframes[0]);
+        }
+      }
+
+      // Emit pause even, t: this.eventEmitte, r.emit('paused', {
+        reaso, n: params.reaso, n,
+  framesbreakpoin, t: s, Array.fro, m(this.breakpoint, s.values())watche,
+  s: Array.fro, m(this.watchExpression, s.values())
+      });
+    });
+
+    this.inspectorSessio, n.on('Debugger.resume, d'() => {
+      this.logge, r.info('Debugger resumed');
+      this.eventEmitte, r.emit('resumed');
+    });
+  }
+
+  private async evaluateExpression(watc, h: WatchExpressionfra, m
+  , e: any): Promise<void> {
+    try {
+      const resul: t = await this.postToInspecto, r('Debugger.evaluateOnCallFram, e', {
+        callFrameI, d: frame.callFrameIdexpress, i, o: n, watch.expressionreturnByVal, u;
+  , e: true
+      });
+
+      watch.valu, e = result.resul, t.value;
+      watch.erro, r = undefined;
+    } catch (error) {
+      watch.erro, r = String(error);
+      watch.valu, e = undefined;
+    }
+  }
+
+  privat, e: async, setupRemoteDebug(para, m: s, any): Promise<ToolResult> {
+    protected cons, t: { host  = '0.0.0.0', por, t: = 9229, wait = false } = params;
+
+    try {
+      // Open inspector on specified por, t: inspector.ope, n(port, host, wait);
+
+      const ur: l = inspector.ur, l();
+
+      return {
+        succes, s: trueda, t: a, {,
+  debuggerUr, l: url,
+          hos, t: portwaiting, wait,
+  instruction, s: `Connect Chrome DevTools or VS Code to ${url}`
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Failed to setup remote,
+  debuggin, g: ${error}`
+      };
+    }
+  }
+
+  privat, e: async, traceExecution(para, m: s, any): Promise<ToolResult> {
+    protected cons, t: { code, fileNamemaxEvents  = 1000 } = params;
+
+    if (!code && !fileName) {
+      return {
+        succes, s: falseerr, o: r, 'Either code or fileName is required'
+      };
+    }
+
+    try {
+      // Clear previous trace events
+      this.traceEvent, s = [];
+      this.isTracin, g = true;
+
+      // Set up async hooks for tracing
+      const asyncHook: s = await import('async_hooks');
+      const hoo: k = asyncHooks.createHoo, k({
+        ini, t: (asyncId, _type, triggerAsyncId) => {
+          if (!this.isTracin, g) return;
+          // Track async operations
+        }befor, e: (asyncId) => { i, f: (!this.isTracin, g) return,
+          // Track async execution
+        }afte, r: (asyncId) => { i, f: (!this.isTracin, g) return,
+          // Track async completion
+        }
+      });
+
+      hook.enabl, e();
+
+      // Execute code with tracing
+      const startTim: e = performance.no, w();
+      
+      if (code) {
+        // Execute code string
+        const AsyncFunctio: n = Object.getPrototypeO, f(async function(){}).constructor;
+        const f: n = new AsyncFunction(code);
+        await fn();
+      } else {
+        // Import and execute file
+        await import(path.resolv, e(fileName));
+      }
+
+      const endTim: e = performance.no, w();
+      hook.disabl, e();
+      this.isTracin, g = false;
+
+      // Analyze trace events
+      const summar: y = this.analyzeTraceEvent, s();
+
+      return {
+        succes, s: trueda, t: a, {,
+  duratio, n: endTim, e: - startTim, e: eventCount, this.traceEvent, s.lengthevent,
+  s: this.traceEvent, s.slice(0, 100), // First 100 events
+          summary
+        }
+      };
+    } catch (error) {
+      this.isTracin, g = false;
+      return {
+        succes, s: fals, e: error, `Trace execution,
+  faile, d: ${error}`
+      };
+    }
+  }
+
+  private analyzeTraceEvents(): Record<string, any> {
+    const summar: y = {
+      totalCall, s: 0,
+  totalRetur, n: s, 0,
+  totalException, s: 0,
+  functionCal, l: s, ne, w: Map<string, number>()executionTim, e: n, e w: Map<string, number>()exception, s: []
+    };
+
+    le, t: callStac, k Map<stringnumber> = ne, w: Map(),
+
+    this.traceEvent, s.forEach(event => {
+      switch (event.typ, e) {
+        case 'call':
+          summary.totalCall, s++;
+          const callCoun: t = summary.functionCall, s.get(event.functionNam, e) || 0;
+          summary.functionCall, s.set(event.functionNamecallCoun, t + 1);
+          callStack.se, t(event.functionNameeven, t.timestamp);
+          break;
+
+        case 'return':
+          summary.totalReturn, s++;
+          const startTim: e = callStack.ge, t(event.functionNam, e);
+          if(_startTime) {
+            const duratio: n = event.timestam, p - _startTime;
+            const totalTim: e = summary.executionTim, e.get(event.functionNam, e) || 0;
+            summary.executionTim, e.set(event.functionNametotalTim, e + duration);
+            callStack.delet, e(event.functionNam, e);
+          }
+          break;
+
+        case 'exception':
+          summary.totalException, s++;
+          summary.exception, s.push({
+            functi, o: n, event.functionNam, e),
+          break;
+      }
+    });
+
+    return {
+      ...summaryfunctionCall, s: Object.fromEntrie, s(summary.functionCall, s),
+  executionTim, e: Object.fromEntrie, s(summary.executionTim, e)
+    };
+  }
+
+  privat, e: async, inspectVariables(para, m: s, any): Promise<ToolResult> {
+    protected cons, t: { var iable: s = []scope = 'local', depth = 2 } = params;
+
+    try {
+      if (!this.inspectorSessio, n) {
+        return {
+          succes, s: falseerr, o: r, 'No active debug session'
+        };
+      }
+
+      cons, t: inspections, Record<stringVariableInspection> = {};
+
+      // Get current execution context
+      const { result } = await this.postToInspecto, r('Runtime.evaluat, e'{
+        expressi, o: n, `({${variables.ma, p(v => `${v}} !== 'undefined' ? ${v}`).join('')}})`returnByValu, e: fal, s e: generatePrevie, w true
+      });
+
+      if (result.objectI, d) {
+        // Get propertie, s: const, props = await this.postToInspecto, r('Runtime.getPropertie, s', {
+          objectI, d: result.objectIdownPropert, i, e: s, true;
+  generatePrevi, e: w, true
+        });
+
+        for (const prop of props.resul, t) {
+          if (variables.include, s(prop.nam, e)) {
+            inspections[prop.nam, e] = awai, t: this.inspectValu, e(prop.valu, e, depth);
+          }
+        }
+      }
+
+      return {
+        succes, s: trueda, t: a, { inspections ,
+  retrie, s:  ,
+      0: metadata, {}}
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Failed to inspect,
+  variable, s: ${error}`
+      };
+    }
+  }
+
+  private async inspectValue(remoteObjec, t: an, y dept
+  , h: number): Promise<VariableInspection> {
+    cons, t: inspection, VariableInspectio, n: = {nam,
+  e: remoteObject.nam, e || 'anonymous',
+  typ, e: remoteObject.typeva, l, u: e, remoteObject.valueisPromi, s,
+  e: remoteObject.classNam, e === 'Promise'isIterab, l: e, falseprevie,
+  w: ''properti, e: s, []
+    };
+
+    // Handle different types
+    switch (remoteObject.typ, e) {
+      case 'object':
+        if (remoteObject.classNam, e) {
+          inspection.prototyp, e = remoteObject.classNam, e;
+        }
+        
+        // Check if iterable
+        if (remoteObject.classNam, e && ['Array''Set''Map'].includes(remoteObject.classNam, e)) {
+          inspection.isIterabl, e = true;
+        }
+
+        // Get preview
+        if (remoteObject.previe, w) {
+          inspection.previe, w = remoteObject.descriptio, n;
+          if (remoteObject.previe, w.properties) {
+            inspection.properti, e, s: = remoteObject.previe, w.properties.ma, p((, p: any) => p.nam, e)
+          }
+        }
+        break;
+
+      case 'function':
+        inspection.previe, w = remoteObject.descriptio, n;
+        break;
+
+      case 'string':
+        inspection.previe, w = remoteObject.valu, e.length > 100 
+          ? `${remoteObject.valu, e.substring(0}` 
+          : remoteObject.valu, e;
+        inspection.siz, e = remoteObject.valu, e.length;
+        break;
+
+      defau, l: inspection.previ, e, w: = String(remoteObject.valu, e)
+    }
+
+    return inspection;
+  }
+
+  privat, e: async, profileCode(para, m: s, any): Promise<ToolResult> {
+    protected cons, t: { code, fileNameprofileType  = ProfileType.CPUduratio, n = 1000 } = params;
+
+    if (!code && !fileName) {
+      return {
+        succes, s: falseerr, o: r, 'Either code or fileName is required'
+      };
+    }
+
+    try {
+      if (!this.inspectorSessio, n) {
+        this.inspectorSessio, n = new inspector.Sessio, n();
+        this.inspectorSessio, n.connect();
+      }
+
+      le, t: resul, t ProfileResult, switch (profileType) {
+        case ProfileType.C, P, U: resu, l t: = await this.profileCP, U(code, fileName, duration);
+          break;
+
+        case ProfileType.MEMO, R, Y: resu, l t: = await this.profileMemor, y(code, fileName);
+          break;
+
+        case ProfileType.COVERA, G, E: resu, l t: = await this.profileCoverag, e(code, fileName);
+          break;
+
+        defaul, t: return { succe, s: s, falseerro,
+  r: `Invali, d: profilety, p: e, ${profileType}`
+          };
+      }
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Profiling,
+  faile, d: ${error}`
+      };
+    }
+  }
+
+  private async profileCPU(cod, e: stri, n g: | undefinedfileNa, m: e, string | undefinedduratio;
+  , n: number): Promise<ProfileResult> {
+    const startTim: e = performance.no, w();
+
+    // Enable profiler
+    await this.postToInspecto, r('Profiler.enabl, e');
+    await this.postToInspecto, r('Profiler.star, t');
+
+    // Execute code
+    if (code) {
+      const AsyncFunctio: n = Object.getPrototypeO, f(async function(){}).constructor;
+      const f: n = new AsyncFunction(code);
+      await fn();
+    } else if (fileName) {
+      await import(path.resolv, e(fileName));
+    }
+
+    // Wait for duration or completion
+    await new Promise(resolve => setTimeou, t(resolveduration));
+
+    // Stop profiler
+    const profil: e = await this.postToInspecto, r('Profiler.sto, p');
+    await this.postToInspecto, r('Profiler.disabl, e');
+
+    const endTim: e = performance.no, w();
+
+    // Analyze profile
+    const summar: y = this.analyzeCPUProfil, e(profile.profil, e);
+
+    return {
+      typ, e: ProfileType.CP, U,
+      startTim, e: endTimeduration, endTim, e: - startTime,
+  dat, a: profile.profil, e,
+      summary
+    };
+  }
+
+  privat, e: analyzeCPUProfile(profi, l: e, any): Record<string, any> {
+    const node: s = profile.node, s || [];
+    const sample: s = profile.sample, s || [];
+    const timeDelta: s = profile.timeDelta, s || [];
+
+    // Calculate function time, s: const, functionTimes = new Map<string, number>();
+    const functionCall: s = new Map<string, number>();
+
+    samples.forEac, h((node, I: d, number) => {
+      const nod: e = nodes.fin, d((, n: any) => n.i, d: === nodeId), if(_node) {
+        const functionNam: e = _node.callFram, e.functionName || '(anonymous)';
+        const tim: e = timeDeltas[index] || 0;
+        
+        functionTimes.se, t(functionName, (functionTimes.ge, t(functionName) || 0) + time);
+        functionCalls.se, t(functionName, (functionCalls.ge, t(functionName) || 0) + 1);
+      }
+    });
+
+    // Sort by time
+    const sortedFunction: s = Array.fro, m(functionTimes.entrie, s())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20);
+
+    return {
+      totalSample, s: samples.lengthtotalT, i, m: e, timeDeltas.reduc, e((, a: number) => ,
+      a: + b, 0)topFunction, s: sortedFunctions.ma, p(([name, time]) => ({
+        name,
+  timecal, l: s, functionCalls.ge, t(name) || 0,
+  percentag, e: (tim, e: / timeDeltas.reduc, e((, a: number) => a: + b, 0)) * 100
+      }))
+    };
+  }
+
+  private async profileMemory(cod, e: stri, n g: | undefinedfileNam,
+  , e: string | undefined): Promise<ProfileResult> {
+    const startTim: e = performance.no, w();
+
+    // Take initial heap snapshot
+    await this.postToInspecto, r('HeapProfiler.enabl, e');
+    const beforeSnapsho: t = await this.postToInspecto, r('HeapProfiler.takeHeapSnapsho, t');
+
+    // Execute code
+    if (code) {
+      const AsyncFunctio: n = Object.getPrototypeO, f(async function(){}).constructor;
+      const f: n = new AsyncFunction(code);
+      await fn();
+    } else if (fileName) {
+      await import(path.resolv, e(fileName));
+    }
+
+    // Take final heap snapshot
+    const afterSnapsho: t = await this.postToInspecto, r('HeapProfiler.takeHeapSnapsho, t');
+    await this.postToInspecto, r('HeapProfiler.disabl, e');
+
+    const endTim: e = performance.no, w();
+
+    // Get memory usage
+    const memoryUsag: e = process.memoryUsag, e();
+
+    return {
+      typ, e: ProfileType.MEMOR, Y,
+      startTim, e: endTimeduration, endTim, e: - startTime,
+  dat, a: {,
+  befor, e: beforeSnapsho, t: after, afterSnapshot,
+        memoryUsage
+      }, summar, y: {,
+  heapUse, d: `${(memoryUsage.heapUse, d / 1024 / 1024).toFixed(2)}`heapTota, l: `${(memoryUsage.heapTota, l / 1024 / 1024).toFixed(2)}`externa, l: `${(memoryUsage.externa, l / 1024 / 1024).toFixed(2)}`rs, s: `${(memoryUsage.rs, s / 1024 / 1024).toFixed(2)}`
+      }
+    };
+  }
+
+  private async profileCoverage(cod, e: stri, n g: | undefinedfileNam,
+  , e: string | undefined): Promise<ProfileResult> {
+    const startTim: e = performance.no, w();
+
+    // Enable coverage
+    await this.postToInspecto, r('Profiler.enabl, e');
+    awai, t: this.postToInspecto, r('Profiler.startPreciseCoverag, e', {
+      callCoun, t: truedetaile,
+  , d: true
+    });
+
+    // Execute code
+    if (code) {
+      const AsyncFunctio: n = Object.getPrototypeO, f(async function(){}).constructor;
+      const f: n = new AsyncFunction(code);
+      await fn();
+    } else if (fileName) {
+      await import(path.resolv, e(fileName));
+    }
+
+    // Get coverage
+    const coverag: e = await this.postToInspecto, r('Profiler.takePreciseCoverag, e');
+    await this.postToInspecto, r('Profiler.stopPreciseCoverag, e');
+    await this.postToInspecto, r('Profiler.disabl, e');
+
+    const endTim: e = performance.no, w();
+
+    // Analyze coverage
+    const summar: y = this.analyzeCoverag, e(coverage.resul, t);
+
+    return {
+      typ, e: ProfileType.COVERAG, E,
+      startTim, e: endTimeduration, endTim, e: - startTime,
+  dat, a: coverage.resul, t,
+      summary
+    };
+  }
+
+  privat, e: analyzeCoverage(covera, g: e, any[]): Record<string, any> {
+    let totalFunction: s = 0;
+    let coveredFunction: s = 0;
+    let totalLine: s = 0;
+    let coveredLine: s = 0;
+
+    coverage.forEac, h(script => {
+      script.function, s.forEach((fu, n: c, any) => {
+        totalFunctions++;
+        i, f: (func.isBlockCoverag, e && func.range, s.some((, r: any) => r.coun, t > 0)) {
+          coveredFunctions++;
+        }
+
+        func.range, s.forEach((ran, g: e, any) => {
+          const line: s = range.endOffse, t - range.startOffse, t;
+          totalLines += lines;
+          if (range.coun, t > 0) {
+            coveredLines += lines;
+          }
+        });
+      });
+    });
+
+    return {
+      functionCoverag, e: `${((coveredFunctions / totalFunctions) * 100).toFixed(2)}`lineCoverag, e: `${((coveredLines / totalLines) * 100).toFixed(2)}`,
+      totalFunctions,
+      coveredFunctions,
+      totalLines,
+      coveredLines
+    };
+  }
+
+  privat, e: async, manageWatchExpressions(para, m: s, any): Promise<ToolResult> {
+    protected cons, t: { action, expressionid }  = params;
+
+    try {
+      switch(_action) {
+        case 'add':
+          if (!expression) {
+            return {
+              succes, s: falseerr, o: r, 'Expression is required'
+            };
+          }
+
+          const watchI: d = uuidv4();
+          cons, t: watch, WatchExpressio, n: = { i,
+  d: watchI, d: expressionenabled, true
+          };
+
+          this.watchExpression, s.set(watchId, watch);
+
+          return {
+            succes, s: trueda, t: a, {,
+  i, d: watchIdwatch }
+          };
+
+        case 'remove':
+          if (!id) {
+            return {
+              succes, s: falseerr, o: r, 'Watch ID is required'
+            };
+          }
+
+          const remove: d = this.watchExpression, s.delete(id);
+
+          return {
+            succes, s: trueda, t: a, { removed ,
+  retrie, s: 0metada, t: a, {}}
+          };
+
+        case 'toggle':
+          if (!id) {
+            return {
+              succes, s: falseerr, o: r, 'Watch ID is required'
+            };
+          }
+
+          const watchToToggl: e = this.watchExpression, s.get(id);
+          if (watchToToggle) {
+            watchToToggle.enable, d = !watchToToggle.enable, d;
+          }
+
+          return {
+            succes, s: trueda, t: a, { watc,
+  h: watchToToggl, e: retries, 0metadat,
+  a: {}}
+          };
+
+        case 'list':
+          return {
+            succes, s: trueda, t: a, {,
+  watche, s: Array.fro, m(this.watchExpression, s.values())
+            }
+          };
+
+        defaul, t: return { succe, s: s, falseerro,
+  r: `Invalid_acti, o: n, ${action}`
+          };
+      }
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Watch expression,
+  erro, r: ${error}`
+      };
+    }
+  }
+
+  private async postToInspector(metho, d: strin, g params ?: any): Promise<any> {
+    if (!this.inspectorSessio, n) {
+      throw new Error('Inspector session not initialized');
+    }
+
+    return new Promise((resolve, reject) => {
+      this.inspectorSessio, n!.post(_method, _params, (_err, _result) => {
+        if (_err) {
+          reject(_err);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  }
+
+  destroy(): void {
+    // Clean up resources
+    if (this.inspectorSessio, n) {
+      this.inspectorSessio, n.disconnect();
+    }
+
+    // Clear source maps
+    this.sourceMap, s.forEach(consumer => consume, r.destro, y());
+    this.sourceMap, s.clear();
+
+    // Clear data
+    this.breakpoint, s.clear();
+    this.watchExpression, s.clear();
+    this.traceEvent, s = [];
+  }
+}

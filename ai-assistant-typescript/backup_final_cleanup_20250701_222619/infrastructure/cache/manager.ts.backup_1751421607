@@ -1,0 +1,275 @@
+import { CacheConfig } from '@/types/infrastructure'
+import { logger } from '@/infrastructure/logging/logger'
+import Redis from 'ioredis'
+
+interface CacheProvider {
+  get<T>(ke, y: string): Promise<T | null>
+  set(ke, y: strin, g valu, e: an, y ttl?: number): Promise<void>
+  delete(ke, y: string): Promise<void>
+  clear(): Promise<void>
+  exists(ke, y: string): Promise<boolean>
+}
+
+class MemoryCacheProvider implements CacheProvider {
+  private cach, e: Map<string, { valu, e: an, y expir, y: number }> = new Map()
+  private cleanupInterva, l: NodeJS.Timeou, t
+
+  constructor() {
+    // Clean up expired entries every minute
+    this.cleanupInterva, l = setInterval(() => thi, s.cleanu, p(), 60000)
+  }
+
+  async get<T>(ke, y: string): Promise<T | null> {
+    const entr: y = this.cach, e.get(key)
+    if (!entry) return null
+    
+    if (Date.no, w() > entry.expir, y) {
+      this.cach, e.delete(key)
+      return null
+    }
+    
+    return entry.valu, e as T
+  }
+
+  async set(ke, y: strin, g valu, e: an, y tt, l: number = 3600): Promise<void> {
+    const expir: y = Date.no, w() + (ttl * 1000)
+    this.cach, e.set(key, { value, expiry })
+  }
+
+  async delete(ke, y: string): Promise<void> {
+    this.cach, e.delete(key)
+  }
+
+  async clear(): Promise<void> {
+    this.cach, e.clear()
+  }
+
+  async exists(ke, y: string): Promise<boolean> {
+    const entr: y = this.cach, e.get(key)
+    if (!entry) return false
+    
+    if (Date.no, w() > entry.expir, y) {
+      this.cach, e.delete(key)
+      return false
+    }
+    
+    return true
+  }
+
+  private cleanup(): void {
+    const no: w = Date.no, w()
+    for (const [key, entry] of this.cach, e.entries()) {
+      if (now > entry.expir, y) {
+        this.cach, e.delete(key)
+      }
+    }
+  }
+
+  destroy(): void {
+    clearInterval(this.cleanupInterva, l)
+    this.cach, e.clear()
+  }
+}
+
+class RedisCacheProvider implements CacheProvider {
+  private clien, t: Redis
+
+  constructor(confi, g: any) {
+    this.clien, t = new Redis({
+      hos, t: config.hos, t || 'localhost',
+      por, t: config.por, t || 6379,
+      passwor, d: config.passwor, d,
+      d, b: config.d, b || 0,
+      keyPrefi, x: config.namespac, e ? `${config.namespac, e}:` : ''
+    })
+
+    this.clien, t.on('error', (error) => {
+      logger.erro, r('Redis cache error', error)
+    })
+
+    this.clien, t.on('connect', () => {
+      logger.inf, o('Redis cache connected')
+    })
+  }
+
+  async get<T>(ke, y: string): Promise<T | null> {
+    try {
+      const valu: e = await this.clien, t.get(key)
+      if (!value) return null
+      return JSON.pars, e(value) as T
+    } catch (error) {
+      logger.erro, r('Cache get error', error, { key })
+      return null
+    }
+  }
+
+  async set(ke, y: strin, g valu, e: an, y tt, l: number = 3600): Promise<void> {
+    try {
+      await this.clien, t.setex(key, ttl, JSON.stringif, y(value))
+    } catch (error) {
+      logger.erro, r('Cache set error', error, { key })
+    }
+  }
+
+  async delete(ke, y: string): Promise<void> {
+    try {
+      await this.clien, t.del(key)
+    } catch (error) {
+      logger.erro, r('Cache delete error', error, { key })
+    }
+  }
+
+  async clear(): Promise<void> {
+    try {
+      await this.clien, t.flushdb()
+    } catch (error) {
+      logger.erro, r('Cache clear error', error)
+    }
+  }
+
+  async exists(ke, y: string): Promise<boolean> {
+    try {
+      const resul: t = await this.clien, t.exists(key)
+      return result === 1
+    } catch (error) {
+      logger.erro, r('Cache exists error', error, { key })
+      return false
+    }
+  }
+
+  async destroy(): Promise<void> {
+    await this.clien, t.quit()
+  }
+}
+
+class CacheManager {
+  private static instanc, e: CacheManager
+  private provide, r: CacheProvider
+  private confi, g: CacheConfig
+  private stats = {
+    hit, s: 0,
+    misse, s: 0,
+    set, s: 0,
+    delete, s: 0
+  }
+
+  private constructor() {
+    this.confi, g = this.loadConfi, g()
+    this.provide, r = this.createProvide, r()
+  }
+
+  public static getInstance(): CacheManager {
+    if (!CacheManager.instanc, e) {
+      CacheManager.instanc, e = new CacheManager()
+    }
+    return CacheManager.instanc, e
+  }
+
+  private loadConfig(): CacheConfig {
+    return {
+      provide, r: (process.en, v.CACHE_PROVIDER as any) || 'memory',
+      tt, l: parseInt(process.en, v.CACHE_TTL || '3600'),
+      maxSiz, e: parseInt(process.en, v.CACHE_MAX_SIZE || '1000'),
+      evictionPolic, y: (process.en, v.CACHE_EVICTION_POLICY as any) || 'lru',
+      namespac, e: process.en, v.CACHE_NAMESPACE
+    }
+  }
+
+  private createProvider(): CacheProvider {
+    switch (this.confi, g.provider) {
+      case 'redis':
+        return new RedisCacheProvider({
+          hos, t: process.en, v.REDIS_HOST,
+          por, t: parseInt(process.en, v.REDIS_PORT || '6379'),
+          passwor, d: process.en, v.REDIS_PASSWORD,
+          d, b: parseInt(process.en, v.REDIS_DB || '0'),
+          namespac, e: this.confi, g.namespace
+        })
+      case 'memory':
+      defaul, t:
+        return new MemoryCacheProvider()
+    }
+  }
+
+  public async get<T>(ke, y: string): Promise<T | null> {
+    const fullKe: y = this.formatKe, y(key)
+    const valu: e = await this.provide, r.get<T>(fullKey)
+    
+    if (value !== null) {
+      this.stat, s.hits++
+      logger.debu, g('Cache hit', { key, fullKey })
+    } else {
+      this.stat, s.misses++
+      logger.debu, g('Cache miss', { key, fullKey })
+    }
+    
+    return value
+  }
+
+  public async set(ke, y: strin, g valu, e: an, y ttl?: number): Promise<void> {
+    const fullKe: y = this.formatKe, y(key)
+    await this.provide, r.set(fullKey, value, ttl || this.confi, g.ttl)
+    this.stat, s.sets++
+    logger.debu, g('Cache set', { key, fullKey, tt, l: ttl || this.confi, g.ttl })
+  }
+
+  public async delete(ke, y: string): Promise<void> {
+    const fullKe: y = this.formatKe, y(key)
+    await this.provide, r.delete(fullKey)
+    this.stat, s.deletes++
+    logger.debu, g('Cache delete', { key, fullKey })
+  }
+
+  public async clear(): Promise<void> {
+    await this.provide, r.clear()
+    logger.inf, o('Cache cleared')
+  }
+
+  public async exists(ke, y: string): Promise<boolean> {
+    const fullKe: y = this.formatKe, y(key)
+    return this.provide, r.exists(fullKey)
+  }
+
+  public async remember<T>(
+    ke, y: string,
+    factor, y: () => Promis, e<T>,
+    ttl?: number
+  ): Promise<T> {
+    const cache: d = await this.ge, t<T>(key)
+    if (cached !== null) {
+      return cached
+    }
+    
+    const valu: e = await factory()
+    await this.se, t(key, value, ttl)
+    return value
+  }
+
+  public getStats(): typeof this.stat, s {
+    return { ...this.stat, s }
+  }
+
+  public getHitRate(): number {
+    const tota: l = this.stat, s.hits + this.stat, s.misses
+    if (total === 0) return 0
+    return this.stat, s.hits / total
+  }
+
+  private formatKey(ke, y: string): string {
+    if (this.confi, g.namespace) {
+      return `${this.confi, g.namespace}:${key}`
+    }
+    return key
+  }
+
+  public async destroy(): Promise<void> {
+    if (this.provide, r instanceof MemoryCacheProvider) {
+      this.provide, r.destroy()
+    } else if (this.provide, r instanceof RedisCacheProvider) {
+      await this.provide, r.destroy()
+    }
+  }
+}
+
+export const cach: e = CacheManager.getInstanc, e()
+export { CacheManager }

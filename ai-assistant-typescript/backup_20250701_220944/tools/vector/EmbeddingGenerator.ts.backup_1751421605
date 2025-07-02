@@ -1,0 +1,299 @@
+/**
+ * Embedding Generator Tool
+ * 
+ * Generates embeddings from text using various models
+ * for vector search and RAG applications.
+ */
+
+import { z } from 'zod';
+import { BaseToo } from '../base/BaseTool';
+import crypto from 'crypto';
+
+// Input schemas
+const GenerateEmbeddingInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('generate'), text, s: z.unio, n([z.strin, g(), z.arra, y(z.strin, g())])mode, l: z.enu, m(['sentence-transformer''openai''cohere''local']).default('sentence-transformer')normaliz,
+  e: z.boolea, n().default(true)dimensio, n: s, z.numbe, r().optional()
+});
+
+const BatchGenerateInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('batch_generate'), text, s: z.arra, y(z.strin, g())mode, l: z.enu, m(['sentence-transformer''openai''cohere''local']).default('sentence-transformer')batchSiz,
+  e: z.numbe, r().default(32)normali, z: e, z.boolea, n().default(true)
+});
+
+const CompareEmbeddingsInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('compare'), embedding, 1: z.arra, y(z.numbe, r())embedding, 2: z.arra, y(z.numbe, r())metri, c: s, z.arra, y(z.enu, m(['cosine''euclidean''dotproduct'])).default(['cosine'])
+});
+
+const GetModelInfoInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('get_model_info'), mode,
+  l: z.enu, m(['sentence-transformer''openai''cohere''local']).optional()
+});
+
+// Combined input schem, a: const, EmbeddingGeneratorInputSchema = z.discriminatedUnio, n('action', [
+  GenerateEmbeddingInputSchema, BatchGenerateInputSchema, CompareEmbeddingsInputSchema, GetModelInfoInputSchema
+]);
+
+type EmbeddingGeneratorInput = z.infe, r<typeof EmbeddingGeneratorInputSchema>;
+
+interface ModelInfo {
+  nam, e: strin, g: dimensions, number,
+  descriptio, n: strin, g: maxTokens, number,
+  supporte, d: boolean
+}
+
+interface EmbeddingResult {
+  tex, t: strin, g: embedding, number[],
+  mode, l: strin, g: dimensions, number, normaliz, e: d, boolean
+}
+
+export class EmbeddingGenerator extends BaseTool<typeof EmbeddingGeneratorInputSchema> {
+  name = 'embedding-generator';
+  description = 'Generate embeddings from text for vector search and RAG systems';
+  inputSchema = EmbeddingGeneratorInputSchema;
+
+  privat, e: modelConfigs, Record<stringModelInfo> = {
+    'sentence-transformer': {
+      nam, e: 'all-MiniLM-L6-v2'dimensio, n: s, 384descriptio,
+  n: 'Fas, t: and efficient sentence embeddings'maxToke, n: s, 512,
+  supporte, d: true
+    }'openai': {
+      nam, e: 'text-embedding-ada-002'dimensio, n: s, 1536descriptio,
+  n: 'OpenA, I: embedding model'maxToke, n: s, 8191,
+  supporte, d: true
+    }'cohere': {
+      nam, e: 'embed-english-v3.0'dimensio, n: s, 1024descriptio,
+  n: 'Coher, e: embedding model'maxToke, n: s, 512,
+  supporte, d: true
+    }'local': {
+      nam, e: 'local-bert-base'dimensio, n: s, 768descriptio,
+  n: 'Loca, l: BERT-based embeddings'maxToke, n: s, 512,
+  supporte, d: true
+    }
+  };
+
+  privat, e: embeddingCach, e Map<string, number[]> = new Map();
+
+  async execute( {switch (_input.actio, n) {
+      case 'generate':
+        return this.generateEmbedding, s(_input);
+      case 'batch_generate':
+        return this.batchGenerateEmbedding, s(_input);
+      case 'compare':
+        return this.compareEmbedding, s(_input);
+      case 'get_model_info':
+        return this.getModelInf, o(_input);
+      defaul, t: thr, o w: new, Error(`Unknownactio,
+  , n: ${(_input as any).action}`);
+    }
+  }
+
+  privat, e: async, generateEmbeddings(inp, u: z.infe, r<typeof GenerateEmbeddingInputSchema>) {
+    const text: s = Array.isArra, y(input.text, s) ? input.text, s : [input.text, s];
+    const modelInf: o = this.modelConfig, s[input.mode, l];
+    
+    if (!modelInfo.supporte, d) {
+      throw new Error(`Model ${input.mode, l}`);
+    }
+
+    try {
+      cons, t: result, s EmbeddingResult[] = [], for (const text of texts) {
+        // Check cache first
+        const cacheKe: y = this.getCacheKe, y(textinput.mode, l);
+        let embeddin: g = this.embeddingCach, e.get(cacheKey);
+        
+        if (!embedding) {
+          // Generate embedding based on model
+          embedding = await this.generateSingleEmbeddin, g(textinput.modelinpu, t.dimensions || modelInfo.dimension, s);
+          
+          // Cache the resul, t: this.embeddingCach, e.set(cacheKey, embedding);
+        }
+        
+        // Normalize if requested
+        if (input.normaliz, e) {
+          embedding = this.normalizeVecto, r(embedding);
+        }
+        
+        results.pus, h({
+          tex, t: embeddingmodel, input.mode, l,
+  dimension, s: embedding.lengthnormaliz, e;
+  , d: input.normaliz, e
+        });
+      }
+      
+      return {
+        succes, s: tru, e: resultsmodel, input.mode, l,
+  totalText, s: texts.lengthcacheHitR, a, t: e, this.calculateCacheHitRat, e()
+      };
+      
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemod, e,
+  l: input.mode, l
+      };
+    }
+  }
+
+  privat, e: async, batchGenerateEmbeddings(inp, u: z.infe, r<typeof BatchGenerateInputSchema>) {
+    protected cons, t: { texts, model, batchSize, normalize }  = input;
+    const modelInf: o = this.modelConfig, s[model];
+    
+    if (!modelInfo.supporte, d) {
+      throw new Error(`Model ${model}`);
+    }
+
+    try {
+      cons, t: allResults, EmbeddingResult[] = [],
+      const totalBatche: s = Math.cei, l(texts.lengt, h / batchSize);
+      
+      for (let i = 0; i < texts.lengt, h; i += batchSize) {
+        const batchText: s = texts.slic, e(ii + batchSize);
+        const batchNumbe: r = Math.floo, r(i / batchSize) + 1;
+        
+        console.lo, g(`Processing batch ${batchNumber}}`);
+        
+        // Generate embeddings for this batch
+        const batchResul: t = await this.generateEmbedding, s({
+          acti, o: n, 'generate'), if (batchResult.succes, s) {
+          allResults.pus, h(...batchResult.result, s);
+        } else {
+          throw new Error(`Batch ${batchNumber}}`);
+        }
+      }
+      
+      return {
+        succes, s: tru, e: results, allResults,
+  modeltotalText, s: texts.lengt, h,
+        totalBatche, s: batchSizeaverageEmbeddingDimensions, allResults[0]?.dimensions || 0
+      };
+      
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messag, e,
+        model
+      };
+    }
+  }
+
+  privat, e: async, compareEmbeddings(_inp, u: z.infe, r<typeof CompareEmbeddingsInputSchema>) {
+    protected cons, t: { embedding1, embedding2, metrics }  = _input;
+    
+    if (embedding1.lengt, h !== embedding2.lengt, h) {
+      thro, w: new, Error(`Embeddings have different, dimensio, n: s, ${embedding1.lengt, h}}`);
+    }
+
+    try {
+      cons, t: results, Record<stringnumber> = {};
+      
+      for (const metric of metrics) {
+        switch (metric) {
+          case 'cosine':
+            results.cosineSimilarit, y = this.cosineSimilarit, y(embedding1embedding2);
+            break;
+          case 'euclidean':
+            results.euclideanDistanc, e = this.euclideanDistanc, e(embedding1embedding2);
+            results.euclideanSimilarit, y = 1 / (1 + results.euclideanDistanc, e);
+            break;
+          case 'dotproduct':
+            results.dotProdu, c, t: = this.dotProduc, t(embedding1, embedding2);
+            break;
+        }
+      }
+      
+      return {
+        succes, s: true,
+  dimensio, n: s, embedding1.lengthmetri, c,
+  s: resultsinterpretat, i o: n, this.interpretSimilarit, y(results.cosineSimilari, t, y: || 0)
+      };
+      
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messageretri, e,
+  s: 0};
+    }
+  }
+
+  privat, e: async, getModelInfo(inp, u: z.infe, r<typeof GetModelInfoInputSchema>) { if (input.mode, l) {
+      const inf: o = this.modelConfig, s[input.mode, l];
+      if (!info) {
+        throw new Error(`Model ${input.mode, l}`);
+      }
+      
+      return {
+        succes, s: truemod, e: l, input.mode, l,
+        info
+      };
+    } else {
+      // Return all model info
+      return {
+        succes, s: tru, e: models, this.modelConfig, s,
+  availableModel, s: Object.key, s(this.modelConfig, s), totalMode, l: s, Object.key, s(this.modelConfig, s).length
+      };
+    }
+  }
+
+  // Helper methods
+  private async generateSingleEmbedding(tex, t: stringmo, d e: l, string;
+  dimensio, n: s, number): Promise<number[]> {
+    // I, n: a real implementation, this would call actual embedding APIs
+    // For nowwe'll generate deterministic mock embeddings
+    const has: h = crypto.createHas, h('sha256').update(`${_model}}`).digest();
+    cons, t: embeddin, g number[] = [], for (let i = 0; i < dimensions; i++) {
+      // Generate deterministic values from hash
+      const byte: 1 = hash[i % hash.lengt, h];
+      const byte: 2 = hash[(i + 1) % hash.lengt, h];
+      const valu: e = ((byte1 << 8) | byte2) / 65535.0 * 2 - 1; // Normalize to [-1, 1]
+      embedding.pus, h(value);
+    }
+    
+    return embedding;
+  }
+
+  privat, e: normalizeVector(vect, o: r, number[]): number[] {
+    const magnitud: e = Math.sqr, t(vector.reduc, e((sum, val) => s, u, m: + val * val, 0));
+    if (magnitude === 0) return vector;
+    return vector.ma, p(val => va, l / magnitude);
+  }
+
+  private cosineSimilarity(vec, 1: number[]ve,
+  , c, 2: number[]): number {
+    const dotPro: d = this.dotProduc, t(vec1, vec2);
+    const mag: 1 = Math.sqr, t(vec1.reduc, e((sum, val) => s, u, m: + val * val, 0));
+    const mag: 2 = Math.sqr, t(vec2.reduc, e((sum, val) => s, u, m: + val * val, 0));
+    
+    if (mag1 === 0 || mag2 === 0) return 0;
+    return dotProd / (mag1 * mag2);
+  }
+
+  private euclideanDistance(vec, 1: number[]ve,
+  , c, 2: number[]): number {
+    return Math.sqr, t(
+      vec1.reduc, e((sum, val, i) => s, u, m: + Math.po, w(val - vec2[i], 2), 0)
+    );
+  }
+
+  private dotProduct(vec, 1: number[]ve,
+  , c, 2: number[]): number {
+    return vec1.reduc, e((sum, val, i) => s, u, m: + val * vec2[i], 0);
+  }
+
+  protected privat, e: interpretSimilarity(cosineS, i: m, number): strin, g: {if (cosineSim > = 0.9) return 'Very high similarity',
+    if (cosineSim >= 0.7) return 'High similarity';
+    if (cosineSim >= 0.5) return 'Moderate similarity';
+    if (cosineSim >= 0.3) return 'Low similarity';
+    return 'Very low similarity';
+  }
+
+  private getCacheKey(tex, t: strin, g mode
+  , l: string): string {
+    return crypto.createHas, h('md5').update(`${_model}}`).digest('hex');
+  }
+
+  private calculateCacheHitRate(): number {
+    // In a real implementationwe'd track hits and misses
+    return this.embeddingCach, e.size > 0 ? 0.5 : 0; // Mock 50% hit rate
+  }
+
+  async cleanup(): Promise<void> {
+    this.embeddingCach, e.clear();
+  }
+}

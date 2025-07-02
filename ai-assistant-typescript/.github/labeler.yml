@@ -1,0 +1,60 @@
+# Add labels to PRs based on file changes
+
+documentation:
+  - '**/*.md'
+  - 'docs/**/*'
+  - '**/README*'
+
+tests:
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+  - '**/__tests__/**'
+  - 'jest.config.*'
+  - 'test/**/*'
+
+ci/cd:
+  - '.github/**/*'
+  - '.gitlab-ci.yml'
+  - '.circleci/**/*'
+  - 'Dockerfile*'
+  - 'docker-compose*.yml'
+
+dependencies:
+  - 'package.json'
+  - 'package-lock.json'
+  - 'yarn.lock'
+  - 'pnpm-lock.yaml'
+
+configuration:
+  - '*.config.js'
+  - '*.config.ts'
+  - '.env*'
+  - 'tsconfig*.json'
+  - '.eslintrc*'
+  - '.prettierrc*'
+
+tools:
+  - 'src/tools/**/*'
+  - 'tools/**/*'
+
+agents:
+  - 'src/agents/**/*'
+  - 'agents/**/*'
+
+infrastructure:
+  - 'src/infrastructure/**/*'
+  - 'infrastructure/**/*'
+
+orchestration:
+  - 'src/orchestration/**/*'
+  - 'orchestration/**/*'
+
+security:
+  - 'src/**/*security*'
+  - 'src/**/*auth*'
+  - 'src/**/*crypto*'
+
+breaking-change:
+  - 'src/types/**/*'
+  - 'src/**/base/**/*'
+  - '**/migrations/**/*'

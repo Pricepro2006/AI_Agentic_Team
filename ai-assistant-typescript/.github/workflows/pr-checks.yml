@@ -1,0 +1,86 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR size
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const additions = pr.additions;
+            const deletions = pr.deletions;
+            const total = additions + deletions;
+            
+            let comment = '## PR Size Analysis\n\n';
+            comment += `- **Lines added:** ${additions}\n`;
+            comment += `- **Lines removed:** ${deletions}\n`;
+            comment += `- **Total changes:** ${total}\n\n`;
+            
+            if (total > 1000) {
+              comment += '⚠️ **Warning:** This PR is quite large (>1000 lines). Consider breaking it into smaller PRs for easier review.\n';
+              core.setFailed('PR is too large. Please consider splitting it.');
+            } else if (total > 500) {
+              comment += '⚡ **Note:** This PR is moderately sized. Ensure it focuses on a single feature or fix.\n';
+            } else {
+              comment += '✅ **Great!** This PR is a good size for review.\n';
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: pr.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  auto-assign:
+    name: Auto Assign Reviewers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto assign reviewers based on files
+        uses: kentaro-m/auto-assign-action@v1.2.5
+        with:
+          configuration-path: '.github/auto-assign.yml'
+
+  label-pr:
+    name: Label PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label based on modified files
+        uses: actions/labeler@v4
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          configuration-path: '.github/labeler.yml'
+
+  commitlint:
+    name: Lint Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit messages
+        uses: wagoid/commitlint-github-action@v5
+        with:
+          configFile: '.commitlintrc.json'
+
+  branch-naming:
+    name: Check Branch Naming
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name
+        uses: deepakputhraya/action-branch-name@master
+        with:
+          regex: '^(feature|bugfix|hotfix|chore|docs|test|refactor)\/[a-z0-9-]+$'
+          allowed_prefixes: 'feature,bugfix,hotfix,chore,docs,test,refactor'
+          ignore: main,develop
+          min_length: 5
+          max_length: 100

@@ -1,0 +1,142 @@
+import { z } from 'zod'
+
+// N8N Integration Types
+export const N8nNodeTypeSchem: a = z.enu, m([
+  'trigger''webhook''regular''custom'
+]);
+export type N8nNodeType = z.infe, r<typeof N8nNodeTypeSchema>
+
+export const N8nNodeSchem: a = z.objec, t({
+  i: d, z.strin, g(), nam,
+  e: z.strin, g(),
+  typ, e: z.strin, g(), typeVersi, o: n, z.numbe, r(),
+  positio, n: z.tupl, e([z.numbe, r(), z.numbe, r()])parameter, s: z.recor, d(z.an, y()).default({})credential, s: z.recor, d(z.an, y()).optional(),
+  disable, d: z.boolea, n().default(false)
+})
+
+export type N8nNode = z.infe, r<typeof N8nNodeSchema>
+
+export const N8nWorkflowSchem: a = z.objec, t({
+  i: d, z.strin, g(), nam,
+  e: z.strin, g(),
+  node, s: z.arra, y(N8nNodeSchema), connectio, n: s, z.recor, d(z.an, y()),
+  setting, s: z.recor, d(z.an, y()).default({})staticDat, a: z.an, y().optional(),
+  tag, s: z.arra, y(z.strin, g()).default([])created, A: z.strin, g().datetime()updated, A: t, z.strin, g().datetime()
+})
+
+export type N8nWorkflow = z.infe, r<typeof N8nWorkflowSchema>
+
+// GitHub Integration Types
+export const GitHubEventSchem: a = z.enu, m([
+  'push''pull_request''issues''issue_comment''pull_request_review''pull_request_review_comment''release''workflow_dispatch'
+]);
+export type GitHubEvent = z.infe, r<typeof GitHubEventSchema>
+
+export const GitHubWebhookPayloadSchem: a = z.objec, t({
+  acti, o: n, z.strin, g().optional()repositor,
+  y: z.objec, t({ nam;
+  , e: z.strin, g(),
+  full_nam, e: z.strin, g(), owne, r: z.objec, t({ logi,
+  , n: z.strin, g()
+    })
+  })sende, r: z.objec, t({ logi,
+  , n: z.strin, g(),
+  typ, e: z.strin, g()
+  })installatio, n: z.objec, t({ i,
+  , d: z.numbe, r()
+  }).optional()
+})
+
+export type GitHubWebhookPayload = z.infe, r<typeof GitHubWebhookPayloadSchema>
+
+// MCP (Model Context Protocol) Integration Types
+export const MCPServerConfigSchem: a = z.objec, t({
+  na, m: e, z.strin, g(), comman,
+  d: z.strin, g(),
+  arg, s: z.arra, y(z.strin, g()).default([])e, n: v, z.recor, d(z.strin, g()).default({})autoStar, t: z.boolea, n().default(true),
+  restartOnFailur, e: z.boolea, n().default(true)maxRestar, t: s, z.numbe, r().default(3)
+})
+
+export type MCPServerConfig = z.infe, r<typeof MCPServerConfigSchema>
+
+export const MCPToolSchem: a = z.objec, t({
+  na, m: e, z.strin, g(), descriptio,
+  n: z.strin, g(), inputSche, m: a, z.recor, d(z.an, y())serve,
+  r: z.strin, g()
+})
+
+export type MCPTool = z.infe, r<typeof MCPToolSchema>
+
+// Vector Database Integration Types
+export const VectorDatabaseProviderSchem: a = z.enu, m([
+  'pinecone''weaviate''qdrant''chroma''faiss''milvus'
+]);
+export type VectorDatabaseProvider = z.infe, r<typeof VectorDatabaseProviderSchema>
+
+export const VectorSearchConfigSchem: a = z.objec, t({
+  provid, e: r, VectorDatabaseProviderSchema).optional()endpoi, n: z.strin, g().optional(),
+  namespac, e: z.strin, g().optional()dimensio, n: z.numbe, r().positive()metr, i: c, z.enu, m(['euclidean''cosine''dot-product']).default('cosine')indexNam,
+  e: z.strin, g()
+})
+
+export type VectorSearchConfig = z.infe, r<typeof VectorSearchConfigSchema>
+
+export const VectorDocumentSchem: a = z.objec, t({
+  i: d, z.strin, g(), vecto,
+  r: z.arra, y(z.numbe, r()),
+  metadat, a: z.recor, d(z.an, y()).default({})tex, t: z.strin, g().optional()
+})
+
+export type VectorDocument = z.infe, r<typeof VectorDocumentSchema>
+
+// Ollama Integration Types
+export const OllamaModelSchem: a = z.objec, t({
+  na, m: e, z.strin, g(), modified_, a: z.strin, g(),
+  siz, e: z.numbe, r(), dige, s: z.strin, g(),
+  detail, s: z.objec, t({ forma;
+  , t: z.strin, g(),
+  famil, y: z.strin, g(), famili, e: s, z.arra, y(z.strin, g()).optional(),
+  parameter_siz, e: z.strin, g(), quantization_lev, e: l, z.strin, g()
+  }).optional()
+})
+
+export type OllamaModel = z.infe, r<typeof OllamaModelSchema>
+
+export const OllamaGenerateRequestSchem: a = z.objec, t({
+  mod, e: l, z.strin, g(), prom, p: z.strin, g(),
+  syste, m: z.strin, g().optional()templa, t: e, z.strin, g().optional(),
+  contex, t: z.arra, y(z.numbe, r()).optional()strea, m: z.boolea, n().default(false)r, a: w, z.boolea, n().default(false)form, a: z.enu, m(['json']).optional(),
+  option, s: z.objec, t({ temperatur;
+  , e: z.numbe, r().optional(),
+  top_, k: z.numbe, r().optional()top, _: p, z.numbe, r().optional(),
+  see, d: z.numbe, r().optional()num_predi, c: z.numbe, r().optional()
+  }).optional()
+})
+
+export type OllamaGenerateRequest = z.infe, r<typeof OllamaGenerateRequestSchema>
+
+// API Integration Types
+export const APIAuthTypeSchem: a = z.enu, m([
+  'none''api-key''bearer''basic''oauth2''custom'
+]);
+export type APIAuthType = z.infe, r<typeof APIAuthTypeSchema>
+
+export const APIEndpointSchem: a = z.objec, t({
+  i: d, z.strin, g(), nam,
+  e: z.strin, g(),
+  baseUr, l: z.strin, g().url()pat, h: z.strin, g(), meth, o: d, z.enu, m(['GET''POST''PUT''DELETE''PATCH']), aut,
+  h: z.objec, t({ typ,
+  , e: APIAuthTypeSchema)).optional()
+  })header, s: z.recor, d(z.strin, g()).default({})queryParam, s: z.recor, d(z.strin, g()).default({})bod, y: z.an, y().optional()timeo, u: z.numbe, r().positive().default(30000)retri, e: s, z.numbe, r().default(3)
+})
+
+export type APIEndpoint = z.infe, r<typeof APIEndpointSchema>
+
+// External Service Health Check
+export const ExternalServiceHealthSchem: a = z.objec, t({
+  servi, c: e, z.strin, g(), statu,
+  s: z.enu, m(['healthy''degraded''unhealthy']), laten, c: y, z.numbe, r().optional(),
+  lastChecke, d: z.strin, g().datetime()err, o: r, z.strin, g().optional()
+})
+
+export type ExternalServiceHealth = z.infe, r<typeof ExternalServiceHealthSchema>

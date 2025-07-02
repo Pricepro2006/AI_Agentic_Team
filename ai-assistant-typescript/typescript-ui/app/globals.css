@@ -1,0 +1,667 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+:root {
+  /* Base */
+  --radius: 0.625rem;
+  --font-size-adjustment: 100%;
+  --transition-duration: 0.15s;
+  
+  /* Colors - Professional TypeScript Theme with OKLCH Color Space */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  
+  /* TypeScript Blue Primary - Professional OKLCH Values */
+  --primary: oklch(0.488 0.243 264.376); /* TypeScript Blue #007ACC equivalent */
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.488 0.243 264.376); /* TypeScript Blue focus ring */
+  
+  /* Charts - Professional data visualization colors */
+  --chart-1: oklch(0.488 0.243 264.376); /* TypeScript Blue */
+  --chart-2: oklch(0.6 0.118 184.704);   /* Emerald */
+  --chart-3: oklch(0.627 0.265 303.9);   /* Purple */
+  --chart-4: oklch(0.828 0.189 84.429);  /* Amber */
+  --chart-5: oklch(0.769 0.188 70.08);   /* Orange */
+  
+  /* Sidebar - Professional navigation colors */
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.488 0.243 264.376);
+  
+  /* Focus */
+  --focus-ring-color: oklch(0.488 0.243 264.376);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+}
+
+.dark {
+  /* Dark Theme - Professional TypeScript Dark Mode */
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  
+  /* TypeScript Blue Primary - Dark Mode */
+  --primary: oklch(0.646 0.222 264.376); /* Brighter TypeScript Blue for dark mode */
+  --primary-foreground: oklch(0.129 0.042 264.695);
+  
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.646 0.222 264.376); /* TypeScript Blue focus ring dark mode */
+  
+  /* Charts - Dark mode data visualization */
+  --chart-1: oklch(0.646 0.222 264.376); /* TypeScript Blue */
+  --chart-2: oklch(0.696 0.17 162.48);   /* Emerald */
+  --chart-3: oklch(0.627 0.265 303.9);   /* Purple */
+  --chart-4: oklch(0.828 0.189 84.429);  /* Amber */
+  --chart-5: oklch(0.769 0.188 70.08);   /* Orange */
+  
+  /* Sidebar - Dark mode navigation */
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.646 0.222 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.646 0.222 264.376);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    transition-duration: var(--transition-duration);
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-size: var(--font-size-adjustment);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Professional Typography - Matching Python UI */
+  h1 {
+    @apply text-4xl font-bold tracking-tight;
+  }
+  
+  h2 {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+  
+  h3 {
+    @apply text-2xl font-semibold;
+  }
+  
+  h4 {
+    @apply text-xl font-semibold;
+  }
+  
+  h5 {
+    @apply text-lg font-semibold;
+  }
+  
+  h6 {
+    @apply text-base font-semibold;
+  }
+  
+  /* Screen reader only utility class */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  /* Enhanced focus indicators */
+  .enhanced-focus :focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+  }
+  
+  /* High contrast mode */
+  .high-contrast {
+    --background: white;
+    --foreground: black;
+    --primary: black;
+    --primary-foreground: white;
+    --secondary: #f0f0f0;
+    --secondary-foreground: black;
+    --muted: #f0f0f0;
+    --muted-foreground: #505050;
+    --accent: #f0f0f0;
+    --accent-foreground: black;
+    --border: black;
+    --input: black;
+  }
+  
+  /* Keyboard navigation mode */
+  .keyboard-navigation-mode :focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+  }
+  
+  /* Skip to content link - visually hidden but focused when tabbed to */
+  .skip-link {
+    @apply absolute left-4 top-4 -translate-y-full transform p-2 rounded bg-primary text-primary-foreground transition-transform focus:translate-y-0 z-50;
+  }
+  
+  /* Agent message highlighting */
+  .agent-segment {
+    @apply transition-colors duration-200;
+  }
+  
+  .agent-segment.highlighted {
+    @apply bg-primary/10 rounded-sm px-0.5;
+  }
+  
+  /* Chat message attribution */
+  .agent-attribution-bar {
+    height: 4px;
+    @apply rounded-full my-1;
+  }
+  
+  /* Chat agent highlighting - TypeScript Theme */
+  .agent-highlight-database-expert {
+    @apply bg-[var(--chart-1)]; /* TypeScript Blue */
+  }
+  
+  .agent-highlight-architecture-expert {
+    @apply bg-[var(--chart-2)]; /* Emerald */
+  }
+  
+  .agent-highlight-code-review-expert {
+    @apply bg-[var(--chart-3)]; /* Purple */
+  }
+  
+  .agent-highlight-testing-qa-expert {
+    @apply bg-[var(--chart-4)]; /* Amber */
+  }
+  
+  .agent-highlight-documentation-expert {
+    @apply bg-[var(--chart-5)]; /* Orange */
+  }
+  
+  /* Focus States - Enhanced TypeScript Blue */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+  
+  /* Professional Scrollbar Styling */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-600;
+  }
+  
+  /* Reduce motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  html:has([data-reduced-motion="true"]) * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer utilities {
+  /* Professional Gradients - TypeScript Theme */
+  .gradient-primary {
+    background: linear-gradient(135deg, oklch(0.488 0.243 264.376) 0%, oklch(0.646 0.222 264.376) 100%);
+  }
+  
+  .gradient-secondary {
+    background: linear-gradient(135deg, oklch(0.279 0.041 260.031) 0%, oklch(0.208 0.042 265.755) 100%);
+  }
+  
+  .gradient-success {
+    background: linear-gradient(135deg, oklch(0.6 0.118 184.704) 0%, oklch(0.696 0.17 162.48) 100%);
+  }
+  
+  .gradient-warning {
+    background: linear-gradient(135deg, oklch(0.828 0.189 84.429) 0%, oklch(0.769 0.188 70.08) 100%);
+  }
+  
+  .gradient-error {
+    background: linear-gradient(135deg, oklch(0.577 0.245 27.325) 0%, oklch(0.704 0.191 22.216) 100%);
+  }
+  
+  /* Glass Morphism - Professional TypeScript Style */
+  .glass {
+    @apply backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 border border-white/20 dark:border-gray-800/20;
+  }
+  
+  .glass-subtle {
+    @apply backdrop-blur-sm bg-white/60 dark:bg-gray-900/60 border border-white/10 dark:border-gray-800/10;
+  }
+  
+  /* Professional Card Styles */
+  .card-professional {
+    @apply bg-card rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+  
+  .card-interactive {
+    @apply card-professional hover:-translate-y-0.5 active:translate-y-0;
+  }
+  
+  /* Professional Button Base */
+  .btn-base {
+    @apply inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  /* Sidebar Styles - Professional TypeScript Navigation */
+  .sidebar-item {
+    @apply flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200;
+  }
+  
+  .sidebar-item-active {
+    @apply bg-primary text-primary-foreground;
+  }
+  
+  .sidebar-item-inactive {
+    @apply text-muted-foreground hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  /* Professional Animations - TypeScript Theme */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slide-in-from-right {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  
+  @keyframes slide-in-from-left {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+  
+  @keyframes slide-in-from-bottom {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  
+  @keyframes scale-in {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  
+  @keyframes typescript-pulse {
+    0%, 100% { 
+      background-color: oklch(0.488 0.243 264.376 / 0.1);
+      transform: scale(1);
+    }
+    50% { 
+      background-color: oklch(0.488 0.243 264.376 / 0.2);
+      transform: scale(1.02);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+  
+  .animate-slide-in-right {
+    animation: slide-in-from-right 0.3s ease-out;
+  }
+  
+  .animate-slide-in-left {
+    animation: slide-in-from-left 0.3s ease-out;
+  }
+  
+  .animate-slide-in-bottom {
+    animation: slide-in-from-bottom 0.3s ease-out;
+  }
+  
+  .animate-scale-in {
+    animation: scale-in 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .animate-typescript-pulse {
+    animation: typescript-pulse 2s ease-in-out infinite;
+  }
+  
+  /* Loading States */
+  .skeleton {
+    @apply animate-pulse bg-gray-200 dark:bg-gray-800 rounded;
+  }
+  
+  /* Badge Styles - TypeScript Theme */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors;
+  }
+  
+  .badge-primary {
+    @apply bg-primary/10 text-primary hover:bg-primary/20;
+  }
+  
+  .badge-success {
+    @apply text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/20;
+    background-color: oklch(0.6 0.118 184.704 / 0.1);
+  }
+  
+  .badge-warning {
+    @apply text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/20;
+    background-color: oklch(0.828 0.189 84.429 / 0.1);
+  }
+  
+  .badge-error {
+    @apply text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/20;
+    background-color: oklch(0.577 0.245 27.325 / 0.1);
+  }
+  
+  /* Professional TypeScript Agent Cards */
+  .agent-card {
+    @apply card-professional p-6 space-y-4;
+  }
+  
+  .agent-card-header {
+    @apply flex items-center gap-3;
+  }
+  
+  .agent-card-icon {
+    @apply flex h-10 w-10 items-center justify-center rounded-lg;
+    background: oklch(0.488 0.243 264.376 / 0.1);
+    color: oklch(0.488 0.243 264.376);
+  }
+  
+  .agent-card-title {
+    @apply text-lg font-semibold;
+  }
+  
+  .agent-card-description {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  .agent-card-actions {
+    @apply flex gap-2 pt-2;
+  }
+  
+  /* Professional Dashboard Grid */
+  .dashboard-grid {
+    @apply grid gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+  
+  .dashboard-stat-card {
+    @apply card-professional p-6;
+  }
+  
+  .dashboard-stat-value {
+    @apply text-3xl font-bold;
+    color: oklch(0.488 0.243 264.376);
+  }
+  
+  .dashboard-stat-label {
+    @apply text-sm text-muted-foreground mt-1;
+  }
+  
+  /* Professional Status Indicators */
+  .status-active {
+    @apply inline-flex items-center gap-1.5 text-sm font-medium;
+    color: oklch(0.6 0.118 184.704);
+  }
+  
+  .status-inactive {
+    @apply inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground;
+  }
+  
+  .status-dot {
+    @apply h-2 w-2 rounded-full;
+  }
+  
+  .status-dot-active {
+    background-color: oklch(0.6 0.118 184.704);
+  }
+  
+  .status-dot-inactive {
+    @apply bg-muted-foreground;
+  }
+  
+  /* Professional Gradient Animations */
+  @keyframes gradient-shift {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+      transform: translate(5%, 5%) rotate(1deg);
+    }
+    50% {
+      transform: translate(0, 10%) rotate(0deg);
+    }
+    75% {
+      transform: translate(-5%, 5%) rotate(-1deg);
+    }
+  }
+  
+  @keyframes gradient-shift-reverse {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+      transform: translate(-5%, -5%) rotate(-1deg);
+    }
+    50% {
+      transform: translate(0, -10%) rotate(0deg);
+    }
+    75% {
+      transform: translate(5%, -5%) rotate(1deg);
+    }
+  }
+  
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(200%);
+    }
+  }
+  
+  .animate-gradient-shift {
+    animation: gradient-shift 20s ease-in-out infinite;
+  }
+  
+  .animate-gradient-shift-reverse {
+    animation: gradient-shift-reverse 20s ease-in-out infinite;
+  }
+  
+  /* Professional Hover Effects */
+  .hover-glow {
+    @apply relative overflow-hidden;
+  }
+  
+  .hover-glow::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), oklch(0.488 0.243 264.376 / 0.15), transparent 50%);
+  }
+  
+  .hover-glow:hover::before {
+    @apply opacity-100;
+  }
+  
+  /* Neon Glow Effects */
+  .neon-glow {
+    filter: drop-shadow(0 0 20px oklch(0.488 0.243 264.376 / 0.5));
+  }
+  
+  .neon-glow-subtle {
+    filter: drop-shadow(0 0 10px oklch(0.488 0.243 264.376 / 0.3));
+  }
+}
+
+/* Professional Dark Theme Enhancements */
+@layer utilities {
+  /* Glass morphism effects */
+  .glass {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10;
+  }
+
+  .glass-dark {
+    @apply backdrop-blur-xl bg-black/20 border border-white/5;
+  }
+
+  /* Professional shadows */
+  .shadow-professional {
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .shadow-card {
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600;
+  }
+
+  /* Professional borders */
+  .border-gradient {
+    border-image: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%) 1;
+  }
+
+  /* Enhanced hover states */
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  /* Status indicators */
+  .status-online {
+    @apply relative after:absolute after:top-0 after:right-0 after:w-3 after:h-3 after:bg-green-500 after:rounded-full after:animate-pulse;
+  }
+
+  .status-offline {
+    @apply relative after:absolute after:top-0 after:right-0 after:w-3 after:h-3 after:bg-red-500 after:rounded-full;
+  }
+}
+
+/* Force dark theme by default for professional look */
+:root {
+  color-scheme: dark;
+}
+
+html {
+  @apply dark;
+}
+
+/* Professional scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+}
+
+/* Enhanced focus states */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+}

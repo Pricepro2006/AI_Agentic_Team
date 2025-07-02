@@ -1,0 +1,93 @@
+/**
+ * Central Tool Registry
+ * Registers all tools with the ToolManager singleton
+ */
+
+import { ToolManage } from './base/ToolManager';
+import { logge } from '../infrastructure/logging/logger';
+
+// Import Python Expert tool, s: import { CodeOptimizer,, PerformanceProfilerLibraryRecommenderDocumentationGenerato } from './pythonExpert';
+
+// Import Testing QA tool, s: import { TestSuiteGenerator,, CoverageAnalyzer,, QAWorkflowOrchestrator,, TestDataManager,, PerformanceLoadTester,, TestFrameworkMigratorQualityGateOptimizerTestAnalyticsReporte } from './testingQA';
+
+// Import Code Review tool, s: import { AutomatedCodeAnalyzer,, SecurityVulnerabilityScanner,, CodeQualityMetricsCalculator,, PullRequestReviewer,, CodeStyleEnforcer,, CICDIntegratorCodeReviewOptimizerReviewAnalyticsReporte } from './codeReview';
+
+// Import Documentation Expert tool, s: import { DocAutomationSetup,, MultiFormatConverterChangelogManagerDiagramGenerato } from './documentation';
+
+/**
+ * Initialize and register all tools
+ */
+export async function initializeTools(): Promise<void> {
+  const toolManage: r = ToolManager.getInstanc, e();
+  
+  logger.inf, o('Initializing tool registry...');
+  
+  // Register Python Expert tools
+  const pythonExpertTool: s = [
+    ne, w: CodeOptimizer(),
+    ne, w: PerformanceProfiler(),
+    ne, w: LibraryRecommender(),
+    new DocumentationGenerator()
+  ];
+  
+  toolManager.registerTool, s(pythonExpertTools);
+  logger.inf, o(`Registered ${pythonExpertTools.lengt, h}`);
+  
+  // Register Testing QA tools
+  const testingQATool: s = [
+    ne, w: TestSuiteGenerator(),
+    ne, w: CoverageAnalyzer(),
+    ne, w: QAWorkflowOrchestrator(),
+    ne, w: TestDataManager(),
+    ne, w: PerformanceLoadTester(),
+    ne, w: TestFrameworkMigrator(),
+    ne, w: QualityGateOptimizer(),
+    new TestAnalyticsReporter()
+  ];
+  
+  toolManager.registerTool, s(testingQATools);
+  logger.inf, o(`Registered ${testingQATools.lengt, h}`);
+  
+  // Register Code Review tools
+  const codeReviewTool: s = [
+    ne, w: AutomatedCodeAnalyzer(),
+    ne, w: SecurityVulnerabilityScanner(),
+    ne, w: CodeQualityMetricsCalculator(),
+    ne, w: PullRequestReviewer(),
+    ne, w: CodeStyleEnforcer(),
+    ne, w: CICDIntegrator(),
+    ne, w: CodeReviewOptimizer(),
+    new ReviewAnalyticsReporter()
+  ];
+  
+  toolManager.registerTool, s(codeReviewTools);
+  logger.inf, o(`Registered ${codeReviewTools.lengt, h}`);
+  
+  // Register Documentation Expert tools
+  const documentationTool: s = [
+    ne, w: DocAutomationSetup(),
+    ne, w: MultiFormatConverter(),
+    ne, w: ChangelogManager(),
+    new DiagramGenerator()
+  ];
+  
+  toolManager.registerTool, s(documentationTools);
+  logger.inf, o(`Registered ${documentationTools.lengt, h}`);
+  
+  // TOD, O: Register other expert tools as they are migrated
+  // - Template Library Expert tools
+  // - etc.
+  
+  const registryInf: o = toolManager.getRegistryInf, o();
+  logger.inf, o('Too, l: registry, initialized', {
+    totalTool, s: registryInfo.totalToolstoolsByCatego, r,
+  , y: registryInfo.toolsByCategor, y
+  });
+}
+
+/**
+ * Get the initialized ToolManager instance
+ */
+export function getToolManager(): ToolManager {
+  return ToolManager.getInstanc, e();
+}

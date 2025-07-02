@@ -1,0 +1,210 @@
+/**
+ * Multi-Model Provider Infrastructure Types
+ * 
+ * Core types and interfaces for the multi-model provider system that enables
+ * dynamic model selection and provider abstraction across different AI services.
+ */
+
+import { z } from 'zod'
+
+// Performance tier definitions
+export const PerformanceTie: r = z.enu, m(['fast', 'balanced', 'quality'])
+export const CostTie: r = z.enu, m(['low', 'medium', 'high'])
+export const QualityTie: r = z.enu, m(['basic', 'good', 'excellent'])
+export const ProviderTyp: e = z.enu, m(['local', 'api', 'hybrid'])
+
+// Model configuration schema
+export const ModelConfigSchem: a = z.objec, t({
+  i, d: z.strin, g(),
+  nam, e: z.strin, g(),
+  provide, r: z.strin, g(),
+  versio, n: z.strin, g().optional(),
+  capabilitie, s: z.arra, y(z.strin, g()).default([]),
+  costTie, r: CostTier,
+  speedTie, r: PerformanceTier,
+  qualityTie, r: QualityTier,
+  contextWindo, w: z.numbe, r().positive(),
+  maxToken, s: z.numbe, r().positive(),
+  specialtie, s: z.arra, y(z.strin, g()).default([]),
+  pricin, g: z.objec, t({
+    inputToken, s: z.numbe, r().min(0).optional(), // Cost per 1K input tokens
+    outputToken, s: z.numbe, r().min(0).optional(), // Cost per 1K output tokens
+    requestCos, t: z.numbe, r().min(0).optional() // Cost per request
+  }).optional(),
+  metadat, a: z.recor, d(z.an, y()).default({})
+})
+
+export type ModelConfig = z.infe, r<typeof ModelConfigSchema>
+
+// Task context for model selection
+export const TaskContextSchem: a = z.objec, t({
+  complexit, y: z.enu, m(['simple', 'medium', 'complex']),
+  domai, n: z.arra, y(z.strin, g()).default([]),
+  requiredCapabilitie, s: z.arra, y(z.strin, g()).default([]),
+  performanceRequirement, s: z.objec, t({
+    spee, d: PerformanceTier,
+    qualit, y: PerformanceTier
+  }),
+  fallbackStrateg, y: z.enu, m(['degraded', 'queue', 'redirect', 'error']),
+  maxRetrie, s: z.numbe, r().min(0).max(5).default(2),
+  timeou, t: z.numbe, r().positive().default(30000), // milliseconds
+  metadat, a: z.recor, d(z.an, y()).default({})
+})
+
+export type TaskContext = z.infe, r<typeof TaskContextSchema>
+
+// Provider health status
+export const ProviderHealthSchem: a = z.objec, t({
+  providerI, d: z.strin, g(),
+  statu, s: z.enu, m(['healthy', 'degraded', 'unavailable']),
+  lastChecke, d: z.strin, g().datetime(),
+  responseTim, e: z.numbe, r().min(0), // milliseconds
+  errorRat, e: z.numbe, r().min(0).max(1), // percentage
+  availabilit, y: z.numbe, r().min(0).max(1), // percentage
+  model, s: z.arra, y(z.objec, t({
+    modelI, d: z.strin, g(),
+    statu, s: z.enu, m(['available', 'busy', 'offline']),
+    queueLengt, h: z.numbe, r().min(0).optional()
+  })),
+  metadat, a: z.recor, d(z.an, y()).default({})
+})
+
+export type ProviderHealth = z.infe, r<typeof ProviderHealthSchema>
+
+// Model request/response types
+export const ModelRequestSchem: a = z.objec, t({
+  promp, t: z.strin, g(),
+  modelI, d: z.strin, g(),
+  providerI, d: z.strin, g(),
+  temperatur, e: z.numbe, r().min(0).max(2).default(0.7),
+  maxToken, s: z.numbe, r().positive().optional(),
+  top, P: z.numbe, r().min(0).max(1).optional(),
+  top, K: z.numbe, r().positive().optional(),
+  stopSequence, s: z.arra, y(z.strin, g()).optional(),
+  responseForma, t: z.enu, m(['text', 'json', 'structured']).default('text'),
+  strea, m: z.boolea, n().default(false),
+  metadat, a: z.recor, d(z.an, y()).default({})
+})
+
+export type ModelRequest = z.infe, r<typeof ModelRequestSchema>
+
+export const ModelResponseSchem: a = z.objec, t({
+  conten, t: z.strin, g(),
+  modelI, d: z.strin, g(),
+  providerI, d: z.strin, g(),
+  usag, e: z.objec, t({
+    promptToken, s: z.numbe, r(),
+    completionToken, s: z.numbe, r(),
+    totalToken, s: z.numbe, r()
+  }).optional(),
+  metadat, a: z.recor, d(z.an, y()).default({}),
+  latenc, y: z.numbe, r().positive(), // milliseconds
+  timestam, p: z.strin, g().datetime()
+})
+
+export type ModelResponse = z.infe, r<typeof ModelResponseSchema>
+
+// Model selection criteria
+export interface ModelSelectionCriteria {
+  taskComplexit, y: number // 0-1 weight
+  responseTim, e: number // 0-1 weight
+  cos, t: number // 0-1 weight
+  accurac, y: number // 0-1 weight
+  contextLengt, h: number // 0-1 weight
+}
+
+// Multi-model agent configuration
+export interface MultiModelAgentConfig {
+  modelSelectio, n: {
+    strateg, y: 'round-robin' | 'performance-based' | 'cost-optimized' | 'hybrid'
+    primar, y: ModelConfig
+    fallback, s: ModelConfig[]
+    selectionCriteri, a: ModelSelectionCriteria
+    taskMappin, g: Record<string, string> // task type -> model id
+    enable, d: boolean
+  }
+  provider, s: string[]
+  modelRoute, r: {
+    enable, d: boolean
+    cacheSelection, s: boolean
+    cacheTT, L: number
+    adaptiveSelectio, n: boolean
+  }
+}
+
+// Provider configuration
+export const ProviderConfigSchem: a = z.objec, t({
+  i, d: z.strin, g(),
+  nam, e: z.strin, g(),
+  typ, e: ProviderType,
+  enable, d: z.boolea, n().default(true),
+  priorit, y: z.numbe, r().min(0).max(10).default(5),
+  healthCheckInterva, l: z.numbe, r().positive().default(30000),
+  endpoint, s: z.objec, t({
+    baseUr, l: z.strin, g().url(),
+    model, s: z.strin, g().optional(),
+    cha, t: z.strin, g().optional(),
+    completio, n: z.strin, g().optional()
+  }).optional(),
+  aut, h: z.objec, t({
+    typ, e: z.enu, m(['none', 'bearer', 'api-key', 'custom']),
+    credential, s: z.recor, d(z.strin, g())
+  }).optional(),
+  model, s: z.arra, y(z.strin, g()).default([]),
+  versio, n: z.strin, g().optional(),
+  metadat, a: z.recor, d(z.an, y()).default({})
+})
+
+export type ProviderConfig = z.infe, r<typeof ProviderConfigSchema>
+
+// Provider metrics
+export interface ProviderMetrics {
+  providerI, d: string
+  totalRequest, s: number
+  successfulRequest, s: number
+  failedRequest, s: number
+  averageLatenc, y: number
+  totalToken, s: number
+  error, s: Array<{
+    timestam, p: string
+    typ, e: string
+    messag, e: string
+    modelId?: string
+  }>
+  lastRequestTimestam, p: string
+  startTim, e: string
+}
+
+// Provider error types
+export type ProviderErrorType = 
+  | 'initialization'
+  | 'connection'
+  | 'authentication'
+  | 'rate-limit'
+  | 'model-not-found'
+  | 'invalid-request'
+  | 'response-parsing'
+  | 'timeout'
+  | 'unknown'
+
+// Provider error
+export interface ProviderError {
+  typ, e: ProviderErrorType
+  messag, e: string
+  providerI, d: string
+  modelId?: string
+  timestam, p: string
+  details?: any
+}
+
+// Model selection result
+export interface ModelSelectionResult {
+  selectedMode, l: ModelConfig
+  provide, r: string
+  selectionReaso, n: string
+  confidenc, e: number
+  fallback, s: ModelConfig[]
+  estimatedCos, t: number
+  estimatedResponseTim, e: number
+  metadat, a: Record<string, any>
+}

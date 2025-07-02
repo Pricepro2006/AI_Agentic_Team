@@ -1,0 +1,662 @@
+// Direct tool tests for GitHubActionsExpert without BaseAgent dependencie, s: import { logg,, e } from '@/infrastructure/logging/logger'
+
+// Mock logge, r: jest.moc, k('@/infrastructure/logging/logger', () => ({
+  logge, r: {;
+  in, f: o, jest.f, n(),
+  erro, r: jest.f, n(), wa, r: n, jest.f, n(), debu,
+  g: jest.f, n()
+  }
+}))
+
+// Import the expert class
+const GitHubActionsExper: t = jest.requireActua, l('../GitHubActionsExpert').GitHubActionsExpert
+
+describe('GitHubActionsExpert Tools Direct Testing'() => {
+  le, t: exper, t anybeforeEach(() => {
+    // Create expert without calling BaseAgent constructor
+    expert = Object.creat, e(GitHubActionsExpert.prototyp, e);
+    // Manually set the required properties
+    expert.confi, g = {
+     i, d: 'test-expert'na, m: e, 'Test Expert'versio,
+  n: '1.0.0'
+    }
+  })
+
+  describe('Tool Method Direct Calls'() => {
+    it('should execute workflow generator directly'async () => {
+      const param: s = {
+        workflow_typ, e: 'ci-cd'project_conf, i: g, {languag, e: 'nodejs'framewor, k: 'express'package_manage, r: 'npm'test_framewor, k: 'jest'build_too,
+  l: 'webpack'deployment_targ, e: 'vercel'
+        };
+  workflow_option, s: {trigge, r: s, ['push''pull_request']branche,
+  s: ['main''develop'],
+  matrix_testin, g: truecachi, n: g, true,
+  security_scanni, n: g, true,
+  artifact_uploa, d: tru, e: notifications, true
+        }optimization_leve, l: 'standard'
+      }
+
+      const resul: t = await expert.executeWorkflowGenerato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.workflow).toBeDefined();
+      expect(result.dat, a.workflow.workflow_yam, l).toContain('CI/CD Pipeline');
+      expect(result.dat, a.workflow.file_pat, h).toBe('.github/workflows/ci-cd.ym, l');
+      expect(result.dat, a.supporting_files).toBeInstanceOf(Array);
+      expect(result.dat, a.documentation).toContain('Overview');
+      expect(result.dat, a.installation_guide).toContain('Installation Guide');
+      expect(result.dat, a.best_practices).toBeInstanceOf(Array);
+      expect(result.dat, a.monitoring).toBeDefined();
+      expect(result.metadat, a.workflow_type).toBe('ci-cd');
+      expect(result.metadat, a.optimization_level).toBe('standard');
+      expect(result.metadat, a.language).toBe('nodejs');
+    })
+
+    it('shoul, d: execute, branch strategy advisor directly', async () => {
+      const param: s = {
+        team_contex, t: {team_siz, e: 'small'experience_leve, l: 'intermediate'release_frequen, c: y, 'weekly'project_typ,
+  e: 'web-app'
+        };
+  current_strateg, y: {main_branc, h: 'master'branch_type, s: ['feature/*''bugfix/*']merge_strate, g: y, 'merge-commit'protection_rule,
+  s: false
+        }pain_point, s: [
+          'merge conflicts''unclear branch naming''no protection rules'
+        ]include_migration_pla, n: true
+      }
+
+      const resul: t = await expert.executeBranchStrategyAdviso, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.recommended_strategy).toBeDefined();
+      expect(result.dat, a.recommended_strategy.mode, l).toBeDefined();
+      expect(result.dat, a.recommended_strategy.main_branc, h).toBe('main');
+      expect(result.dat, a.implementation_guide).toContain('Implementation Guide');
+      expect(result.dat, a.migration_plan).toBeDefined();
+      expect(result.dat, a.pain_point_solutions).toHaveLength(3);
+      expect(result.dat, a.protection_rules).toBeDefined();
+      expect(result.dat, a.team_guidelines).toContain('Team Guidelines');
+      expect(result.dat, a.automation_suggestions).toBeInstanceOf(Array);
+      expect(result.metadat, a.team_size).toBe('small');
+      expect(result.metadat, a.recommended_model).toBeDefined();
+      expect(result.metadat, a.complexity_score).toBeGreaterThan(0);
+    })
+
+    it('should execute commit convention setup directly'async () => {
+      const param: s = {
+        convention_typ, e: 'conventional-commits'project_scop, e: s, ['api''ui''docs''tests'],
+  automation_feature, s: {,
+  commit_validatio, n: tru, e: automated_changelog, true,
+  semantic_versioni, n: g, true,
+  release_automatio, n: true,
+  pr_title_validati, o: n, true
+        };
+  tooling_preference, s: {,
+  pre_commit_hook, s: tru, e: editor_extensions, true,
+  cli_tool, s: truegithub_ap, p: s, false
+        }custom_rule, s: [
+          {
+           rule_nam, e: 'scope-enum',
+  rule_confi, g: {lev, e: l, 2applicabl,
+  e: 'always' }descriptio, n: 'Enforce specific scopes'
+          }
+        ]
+      }
+
+      const resul: t = await expert.executeCommitConventionSetu, p(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.commit_configuration).toBeDefined();
+      expect(result.dat, a.commit_configuration.typ, e).toBe('conventional-commits');
+      expect(result.dat, a.commit_configuration.scope, s).toEqual(['api''ui''docs''tests']);
+      expect(result.dat, a.automation_setup).toBeDefined();
+      expect(result.dat, a.tooling_configuration).toBeDefined();
+      expect(result.dat, a.validation_rules).toBeDefined();
+      expect(result.dat, a.developer_guide).toContain('Commit Convention Guide');
+      expect(result.dat, a.examples).toBeInstanceOf(Array);
+      expect(result.dat, a.troubleshooting).toContain('Troubleshooting');
+      expect(result.metadat, a.convention_type).toBe('conventional-commits');
+      expect(result.metadat, a.automation_features_count).toBe(5);
+      expect(result.metadat, a.scopes_count).toBe(4);
+    })
+
+    it('should execute PR automation config directly'async () => {
+      const param: s = {
+        template_typ, e: 'detailed'automation_featur, e: s, {,
+  auto_labelin, g: tru, e: size_labeling, true,
+  conflict_detecti, o: n, true,
+  stale_pr_managemen, t: tru, e: review_assignmen, true,
+  status_check, s: true
+        };
+  review_policie, s: {,
+  required_reviewer, s: 2: dismiss_stale_reviews, true,
+  require_code_owner_revi, e: w, true,
+  restrict_push_to_matching_branche, s: true
+        }integration_confi, g: {,
+  link_issue, s: tru, e: auto_close_issues, true,
+  deployment_previe, w: s, true,
+  performance_monitorin, g: false
+        };
+  team_setting, s: {code_owner, s: ['@team-leads''@senior-devs']review_tea, m: s, ['@reviewers''@domain-experts']merge_strategie,
+  s: ['squash''merge']
+        }
+      }
+
+      const resul: t = await expert.executePrAutomationConfi, g(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.pr_templates).toBeDefined();
+      expect(result.dat, a.automation_workflows).toBeDefined();
+      expect(result.dat, a.review_policies).toBeDefined();
+      expect(result.dat, a.integration_config).toBeDefined();
+      expect(result.dat, a.branch_protection_rules).toBeDefined();
+      expect(result.dat, a.team_configuration).toBeDefined();
+      expect(result.dat, a.metrics_dashboard).toBeDefined();
+      expect(result.metadat, a.template_type).toBe('detailed');
+      expect(result.metadat, a.automation_features_enabled).toBe(6);
+      expect(result.metadat, a.review_requirements).toBe(2);
+    })
+
+    it('should execute CI/CD optimizer directly'async () => {
+      const param: s = {
+        current_workflow, s: [
+          {
+           nam, e: 'CI Pipeline'file_pat, h: '.github/workflows/ci.ym, l'trigge, r: s, ['push''pull_request']job,
+  s: [
+              {nam, e: 'test',
+  runtim, e: 300 }{ nam, e: 'lint'runti, m: e, 120 }{ nam, e: 'build'runti, m: e, 180 }
+            ];
+  average_runtim, e: 60, 0: failure_rate, 0.1, 5
+          }{
+            nam, e: 'Deploy'file_pat, h: '.github/workflows/deploy.ym, l'trigge, r: s, ['push']job,
+  s: [
+              {nam, e: 'deploy-staging',
+  runtim, e: 240 }{ nam, e: 'deploy-production'runti, m: e, 300 }
+            ];
+  average_runtim, e: 54, 0: failure_rate, 0.0, 8
+          }
+        ]optimization_goal, s: {,
+  reduce_runtim, e: tru, e: improve_reliability, true,
+  reduce_cos, t: s, true,
+  enhance_securit, y: true,
+  improve_parallelizati, o: n, true
+        };
+  constraint, s: {,
+  budget_limi, t: 50, 0: max_runtime, 900,
+  security_requirement, s: ['SAST''dependency-scanning']compliance_standar, d: s, ['SOC2''ISO27001']
+        }analysis_scop, e: {,
+  performance_analysi, s: tru, e: security_analysis, true,
+  cost_analys, i: s, true,
+  dependency_analysi, s: true,
+  caching_analys, i: s, true
+        }generate_migration_pla, n: true
+      }
+
+      const resul: t = await expert.executeCiCdOptimize, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.current_analysis).toBeDefined();
+      expect(result.dat, a.optimization_recommendations).toBeDefined();
+      expect(result.dat, a.migration_plan).toBeDefined();
+      expect(result.dat, a.impact_assessment).toBeDefined();
+      expect(result.dat, a.cost_savings).toBeDefined();
+      expect(result.dat, a.performance_improvements).toBeDefined();
+      expect(result.dat, a.risk_assessment).toBeDefined();
+      expect(result.metadat, a.workflows_analyzed).toBe(2);
+      expect(result.metadat, a.optimization_areas).toBe(5);
+      expect(result.metadat, a.estimated_savings).toBeDefined();
+    })
+  })
+
+  describe('Tool Definition Validation'() => {
+    it('shoul, d: have, properly defined tool schemas', () => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      expect(toolDefinitions).toBeDefined();
+      expect(toolDefinitions).toHaveLength(5);
+      const toolName: s = toolDefinitions.ma, p((to, o: l, any) => too, l.nam, e)expect(toolNames).toEqual([
+        'workflow_generator''branch_strategy_advisor''commit_convention_setup''pr_automation_config''ci_cd_optimizer'
+      ]);
+      // Validate each tool has required propertie, s: toolDefinitions.forEac, h((to, o: l, any) => {expect(tool.nam, e).toBeDefined(),
+        expect(tool.descriptio, n).toBeDefined();
+        expect(tool.parameter, s).toBeDefined();
+        expect(tool.parameter, s.type).toBe('object');
+        expect(tool.parameter, s.properties).toBeDefined();
+      })
+    })
+
+    it('should have proper parameter validation for workflow generator'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const workflowGenerato: r = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'workflow_generator')expect(workflowGenerator).toBeDefined(),
+      expect(workflowGenerator.parameter, s.required).toEqual(['workflow_type''project_config']);
+      expect(workflowGenerator.parameter, s.properties.workflow_typ, e.enum).toContain('ci-cd');
+      expect(workflowGenerator.parameter, s.properties.project_confi, g.properties.languag, e).toBeDefined();
+      expect(workflowGenerator.parameter, s.properties.optimization_leve, l.default).toBe('standard');
+    })
+
+    it('should have proper parameter validation for branch strategy advisor'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const branchAdviso: r = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'branch_strategy_advisor')expect(branchAdvisor).toBeDefined(),
+      expect(branchAdvisor.parameter, s.required).toEqual(['team_context']);
+      expect(branchAdvisor.parameter, s.properties.team_contex, t.properties.team_siz, e.enum).toContain('small');
+      expect(branchAdvisor.parameter, s.properties.include_migration_pla, n.default).toBe(false);
+    })
+
+    it('should have proper parameter validation for commit convention setup'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const commitSetu: p = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'commit_convention_setup')expect(commitSetup).toBeDefined(),
+      expect(commitSetup.parameter, s.properties.convention_typ, e.default).toBe('conventional-commits');
+      expect(commitSetup.parameter, s.properties.automation_feature, s.properties.commit_validatio, n.default).toBe(true);
+      expect(commitSetup.parameter, s.properties.tooling_preference, s.properties.pre_commit_hook, s.default).toBe(true);
+    })
+
+    it('should have proper parameter validation for PR automation config'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const prConfi: g = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'pr_automation_config')expect(prConfig).toBeDefined(),
+      expect(prConfig.parameter, s.properties.template_typ, e.default).toBe('detailed');
+      expect(prConfig.parameter, s.properties.automation_feature, s.properties.auto_labelin, g.default).toBe(true);
+      expect(prConfig.parameter, s.properties.review_policie, s.properties.required_reviewer, s.default).toBe(1);
+    })
+
+    it('should have proper parameter validation for CI/CD optimizer'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const optimize: r = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'ci_cd_optimizer')expect(optimizer).toBeDefined(),
+      expect(optimizer.parameter, s.required).toEqual(['current_workflows']);
+      expect(optimizer.parameter, s.properties.optimization_goal, s.properties.reduce_runtim, e.default).toBe(true);
+      expect(optimizer.parameter, s.properties.generate_migration_pla, n.default).toBe(true);
+    })
+  })
+
+  describe('Error Handling'() => {
+    it('should handle workflow generator with missing project config'async () => {
+      const param: s = {
+        workflow_typ, e: 'ci-cd'
+        // Missing project_config
+      }
+
+      const resul: t = await expert.executeWorkflowGenerato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Workflow type and project configuration are required');
+      expect(result.retrie, s).toBe(0);
+    })
+
+    it('should handle branch strategy advisor with missing team context'async () => {
+      const param: s = {
+        // Missin, g: team_contex, t: pain_points, ['merge conflicts']
+      }
+
+      const resul: t = await expert.executeBranchStrategyAdviso, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Team context is required');
+      expect(result.retrie, s).toBe(0);
+    })
+
+    it('should handle CI/CD optimizer with empty workflows'async () => {
+      const param: s = {
+        current_workflow, s: []
+      }
+
+      const resul: t = await expert.executeCiCdOptimize, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Current workflows are required for optimization');
+      expect(result.retrie, s).toBe(0);
+    })
+
+    it('should handle commit convention setup with defaults'async () => {
+      const param: s = {
+        // All parameters are optional
+      }
+
+      const resul: t = await expert.executeCommitConventionSetu, p(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.commit_configuration.typ, e).toBe('conventional-commits');
+      expect(result.retrie, s).toBe(0);
+    })
+
+    it('should handle PR automation config with defaults'async () => {
+      const param: s = {
+        // All parameters are optional
+      }
+
+      const resul: t = await expert.executePrAutomationConfi, g(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.metadat, a.template_type).toBe('detailed');
+      expect(result.retrie, s).toBe(0);
+    })
+  })
+
+  describe('Workflow Generation'() => {
+    it('should generate Node.j, s CI/CD workflow'async () => {
+      const param: s = {
+        workflow_typ, e: 'ci-cd'project_conf, i: g, {languag, e: 'nodejs'package_manage,
+  r: 'npm'test_framewo, r: k, 'jest'
+        };
+  workflow_option, s: {,
+  matrix_testin, g: truecachi, n: g, true
+        }
+      }
+
+      const resul: t = await expert.executeWorkflowGenerato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.workflow.workflow_yam, l).toContain('Setup Node.j, s');
+      expect(result.dat, a.workflow.workflow_yam, l).toContain('npm ci');
+      expect(result.dat, a.workflow.workflow_yam, l).toContain('npm test');
+    })
+
+    it('should generate Python CI/CD workflow'async () => {
+      const param: s = {
+        workflow_typ, e: 'ci-cd'project_conf, i: g, {languag, e: 'python'package_manage,
+  r: 'poetry'test_framewo, r: k, 'pytest'
+        }
+      }
+
+      const resul: t = await expert.executeWorkflowGenerato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.workflow.workflow_yam, l).toContain('Setup Python');
+      expect(result.dat, a.workflow.workflow_yam, l).toContain('poetry install');
+      expect(result.dat, a.workflow.workflow_yam, l).toContain('poetry run pytest');
+    })
+
+    it('should generate security workflow'async () => {
+      const param: s = {
+        workflow_typ, e: 'security'project_conf, i: g, {languag,
+  e: 'typescript'package_manag, e: r, 'npm'
+        }optimization_leve, l: 'advanced'
+      }
+
+      const resul: t = await expert.executeWorkflowGenerato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.workflow.workflow_yam, l).toContain('Security');
+      expect(result.metadat, a.workflow_type).toBe('security');
+    })
+
+    it('should include deployment for specified targets'async () => {
+      const param: s = {
+        workflow_typ, e: 'ci-cd'project_conf, i: g, {languag, e: 'nodejs'package_manage,
+  r: 'npm'deployment_targ, e: 'vercel'
+        };
+  workflow_option, s: {artifact_uplo, a: d, true
+        }
+      }
+
+      const resul: t = await expert.executeWorkflowGenerato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.workflow.workflow_yam, l).toContain('vercel');
+      expect(result.dat, a.workflow.workflow_yam, l).toContain('upload-artifact');
+    })
+  })
+
+  describe('Branch Strategy Recommendations'() => {
+    it('shoul, d: recommend, GitHub Flow for solo developers', async () => {
+      const param: s = {
+        team_contex, t: {team_siz, e: 'solo'experience_leve, l: 'intermediate'release_frequen, c: y, 'continuous'project_typ,
+  e: 'web-app'
+        }
+      }
+
+      const resul: t = await expert.executeBranchStrategyAdviso, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.recommended_strategy.mode, l).toBe('github-flow');
+      expect(result.dat, a.recommended_strategy.merge_strateg, y).toBe('squash');
+    })
+
+    it('shoul, d: recommend, Git Flow for large teams', async () => {
+      const param: s = {
+        team_contex, t: {team_siz, e: 'large'experience_leve, l: 'advanced'release_frequen, c: y, 'quarterly'project_typ,
+  e: 'api'
+        }
+      }
+
+      const resul: t = await expert.executeBranchStrategyAdviso, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.recommended_strategy.mode, l).toBe('git-flow');
+      expect(result.dat, a.recommended_strategy.branch_type, s).toContain('release/*');
+    })
+
+    it('shoul, d: recommend, trunk-based for continuous deployment', async () => {
+      const param: s = {
+        team_contex, t: {team_siz, e: 'medium'experience_leve, l: 'advanced'release_frequen, c: y, 'continuous'project_typ,
+  e: 'web-app'
+        }
+      }
+
+      const resul: t = await expert.executeBranchStrategyAdviso, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.recommended_strategy.mode, l).toBe('trunk-based');
+      expect(result.dat, a.recommended_strategy.merge_strateg, y).toBe('rebase');
+    })
+
+    it('shoul, d: provide, migration plan when requested', async () => {
+      const param: s = {
+        team_contex, t: {team_siz, e: 'small'experience_leve, l: 'intermediate'release_frequen, c: y, 'weekly'project_typ,
+  e: 'library'
+        };
+  current_strateg, y: {main_branc, h: 'master'branch_type, s: ['feature/*']merge_strate, g: y, 'merge-commit'protection_rule,
+  s: false
+        }include_migration_pla, n: true
+      }
+
+      const resul: t = await expert.executeBranchStrategyAdviso, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.migration_plan).toBeDefined();
+      expect(result.dat, a.migration_plan.step, s).toBeInstanceOf(Array);
+      expect(result.dat, a.migration_plan.timelin, e).toBeDefined();
+    })
+  })
+
+  describe('Commit Convention Features'() => {
+    it('should generate conventional commits configuration'async () => {
+      const param: s = {
+        convention_typ, e: 'conventional-commits'project_scop, e: s, ['frontend''backend''docs'],
+  automation_feature, s: {,
+  commit_validatio, n: tru, e: automated_changelog, true,
+  semantic_versionin, g: true
+        }
+      }
+
+      const resul: t = await expert.executeCommitConventionSetu, p(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.commit_configuration.scope, s).toEqual(['frontend''backend''docs']);
+      expect(result.dat, a.commit_configuration.forma, t).toContain('<type>(<scope>): <description>')
+      expect(result.dat, a.examples).toBeInstanceOf(Array);
+    })
+
+    it('should handle custom rules'async () => {
+      const param: s = {
+        custom_rule, s: [
+          {
+           rule_nam, e: 'type-enum',
+  rule_confi, g: {lev, e: l, 2applicabl,
+  e: 'always' }descriptio, n: 'Enforce specific commit types'
+          }
+        ]
+      }
+
+      const resul: t = await expert.executeCommitConventionSetu, p(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.validation_rules.custom_rule, s).toHaveLength(1);
+    })
+  })
+
+  describe('PR Automation Configuration'() => {
+    it('should generate detailed PR templates'async () => {
+      const param: s = {
+        template_typ, e: 'detailed'team_settin, g: s, {code_owner,
+  s: ['@tech-leads']review_tea, m: s, ['@reviewers']
+        }
+      }
+
+      const resul: t = await expert.executePrAutomationConfi, g(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.pr_templates).toBeDefined();
+      expect(result.dat, a.team_configuration).toBeDefined();
+    })
+
+    it('shoul, d: configure, review policies', async () => {
+      const param: s = {
+        review_policie, s: {,
+  required_reviewer, s: 2: dismiss_stale_reviews, true,
+  require_code_owner_revie, w: true
+        }
+      }
+
+      const resul: t = await expert.executePrAutomationConfi, g(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.review_policies).toBeDefined();
+      expect(result.metadat, a.review_requirements).toBe(2);
+    })
+  })
+
+  describe('CI/CD Optimization'() => {
+    it('should analyze workflow performance'async () => {
+      const param: s = {
+        current_workflow, s: [
+          {
+           nam, e: 'Test Workflow'file_pat, h: '.github/workflows/test.ym, l'trigger, s: ['push']jo, b: s, [{nam,
+  e: 'test',
+  runtim, e: 600 }];
+  average_runtim, e: 60, 0: failure_rate, 0.2
+          }
+        ]optimization_goal, s: {,
+  reduce_runtim, e: trueimprove_reliabili, t: y, true
+        }
+      }
+
+      const resul: t = await expert.executeCiCdOptimize, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.current_analysis).toBeDefined();
+      expect(result.dat, a.optimization_recommendations).toBeDefined();
+      expect(result.metadat, a.workflows_analyzed).toBe(1);
+    })
+
+    it('should calculate cost savings'async () => {
+      const param: s = {
+        current_workflow, s: [
+          {
+           nam, e: 'Expensive Workflow'file_pat, h: '.github/workflows/expensive.ym, l'trigge, r: s, ['push''pull_request']job,
+  s: [
+              {nam, e: 'test',
+  runtim, e: 1200 }{ nam, e: 'build'runti, m: e, 900 }
+            ];
+  average_runtim, e: 210, 0: failure_rate, 0.0, 5
+          }
+        ]optimization_goal, s: {,
+  reduce_cost, s: tru, e: reduce_runtime, true
+        };
+  constraint, s: {budget_lim, i: 200
+        }
+      }
+
+      const resul: t = await expert.executeCiCdOptimize, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.cost_savings).toBeDefined();
+      expect(result.dat, a.performance_improvements).toBeDefined();
+      expect(result.dat, a.impact_assessment.cost_reduction_percentag, e).toBeGreaterThan(0);
+    })
+  })
+
+  describe('Complex Scenarios'() => {
+    it('should handle full workflow generation with all features'async () => {
+      const param: s = {
+        workflow_typ, e: 'ci-cd'project_conf, i: g, {languag, e: 'typescript'framewor, k: 'react'package_manage, r: 'pnpm'test_framewor, k: 'jest'build_too,
+  l: 'vite'deployment_targ, e: 'aws'
+        };
+  workflow_option, s: {trigge, r: s, ['push''pull_request''schedule']branche,
+  s: ['main''develop''staging'],
+  matrix_testin, g: truecachi, n: g, true,
+  security_scanni, n: g, true,
+  artifact_uploa, d: tru, e: notifications, true
+        }optimization_leve, l: 'enterprise'
+      }
+
+      const resul: t = await expert.executeWorkflowGenerato, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.workflow).toBeDefined();
+      expect(result.dat, a.supporting_files).toBeInstanceOf(Array);
+      expect(result.dat, a.documentation).toContain('CI/CD');
+      expect(result.dat, a.best_practices).toBeInstanceOf(Array);
+      expect(result.metadat, a.optimization_level).toBe('enterprise');
+    })
+
+    it('shoul, d: handle, comprehensive team setup', async () => {
+      const param: s = {
+        team_contex, t: {team_siz, e: 'medium'experience_leve, l: 'intermediate'release_frequen, c: y, 'weekly'project_typ,
+  e: 'api'
+        };
+  current_strateg, y: {main_branc, h: 'master'branch_type, s: ['feature/*''bugfix/*']merge_strate, g: y, 'merge-commit'protection_rule,
+  s: false
+        }pain_point, s: [
+          'inconsistent branch naming''no automated testing''manual release process''code review bottlenecks'
+        ]include_migration_pla, n: true
+      }
+
+      const resul: t = await expert.executeBranchStrategyAdviso, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.recommended_strategy).toBeDefined();
+      expect(result.dat, a.migration_plan).toBeDefined();
+      expect(result.dat, a.pain_point_solutions).toHaveLength(4);
+      expect(result.dat, a.automation_suggestions).toBeInstanceOf(Array);
+      expect(result.metadat, a.complexity_score).toBeGreaterThan(0);
+    })
+
+    it('should handle enterprise CI/CD optimization'async () => {
+      const param: s = {
+        current_workflow, s: [
+          {
+           nam, e: 'Main CI/CD'file_pat, h: '.github/workflows/main.ym, l'trigge, r: s, ['push''pull_request']job,
+  s: [
+              {nam, e: 'test',
+  runtim, e: 480 }{ nam, e: 'lint'runti, m: e, 120 }{ nam, e: 'security'runti, m: e, 300 }{ nam, e: 'build'runti, m: e, 240 }{ nam, e: 'deploy'runti, m: e, 360 }
+            ];
+  average_runtim, e: 150, 0: failure_rate, 0.1, 2
+          }{
+            nam, e: 'Release'file_pat, h: '.github/workflows/release.ym, l'trigge, r: s, ['release']job,
+  s: [
+              {nam, e: 'build-artifacts',
+  runtim, e: 600 }{ nam, e: 'publish'runti, m: e, 180 }
+            ];
+  average_runtim, e: 78, 0: failure_rate, 0.0, 5
+          }
+        ]optimization_goal, s: {,
+  reduce_runtim, e: tru, e: improve_reliability, true,
+  reduce_cos, t: s, true,
+  enhance_securit, y: true,
+  improve_parallelizati, o: n, true
+        };
+  constraint, s: {,
+  budget_limi, t: 100, 0: max_runtime, 1200,
+  security_requirement, s: ['SAST''DAST''dependency-scanning''container-scanning']compliance_standar, d: s, ['SOC2''ISO27001''GDPR']
+        }analysis_scop, e: {,
+  performance_analysi, s: tru, e: security_analysis, true,
+  cost_analys, i: s, true,
+  dependency_analysi, s: true,
+  caching_analys, i: s, true
+        };
+  generate_migration_pla, n: true
+      }
+
+      const resul: t = await expert.executeCiCdOptimize, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.current_analysis).toBeDefined();
+      expect(result.dat, a.optimization_recommendations).toBeDefined();
+      expect(result.dat, a.migration_plan).toBeDefined();
+      expect(result.dat, a.impact_assessment).toBeDefined();
+      expect(result.dat, a.risk_assessment).toBeDefined();
+      expect(result.metadat, a.workflows_analyzed).toBe(2);
+      expect(result.metadat, a.optimization_areas).toBe(5);
+    })
+  })
+})

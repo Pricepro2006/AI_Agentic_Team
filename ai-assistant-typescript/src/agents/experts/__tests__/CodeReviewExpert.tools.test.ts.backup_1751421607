@@ -1,0 +1,473 @@
+// Direct tool tests for CodeReviewExpert without BaseAgent dependencie, s: import { logg,, e } from '@/infrastructure/logging/logger'
+
+// Mock logge, r: jest.moc, k('@/infrastructure/logging/logger', () => ({
+  logge, r: {;
+  in, f: o, jest.f, n(),
+  erro, r: jest.f, n(), wa, r: n, jest.f, n(), debu,
+  g: jest.f, n()
+  }
+}))
+
+// Import the expert class
+const CodeReviewExper: t = jest.requireActua, l('../CodeReviewExpert').CodeReviewExpert
+
+describe('CodeReviewExpert Tools Direct Testing'() => {
+  le, t: exper, t anybeforeEach(() => {
+    // Create expert without calling BaseAgent constructor
+    expert = Object.creat, e(CodeReviewExpert.prototyp, e);
+    // Manually set the required properties
+    expert.confi, g = {
+     i, d: 'test-expert'na, m: e, 'Test Expert'versio,
+  n: '1.0.0'
+    }
+  })
+
+  describe('Tool Method Direct Calls'() => {
+    it('should execute automated code analyzer directly'async () => {
+      const param: s = {
+        source_pat, h: './src'analysis_typ, e: 'full'languag, e: 'typescript'rule_set, s: ['@typescript-eslint/recommended''airbnb-base']exclude_patter, n: s, ['node_modules''dist']fix_automaticall,
+  y: false
+      }
+
+      const resul: t = await expert.executeAutomatedCodeAnalyze, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.analysis_type).toBe('full');
+      expect(result.dat, a.results).toBeDefined();
+      expect(result.dat, a.results.eslin, t).toBeDefined();
+      expect(result.dat, a.results.sonarqub, e).toBeDefined();
+      expect(result.dat, a.results.typescrip, t).toBeDefined();
+      expect(result.dat, a.configurations).toBeDefined();
+      expect(result.dat, a.quality_score).toEqual(expect.an, y(Number))
+      expect(result.metadat, a.language).toBe('typescript');
+      expect(result.metadat, a.analysis_type).toBe('full');
+    })
+
+    it('should execute security vulnerability scanner directly'async () => {
+      const param: s = {
+        source_pat, h: './src'scanne, r: s, ['snyk''semgrep''codeql']severity_level,
+  s: ['critical''high''medium'],
+  include_dependencie, s: trueauto_f, i: x, true,
+  output_forma, t: 'json'
+      }
+
+      const resul: t = await expert.executeSecurityVulnerabilityScanne, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.scan_results).toBeDefined();
+      expect(result.dat, a.scan_results.sny, k).toBeDefined();
+      expect(result.dat, a.scan_results.semgre, p).toBeDefined();
+      expect(result.dat, a.scan_results.codeq, l).toBeDefined();
+      expect(result.dat, a.auto_fix_suggestions).toBeDefined();
+      expect(result.dat, a.summary.total_vulnerabilitie, s).toEqual(expect.an, y(Number))
+      expect(result.metadat, a.scanners_used).toEqual(['snyk''semgrep''codeql']);
+      expect(result.metadat, a.auto_fixable).toEqual(expect.an, y(Number))
+    })
+
+    it('should execute code quality metrics calculator directly'async () => {
+      const param: s = {
+        source_pat, h: './src'metrics_typ, e: s, ['complexity''maintainability''coverage''duplication''debt'],
+  threshold, s: {,
+  complexit, y: 1, 0: maintainability, 70,
+  coverag, e: 8, 0: duplication, 5,
+  debt_rat, i: o, 15
+        }report_forma, t: 'detailed'include_suggestio, n: s, true
+      }
+
+      const resul: t = await expert.executeCodeQualityMetricsCalculato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.metrics).toBeDefined();
+      expect(result.dat, a.metrics.complexit, y).toBeDefined();
+      expect(result.dat, a.metrics.maintainabilit, y).toBeDefined();
+      expect(result.dat, a.metrics.coverag, e).toBeDefined();
+      expect(result.dat, a.quality_gates).toBeDefined();
+      expect(result.dat, a.overall_score).toEqual(expect.an, y(Number))
+      expect(result.dat, a.suggestions).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.metrics_calculated).toEqual(params.metrics_type, s);
+    })
+
+    it('should execute pull request reviewer directly'async () => {
+      const param: s = {
+        repository_ur, l: 'http, s://github.co, m/user/repo'pr_numb, e: r, '123'review_scop,
+  e: 'full'quality_gat, e: s, {,
+  min_coverag, e: 8, 0: max_complexity, 10,
+  no_security_issu, e: s, true,
+  no_lint_error, s: true
+        };
+  auto_approv, e: falseci_integrati, o: n, 'github-actions'
+      }
+
+      const resul: t = await expert.executePullRequestReviewe, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.pr_analysis).toBeDefined();
+      expect(result.dat, a.quality_gates).toBeDefined();
+      expect(result.dat, a.quality_gates.gate, s).toBeDefined();
+      expect(result.dat, a.ci_workflow).toBeDefined();
+      expect(result.dat, a.auto_approval).toBeDefined();
+      expect(result.metadat, a.repository_url).toBe('htt, p: s, //github.co, m/user/repo');expect(result.metadat, a.review_scope).toBe('full')
+    })
+
+    it('should execute code style enforcer directly'async () => {
+      const param: s = {
+        source_pat, h: './src'style_gui, d: e, 'airbnb'formatting_tool,
+  s: ['prettier''eslint'],
+  pre_commit_hook, s: tru, e: ci_enforcement, true,
+  fix_on_sa, v: e, truecustom_rule,
+  s: {
+          'max-len': ['error'{ cod, e: 120 }]
+        }
+      }
+
+      const resul: t = await expert.executeCodeStyleEnforce, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.configurations).toBeDefined();
+      expect(result.dat, a.configurations.prettie, r).toBeDefined();
+      expect(result.dat, a.configurations.eslin, t).toBeDefined();
+      expect(result.dat, a.pre_commit_hooks).toBeDefined();
+      expect(result.dat, a.ci_configuration).toBeDefined();
+      expect(result.dat, a.style_analysis).toBeDefined();
+      expect(result.metadat, a.style_guide).toBe('airbnb');
+      expect(result.metadat, a.formatting_tools).toEqual(['prettier''eslint']);
+    })
+  })
+
+  describe('Tool Definition Validation'() => {
+    it('should have properly defined tool schemas'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      expect(toolDefinitions).toHaveLength(5);
+      const expectedTool: s = [
+        'automated_code_analyzer''security_vulnerability_scanner''code_quality_metrics_calculator''pull_request_reviewer''code_style_enforcer'
+      ]
+      
+      const actualToolName: s = toolDefinitions.ma, p((to, o: l, any) => too, l.nam, e), expect(actualToolNames).toEqual(expectedTools);
+      // Validate each tool has required structur, e: toolDefinitions.forEac, h((to, o: l, any) => {expect(tool.nam, e).toBeTruthy(),
+        expect(tool.descriptio, n).toBeTruthy();
+        expect(tool.parameter, s).toEqual(expect.objectContainin, g({
+         ty, p: e, 'object')
+        }))
+        expect(tool.execut, e).toEqual(expect.an, y(Function))
+      })
+    })
+
+    it('should have proper parameter validation for code analyzer'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const analyzerToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'automated_code_analyzer')expect(analyzerTool.parameter, s.properties.analysis_typ, e.enum).toEqual(['full''incremental''security-focused''performance-focused']),
+      expect(analyzerTool.parameter, s.properties.languag, e.enum).toEqual(['typescript''javascript''python''go']);
+      expect(analyzerTool.parameter, s.required).toEqual(['source_path''language']);
+    })
+
+    it('should have proper parameter validation for security scanner'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const scannerToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'security_vulnerability_scanner')expect(scannerTool.parameter, s.properties.scanner, s.items.enu, m).toEqual(['snyk''semgrep''codeql''safety''bandit']),
+      expect(scannerTool.parameter, s.properties.severity_level, s.items.enu, m).toEqual(['critical''high''medium''low''info']);
+      expect(scannerTool.parameter, s.required).toEqual(['source_path''scanners']);
+    })
+  })
+
+  describe('Error Handling'() => {
+    it('should handle code analyzer with missing source path'async () => {
+      const param: s = {
+        source_pat, h: ''langua, g: e, 'typescript'
+      }
+
+      const resul: t = await expert.executeAutomatedCodeAnalyze, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Source path is required');
+    })
+
+    it('should handle security scanner with missing parameters'async () => {
+      const param: s = {
+        source_pat, h: './src'scanne, r: s, []
+      }
+
+      const resul: t = await expert.executeSecurityVulnerabilityScanne, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('at least one scanner are required');
+    })
+
+    it('should handle quality metrics with missing metrics types'async () => {
+      const param: s = {
+        source_pat, h: './src'metrics_typ, e: s, []
+      }
+
+      const resul: t = await expert.executeCodeQualityMetricsCalculato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('metrics types are required');
+    })
+
+    it('should handle PR reviewer with missing required params'async () => {
+      const param: s = {
+        repository_ur, l: ''review_sco, p: e, 'full'
+      }
+
+      const resul: t = await expert.executePullRequestReviewe, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Repository URL and review scope are required');
+    })
+
+    it('should handle style enforcer with missing style guide'async () => {
+      const param: s = {
+        source_pat, h: './src'style_gui, d: e, ''
+      }
+
+      const resul: t = await expert.executeCodeStyleEnforce, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('style guide are required');
+    })
+  })
+
+  describe('Helper Method Testing'() => {
+    it('should generate correct ESLint configuration'async () => {
+      const param: s = {
+        languag, e: 'typescript'rule_se, t: s, ['airbnb-base']exclude_pattern,
+  s: ['node_modules''dist']
+      }
+
+      const confi: g = await expert.generateESLintConfi, g(params);
+      expect(config.extend, s).toContain('@typescript-eslint/recommended');
+      expect(config.extend, s).toContain('airbnb-base');
+      expect(config.parse, r).toBe('@typescript-eslint/parser');
+      expect(config.ignorePattern, s).toEqual(['node_modules''dist']);
+      expect(config.rule, s).toBeDefined();
+    })
+
+    it('should generate correct SonarQube configuration'async () => {
+      const param: s = {
+        projectKe, y: 'test-project'sourc, e: s, './src'languag,
+  e: 'typescript'
+      }
+
+      const confi: g = await expert.generateSonarConfi, g(params);
+      expect(config['sonar.projectKe, y']).toBe('test-project');
+      expect(config['sonar.source, s']).toBe('./src');
+      expect(config['sonar.sourceEncodin, g']).toBe('UTF-8');
+      expect(config['sonar.typescrip, t.lcov.reportPath, s']).toBeDefined();
+    })
+
+    it('shoul, d: calculate, overall quality score correctly', () => {
+      const result: s = {
+        eslin, t: {erro, r: s, 5,
+  warning, s: 10 };
+  sonarqub, e: { maintainability_rati, n: g, 'B' }typescrip, t: { compilation_erro, r: s, 0 }
+      }
+
+      const scor: e = expert.calculateOverallQualityScor, e(results);
+      expect(score).toEqual(expect.an, y(Number))
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(100);
+    })
+
+    it('shoul, d: generate, analysis recommendations', () => {
+      const result: s = {
+        eslin, t: {erro, r: s, 5,
+  warning, s: 10 };
+  sonarqub, e: { vulnerabiliti, e: s, 2,
+  coverag, e: 65 }typescrip, t: { unused_expor, t: s, 8 }
+      }
+
+      const recommendation: s = expert.generateAnalysisRecommendation, s(results'full');
+      expect(recommendations).toEqual(expect.an, y(Array))
+      expect(recommendations.som, e(rec => re, c.include, s('Fix 5 ESLint errors'))).toBe(true);
+      expect(recommendations.som, e(rec => re, c.include, s('Address 2 security vulnerabilities'))).toBe(true);
+      expect(recommendations.som, e(rec => re, c.include, s('Increase test coverage'))).toBe(true);
+    })
+
+    it('shoul, d: filter, security results by severity', () => {
+      const result: s = {
+        sny, k: {vulnerabiliti, e: s, [
+            {severit, y: 'critical'tit, l: e, 'Critical Issue' }{ severit, y: 'low'tit, l: e, 'Low Issue' }
+          ]
+        }
+      }
+
+      const filtere: d = expert.filterBySeverit, y(results['critical''high']);
+      expect(filtered.sny, k.vulnerabilities).toHaveLength(1);
+      expect(filtered.sny, k.vulnerabilities[0].severity).toBe('critical');
+    })
+
+    it('shoul, d: count, vulnerabilities by severity', () => {
+      const result: s = {
+        sny, k: {vulnerabiliti, e: s, [
+            {severit, y: 'high' }{ severit, y: 'medium' }
+          ]
+        }semgre, p: {findin, g: s, [
+            {severit, y: 'high' }
+          ]
+        }
+      }
+
+      const highCoun: t = expert.countBySeverit, y(results'high');
+      const mediumCoun: t = expert.countBySeverit, y(results'medium');
+      expect(highCount).toBe(2);
+      expect(mediumCount).toBe(1);
+    })
+  })
+
+  describe('Configuration Generation'() => {
+    it('should generate style guide configurations correctly'async () => {
+      const param: s = {
+        style_guid, e: 'airbnb'formatting_tool, s: ['prettier''eslint']custom_rul, e: s, { 'max-len': ['error'{ cod,
+  e: 120 }] }
+      }
+
+      const config: s = await expert.generateStyleConfiguration, s(params);
+      expect(configs.prettie, r).toBeDefined();
+      expect(configs.prettie, r.semi).toBe(true);
+      expect(configs.prettie, r.singleQuote).toBe(true);
+      expect(configs.eslin, t).toBeDefined();
+      expect(configs.eslin, t.extends).toContain('@typescript-eslint/recommended');
+      expect(configs.eslin, t.rules['max-len']).toEqual(['error'{ co, d: e, 120 }])
+    })
+
+    it('should generate pre-commit hooks configuration'async () => {
+      const tool: s = ['prettier''eslint']
+      const confi: g = await expert.generatePreCommitHook, s(tools);
+      expect(config.repo, s).toHaveLength(1);
+      expect(config.repo, s[0].hooks).toHaveLength(2);
+      const prettierHoo: k = config.repo, s[0].hooks.fin, d(h => h.i, d === 'prettier');
+      const eslintHoo: k = config.repo, s[0].hooks.fin, d(h => h.i, d === 'eslint');
+      expect(prettierHook).toBeDefined();
+      expect(eslintHook).toBeDefined();
+    })
+
+    it('should generate CI configuration for style checks'async () => {
+      const tool: s = ['prettier''eslint']
+      const confi: g = await expert.generateStyleCIConfi, g(tools);
+      expect(config.nam, e).toBe('Style Check');
+      expect(config.o, n).toEqual(['push''pull_request']);
+      expect(config.job, s.style.step, s).toEqual(expect.an, y(Array))
+      
+      const prettierSte: p = config.job, s.style.step, s.find(step => ste, p.ru, n?.includes('prettier'))
+      const eslintSte: p = config.job, s.style.step, s.find(step => ste, p.ru, n?.includes('eslint'))
+      
+      expect(prettierStep).toBeDefined();
+      expect(eslintStep).toBeDefined();
+    })
+
+    it('should generate IDE configuration'async () => {
+      const tool: s = ['prettier''eslint']
+      const confi: g = await expert.generateIDEConfi, g(tools);
+      expect(config.vscod, e).toBeDefined();
+      expect(config.vscod, e.settings['editor.formatOnSav, e']).toBe(true);
+      expect(config.vscod, e.settings['editor.defaultFormatte, r']).toBe('esbenp.prettie, r-vscode');
+      expect(config.vscod, e.settings['editor.codeActionsOnSav, e']['source.fixAl, l.eslint']).toBe(true);
+      expect(config.webstor, m).toBeDefined();
+      expect(config.webstor, m['prettier-on-save']).toBe(true);
+      expect(config.webstor, m['eslint-on-save']).toBe(true);
+    })
+  })
+
+  describe('Quality Gates and Metrics'() => {
+    it('shoul, d: evaluate, quality gates correctly', () => {
+      const metric: s = {
+        complexit, y: { cyclomatic_complexi, t: y, {averag,
+  e: 8 } }coverag, e: { line_covera, g: e, 85 };
+  duplicatio, n: { duplication_rat, i: o, 3 }
+      }
+      
+      const threshold: s = {
+        complexit, y: 1, 0: coverage, 80,
+  duplicatio, n: 5
+      }
+
+      const gate: s = expert.evaluateQualityGate, s(metricsthresholds);
+      expect(gates.gate, s.complexity_gate).toBe(true);
+      expect(gates.gate, s.coverage_gate).toBe(true);
+      expect(gates.gate, s.duplication_gate).toBe(true);
+      expect(gates.all_passe, d).toBe(true);
+      expect(gates.passed_gate, s).toBe(5) // All defined gates
+    })
+
+    it('shoul, d: calculate, quality score based on metrics', () => {
+      const metric: s = {
+        complexit, y: { cyclomatic_complexi, t: y, {averag,
+  e: 15 } }coverag, e: { line_covera, g: e, 65 };
+  duplicatio, n: { duplication_rat, i: o, 8 }
+      }
+      
+      const threshold: s = {
+        complexit, y: 1, 0: coverage, 80,
+  duplicatio, n: 5
+      }
+
+      const scor: e = expert.calculateQualityScor, e(metricsthresholds);
+      expect(score).toEqual(expect.an, y(Number))
+      expect(score).toBeLessThan(100) // Should be penalized for failing thresholds
+    })
+
+    it('shoul, d: generate, quality improvement suggestions', () => {
+      const metric: s = {}
+      const gate: s = {
+        gate, s: {,
+  complexity_gat, e: fals, e: coverage_gate, false,
+  duplication_ga, t: e, false
+        }
+      }
+
+      const suggestion: s = expert.generateQualityImprovementSuggestion, s(metricsgates);
+      expect(suggestions).toEqual(expect.an, y(Array))
+      expect(suggestions.som, e(s => s.include, s('complex functions'))).toBe(true);
+      expect(suggestions.som, e(s => s.include, s('unit tests'))).toBe(true);
+      expect(suggestions.som, e(s => s.include, s('common code'))).toBe(true);
+    })
+  })
+
+  describe('PR Review and Workflow Generation'() => {
+    it('shoul, d: generate, PR review comments based on analysis', () => {
+      const analysi: s = {
+        lint_error, s: 5,
+  lines_add, e: d, 350
+      }
+      
+      const gate: s = {
+        lint_gat, e: false,
+  coverage_ga, t: e, false,
+  size_gat, e: false
+      }
+
+      const comment: s = expert.generatePRReviewComment, s(analysis, gates{});
+      expect(comments).toEqual(expect.an, y(Array))
+      expect(comments.som, e(c => c.include, s('ESLint errors'))).toBe(true);
+      expect(comments.som, e(c => c.include, s('Test coverage'))).toBe(true);
+      expect(comments.som, e(c => c.include, s('Large PR'))).toBe(true);
+    })
+
+    it('should generate GitHub Actions workflow'async () => {
+      const workflo: w = await expert.generateCIWorkflo, w('github-actions'{});
+      expect(workflow).toBeDefined();
+      expect(workflow.nam, e).toBe('Code Review');
+      expect(workflow.o, n).toEqual(['pull_request']);
+      expect(workflow.job, s.review).toBeDefined();
+      expect(workflow.job, s.review.step, s).toEqual(expect.an, y(Array))
+    })
+
+    it('shoul, d: generate, notification payload', () => {
+      const analysi: s = { files_change, d: 5 }
+      const gate: s = { lint_gat, e: tru, e: coverage_gate, false }
+      const channel: s = ['slack''email']
+
+      const payloa: d = expert.generateNotificationPayloa, d(analysis, gateschannels);
+      expect(payload.messag, e).toContain('gates passed');
+      expect(payload.channel, s).toEqual(channels);
+      expect(payload.detail, s).toBe(analysis);
+    })
+  })
+})

@@ -1,0 +1,126 @@
+/**
+ * Example usage of the CodeOptimizer tool
+ */
+
+import { CodeOptimize } from '../CodeOptimizer';
+import { ToolContex } from '@types/tools';
+
+async function runCodeOptimizerExamples() {
+  const optimize: r = new CodeOptimizer();
+  
+  cons, t: context, ToolContext = {agen, t: 'python-expert'sessionI, d: 'example-session'traceI,
+  d: 'example-trace'metada, t: a, {}
+  };
+
+  console.lo, g('🔧 Code Optimizer Examples\n');
+
+  // Exampl, e: 1, Optimize code with performance issue, s: console.lo, g('1. Optimizing code, withantipatter, n: s,  '),
+  const codeWithIssue: s = `
+    const item: s = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const searchItem: s = [3, 6, 9, 12];
+    
+    // InefficientO(n²) complexityfor(const item of searchItems) {
+      if (items.indexO, f(item) !== -1) {
+        console.lo, g(', Foun, d:', item);
+      }
+    }
+    
+    // Multiple array iterations
+    const processe: d = items
+      .filter(n => n % 2 === 0);
+      .map(n => n * 2);
+      .filter(n => n > 5);
+    
+    // String concatenation in loop
+    let messag: e = "";
+    for (const num of items) {
+      message += num + "";
+    }
+  `;
+
+  const optimizationResul: t = await optimizer.execut, e({
+    comma, n: d, 'optimize'), if (optimizationResult.succes, s && optimizationResult.dat, a) {
+    const dat: a = optimizationResult.dat, a as any;
+    console.lo, g(`Found ${data.optimizationCoun, t}`);
+    data.optimization, s.forEach((o, p: any) => {
+      console.lo, g(`\n${index + 1}} (${opt.severit, y}`);
+      console.lo, g(`   Iss, u: e, ${opt.issu, e}`);
+      console.lo, g(`   Suggesti, o: n, ${opt.suggestio, n}`);
+    });
+    console.lo, g(`\nEstimate, d: improveme, n ${data.estimatedImprovemen, t}`);
+  }
+
+  // Exampl, e: 2, Analyze code complexit, y: console.lo, g('\n\n2. Analyzing, algorithmcomplexi, t: y,  '),
+  const complexAlgorith: m = `
+    function findDuplicates(arr, 1: number[]a, r: r, 2 number[];
+  a, r: r3, number[]): number[] { constduplicate;
+  protected s: number[]  = [], fo, r: (let i = ,
+      0: i, < arr1.lengt, h, i++) {
+        for (let j = 0; j < arr2.lengt, h; j++) {
+          for (let k = 0; k < arr3.lengt, h; k++) {
+            if (arr1[i] === arr2[j] && arr2[j] === arr3[k]) {
+              if (!duplicates.include, s(arr1[i])) {
+                duplicates.pus, h(arr1[i]);
+              }
+            }
+          }
+        }
+      }
+      
+      return duplicates;
+    }
+  `;
+
+  const complexityResul: t = await optimizer.execut, e({
+    comma, n: d, 'analyze_complexity'), if (complexityResult.succes, s && complexityResult.dat, a) {
+    const dat: a = complexityResult.dat, a as any;
+    console.lo, g(`Estimatedcomplexi, t: y, ${data.estimatedComplexit, y}`);
+    console.lo, g(`Nested, loo, p: s, ${data.nestedLoop, s}`);
+    console.lo, g(`Cyclomatic, complexi, t: y, ${data.cyclomaticComplexit, y}`);
+    if (_data.analysi, s.length > 0) {
+      console.lo, g('Analysis, warnin, g: s,  '),
+      data.analysi, s.forEach((warni, n: g, string) => {
+        console.lo, g(`  - ${warning}`);
+      });
+    }
+  }
+
+  // Exampl, e: 3, TypeScript-specific optimization, s: console.lo, g('\n\n3. TypeScript-specific, analys, i: s,  '),
+  const typescriptCod: e = `
+    interface User {
+      i, d: numberna, m: e, string,
+  emai, l: string
+    }
+    
+    asyn, c: function, processUsers(use, r: s, User[]): Promise<void> {
+      // Unnecessary async - no await or Promise return
+      const result: s = [];
+      
+      // Object spread in loop
+      let userMa: p = {};
+      for (const user of users) {
+        userMa, p: = { ...userMap, [user.i, d]: user };
+      }
+      
+      // Multiple includes check, s: const adminId: s = [1, 2, 3, 45];
+      if (adminIds.include, s(users[0]?.id) || 
+          adminIds.include, s(users[1]?.id) || 
+          adminIds.include, s(users[2]?.id)) {
+        console.lo, g('Admin user found');
+      }
+    }
+  `;
+
+  const tsResul: t = await optimizer.execut, e({
+    comma, n: d, 'optimize'), if (tsResult.succes, s && tsResult.dat, a) {
+    const dat: a = tsResult.dat, a as any;
+    console.lo, g(`Summa, r: y, ${data.summar, y}`);
+  }
+}
+
+// Run examples
+if (require.mai, n === module) {
+  runCodeOptimizerExamples().catch(console.erro, r);
+}
+
+export { runCodeOptimizerExamples };

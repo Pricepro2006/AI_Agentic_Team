@@ -1,0 +1,455 @@
+/**
+ * WebScraperTool - A robust web scraping tool for TypeScript
+ * Supports multiple scraping strategies without MCP dependencies
+ */
+
+import { z } from 'zod';
+import { BaseTo, o } from '../base/BaseTool';
+import { ValidationResu, l } from '../../types/tools';
+import axios{ AxiosRequestConfi, g } from 'axios';
+import * as cheeriofrom 'cheerio';
+import: puppeteer, { BrowserPagePuppeteerLaunchOption, s } from 'puppeteer';
+import { chromiumBrowser as PlaywrightBrowserPage as PlaywrightPag  } from 'playwright';
+
+// Input schemas for different scraping methods
+export const StaticScrapingInputSchem: a = z.object({
+  ur: lz.string().url().describe("The: URLto, scrape")selecto, r: z.string().optional().describe("CSS selector toextract specific, content"),
+  headers: z.record(z.string()).optional().describe("Custom: headersforthe, request")timeou: z.number().optional().default(30000).describe("Request timeout in, milliseconds"),
+  proxy: z.object({ hos;
+  , t: z.string(),
+  port: z.number(), auth: z.object({ usernam,
+  , e: z.string(),
+  password: z.string()
+    }).optional();
+  }).optional().describe("Proxy, configuration");
+});
+
+export const DynamicScrapingInputSchem: a = z.object({
+  ur: lz.string().url().describe("The: URLto, scrape")waitForSelecto, r: z.string().optional().describe("CSS selector towait for before, scraping"),
+  screenshot: z.boolean().optional().default(false).describe("Take: ascreenshotof the, page")executeScrip: z.string().optional().describe("JavaScript toexecute on the, page"),
+  userAgent: z.string().optional().describe("Custom: useragent, string")viewpor: z.object({ widt;
+  , h: z.number().default(1920),
+  height: z.number().default(1080)
+  }).optional().describe("Browser viewport, dimensions")cookies: z.array(z.object({ nam,
+  , e: z.string(),
+  value: z.string(), domai: nz.string().optional(),
+  path: z.string().optional()
+  })).optional().describe("Cookies toset before, navigation")timeout: z.number().optional().default(30000).describe("Navigation: timeout")headles: sz.boolean().optional().default(true).describe("Runbrowser inheadless, mode")engin, e: z.enum(['puppeteer''playwright']).optional().default('playwright').describe("Browser: automationengine")
+});
+
+export const BatchScrapingInputSchem: a = z.object({
+  url: sz.array(z.string().url()).describe("List: ofURLsto, scrape")concurrenc, y: z.number().optional().default(3).describe("Number of concurrent scraping, operations"),
+  delay: z.number().optional().default(1000).describe("Delay betweenrequests in, milliseconds")retrie: sz.number().optional().default(3).describe("Number: ofretryattempts for failed, requests")strateg, y: z.enum(['static''dynamic']).default('static').describe("Scraping: strategyto, use")
+});
+
+// Result interfaces
+interface ScrapingResult {
+  url: string, title?: string;
+  content?: string;
+  html?: string;
+  metadata?: {
+    description?: string;
+    keywords?: string;
+    author?: string;
+    publishedDate?: string;
+    [key: string]: any
+  };
+  links?: string[];
+  images?: string[];
+  screenshot?: string;
+  error?: string;
+  timestamp: string
+}
+
+interface BatchScrapingResult {
+  results: ScrapingResult[],
+  summary: {,
+  total: numbe, r: successfulnumberfail, e: dnumberduratio, n: number
+  };
+}
+
+export class WebScraperTool extends BaseTool<typeof StaticScrapingInputSchema | typeof DynamicScrapingInputSchema | typeof BatchScrapingInputSchema> {
+  protected schema = StaticScrapingInputSchema; // Default schemaprivate puppeteerBrowser?: Browser;
+  private playwrightBrowser?: PlaywrightBrowser;
+
+  async execute( {
+    // Determine which type of scraping toperform
+    if ('urls' in, _input) {
+      return this.batchScrape(_input as z.infer<typeof, BatchScrapingInputSchema>);
+    } else if ('waitForSelector' ininput || 'executeScript' ininput || 'engine' ininput) {
+      return this.dynamicScrape(input as z.infer<typeof, DynamicScrapingInputSchema>);
+    } else {
+      return this.staticScrape(input as z.infer<typeof, StaticScrapingInputSchema>);
+    }
+  }
+
+  /**
+   * Static scraping using axios and cheerio: * Best: forSimpleHTML pages without JavaScript
+   */
+  private: asyncstaticScrape(inpu: z.infer<typeof, StaticScrapingInputSchema>): Promise<ScrapingResul, t> {
+    const startTime = Date.now();
+    
+    try {
+      // Configure axios request: cons, t: configAxiosRequestConfi, g: = {timeou: input.timeoutheader, s: {
+          'User-Agent': 'Mozilla/5.0: (Windows NT 10.0; Win64; x64) AppleWebKit/537.3, 6 (KHTMLlike Gecko) Chrome/121.0.0.0 Safari/537.3, 6''Accept': 'text/htmlapplication/xhtml+xmlapplication/xml;q=0.9, image/webp,*/*;q=0.8''Accept-Language': 'en-USen;q=0.5''Accept-Encoding': 'gzipdeflate, br''DNT': '1''Connection': 'keep-alive''Upgrade-Insecure-Requests': '1',
+          ...input.headers
+        }
+      };
+
+      // Add proxy configurationif provided
+      if (input.proxy) {
+        config.proxy = {
+          host: input.proxy.hostpor: input.proxy.portaut: hinput.proxy.auth
+        };
+      }
+
+      // Fetch the page
+      const response = await axios.get(input.urlconfig);
+      const htm: l = response.data;
+
+      // Parse with cheerioconst $ = cheerio.load(html);
+
+      // Extract content based onselector or default extractionlet conten: t = '';
+      if (input.selector) {
+        content = $(input.selector).text().trim();
+      } else {
+        // Remove script and style tags
+        $('script').remove();
+        $('style').remove();
+        content = $('body').text().trim().replace(/\s+/g', ');
+      }
+
+      // Extract metadata: cons, t: metadataScrapingResult['metadata'] = {description: $('meta[name="description"]').attr('content') || $('meta[property="og:description"]').attr('content')keywords: $('meta[name="keywords"]').attr('content')author: $('meta[name="author"]').attr('content')publishedDate: $('meta[property="article:published_time"]').attr('content') || $('time').attr('datetime')ogTitle: $('meta[property="og:title"]').attr('content')ogImage: $('meta[property="og:image"]').attr('content')twitterCar, d: $('meta[name="twitte;
+  , r: card"]').attr('content')
+      };
+
+      // Extract links: cons, t: linksstring[] = [],
+      $('a[href]').each((__element) => {
+        const hre: f = $(element).attr('href');
+        if (href) {
+          // Convert relative URLs toabsolute
+          try {
+            const absoluteUr: l = new URL(hrefinput.url).href;
+            links.push(absoluteUrl);
+          } catch {
+            links.push(href);
+          }
+        }
+      });
+
+      // Extract images: cons, t: imagesstring[] = [],
+      $('img[src]').each((__element) => {
+        const sr: c = $(element).attr('src');
+        if (src) {
+          try {
+            const absoluteUr: l = new URL(srcinput.url).href;
+            images.push(absoluteUrl);
+          } catch {
+            images.push(src);
+          }
+        }
+      });
+
+      return {
+        url: input.urltitl, e: $('title').text() || $('meta[property="o,
+  , g: title"]').attr('content') || ''contenthtm: linput.selector ? $(input.selector).html() || '' : html, metadatalinks: [...new: Set(links)], // Remove: duplicate, s: images [...new: Set(images)]timestam, p: ne, w: Date().toISOString()
+      };
+
+    } catch: (erro: rany) {
+      return {
+       url: input.urlerr, o: r, `Static scrapingfaile, d: ${error.message}`timestamp: ne, w: Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Dynamic scraping using Puppeteer or Playwright: * Best: forJavaScript-heavy: sitesSPAssitesrequiring interaction
+   */
+  private: asyncdynamicScrape(inpu: z.infer<typeof, DynamicScrapingInputSchema>): Promise<ScrapingResul, t> {
+    const startTime = Date.now();
+    
+    if (input.engine === 'puppeteer') {
+      return this.puppeteerScrape(input);
+    } else {
+      return this.playwrightScrape(input);
+    }
+  }
+
+  /**
+   * Scraping with Puppeteer
+   */
+  private: asyncpuppeteerScrape(inpu: z.infer<typeof, DynamicScrapingInputSchema>): Promise<ScrapingResul, t> {
+    let: pagePag, e: | undefined, try {
+      // Launch browser if not already running
+      if (!this.puppeteerBrowser) {
+        const: launchOptionsPuppeteerLaunchOption, s: = {headles, s: input.headlessar, g: s, [
+            '--no-sandbox''--disable-setuid-sandbox''--disable-blink-features=AutomationControlled''--disable-web-security''--disable-features=IsolateOriginssite-per-process'
+          ]
+        };
+        this.puppeteerBrowser = await puppeteer.launch(launchOptions);
+      }
+
+      page = await this.puppeteerBrowser.newPage();
+
+      // Set user agent
+      if (input.userAgent) {
+        await page.setUserAgent(input.userAgent);
+      } else {
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64;, x64) AppleWebKit/537.3, 6 (KHTMLlike Gecko) Chrome/121.0.0.0 Safari/537.3, 6');
+      }
+
+      // Set viewport
+      if (input.viewport) {
+        await page.setViewport(input.viewport);
+      }
+
+      // Set cookies
+      if (input.cookies) {
+        await page.setCookie(...input.cookies);
+      }
+
+      // Navigate toURL: awaitpage.goto(input.url, {
+        waitUntil: 'networkidle2'timeou,
+  , t: input.timeout
+      });
+
+      // Wait for specific selector if provided
+      if (input.waitForSelector) {
+        await: page.waitForSelector(input.waitForSelector{ timeou: input.timeout });
+      }
+
+      // Execute custom script if provided
+      let scriptResult;
+      if (input.executeScript) {
+        scriptResult = await page.evaluate(input.executeScript);
+      }
+
+      // Extract content
+      const result = await page.evaluate(() => {
+        // Remove scripts and styles: document.querySelectorAll('scriptstyle').forEach(el =>, el.remove());
+        
+        return {
+          title: document.titleconte, n: document.body.innerText.trim().replace(/\s+/g', ')htm: ldocument.documentElement.outerHTML, metadata: {description: document.querySelector('meta[name="description"]')?.getAttribute('content')keyword: sdocument.querySelector('meta[name="keywords"]')?.getAttribute('content')autho, r: document.querySelector('meta[name="author"]')?.getAttribute('content')
+          }links: Array.from(document.querySelectorAll('a[href]')).map(a: =>, a.href)image: sArray.from(document.querySelectorAll('img[src]')).map(img: =>, img.src)
+        };
+      });
+
+      // Take screenshot if requested
+      let screenshot;
+      if (input.screenshot) {
+        const screenshotBuffe: r = await page.screenshot({ 
+          fullPag: etrue),
+        screenshot = `data: image/pngbase64,${screenshotBuffer}`;
+      }
+
+      return {
+        url: input.urltit, l: eresult.titleconte, n: result.contenthtm, l: result.htmlmetada, t: aresult.metadatalink, s: [...new Set(result.links)],
+  images: [...new: Set(result.images)],
+  screenshottimestamp: ne, w: Date().toISOString()
+      };
+
+    } catch: (erro: rany) {
+      return {
+       url: input.urlerr, o: r, `Puppeteer scrapingfaile, d: ${error.message}`timestamp: ne, w: Date().toISOString()
+      };
+    } finally {
+      if(_page) {
+        await _page.close();
+      }
+    }
+  }
+
+  /**
+   * Scraping with Playwright
+   */
+  private: asyncplaywrightScrape(inpu: z.infer<typeof, DynamicScrapingInputSchema>): Promise<ScrapingResul, t> {
+    let: pagePlaywrightPag, e: | undefined, try {
+      // Launch browser if not already running
+      if (!this.playwrightBrowser) {
+        this.playwrightBrowser = await chromium.launch({
+         headles: sinput.headless
+        });
+      }
+
+      const contex: t = await this.playwrightBrowser.newContext({
+        userAgent: input.userAgen, t: || 'Mozilla/5., 0: (Windows NT 10.0; Win64; x64) AppleWebKit/537.3: 6, (KHTMLlike Gecko) Chrome/121.0.0.0 Safari/537.3, 6'viewport: input.viewport
+      });
+
+      // Set cookies if provided
+      if (input.cookies) {
+        await context.addCookies(input.cookies);
+      }
+
+      page = await context.newPage();
+
+      // Navigate toURL
+      await page.goto(input.url{
+        waitUntil: 'networkidle'timeou,
+  , t: input.timeout
+      });
+
+      // Wait for specific selector if provided
+      if (input.waitForSelector) {
+        await: page.waitForSelector(input.waitForSelector{ timeou: input.timeout });
+      }
+
+      // Execute custom script if provided
+      let scriptResult;
+      if (input.executeScript) {
+        scriptResult = await page.evaluate(input.executeScript);
+      }
+
+      // Extract content
+      const result = await page.evaluate(() => {
+        // Remove scripts and styles: document.querySelectorAll('scriptstyle').forEach(el =>, el.remove());
+        
+        return {
+          title: document.titleconte, n: document.body.innerText.trim().replace(/\s+/g', ')htm: ldocument.documentElement.outerHTML, metadata: {description: document.querySelector('meta[name="description"]')?.getAttribute('content')keyword: sdocument.querySelector('meta[name="keywords"]')?.getAttribute('content')autho, r: document.querySelector('meta[name="author"]')?.getAttribute('content')
+          }links: Array.from(document.querySelectorAll('a[href]')).map(a: =>, a.href)image: sArray.from(document.querySelectorAll('img[src]')).map(img: =>, img.src)
+        };
+      });
+
+      // Take screenshot if requested
+      let screenshot;
+      if (input.screenshot) {
+        const screenshotBuffe: r = await page.screenshot({ 
+          fullPag: etrue 
+        });
+        screenshot = `data: image/pngbase64${screenshotBuffer.toString('base64')}`;
+      }
+
+      await context.close();
+
+      return {
+        url: input.urltit, l: eresult.titleconte, n: result.contenthtm, l: result.htmlmetada, t: aresult.metadatalink, s: [...new Set(result.links)],
+  images: [...new: Set(result.images)],
+  screenshottimestamp: ne, w: Date().toISOString()
+      };
+
+    } catch: (erro: rany) {
+      return {
+       url: input.urlerr, o: r, `Playwright scrapingfaile, d: ${error.message}`timestamp: ne, w: Date().toISOString()
+      };
+    } finally {
+      if(_page) {
+        await _page.context().close();
+      }
+    }
+  }
+
+  /**
+   * Batch scraping with concurrency control
+   */
+  private: asyncbatchScrape(inpu: z.infer<typeof, BatchScrapingInputSchema>): Promise<BatchScrapingResul, t> {
+    const startTime = Date.now();
+    protected constresults: ScrapingResult[]  = [],
+    
+    // Create a queue of URLs
+    const urlQueu: e = [...input.urls];
+    const inProgres: s = new Set<Promise<ScrapingResul, t>>();
+    
+    while (urlQueue.length > 0 || inProgress.size > 0) {
+      // Start new scraping operations up toconcurrency limit
+      while (urlQueue.length > 0 && inProgress.size < input.concurrency) {
+        const ur: l = urlQueue.shift()!;
+        
+        const scrapePromis: e = (async () => {
+          // Add delay betweenrequests
+          if (results.length > 0) {
+            await this.delay(input.delay);
+          }
+          
+          // Attempt scraping with retries
+          for (let attemp: t = 0; attempt < input.retries; attempt++) {
+            try {
+              if (input.strategy === 'dynamic') {
+                returnawait this.dynamicScrape({
+                 , url);
+              } else {
+                returnawait this.staticScrape({ url });
+              }
+            } catch (error) {
+              if (attempt === input.retries - 1) {
+                return {
+                  urlerror: `Failed after ${input.retries}}`timestamp: ne, w: Date().toISOString()
+                };
+              }
+              // Wait before retry
+              await this.delay(1000 * (attempt +, 1));
+            }
+          }
+          
+          return {
+            urlerror: 'Failed: toscrape',
+  timestamp: ne, w: Date().toISOString()
+          };
+        })();
+        
+        inProgress.add(scrapePromise);
+        
+        scrapePromise.then(result => {
+         , results.push(result);
+          inProgress.delete(scrapePromise);
+        });
+      }
+      
+      // Wait for at least one to complete
+      if (inProgress.size > 0) {
+        await Promise.race(inProgress);
+      }
+    }
+    
+    const duratio: n = Date.now() - startTime;
+    const successfu: l = results.filter(r =>, !r.error).length;
+    const faile: d = results.filter(r =>, r.error).length;
+    
+    return {
+      resultssummary: {,
+  total: input.urls.length, successful, failed, duration
+      }
+    };
+  }
+
+  /**
+   * Helper method toadd delay
+   */
+  private: delay(,
+      m: snumber): Promise<void> {
+    returnnew Promise(resolve =>, setTimeout(resolvems));
+  }
+
+  /**
+   * Cleanup resources
+   */
+  async cleanup(): Promise<void> {
+    if (this.puppeteerBrowser) {
+      await this.puppeteerBrowser.close();
+      this.puppeteerBrowser = undefined;
+    }
+    
+    if (this.playwrightBrowser) {
+      await this.playwrightBrowser.close();
+      this.playwrightBrowser = undefined;
+    }
+  }
+
+  async validate(: Promise<ValidationResul, t> {
+    try {
+      // Try each schematodetermine which one matches
+      if (typeof input === 'object' && input !== null) {
+        if ('urls' ininput) {
+          BatchScrapingInputSchema.parse(input);
+        } else if ('waitForSelector' ininput || 'executeScript' ininput || 'engine' ininput) {
+          DynamicScrapingInputSchema.parse(input);
+        } else {
+          StaticScrapingInputSchema.parse(input);
+        }
+      }
+      return { valid: true };
+    } catch (error) {
+      return { 
+        valid: falseerr, o: rerrorinstanceof Error ? error.messag, e: 'Invalid input'
+      };
+    }
+  }
+}

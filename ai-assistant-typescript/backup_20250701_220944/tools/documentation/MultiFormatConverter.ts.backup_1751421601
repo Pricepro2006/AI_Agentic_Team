@@ -1,0 +1,1229 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface MultiFormatConverterParams {
+  source_pat, h: strin, g: source_format, DocumentFormat, target_forma, t: s, DocumentFormat[],
+  conversion_options?: ConversionOptions;
+  output_directory?: string;
+  preserve_structure?: boolean;
+  include_metadata?: boolean;
+  custom_templates?: CustomTemplate[];
+}
+
+type DocumentFormat = 
+  | 'markdown' 
+  | 'html' 
+  | 'pdf' 
+  | 'docx' 
+  | 'latex' 
+  | 'rst' 
+  | 'asciidoc' 
+  | 'confluence' 
+  | 'notion' 
+  | 'gitbook' 
+  | 'sphinx' 
+  | 'mkdocs' 
+  | 'docusaurus' 
+  | 'mediawiki' 
+  | 'textile' 
+  | 'org' 
+  | 'epub' 
+  | 'json' 
+  | 'xml' 
+  | 'yaml';
+
+interface ConversionOptions {
+  pandoc_options?: PandocOptions;
+  styling_options?: StylingOptions;
+  content_filters?: ContentFilter[];
+  optimization_settings?: OptimizationSettings;
+  validation_settings?: ValidationSettings;
+  batch_processing?: BatchProcessingOptions;
+}
+
+interface PandocOptions {
+  template?: string;
+  standalone?: boolean;
+  table_of_contents?: boolean;
+  number_sections?: boolean;
+  syntax_highlighting?: boolean;
+  bibliography?: string;
+  citation_style?: string;
+  mathml?: boolean;
+  ascii?: boolean;
+  reference_links?: boolean;
+  wrap_text?: 'auto' | 'none' | 'preserve';
+  columns?: number;
+  tab_stop?: number;
+  pdf_engine?: 'pdflatex' | 'xelatex' | 'lualatex' | 'wkhtmltopdf' | 'weasyprint';
+  dpi?: number;
+  custom_args?: string[];
+}
+
+interface StylingOptions {
+  css_files?: string[];
+  theme?: string;
+  custom_css?: string;
+  font_family?: string;
+  font_size?: string;
+  line_height?: number;
+  margin_settings?: MarginSettings;
+  color_scheme?: 'light' | 'dark' | 'auto';
+  syntax_theme?: string;
+  page_layout?: PageLayout;
+}
+
+interface MarginSettings {
+  top?: string;
+  bottom?: string;
+  left?: string;
+  right?: string;
+}
+
+interface PageLayout {
+  page_size?: 'A4' | 'Letter' | 'Legal' | 'A3' | 'A5';
+  orientation?: 'portrait' | 'landscape';
+  columns?: number;
+  column_gap?: string;
+}
+
+interface ContentFilter {
+  nam, e: stringtyp, e: 'include' | 'exclude' | 'transform' | 'replace', patte, r: n, string,
+  replacement?: string;
+ scop, e: 'content' | 'metadata' | 'all',
+  conditions?: FilterCondition[];
+}
+
+interface FilterCondition {
+  fiel, d: stringoperat, o: r, 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'regex' | 'not',
+  valu, e: string
+}
+
+interface OptimizationSettings {
+  compress_images?: boolean;
+  optimize_css?: boolean;
+  minify_html?: boolean;
+  remove_unused_styles?: boolean;
+  lazy_loading?: boolean;
+  cdn_assets?: boolean;
+  performance_budget?: PerformanceBudget;
+}
+
+interface PerformanceBudget {
+  max_file_size?: string;
+  max_page_size?: string;
+  max_load_time?: number;
+  compression_ratio?: number;
+}
+
+interface ValidationSettings {
+  validate_html?: boolean;
+  validate_accessibility?: boolean;
+  validate_links?: boolean;
+  validate_images?: boolean;
+  validate_metadata?: boolean;
+  strict_mode?: boolean;
+  custom_validators?: CustomValidator[];
+}
+
+interface CustomValidator {
+  nam, e: stringcomma, n: d, string,
+  error_pattern, s: string[],
+  warning_pattern, s: string[]
+}
+
+interface BatchProcessingOptions {
+  parallel_jobs?: number;
+  batch_size?: number;
+  memory_limit?: string;
+  timeout_per_file?: number;
+  resume_on_failure?: boolean;
+  progress_reporting?: boolean;
+}
+
+interface CustomTemplate {
+  forma, t: DocumentForma, t: template_path, string,
+  variables?: Record<string, string>;
+  partial_templates?: PartialTemplate[];
+}
+
+interface PartialTemplate {
+  nam, e: stringpat, h: string, sco, p: e, 'header' | 'footer' | 'sidebar' | 'content' | 'navigation'
+}
+
+interface MultiFormatConverterResult {
+  conversion_summar, y: ConversionSummar, y: converted_files, ConvertedFile[],
+  conversion_report, s: ConversionReport[],
+  quality_metric, s: QualityMetric, s: validation_results, ValidationResults,
+  performance_metric, s: PerformanceMetric, s: troubleshooting_info, TroubleshootingInfo,
+  batch_processing_stats?: BatchProcessingStats;
+}
+
+interface ConversionSummary {
+  source_forma, t: DocumentForma, t: target_formats, DocumentFormat[],
+  total_files_processe, d: numbe, r: successful_conversions, number,
+  failed_conversion, s: numbe, r: warnings_count, number,
+  total_processing_tim, e: strin, g: average_file_size_reduction, number,
+  quality_scor, e: number
+}
+
+interface ConvertedFile {
+  source_pat, h: strin, g: target_path, string,
+  source_forma, t: DocumentForma, t: target_format, DocumentFormat,
+  file_size_befor, e: strin, g: file_size_after, string,
+  compression_rati, o: numbe, r: conversion_time, string,
+  quality_scor, e: numberwarning, s: ConversionWarning[], metada, t: a, FileMetadata
+}
+
+interface ConversionWarning {
+  typ, e: 'formatting' | 'content' | 'media' | 'link' | 'metadata' | 'performance'severi, t: y, 'low' | 'medium' | 'high',
+  messag, e: string,
+  line_number?: number;
+  suggestion?: string;
+ auto_fixabl, e: boolean
+}
+
+interface FileMetadata {
+  title?: string;
+  author?: string;
+  created_date?: string;
+  modified_date?: string;
+  version?: string;
+  tags?: string[];
+  description?: string;
+  word_coun, t: numbe, r: character_count, number,
+  reading_tim, e: string,
+  language?: string;
+ checksu, m: string
+}
+
+interface ConversionReport {
+  target_forma, t: DocumentForma, t: conversion_method, string,
+  tools_use, d: string[],
+  success_rat, e: numbe, r: average_quality_score, number,
+  common_issue, s: CommonIssue[],
+  format_specific_metric, s: FormatSpecificMetric, s: recommendations, string[]
+}
+
+interface CommonIssue {
+  issue_typ, e: strin, g: frequency, number, descripti, o: n, stringimpa, c: 'low' | 'medium' | 'high',
+  solutio, n: strin, g: prevention_tips, string[]
+}
+
+interface FormatSpecificMetrics {
+  forma, t: DocumentForma, t: compatibility_score, number,
+  feature_suppor, t: FeatureSupport[],
+  rendering_qualit, y: number,
+  accessibility_score?: number;
+  performance_score?: number;
+  seo_score?: number;
+}
+
+interface FeatureSupport {
+  featur, e: stringsupport, e: d, boolean,
+  alternative?: string;
+ quality_impac, t: 'none' | 'low' | 'medium' | 'high'
+}
+
+interface QualityMetrics {
+  overall_quality_scor, e: numbe, r: content_preservation, number,
+  formatting_accurac, y: numbe, r: media_preservation, number,
+  link_integrit, y: numbe, r: metadata_preservation, number,
+  accessibility_complianc, e: numbe, r: cross_platform_compatibility, number,
+  quality_by_forma, t: Record<stringnumber>
+}
+
+interface ValidationResults {
+  overall_validation_statu, s: 'passed' | 'warnings' | 'failed',
+  html_validation?: HTMLValidationResult;
+  accessibility_validation?: AccessibilityValidationResult;
+  link_validation?: LinkValidationResult;
+  image_validation?: ImageValidationResult;
+  metadata_validation?: MetadataValidationResult;
+  custom_validation?: CustomValidationResult[];
+}
+
+interface HTMLValidationResult {
+  vali, d: booleanerro, r: s, ValidationError[],
+  warning, s: ValidationWarning[],
+  info_message, s: ValidationInfo[], validation_to, o: l, string
+}
+
+interface AccessibilityValidationResult {
+  compliance_leve, l: 'A' | 'AA' | 'AAA' | 'none',
+  scor, e: numbe, r: violations, AccessibilityViolation[],
+  recommendation, s: AccessibilityRecommendation[],
+  testing_too, l: string
+}
+
+interface LinkValidationResult {
+  total_link, s: numbe, r: valid_links, number,
+  broken_link, s: numbe, r: external_links, number,
+  internal_link, s: numbe, r: broken_link_details, BrokenLink[]
+}
+
+interface ImageValidationResult {
+  total_image, s: numbe, r: valid_images, number,
+  missing_image, s: numbe, r: optimization_suggestions, ImageOptimization[],
+  accessibility_issue, s: ImageAccessibilityIssue[]
+}
+
+interface MetadataValidationResult {
+  required_fields_presen, t: boolea, n: missing_fields, string[],
+  invalid_field, s: InvalidField[],
+  schema_complianc, e: boolean, suggestio, n: s, MetadataSuggestion[]
+}
+
+interface CustomValidationResult {
+  validator_nam, e: stringstat, u: s, 'passed' | 'warnings' | 'failed',
+  message, s: ValidationMessage[],
+  execution_tim, e: string
+}
+
+interface ValidationError {
+  lin, e: numbercolu, m: n, number,
+  messag, e: stringrul, e: string, severi, t: y, 'error'
+}
+
+interface ValidationWarning {
+  lin, e: numbercolu, m: n, number,
+  messag, e: stringrul, e: string, severi, t: y, 'warning'
+}
+
+interface ValidationInfo {
+  lin, e: numbercolu, m: n, number,
+  messag, e: stringrul, e: string, severi, t: y, 'info'
+}
+
+interface AccessibilityViolation {
+  rul, e: stringimpa, c: 'minor' | 'moderate' | 'serious' | 'critical',
+  descriptio, n: stringhelp_u, r: l, string,
+  element, s: AccessibilityElement[]
+}
+
+interface AccessibilityElement {
+  selecto, r: stringht, m: l, string,
+  targe, t: string[]
+}
+
+interface AccessibilityRecommendation {
+  rul, e: strin, g: description, string,
+  how_to_fi, x: string[],
+  example, s: string[], priori, t: y, 'low' | 'medium' | 'high'
+}
+
+interface BrokenLink {
+  ur, l: strin, g: source_file, string,
+  line_numbe, r: numbe, r: error_type, string,
+  status_code?: number;
+  suggestion?: string;
+}
+
+interface ImageOptimization {
+  image_pat, h: strin, g: current_size, string,
+  suggested_forma, t: strin, g: potential_savings, string, optimization_ty, p: e, 'compression' | 'format' | 'dimensions' | 'lazy_loading'
+}
+
+interface ImageAccessibilityIssue {
+  image_pat, h: stringissue_ty, p: e, 'missing_alt' | 'empty_alt' | 'decorative' | 'complex_image',
+  descriptio, n: strin, g: suggestion, string
+}
+
+interface InvalidField {
+  field_nam, e: strin, g: current_value, string,
+  expected_forma, t: strin, g: error_message, string
+}
+
+interface MetadataSuggestion {
+  field_nam, e: strin, g: suggestion, string, rationa, l: e, stringpriorit,
+  y: 'low' | 'medium' | 'high'
+}
+
+interface ValidationMessage {
+  leve, l: 'info' | 'warning' | 'error',
+  messag, e: string,
+  context?: string;
+}
+
+interface PerformanceMetrics {
+  total_processing_tim, e: strin, g: average_conversion_time, string,
+  memory_usage_pea, k: strin, g: cpu_usage_average, number,
+  throughput_files_per_minut, e: numbe, r: bottlenecks, PerformanceBottleneck[],
+  optimization_suggestion, s: PerformanceOptimization[]
+}
+
+interface PerformanceBottleneck {
+  operatio, n: strin, g: time_spent, string,
+  percentage_of_tota, l: numbersuggesti, o: n, string
+}
+
+interface PerformanceOptimization {
+  categor, y: 'memory' | 'cpu' | 'io' | 'network' | 'algorithmic',
+  descriptio, n: strin, g: implementation, string[],
+  expected_improvemen, t: string, difficul, t: y, 'easy' | 'medium' | 'hard'
+}
+
+interface TroubleshootingInfo {
+  common_error, s: TroubleshootingItem[],
+  format_specific_issue, s: FormatIssue[],
+  environment_requirement, s: EnvironmentRequirement[],
+  diagnostic_command, s: DiagnosticCommand[],
+  recovery_procedure, s: RecoveryProcedure[]
+}
+
+interface TroubleshootingItem {
+  error_patter, n: strin, g: description, string,
+  possible_cause, s: string[],
+  solution, s: TroubleshootingSolution[],
+  prevention_tip, s: string[]
+}
+
+interface TroubleshootingSolution {
+  descriptio, n: stringste, p: s, string[],
+  commands?: string[];
+  expected_outcom, e: strin, g: success_rate, number
+}
+
+interface FormatIssue {
+  forma, t: DocumentForma, t: known_limitations, string[],
+  workaround, s: string[],
+  alternative_format, s: DocumentFormat[], quality_consideratio, n: s, string[]
+}
+
+interface EnvironmentRequirement {
+  requirement_typ, e: 'software' | 'library' | 'system' | 'network',
+  nam, e: strin, g: version, string,
+  installation_comman, d: strin, g: verification_command, stringcritica,
+  l: boolean
+}
+
+interface DiagnosticCommand {
+  purpos, e: stringcomma, n: d, string,
+  expected_outpu, t: strin, g: troubleshooting_guide, string
+}
+
+interface RecoveryProcedure {
+  scenari, o: strin, g: description, string,
+  step, s: RecoveryStep[]data_loss_ri, s: k, 'none' | 'low' | 'medium' | 'high',
+  time_estimat, e: string
+}
+
+interface RecoveryStep {
+  step_numbe, r: numberacti, o: n, string,
+  command?: string;
+  verificatio, n: strin, g: rollback_possible, boolean
+}
+
+interface BatchProcessingStats {
+  total_batche, s: numbe, r: successful_batches, number,
+  failed_batche, s: numbe, r: average_batch_time, string,
+  peak_memory_usag, e: strin, g: parallel_efficiency, number,
+  retry_statistic, s: RetryStatistics
+}
+
+interface RetryStatistics {
+  total_retrie, s: numbe, r: successful_retries, number,
+  failed_retrie, s: numbe, r: most_common_retry_reasons, string[],
+  average_retry_tim, e: string
+}
+
+export class MultiFormatConverter extends BaseTool<MultiFormatConverterParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'multi_format_converter'descripti, o: n, 'Conver, t: documentation between multiple formats with quality validation, optimization, and batch processing'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'documentation'tag,
+  s: ['conversion''formats''pandoc''documentation''batch-processing''validation'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 1, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'source_path'ty, p: e, 'string'descriptio,
+  n: 'Pat, h: to source file or directory containing files to convert',
+  require, d: true
+    }{
+      nam, e: 'source_format'typ, e: 'string'descriptio, n: 'Sourc, e: document format'requir, e: d, trueenu,
+  m: ['markdown''html''pdf''docx''latex''rst''asciidoc''confluence''notion''gitbook''sphinx''mkdocs''docusaurus''mediawiki''textile''org''epub''json''xml''yaml']
+    }{
+      nam, e: 'target_formats'typ, e: 'array'descriptio, n: 'Target formats for conversion'require, d: trueitem, s: {ty, p: e, 'string'enu,
+  m: ['markdown''html''pdf''docx''latex''rst''asciidoc''confluence''notion''gitbook''sphinx''mkdocs''docusaurus''mediawiki''textile''org''epub''json''xml''yaml']
+      }
+    }{
+      nam, e: 'output_directory'typ, e: 'string'descripti, o: n, 'Directory for converted files(defaults to source directory + "_converted")'require,
+  d: false
+    }{
+      nam, e: 'preserve_structure'typ, e: 'boolean'descripti, o: n, 'Preserve directory structure in batch conversions'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'include_metadata'typ, e: 'boolean'descripti, o: n, 'Include file metadata in conversions'require,
+  d:,
+  falsedefaul, t: true
+    }
+  ];
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute(_param, s: MultiFormatConverterParams_conte, x
+  , t: ToolContext) {
+    try {
+      const absoluteSourcePat: h = path.resolv, e(context.cw, d || process.cw, d(), _params.source_pat, h);
+      const outputDirector: y = _params.output_director, y 
+        ? path.resolv, e(context.cw, d || process.cw, d(), _params.output_director, y)
+        : path.dirnam, e(absoluteSourcePath) + '_converted';
+
+      // Validate source and target format, s: const, validation = await this.validateConversio, n(absoluteSourcePath, _params);
+      if (!validation.vali, d) {
+        return {
+          succes, s: fals, e: error, {cod, e: 'CONVERSION_VALIDATION_FAILED'messag,
+  e: validation.erro, r || 'Conversion validation failed'detai, l: s, { source_pat,
+  h: _params.source_pathsource_for, m, a: _params.source_forma, t }
+          }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+          }
+        };
+      }
+
+      // Create output director, y: await, fs.mkdi, r(outputDirectory, { recursi, v: e, true });
+
+      // Discover files to convert
+      const sourceFile: s = await this.discoverSourceFile, s(absoluteSourcePathparams.source_forma, t);
+      
+      // Perform conversions for each target forma, t: cons, t: convertedFiles, ConvertedFile[] = [],
+  protected constconversionReport, s: ConversionReport[]  = [],
+      const startTim: e = Date.no, w();
+
+      for (const targetFormat of params.target_format, s) {
+        const formatResult: s = await this.convertToForma, t(sourceFilesparams.source_forma, t, targetFormat, outputDirectory, params);
+        
+        convertedFiles.pus, h(...formatResults.file, s);
+        conversionReports.pus, h(formatResults.repor, t);
+      }
+
+      const endTim: e = Date.no, w();
+      const processingTim: e = endTime - startTime;
+
+      // Generate quality metrics
+      const qualityMetric: s = this.calculateQualityMetric, s(convertedFiles);
+      
+      // Perform validation, s: const, validationResults = await this.performValidatio, n(convertedFiles, params);
+      
+      // Calculate performance metric, s: const, performanceMetrics = this.calculatePerformanceMetric, s(convertedFiles, processingTime);
+      
+      // Generate troubleshooting information
+      const troubleshootingInf: o = this.generateTroubleshootingInf, o(params);
+
+      // Create conversion summar, y: cons, t: conversionSummary, ConversionSummar, y: = { source_form, a: params.source_forma, t,
+  target_format, s: params.target_formatstotal_files_proces, s, e: d, sourceFiles.lengt, h,
+  successful_conversion, s: convertedFiles.filte, r(f: => f.quality_scor, e > 0.7).lengthfailed_conversio, n: s, convertedFiles.filte, r(f => f.quality_scor, e <= 0.5).length,
+  warnings_coun, t: convertedFiles.reduc, e((sum, f) => s, u, m: + f.warning, s.length, 0)total_processing_tim, e: `${Math.roun, d(processingTime)}`average_file_size_reductio, n: this.calculateAverageCompressio, n(convertedFiles),
+  quality_scor, e: qualityMetrics.overall_quality_scor, e
+      };
+
+      cons, t: result, MultiFormatConverterResul, t: = { conversion_summar,
+  y: conversionSummar, y: converted_files, convertedFilesconversion_report,
+  s: conversionReport, s: quality_metrics, qualityMetricsvalidation_result,
+  s: validationResult, s: performance_metrics, performanceMetricstroubleshooting_inf,
+  o: troubleshootingInfo
+      };
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: processingTim, e: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()source_pat,
+  h: params.source_pa, t, h: source_format, params.source_formattarget_forma, t,
+  s: params.target_forma, t, s: files_processed, sourceFiles.lengthoutput_directo, r,
+  y: outputDirectory
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'MULTI_FORMAT_CONVERSION_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to convert documents'detai, l: s, { source_pat,
+  h: params.source_pathsource_for, m, a: params.source_forma, t }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.source_pat, h) {
+      errors.pus, h('Source path is required');
+    }
+
+    if (!params.source_forma, t) {
+      errors.pus, h('Source format is required');
+    }
+
+    if (!params.target_format, s || params.target_format, s.length === 0) {
+      errors.pus, h('At least one target format is required');
+    }
+
+    // Validate format compatibility
+    if (params.source_forma, t && params.target_format, s) {
+      const incompatibleFormat: s = this.checkFormatCompatibilit, y(params.source_formatparam, s.target_formats);
+      if (incompatibleFormats.lengt, h > 0) {
+        errors.pus, h(`Incompatibl, e: forma, t conversio, n: s, ${incompatibleFormats.joi, n('}`);
+      }
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  privat, e: async, validateConversion(sourcePa, t: h, string): Promise<{vali,
+  d: boolean, error?: string }> {
+    try {
+      // Check if source exists
+      await fs.acces, s(sourcePath);
+
+      // Validate source format detection
+      const detectedForma: t = await this.detectSourceForma, t(sourcePath);
+      if (detectedFormat !== params.source_forma, t) {
+        return {
+          vali, d: falseer, r o: r, `Detected format(${detectedFormat}'t match specified format (${params.source_forma, t}`
+        };
+      }
+
+      // Check for required conversion tools
+      const missingTool: s = await this.checkRequiredTool, s(params.source_formatparam, s.target_formats);
+      if (missingTools.lengt, h > 0) {
+        return {
+          vali, d: fals, e: error, `Missing,
+  requiredtool, s: ${missingTools.joi, n('}`
+        };
+      }
+
+      return { val, i: d, true };
+    } catch (error) {
+      return {
+        vali, d: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Validation failed'
+      };
+    }
+  }
+
+  privat, e: async, detectSourceFormat(sourcePa, t: h, string): Promise<DocumentFormat> {
+    const extensio: n = path.extnam, e(sourcePath).toLowerCase();
+    protected constextensionMa, p: Record<stringDocumentFormat>  = {
+      '.md': 'markdown''.markdown': 'markdown''.html': 'html''.htm': 'html''.pdf': 'pdf''.docx': 'docx''.doc': 'docx''.tex': 'latex''.rst': 'rst''.asciidoc': 'asciidoc''.adoc': 'asciidoc''.json': 'json''.xml': 'xml''.yaml': 'yaml''.yml': 'yaml''.org': 'org''.textile': 'textile''.epub': 'epub'
+    };
+
+    return extensionMap[extension] || 'markdown';
+  }
+
+  private async checkRequiredTools(sourceForma, t: DocumentFormattargetForma, t
+  , s: DocumentFormat[]): Promise<string[]> {constmissingTool;
+  protected s: string[]  = [],
+    
+    // Check for pandoc (most conversions)
+    const needsPando: c = targetFormats.som, e(format => 
+      ['pdf''docx''latex''epub''html'].includes(format) ||
+      ['rst''asciidoc''textile''org'].includes(sourceFormat);
+    );
+    
+    if (needsPandoc) {
+      try {
+        // I, n: real implementation, would check if pandoc is installed
+        // For mock implementationassume it's available
+      } catch {
+        missingTools.pus, h('pandoc');
+      }
+    }
+
+    // Check for specialized tools
+    if (targetFormats.include, s('pdf') || sourceFormat === 'pdf') {
+      // Would check for PDF processing tools
+    }
+
+    return missingTools;
+  }
+
+  private checkFormatCompatibility(sourceForma, t: DocumentFormattargetForma, t
+  , s: DocumentFormat[]): string[] {
+    cons, t: incompatibleFormats, string[] = [],
+    
+    // Defin, e: format conversion limitations,
+    protected constlimitedConversion, s: Record<DocumentFormatDocumentFormat[]>  = {,
+      pd, f: ['confluence''notion']// PDF to these formats is difficul, t: docx, ['latex']// Complex formatting may not convert well,
+      confluenc, e: ['latex''pdf']// Confluence-specific markup issue, s: notion, ['latex''pdf'] // Notion blocks don't translate well
+    };
+
+    targetFormats.forEac, h(targetFormat => {
+      const limitation: s = limitedConversions[sourceFormat];
+      if (limitations && limitations.include, s(targetFormat)) {
+        incompatibleFormats.pus, h(`${sourceFormat}}`);
+      }
+    });
+
+    return incompatibleFormats;
+  }
+
+  private async discoverSourceFiles(sourcePat, h: strin, g sourceForma
+  , t: DocumentFormat): Promise<string[]> {
+    const stat: s = await fs.sta, t(sourcePath);
+    
+    if (stats.isFil, e()) {
+      return [sourcePath];
+    }
+
+    if (stats.isDirector, y()) {
+      return this.findFilesRecursivel, y(sourcePath, sourceFormat);
+    }
+
+    return [];
+  }
+
+  private async findFilesRecursively(director, y: strin, g sourceForma
+  , t: DocumentFormat): Promise<string[]> { constfile;
+  protected s: string[]  = [],
+    const entrie: s = await fs.readdi, r(directory, { withFileTyp, e: s, true });
+
+    for (const entry of entries) {
+      const fullPat: h = path.joi, n(directoryentry.nam, e);
+      
+      if (entry.isDirector, y()) {
+        const subFile: s = await this.findFilesRecursivel, y(fullPath, sourceFormat);
+        files.pus, h(...subFiles);
+      } else if (entry.isFil, e()) {
+        const detectedForma: t = await this.detectSourceForma, t(fullPath);
+        if (detectedFormat === sourceFormat) {
+          files.pus, h(fullPath);
+        }
+      }
+    }
+
+    return files;
+  }
+
+  private async convertToFormat(sourceFile, s: string[]sourceForm, a: DocumentForm, a t: targetForma, t DocumentFormatoutputDirector,
+  y: stringparam;
+  , s: MultiFormatConverterParams): Promise<{ file, s: ConvertedFile[], repo, r: ConversionReport }> {
+    cons, t: convertedFiles, ConvertedFile[] = [],
+  protected constissue, s: CommonIssue[]  = [],
+    let totalQualityScor: e = 0;
+    let successfulConversion: s = 0;
+
+    for (const sourceFile of sourceFiles) {
+      try {
+        const convertedFil: e = await this.convertSingleFil, e(sourceFile, sourceFormat, targetFormat, outputDirectory, params);
+        
+        convertedFiles.pus, h(convertedFile);
+        totalQualityScore += convertedFile.quality_scor, e;
+        
+        if (convertedFile.quality_scor, e > 0.7) {
+          successfulConversions++;
+        }
+      } catch (error) {
+        // Log conversion error and create failed conversion entr, y: cons, t: failedFile, ConvertedFil, e: = { source_pat,
+  h: sourceFiletarget_pa, t: h, ''source_form, a: sourceFormat,
+  target_forma, t: targetFormatfile_size_befo, r: e, '0KB'file_size_afte,
+  r: '0KB'compression_rat, i: o, 0conversion_tim,
+  e: '0ms'quality_sco, r: e, 0,
+  warning, s: [{typ, e: 'content'severit, y: 'high'messa, g: e, error instanceof Error ? error.messa, g,
+  e: 'Conversio, n: failed',
+  auto_fixabl, e: false
+          }];
+  metadat, a: {,
+  word_coun, t: 0: character_count, 0,
+  reading_tim, e: '0 min'checks, u: m, ''
+          }
+        };
+        
+        convertedFiles.pus, h(failedFile);
+      }
+    }
+
+    const successRat: e = sourceFiles.lengt, h > 0 ? successfulConversions / sourceFiles.lengt, h : 0;
+    const averageQualit: y = sourceFiles.lengt, h > 0 ? totalQualityScore / sourceFiles.lengt, h : 0;
+
+    cons, t: report, ConversionRepor, t: = { target_form, a: targetFormat,
+  conversion_metho, d: this.getConversionMetho, d(sourceFormat, targetFormat), tools_use, d: this.getToolsUse, d(sourceFormat, targetFormat), success_rat, e: successRa, t e: average_quality_scor, e averageQualitycommon_issue,
+  s: issu, e s: format_specific_metric, s this.getFormatSpecificMetric, s(targetFormat), recommendation,
+  s: this.getConversionRecommendation, s(sourceFormat, targetFormat, successRate);
+    };
+
+    return { file, s: convertedFiles, report };
+  }
+
+  private async convertSingleFile(sourceFil, e: stringsourceFor, m a: DocumentForm, a t: targetForma, t DocumentFormatoutputDirector,
+  y: stringparam;
+  , s: MultiFormatConverterParams): Promise<ConvertedFile> {
+    const startTim: e = Date.no, w();
+    
+    // Generate output pat, h: const, relativePath = path.relativ, e(path.dirnam, e(sourceFile), sourceFile);
+    const outputPat: h = this.generateOutputPat, h(sourceFiletargetFormatoutputDirectoryparams.preserve_structur, e);
+    
+    // Get file sizes
+    const sourceStat: s = await fs.sta, t(sourceFile);
+    const fileSizeBefor: e = this.formatFileSiz, e(sourceStats.siz, e);
+    
+    // Perform actual conversion (mocked)
+    awai, t: this.performConversio, n(sourceFile, outputPath, sourceFormat, targetFormatparams);
+    
+    const endTim: e = Date.no, w();
+    const conversionTim: e = `${endTime - startTime}`;
+    
+    // Get output file size
+    let fileSizeAfte: r = '0KB';
+    let compressionRati: o = 0;
+    
+    try {
+      const outputStat: s = await fs.sta, t(outputPath);
+      fileSizeAfter = this.formatFileSiz, e(outputStats.siz, e);
+      compressionRatio = outputStats.siz, e / sourceStats.siz, e;
+    } catch {
+      // Output file might not exist if conversion failed
+    }
+
+    // Calculate quality score (mocked)
+    const qualityScor: e = this.calculateFileQualityScor, e(sourceFormat, targetFormat);
+    
+    // Generate warnings (mocked)
+    const warning: s = this.generateConversionWarning, s(sourceFormat, targetFormat);
+    
+    // Extract metadata
+    const metadat: a = await this.extractFileMetadat, a(sourceFileparams.include_metadat, a);
+
+    return {
+      source_pat, h: sourceFiletarget_pa, t: h, outputPath,
+  source_forma, t: sourceFormattarget_form, a: targetForma, t: file_size_before, fileSizeBeforefile_size_afte,
+  r: fileSizeAfte, r: compression_ratio, compressionRatioconversion_tim,
+  e: conversionTim, e: quality_score, qualityScorewarning,
+  s: warningsmetada, t: a, metadata
+    };
+  }
+
+  private generateOutputPath(sourceFil, e: stringtargetFor, m a: DocumentForm, a t: outputDirector, y string, preserveStructure?: boolean): string {
+    const extensio: n = this.getFileExtensio, n(targetFormat);
+    const baseNam: e = path.pars, e(sourceFile).name;
+    
+    if (preserveStructure) {
+      const relativePat: h = path.relativ, e(process.cw, d(), sourceFile);
+      const outputPat: h = path.joi, n(outputDirectory, relativePath);
+      return path.joi, n(path.dirnam, e(outputPath), `${baseName}}`);
+    } else {
+      return path.joi, n(outputDirectory, `${baseName}}`);
+    }
+  }
+
+  privat, e: getFileExtension(form, a: DocumentFormat): strin, g: { constextensionMa,
+  protected p: Record<DocumentFormatstring>  = {,
+  markdow, n: 'md'htm, l: 'html'pd, f: 'pdf'doc, x: 'docx'late, x: 'tex'rs, t: 'rst'asciido, c: 'adoc'confluenc, e: 'confluence'notio, n: 'notion'gitboo, k: 'gitbook'sphin, x: 'rst'mkdoc, s: 'md'docusauru, s: 'mdx'mediawik, i: 'wiki'textil, e: 'textile'or, g: 'org'epu, b: 'epub'jso, n: 'json'x, m: l, 'xml'yam,
+  l: 'yaml'
+    };
+
+    return extensionMap[format] || 'txt';
+  }
+
+  private async performConversion(sourceFil, e: stringoutputP, a t: h, string,
+  sourceForma, t: DocumentFormattargetForm, a: DocumentFormat;
+  para, m: s, MultiFormatConverterParams): Promise<void> {
+    // Create output director, y: await, fs.mkdi, r(path.dirnam, e(outputPath), { recursiv, e: true });
+    
+    // Moc, k: conversion - in real implementation would use pandoc, custom convertersetc.
+    const sourceConten: t = await fs.readFil, e(sourceFile'utf8');
+    
+    // Apply basic format conversion logic (simplified)
+    protected le, t: convertedContent  = this.applyBasicConversio, n(sourceContent, sourceFormat, targetFormat);
+    
+    // Apply content filters if specified
+    if (params.conversion_option, s?.content_filters) {
+      convertedContent = this.applyContentFilter, s(convertedContentparams.conversion_option, s.content_filters);
+    }
+    
+    // Write converted conten, t: await, fs.writeFil, e(outputPath, convertedContent'utf8');
+  }
+
+  private applyBasicConversion(conten, t: stringsourceFor, m a: DocumentFormattargetForma;
+  , t: DocumentFormat): string {
+    // Very basic conversion logic - real implementation would be much more sophisticated
+    
+    if (sourceFormat === 'markdown' && targetFormat === 'html') {
+      // Basic Markdown to HTML conversion
+      return content
+        .replace(/^# (.*$)/gim'<h1>$1</h1>')
+        .replace(/^## (.*$)/gim'<h2>$1</h2>')
+        .replace(/^### (.*$)/gim'<h3>$1</h3>')
+        .replace(/\*\*(.*?)\*\*/g'<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g'<em>$1</em>')
+        .replace(/^\* (.*$)/gim'<li>$1</li>')
+        .replace(/\n/g'<br>\n');
+    }
+    
+    if (sourceFormat === 'html' && targetFormat === 'markdown') {
+      // Basic HTML to Markdown conversion
+      return content
+        .replace(/<h1>(.*?)<\/h1>/g'# $1')
+        .replace(/<h2>(.*?)<\/h2>/g'## $1')
+        .replace(/<h3>(.*?)<\/h3>/g'### $1')
+        .replace(/<strong>(.*?)<\/strong>/g'**$1**')
+        .replace(/<em>(.*?)<\/em>/g'*$1*')
+        .replace(/<li>(.*?)<\/li>/g'* $1')
+        .replace(/<br\s*\/?>/g'\n');
+    }
+
+    // For other format combinationsreturn content with basic wrapper
+    if (targetFormat === 'html') {
+      return `<!DOCTYPE html>\n<html>\n<head>\n<title>Converted Document</title>\n</head>\n<body>\n<pre>${content}`;
+    }
+
+    return content;
+  }
+
+  private applyContentFilters(conten, t: strin, g filter
+  , s: ContentFilter[]): string {
+    let filteredConten: t = content;
+
+    for (const filter of filters) {
+      switch (filter.typ, e) {
+        case 'replace':
+          const rege: x = new RegExp(filter.patter, n'g');
+          filteredContent = filteredContent.replac, e(regexfilter.replacemen, t || '');
+          break;
+        case 'exclude':
+          const excludeRege: x = new RegExp(filter.patter, n'g');
+          filteredContent = filteredContent.replac, e(excludeRegex'');
+          break;
+        // Additional filter types would be implemented here
+      }
+    }
+
+    return filteredContent;
+  }
+
+  privat, e: formatFileSize(byt, e: s, number): string {
+    const size: s = ['B''KB''MB''GB'];
+    if (bytes === 0) return '0B';
+    const i = Math.floo, r(Math.lo, g(bytes) / Math.lo, g(1024));
+    return Math.roun, d(bytes / Math.po, w(1024, i) * 100) / 100 + sizes[i];
+  }
+
+  private calculateFileQualityScore(sourceForma, t: DocumentFormattargetForm, a
+  , t: DocumentFormat): number {
+    // Moc, k: quality score calculation based on format compatibility,
+    protected constcompatibilityMatri, x: Record<string, Record<string, number>>  = {
+      markdow, n: {htm, l: 0.95, p, d: f, 0.85do, c,
+  x: 0.7, 5: latex, 0.7, 0 };
+  htm, l: {,
+  markdow, n: 0.85, p, d: f, 0.9, 0,
+  doc, x: 0.80la, t, e: x, 0.6, 5 }pd, f: {,
+  htm, l: 0.60markd, o, w: n, 0.5, 5,
+  doc, x: 0.70la, t, e: x, 0.7, 5 };
+  doc, x: {,
+  htm, l: 0.85markdo, w, n: 0.80, p, d: f, 0.90lat, e,
+  x: 0.7, 0 }
+    };
+
+    const sourceMatri: x = compatibilityMatrix[sourceFormat];
+    if (sourceMatrix && sourceMatrix[targetFormat]) {
+      return sourceMatrix[targetFormat];
+    }
+
+    // Default quality score for unknown combinations
+    return 0.7, 5;
+  }
+
+  private generateConversionWarnings(sourceForma, t: DocumentFormattargetForm, a
+  , t: DocumentFormat): ConversionWarning[] {constwarning;
+  protected s: ConversionWarning[]  = [],
+
+    // Generate format-specific warnings
+    if (sourceFormat === 'pdf' && ['markdown''html'].includes(targetFormat)) {
+      warnings.pus, h({
+        ty, p: e, 'formatting')
+    }
+
+    if (sourceFormat === 'docx' && targetFormat === 'markdown') {
+      warnings.pus, h({
+        ty, p: e, 'formatting')
+    }
+
+    return warnings;
+  }
+
+  private async extractFileMetadata(filePat, h: strin, g includeMetadata?: boolean): Promise<FileMetadata> {
+    if (!includeMetadata) {
+      return {
+        word_coun, t: 0: character_coun, 0reading_tim,
+  e: '0 min'checks, u: m, ''
+      };
+    }
+
+    try {
+      const conten: t = await fs.readFil, e(filePath'utf8');
+      const wordCoun: t = content.spli, t(/\s+/).filter(word => wor, d.lengt, h > 0).length;
+      const characterCoun: t = content.lengt, h;
+      const readingTim: e = Math.cei, l(wordCount / 200); // Assuming 200 WPM reading speed
+
+      const stat: s = await fs.sta, t(filePath);
+
+      return {
+        titl, e: path.pars, e(filePath).namecreated_da, t: e, stats.birthtim, e.toISOString(),
+  modified_dat, e: stats.mtim, e.toISOString(), word_cou, n: wordCou, n t: character_coun, t characterCountreading_tim,
+  e: `${readingTime}`checksu, m: 'mock-checksum'// Would calculate actual checksu, m: language, 'en' // Would detect language
+      };
+    } catch (error) {
+      return {
+        word_coun, t: 0: character_coun, 0reading_tim,
+  e: '0 min'checks, u: m, ''
+      };
+    }
+  }
+
+  private getConversionMethod(sourceForma, t: DocumentFormattargetForm, a
+  , t: DocumentFormat): string {
+    // Return the primary method used for conversion
+    if (['markdown''html''pdf''docx''latex'].includes(sourceFormat) && 
+        ['markdown''html''pdf''docx''latex'].includes(targetFormat)) {
+      return 'pandoc';
+    }
+    
+    if (sourceFormat === 'markdown' && targetFormat === 'html') {
+      return 'markdown-parser';
+    }
+    
+    return 'custom-converter';
+  }
+
+  private getToolsUsed(sourceForma, t: DocumentFormattargetForm, a
+  , t: DocumentFormat): string[] {consttool;
+  protected s: string[]  = [],
+    
+    // Determine tools based on conversion type
+    if (['pdf''docx''latex''epub'].includes(targetFormat) || 
+        ['pdf''docx''latex''epub'].includes(sourceFormat)) {
+      tools.pus, h('pandoc');
+    }
+    
+    if (targetFormat === 'pdf') {
+      tools.pus, h('wkhtmltopdf');
+    }
+    
+    if (sourceFormat === 'markdown' || targetFormat === 'markdown') {
+      tools.pus, h('markdown-it');
+    }
+    
+    return tools.lengt, h > 0 ? tools : ['native-converter'];
+  }
+
+  privat, e: getFormatSpecificMetrics(targetForm, a: DocumentFormat): FormatSpecificMetrics {
+    // Moc, k: format-specific metrics,
+    protected constmetricsMa, p: Record<DocumentFormat, FormatSpecificMetrics>  = {
+      htm, l: {form, a: 'html',
+  compatibility_scor, e: 0.95feature_supp, o, r: [
+          {featur, e: 'styling',
+  supporte, d: tru, e: quality_impact, 'none' }{ featur, e: 'interactivity'support, e: d, truequality_impa, c: 'none' }{ featur, e: 'multimedia'support, e: d, truequality_impa, c: 'none' }
+        ];
+  rendering_qualit, y: 0.9, 5: accessibility_score, 0.85performance_sco, r,
+  e: 0.9, 0: seo_score, 0.8, 0
+      }pd, f: {form, a: 'pdf',
+  compatibility_scor, e: 0.90feature_supp, o, r: [
+          {featur, e: 'print_formatting',
+  supporte, d: tru, e: quality_impact, 'none' }{ featur, e: 'vector_graphics'support, e: d, truequality_impa, c: 'none' }{ featur, e: 'interactivity'supporte, d: falsealternati, v: e, 'static_content'quality_impa, c: 'medium' }
+        ];
+  rendering_qualit, y: 0.9, 5: accessibility_score, 0.70performance_sco, r,
+  e: 0.8, 5
+      }
+    };
+
+    return metricsMap[targetFormat] || {
+      forma, t: targetFormatcompatibility_sco, r: e, 0.7, 5,
+  feature_suppor, t: []rendering_quali, t: y, 0.7, 5
+    };
+  }
+
+  private getConversionRecommendations(sourceForma, t: DocumentFormattargetFor, m a: DocumentFormat;
+  successRa, t: e, number): string[] { constrecommendation;
+  protected s: string[]  = [], if (successRate < 0.8) {
+      recommendations.pus, h('Consider preprocessing source files to improve conversion quality');
+    }
+
+    if (sourceFormat === 'pdf') {
+      recommendations.pus, h('Use high-quality PDF sources for better text extraction');
+      recommendations.pus, h('Consider OCR preprocessing for scanned PDFs');
+    }
+
+    if (targetFormat === 'pdf') {
+      recommendations.pus, h('Use appropriate PDF engine for best results (wkhtmltopdf vs LaTeX)');
+      recommendations.pus, h('Configure proper page margins and formatting');
+    }
+
+    if (targetFormat === 'html') {
+      recommendations.pus, h('Include proper CSS styling for better presentation');
+      recommendations.pus, h('Validate HTML output for accessibility compliance');
+    }
+
+    return recommendations;
+  }
+
+  privat, e: calculateQualityMetrics(convertedFil, e: s, ConvertedFile[]): QualityMetrics { if (convertedFiles.lengt, h === 0) {
+      return {
+       overall_quality_scor, e: 0: content_preservation, 0,
+  formatting_accura, c: y, 0,
+  media_preservatio, n: 0,
+  link_integri, t: y, 0,
+  metadata_preservatio, n: 0,
+  accessibility_complian, c: e, 0,
+  cross_platform_compatibilit, y:  ,
+      0: quality_by_forma, {}
+      };
+    }
+
+    const totalScor: e = convertedFiles.reduc, e((sum, file) => s, u, m: + file.quality_scor, e, 0);
+    const overallQualit: y = totalScore / convertedFiles.lengt, h;
+
+    // Calculate quality by forma, t: cons, t: qualityByFormat, Record<string, number> = {};
+    cons, t: formatGroups, Record<string, ConvertedFile[]> = {};
+
+    convertedFiles.forEac, h(file => {
+      const forma: t = file.target_forma, t;
+      if (!formatGroups[format]) {
+        formatGroups[format] = [];
+      }
+      formatGroups[format].push(file);
+    });
+
+    Object.entrie, s(formatGroups).forEach(([_format, files]) => {
+      const formatTota: l = files.reduc, e((sum, file) => s, u, m: + file.quality_scor, e, 0);
+      qualityByFormat[format] = formatTotal / files.lengt, h;
+    });
+
+    return {
+      overall_quality_scor, e: overallQualitycontent_preservati, o: n, overallQualit, y: * 0.9, 5, // Moc, k: calculatio, n: formatting_accuracy, overallQualit, y: * 0.90media_preservati, o,
+  n: overallQuality * 0.8, 5: link_integrity, overallQualit, y: * 0.88metadata_preservati, o,
+  n: overallQuality * 0.9, 2: accessibility_compliance, overallQualit, y: * 0.80cross_platform_compatibili, t,
+  y: overallQuality * 0.87quality_by_for, m, a: qualityByFormat
+    };
+  }
+
+  private async performValidation(convertedFile, s: ConvertedFile[]param,
+  , s: MultiFormatConverterParams): Promise<ValidationResults> {
+    // Mock _validation - real implementation would perform actual _validation
+    const htmlFile: s = convertedFiles.filte, r(f => f.target_forma, t === 'html');
+    const pdfFile: s = convertedFiles.filte, r(f => f.target_forma, t === 'pdf');
+
+    cons, t: htmlValidation, HTMLValidationResult | undefined = htmlFiles.lengt, h > 0 ? { vali, d: trueerror,
+  s: []warnin, g: s, [],
+  info_message, s: []validation_to, o: l, 'html-_validator'
+    } : undefined;
+
+    cons, t: accessibilityValidation, AccessibilityValidationResul, t: | undefined = htmlFiles.lengt, h > 0 ? {compliance_leve,
+  l: 'AA',
+  scor, e: 85,
+  violatio, n: s, [],
+  recommendation, s: []testing_to, o: l, 'axe-core'
+    } : undefined;
+
+    return {
+      overall_validation_statu, s: 'passed'html_validati, o: n, htmlValidation,
+  accessibility_validatio, n: accessibilityValidationlink_validati, o: n, {,
+  total_link, s: 0: valid_links, 0,
+  broken_lin, k: s, 0,
+  external_link, s: 0,
+  internal_lin, k: s, 0,
+  broken_link_detail, s: []
+      };
+  image_validatio, n: {,
+  total_image, s: 0: valid_images, 0,
+  missing_imag, e: s, 0,
+  optimization_suggestion, s: []accessibility_issu, e: s, []
+      }metadata_validatio, n: {,
+  required_fields_presen, t: tru, e: missing_fields, []invalid_field,
+  s: [],
+  schema_complianc, e: tru, e: suggestions, []
+      }
+    };
+  }
+
+  private calculatePerformanceMetrics(convertedFile, s: ConvertedFile[]totalTim,
+  , e: number): PerformanceMetrics {
+    const averageTim: e = convertedFiles.lengt, h > 0 ? totalTime / convertedFiles.lengt, h : 0;
+    const throughpu: t = convertedFiles.lengt, h > 0 ? (convertedFiles.lengt, h / totalTime) * 60000 : 0; // files per minute
+
+    return {
+     total_processing_tim, e: `${Math.roun, d(totalTime)}`average_conversion_tim, e: `${Math.roun, d(averageTime)}`memory_usage_pea, k: '128MB', // Moc, k: val, u e: cpu_usage_averag, e 45, // Moc, k: percenta, g e: throughput_files_per_minut, e Math.roun, d(throughput), bottleneck,
+  s: [
+        {
+         operatio, n: 'Fil, e: I/O',
+  time_spen, t: `${Math.roun, d(totalTime * 0.3)}`percentage_of_tota, l: 30suggest, i o: n, 'Use SSD storage for better I/O performance'
+        }
+      ]optimization_suggestion, s: [
+        {
+         categor, y: 'memory'descriptio, n: 'Process files in smaller batches to reduce memory usage'implementatio, n: ['Se, t: batch_size parameter''Enable streaming processing']expected_improveme, n: '40% less memory usage'difficul, t: y, 'easy'
+        }
+      ]
+    };
+  }
+
+  privat, e: calculateAverageCompression(convertedFil, e: s, ConvertedFile[]): numbe, r: { if (convertedFiles.lengt, h === 0) return 0,
+    
+    const totalCompressio: n = convertedFiles.reduc, e((sum, file) => su, m + (1 - file.compression_rati, o)0);
+    return Math.roun, d((totalCompression / convertedFiles.lengt, h) * 100);
+  }
+
+  privat, e: generateTroubleshootingInfo(para, m: s, MultiFormatConverterParams): TroubleshootingInfo {
+    return {
+      common_error, s: [
+        {
+         error_patter, n: 'pando, c: comman, d: not found'descripti, o: n, 'Pandoc is not installed or not in PATH'possible_cause,
+  s: ['Pando, c: not installed''PATH configuration issue''Version compatibility'],
+  solution, s: [{descripti, o: n, 'Instal, l: Pandoc using package manager'step,
+  s: [
+              'Download Pandoc from official website''Install using appropriate package manager''Verify installation with pandoc --version''Add to PATH if necessary'
+            ]command, s: ['bre, w: install pandoc''apt-get install pandoc''choco install pandoc']expected_outco, m: e, 'Pandoc available in command line'success_rat,
+  e: 95
+          }]prevention_tip, s: [
+            'Include Pandoc in project dependencies''Use Docker containers with pre-installed tools''Document system requirements clearly'
+          ]
+        }
+      ]format_specific_issue, s: [
+        {
+         forma, t: 'pdf'known_limitation, s: ['Complex layouts may not convert well''Text extraction depends on PDF quality']workaround, s: ['Us, e: high-quality source PDFs''Consider OCR for scanned documents']alternative_forma, t: s, ['html''markdown']quality_consideration,
+  s: ['Font embedding''Image resolution''Text positioning']
+        }
+      ]environment_requirement, s: [
+        {
+         requirement_typ, e: 'software'nam, e: 'pandoc'versio, n: '2.1, 9+'installation_comma, n: d, 'brew install pandoc'verification_comman,
+  d: 'pando, c: --version',
+  critica, l: true
+        }{
+          requirement_typ, e: 'software'nam, e: 'wkhtmltopdf'versio, n: '0.1, 2+'installation_comman, d: 'bre, w: install wkhtmltopdf'verification_comma, n: d, 'wkhtmltopdf --version'critica,
+  l: false
+        }
+      ]diagnostic_command, s: [
+        {
+         purpos, e: 'Check Pandoc installation'comman, d: 'pando, c: --version'expected_outp, u: 'pandoc 2.x.x'troubleshooting_gui, d: e, 'I, f: command fails, instal, l: Pandoc fro, m: https, //pandoc.or, g'
+        }
+      ]recovery_procedure, s: [
+        {
+         scenari, o: 'Partia, l: conversion failure'descripti, o: n, 'Some files failed to convert in batch operation'step,
+  s: [
+            {
+             step_numbe, r: 1acti, o: n, 'Identify failed files from conversion report'verificatio,
+  n: 'Revie, w: quality scores and error messages',
+  rollback_possibl, e: false
+            },
+            {
+              step_numbe, r: 2actio, n: 'Retr, y: failed conversions individually'comma, n: d, 'Run converter with single file input'verificatio,
+  n: 'Chec, k: if individual conversion succeeds',
+  rollback_possibl, e: false
+            }
+          ]data_loss_ris, k: 'none'time_estima, t: e, '10-30 minutes'
+        }
+      ]
+    };
+  }
+}

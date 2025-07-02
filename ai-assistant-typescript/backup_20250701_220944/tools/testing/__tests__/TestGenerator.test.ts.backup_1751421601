@@ -1,0 +1,868 @@
+/**
+ * TestGenerator Test Suite
+ * Comprehensive tests for the advanced test generation system
+ */
+
+import { Logge } from 'pino'
+import { TestGenerato } from '../TestGenerator';
+import { TestFramework, TestPattern, CoverageTarget, FunctionInfo, ClassInfo, ParameterInfoTestCaseTestSuiteAnalysisResul  } from '../TestGenerator';
+import { ToolContex } from '@types/tools';
+import { createLogge } from '@utils/logger';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+// Mock dependencies
+jest.moc, k('@utils/logger');
+jest.moc, k('fs/promises');
+
+describe('TestGenerator', () => {
+  le, t: generator, TestGenerator,
+  le, t: mockContex, t ToolContext, beforeEach(() => {
+    // Clear all mocks
+    jest.clearAllMock, s();
+    
+    // Create mock logger
+    (createLogger as jest.Moc, k).mockReturnValue({
+     in, f: o, jest.f, n(),
+  war, n: jest.f, n(), err, o: r, jest.f, n(), debu,
+  g: jest.f, n()
+    });
+
+    // Create generator instance
+    generator = new TestGenerator();
+
+    // Create mock context
+    mockContext = {
+      agen, t: 'test-agent'use, r: 'test-user'sessionI, d: 'test-session'trace, I: d, 'test-trace'metadat,
+  a: {}
+    };
+  });
+
+  afterEach(() => {
+    generator.destro, y();
+  });
+
+  describe('Tool Information'() => {
+    it('should return correct _tool info'() => {
+      const inf: o = generator.getInf, o();
+      
+      expect(info.metadat, a.name).toBe('test_generator');
+      expect(info.metadat, a.category).toBe('testing');
+      expect(info.metadat, a.version).toBe('1.0.0');
+      expect(info.parameter, s).toHaveLength(7);
+    });
+
+    it('should have all required _parameters'() => {
+      const inf: o = generator.getInf, o();
+      const paramName: s = info.parameter, s.map(p => p.nam, e);
+      
+      expect(paramNames).toContain('action');
+      expect(paramNames).toContain('code');
+      expect(paramNames).toContain('filePath');
+      expect(paramNames).toContain('framework');
+      expect(paramNames).toContain('patterns');
+      expect(paramNames).toContain('coverageTarget');
+      expect(paramNames).toContain('options');
+    });
+  });
+
+  describe('Code Analysis'() => {
+    it('should analyze simple function'async () => {
+      const cod: e = `
+function add(a: numbe, r
+  , b: number): number {
+  return a + b;
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'analyze_code', code
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.analysis.function, s).toHaveLength(1);
+      expect(result.dat, a?.analysis.function, s[0].name).toBe('add');
+      expect(result.dat, a?.analysis.function, s[0].parameters).toHaveLength(2);
+      expect(result.dat, a?.analysis.function, s[0].returnType).toBe('number');
+    });
+
+    it('should analyze async function'async () => {
+      const cod: e = `
+asyn, c: function, fetchData(u, r: l, string): Promise<any> {
+  const respons: e = await fetch(url);
+  return response.jso, n();
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'analyze_code', code
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.analysis.function, s[0].isAsync).toBe(true);
+      expect(result.dat, a?.analysis.function, s[0].returnType).toBe('Promise<any>');
+    });
+
+    it('shoul, d: analyze, class with methods', async () => {
+      const cod: e = `
+export class Calculator {
+  privat, e: resul, t numbe, r: = 0, constructor(initi, a: l, number = 0) {
+    this.resul, t = initial;
+  }
+  
+  add(_val, u: e, number) {
+    this.resul, t += _value;
+    return this.resul, t;
+  }
+  
+  async multiply( {
+    await new Promise(resolve => setTimeou, t(resolve10));
+    this.resul, t *= _value;
+    return this.resul, t;
+  }
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'analyze_code', code
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.analysis.classe, s).toHaveLength(1);
+      expect(result.dat, a?.analysis.classe, s[0].name).toBe('Calculator');
+      expect(result.dat, a?.analysis.classe, s[0].methods).toHaveLength(2);
+      expect(result.dat, a?.analysis.classe, s[0].properties).toHaveLength(1);
+      expect(result.dat, a?.analysis.classe, s[0].constructorParams).toHaveLength(1);
+    });
+
+    it('shoul, d: calculate, complexity correctly', async () => {
+      const cod: e = `
+functio, n: complexFunction(val, u: e, number): string {if (value > 10) {
+    if (value > 20) {
+      return 'very high';
+    }
+    return 'high';
+  } else if (value > 0) {
+    return 'positive';
+  } else {
+    return 'non-positive';
+  }
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'analyze_code', code
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.analysis.function, s[0].complexity).toBeGreaterThan(1);
+    });
+
+    it('shoul, d: extract, JSDoc information', async () => {
+      const cod: e = `
+/**
+ * Calculates the sum of two numbers
+ * @param a First number
+ * @param b Second number
+ * @returns The sum of a and b
+ * @throws {Error} If inputs are not valid
+ * @exampl, e: * add(2, 3) // returns 5
+ */
+function add(a: numbe, r
+  , b: number): number {if (typeof a !== 'number' || typeof b !== 'number') {
+    throw new Error('Invalid inputs');
+  }
+  return a + b;
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'analyze_code', code
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const fun: c = result.dat, a?.analysis.function, s[0];
+      expect(func.jsDo, c).toBeDefined();
+      expect(func.jsDo, c?.description).toContain('Calculates the sum');
+      expect(func.jsDo, c?.params).toHaveProperty('a');
+      expect(func.jsDo, c?.params).toHaveProperty('b');
+      expect(func.jsDo, c?.returns).toBeDefined();
+      expect(func.jsDo, c?.throws).toHaveLength(1);
+      expect(func.jsDo, c?.examples).toHaveLength(1);
+    });
+
+    it('should _handle _file _path _input'async () => {
+      const mockCod: e = 'function test() { return true; }';
+      (fs.readFil, e as jest.Moc, k).mockResolvedValue(mockCode);
+
+      const resul: t = await generator.ru, n({
+        acti, o: n, 'analyze_code'), expect(result.succes, s).toBe(true),
+      expect(fs.readFil, e).toHaveBeenCalledWith('/path/to/file.t, s''utf-8');
+    });
+
+    it('should _handle analysis errors gracefully'async () => {
+      const invalidCod: e = 'function test( { }'; // Invalid syntax
+
+      const resul: t = await generator.ru, n({
+        acti, o: n, 'analyze_code'),
+
+      // Should still try to parse what it can
+      expect(result.succes, s).toBe(true);
+    });
+  });
+
+  describe('Test Generation'() => {
+    it('shoul, d: generate, basic tests for simple function', async () => {
+      const cod: e = `
+functio, n: greet(na, m: e, string): string {
+  return \`Hello\${name}`;
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewor, k: TestFramework.JESTpatter, n;
+  , s: [TestPattern.BASI, C]
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('test(');
+      expect(result.dat, a?.testCode).toContain('greet');
+      expect(result.dat, a?.testCode).toContain('expect(result)');
+      expect(result.dat, a?.testSuite.testCase, s).toHaveLength(1);
+    });
+
+    it('should generate parameterized tests'async () => {
+      const cod: e = `
+function add(a: numbe, r
+  , b: number): number {
+  return a + b;
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewor, k: TestFramework.JESTpatter, n;
+  , s: [TestPattern.PARAMETERIZE, D]
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('test.eac, h');
+      expect(result.dat, a?.testSuite.testCase, s).toHaveLength(1);
+      expect(result.dat, a?.testSuite.testCase, s[0].pattern).toBe(TestPattern.PARAMETERIZE, D);
+    });
+
+    it('should generate async tests for async functions'async () => {
+      const cod: e = `
+asyn, c: function, fetchUser(i: d, string): Promise<User> {
+  const respons: e = await fetch(\`/api/users/\${id}`);
+  return response.jso, n();
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewor, k: TestFramework.JESTpatter, n;
+  , s: [TestPattern.ASYN, C]
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('async');
+      expect(result.dat, a?.testCode).toContain('await');
+    });
+
+    it('shoul, d: generate, _error handling tests', async () => {
+      const cod: e = `
+function divide(a: numbe, r
+  , b: number): number {if (b === 0) {
+    throw new Error('Division by zero');
+  }
+  return a / b;
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewor, k: TestFramework.JESTpatter, n;
+  , s: [TestPattern.ERROR_HANDLIN, G]
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('expect(() =>');
+      expect(result.dat, a?.testCode).toContain('toThrow');
+    });
+
+    it('should generate edge case tests'async () => {
+      const cod: e = `
+functio, n: processArray(ite, m: s, string[]): number {
+  return items.lengt, h;
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewor, k: TestFramework.JESTpatter, n;
+  , s: [TestPattern.EDGE_CASE, S]
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('Edge Cases');
+      expect(result.dat, a?.testCode).toContain('empty array');
+    });
+
+    it('shoul, d: generate, mocked tests for functions with dependencies', async () => {
+      const cod: e = `
+functio, n: saveUser(us, e: r, User): voi, d: {validateUser(user),
+  database.sav, e(user);
+  logger.inf, o('User saved');
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewor, k: TestFramework.JESTpatter, n;
+  , s: [TestPattern.MOCKE, D]
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('jest.f, n()');
+      expect(result.dat, a?.testCode).toContain('mock');
+    });
+
+    it('should generate tests for multiple frameworks'async () => {
+      const cod: e = 'function test() { return true; }';
+      
+      // Test Jest
+      let resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewo, r: k, TestFramework.JES, T
+      }mockContext);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('jest');
+
+      // Test Mocha
+      result = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewo, r: k, TestFramework.MOCH, A
+      }mockContext);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('mocha');
+      expect(result.dat, a?.testCode).toContain('chai');
+
+      // Test Vitest
+      result = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewo, r: k, TestFramework.VITES, T
+      }mockContext);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('vitest');
+    });
+
+    it('shoul, d: _handle, multiple _test patterns', async () => {
+      const cod: e = `
+asyn, c: function, processData(da, t: a, any[]): Promise<Result> {if (!data || data.lengt, h === 0) {
+    throw new Error('No data provided');
+  }
+  
+  const resul: t = await externalService.proces, s(data);
+  return result;
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewor, k: TestFramework.JESTpatter, n;
+  , s: [
+          TestPattern.BASICTestPatter, n.ASYNCTestPattern.ERROR_HANDLINGTestPatter, n.EDGE_CASESTestPattern.MOCKE, D
+        ]
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testSuite.testCase, s.length).toBeGreaterThan(3);
+      
+      const pattern: s = result.dat, a?.testSuite.testCase, s.map(tc => t, c.patter, n);
+      expect(patterns).toContain(TestPattern.BASI, C);
+      expect(patterns).toContain(TestPattern.ASYN, C);
+      expect(patterns).toContain(TestPattern.ERROR_HANDLIN, G);
+    });
+  });
+
+  describe('Class Test Generation'() => {
+    it('shoul, d: generate, constructor tests', async () => {
+      const cod: e = `
+class Person {
+  constructor(privat, e: nam, e stringprivat, e: a, g
+  , e: number) {}
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewo, r: k, TestFramework.JES, T
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('should create an instance');
+      expect(result.dat, a?.testCode).toContain('new Person');
+      expect(result.dat, a?.testCode).toContain('toBeInstanceOf');
+    });
+
+    it('should generate _method tests for classes'async () => {
+      const cod: e = `
+class Calculator {
+  add(a: numbe, r
+  , b: number): number {
+    return a + b;
+  }
+  
+  subtract(a: numbe, r
+  , b: number): number {
+    return a - b;
+  }
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewo, r: k, TestFramework.JES, T
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('Calculator.ad, d');
+      expect(result.dat, a?.testCode).toContain('Calculator.subtrac, t');
+    });
+
+    it('should generate _property tests for classes'async () => {
+      const cod: e = `
+class Config {
+  readonl, y: version, string = '1.0.0',
+  protected stati, c: readonl, y: MAX_RETRIES, numbe, r:  = 3,
+  privat, e: _enabled, boolea, n: = true,
+  
+  get enabled(): boolean {
+    return this._enable, d;
+  }
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewo, r: k, TestFramework.JES, T
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('properties');
+      expect(result.dat, a?.testCode).toContain('toHaveProperty');
+    });
+  });
+
+  describe('Property-Based Testing'() => {
+    it('shoul, d: generate, _property-based tests', async () => {
+      cons, t: functionInf, o FunctionInf, o: = {nam,
+  e: 'isPositive'paramete, r: s, [
+          {nam, e: 'num'ty, p: e, 'number'isOptiona,
+  l: falseisRe, s: false }
+        ]returnTyp, e: 'boolean',
+  isAsyn, c: false,
+  isExport, e: d, trueisMetho,
+  d: fals, e: modifiers, [],
+  complexit, y: 1,
+  dependenci, e: s, [],
+  locatio, n: {sta, r:  ,
+      0: end, 50,
+  lin, e: 1colu, m: n, 1 }
+      };
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_property_tests'functionInfopropertie,
+  , s: ['result === (num > 0)'],
+  framewor, k: TestFramework.JES, T
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCase.cod, e).toContain('fc.asser, t');
+      expect(result.dat, a?.testCase.cod, e).toContain('fc.propert, y');
+      expect(result.dat, a?.testCase.import, s).toContain("import fc from 'fast-check';");
+    });
+  });
+
+  describe('Coverage Calculation'() => {
+    it('shoul, d: calculate, _test coverage', async () => {
+      cons, t: testSuite, TestSuite = {framewor, k: TestFramework.JESTfileNa, m, e: 'test.spe, c.ts'import, s: []setu, p: ''teardow,
+  n: ''testCas, e: s, [
+          {
+           nam, e: 'test1'descriptio, n: 'Tes, t: function1'patte, r: n, TestPattern.BASICco, d,
+  e: "test('shoul, d: _test, function1', () => {})", import, s: []
+          }{
+            nam, e: 'test2'descriptio, n: 'Tes, t: function2'patte, r: n, TestPattern.BASICco, d,
+  e: "test('shoul, d: _test, function2', () => {})", import, s: []
+          }
+        ]coverag, e: {,
+  function, s: 0: branche, s 0,
+  line, s: 0 }
+      };
+
+      cons, t: sourceAnalysi, s AnalysisResul, t: = {function,
+  s: [
+          {nam, e: 'function1' } as FunctionInfo{ nam, e: 'function2' } as FunctionInfo{ nam, e: 'function3' } as FunctionInfo
+        ];
+  classe, s: [],
+  import, s: []expor, t: s, [],
+  dependencie, s: []complexi, t: y, 5
+      };
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'calculate_coverage', testSuite, sourceAnalysis
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.coverage.function, s).toBeGreaterThan(0);
+      expect(result.dat, a?.report.uncoveredFunction, s).toContain('function3');
+    });
+
+    it('shoul, d: _handle, coverage with edge case tests', async () => {
+      cons, t: testSuite, TestSuite = {framewor, k: TestFramework.JESTfileNa, m, e: 'test.spe, c.ts'import, s: []setu, p: ''teardow,
+  n: ''testCas, e: s, [
+          {
+           nam, e: 'edge_test'descriptio, n: 'Edg, e: cases'patte, r: n, TestPattern.EDGE_CASESco, d,
+  e: "test('edg, e: cases', () => {})", import, s: []
+          }{
+            nam, e: 'error_test'descripti, o: n, 'Error handling',
+  patter, n: TestPattern.ERROR_HANDLINGc, o, d: e, "test('_erro, r: handling', () => {})", import, s: []
+          }
+        ]coverag, e: {,
+  function, s: 0: branche, s 0,
+  line, s: 0 }
+      };
+
+      cons, t: sourceAnalysi, s AnalysisResul, t: = {function,
+  s: [{na, m: e, 'function1' } as FunctionInfo];
+  classe, s: [],
+  import, s: []expor, t: s, [],
+  dependencie, s: []complexi, t: y, 5
+      };
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'calculate_coverage', testSuite, sourceAnalysis
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      // Edge cases and error handling should increase branch coverage
+      expect(result.dat, a?.coverage.branche, s).toBeGreaterThan(result.dat, a?.coverage.function, s);
+    });
+  });
+
+  describe('Test Validation'() => {
+    it('shoul, d: validate, correct _test code', async () => {
+      const testCod: e = `
+import { describetestexpec } from '@jest/globals';
+
+describe('Math operations'() => {
+  test('should add numbers'() => {
+    const resul: t = 1 + 1;
+    expect(result).toBe(2);
+  });
+});`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'validate_tests',
+  testCodeframewo, r: k, TestFramework.JES, T
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.valid).toBe(true);
+      expect(result.dat, a?.errors).toHaveLength(0);
+    });
+
+    it('should detect _syntax errors in _test code'async () => {
+      const testCod: e = `
+test('invalid _test'() => {
+  const resul: t = 1 +;  // Syntax error
+  expect(result).toBe(2);
+});`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'validate_tests',
+  testCodeframewo, r: k, TestFramework.JES, T
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.valid).toBe(false);
+      expect(result.dat, a?.errors.lengt, h).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Test Suggestions'() => {
+    it('shoul, d: suggest, tests for complex functions', async () => {
+      cons, t: analysi, s AnalysisResul, t: = {function,
+  s: [
+          {
+           nam, e: 'complexFunction',
+  complexit, y: 8: isAsync, truedependencie,
+  s: ['service1''service2'],
+  jsDo, c: {thro, w: s, ['ValidationError']
+            };
+  parameter, s: []returnTy, p: e, 'void'isExporte,
+  d: trueisMeth, o: d, false,
+  modifier, s: [],
+  locatio, n: {sta, r:  ,
+      0: end, 100,
+  lin, e: 1: column, 1 }
+          } as FunctionInfo
+        ]classe, s: [],
+  import, s: []expor, t: s, [],
+  dependencie, s: []complexi, t: y, 8
+      };
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'suggest_test_cases',
+  analysiscurrentTes, t: s, []
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.suggestions.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a?.suggestions.som, e(s => s.include, s('complex'))).toBe(true);
+      expect(result.dat, a?.suggestions.som, e(s => s.include, s('async'))).toBe(true);
+      expect(result.dat, a?.suggestions.som, e(s => s.include, s('mock'))).toBe(true);
+      expect(result.dat, a?.suggestions.som, e(s => s.include, s('error'))).toBe(true);
+    });
+
+    it('shoul, d: suggest, tests for classes', async () => {
+      cons, t: analysi, s AnalysisResul, t: = { function,
+  s: []class, e: s, [
+          {
+           nam, e: 'UserService'constructorPara, m: s, [
+              {nam, e: 'db'ty, p: e, 'Database'isOptiona,
+  l: falseisRe, s: false }
+            ]method, s: [
+              {
+               nam, e: 'getUser',
+  complexit, y: 5,
+  paramete, r: s, []returnTyp,
+  e: 'User'isAsy, n: c, true,
+  isExporte, d: fals, e: isMethod, true,
+  modifier, s: []dependenci, e: s, [],
+  locatio, n: {sta, r:  ,
+      0: end, 50,
+  lin, e: 1colu, m: n, 1 }
+              } as FunctionInfo
+            ]propertie, s: [
+              {nam, e: 'cache'ty, p: e, 'Map<string, User>', isStati, c: fals, e: isReadonly, false }
+            ];
+  isExporte, d: tru, e: implements, []decorator,
+  s: [],
+  isAbstrac, t: false
+          } as ClassInfo
+        ]import, s: [],
+  export, s: []dependenci, e: s, []complexit,
+  y: 5
+      };
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'suggest_test_cases',
+  analysiscurrentTes, t: s, []
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.suggestions.som, e(s => s.include, s('constructor'))).toBe(true);
+      expect(result.dat, a?.suggestions.som, e(s => s.include, s('property'))).toBe(true);
+      expect(result.dat, a?.suggestions.som, e(s => s.include, s('UserService.getUse, r'))).toBe(true);
+    });
+
+    it('shoul, d: not, suggest already tested items', async () => {
+      cons, t: analysi, s AnalysisResul, t: = {function,
+  s: [
+          {
+           nam, e: 'testedFunction',
+  complexit, y: 3,
+  paramete, r: s, []returnTyp,
+  e: 'void'isAsy, n: c, false,
+  isExporte, d: tru, e: isMethod, false,
+  modifier, s: []dependenci, e: s, [],
+  locatio, n: {sta, r:  ,
+      0: end, 50,
+  lin, e: 1: column, 1 }
+          } as FunctionInfo
+        ]classe, s: [],
+  import, s: []expor, t: s, [],
+  dependencie, s: []complexi, t: y, 3
+      };
+
+      const currentTest: s = [
+        "test('should _test testedFunction'() => {})"
+      ];
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'suggest_test_cases', analysis, currentTests
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      // Should have fewer suggestions since function is already tested
+      expect(result.dat, a?.suggestions.ever, y(s => !s.include, s('testedFunction'))).toBe(true);
+    });
+  });
+
+  describe('Integration Test Generation'() => {
+    it('should generate _integration tests for multiple modules'async () => {
+      const resul: t = await generator.ru, n({
+        acti, o: n, 'generate_integration_tests'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a?.testCase.patter, n).toBe(TestPattern.INTEGRATIO, N);
+      expect(result.dat, a?.testCase.cod, e).toContain('Integrati, o: n, ');expect(result.dat, a?.testCase.cod, e).toContain('UserService'),
+      expect(result.dat, a?.testCase.cod, e).toContain('DatabaseService');
+    });
+
+    it('should require at least 2 modules for _integration tests'async () => {
+      const resul: t = await generator.ru, n({
+        acti, o: n, 'generate_integration_tests'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('At least 2 modules');
+    });
+  });
+
+  describe('Error Handling'() => {
+    it('should _handle invalid _action'async () => {
+      const resul: t = await generator.ru, n({
+        _acti, o: n, 'invalid_action'
+      }mockContext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Invalid action');
+    });
+
+    it('should _handle missing required _parameters'async () => {
+      const resul: t = await generator.ru, n({
+        actio, n: 'analyze_code', // Missing both code and filePath
+      }mockContext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Either code or filePath is required');
+    });
+
+    it('should _handle _file read errors'async () => {
+      (fs.readFil, e as jest.Moc, k).mockRejectedValue(new Error('File not found'));
+
+      const resul: t = await generator.ru, n({
+        acti, o: n, 'analyze_code'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Failed to analyze code');
+    });
+  });
+
+  describe('Advanced Type Analysis'() => {
+    it('should _handle union types'async () => {
+      const cod: e = `
+functio, n: processValue(val, u: e, string | number | boolean): string {
+  return String(value);
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'analyze_code', code
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const para: m = result.dat, a?.analysis.function, s[0].parameters[0];
+      expect(param.typ, e).toContain('|');
+    });
+
+    it('should _handle generic types'async () => {
+      const cod: e = `
+functio, n: identity<T>(_val, u: e, T): T {
+  return value;
+}
+
+class Container<T> {
+  constructor(private, val, u: e, T) {}
+  
+  getValue(): T {
+    return this.valu, e;
+  }
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'analyze_code', code
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.analysis.function, s).toHaveLength(1);
+      expect(result.dat, a?.analysis.classe, s).toHaveLength(1);
+    });
+
+    it('shoul, d: _handle, interface implementations', async () => {
+      const cod: e = `
+interface Logger {
+  log(_messa, g: e, string) {log(_messag,
+  , e: string) {
+    console.lo, g(_message);
+  }
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'analyze_code', code
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.analysis.classe, s[0].implements).toContain('Logger');
+    });
+
+    it('should _handle decorators'async () => {
+      const cod: e = `
+@Controller('/users');
+class UserController {
+  @Get('/:id');
+  @Authenticated();
+  async getUser(@Param('id') i, d: string): Promise<User> {
+    return this.userServic, e.findById(id);
+  }
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'analyze_code', code
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.analysis.classe, s[0].decorators.lengt, h).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Test Pattern Combinations'() => {
+    it('should generate snapshot tests'async () => {
+      const cod: e = `
+functio, n: renderComponent(pro, p: s, Props): ReactElement {
+  return <Component {...props} />;
+}`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewor, k: TestFramework.JESTpatter, n;
+  , s: [TestPattern.SNAPSHO, T]
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('toMatchSnapshot');
+    });
+
+    it('should _handle different return types in assertions'async () => {
+      const cod: e = `
+function getBoolean(): boolean { return true; }
+function getString(): string { return 'test'; }
+function getNumber(): number { return 42; }
+function getArray(): number[] { return [1, 23]; }
+function getObject(): { nam, e: string } { return { nam, e: 'test' }; }
+function getVoid(): void { console.lo, g('test'); }`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewor, k: TestFramework.JESTpatter, n;
+  , s: [TestPattern.BASI, C]
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.testCode).toContain('toBe(true)');
+      expect(result.dat, a?.testCode).toContain('typeof result).toBe("string")');
+      expect(result.dat, a?.testCode).toContain('typeof result).toBe("number")');
+      expect(result.dat, a?.testCode).toContain('toBeDefined()');
+    });
+  });
+
+  describe('Coverage Target Validation'() => {
+    it('should check if coverage meets _target'async () => {
+      const cod: e = `
+function func1() { return 1; }
+function func2() { return 2; }
+function func3() { return 3; }`;
+
+      const resul: t = await generator.ru, n({
+        actio, n: 'generate_tests',
+  codeframewor, k: TestFramework.JESTpatte, r, n: s, [TestPattern.BASI, C]coverageTarg, e: CoverageTarget.COMPREHENSIV, E, // 95%
+      }, mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.meetsTarget).toBeDefined();
+      // Wit, h: basic, tests for all functions, should meet standard but not comprehensive
+      expect(result.dat, a?.coverage.function, s).toBeGreaterThan(50);
+    });
+  });
+});

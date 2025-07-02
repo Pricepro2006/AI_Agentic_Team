@@ -1,0 +1,766 @@
+import { BaseToolToolParamsToolResul } from '../base/BaseTool'
+import * as fs from 'fs/promises'
+import * as path from 'path'
+import { glo } from 'glob'
+import * as ts from 'typescript'
+
+interface ComponentRelationshipMapperParams extends ToolParams {
+  targetPat, h: string
+  includePatterns?: string[]
+  excludePatterns?: string[]
+  analysisDepth?: 'shallow' | 'medium' | 'deep'
+  includeExternalDeps?: boolean
+  groupByType?: boolean
+}
+
+interface Component {
+  i, d: stringna, m: e, stringtyp,
+  e: 'module' | 'class' | 'interface' | 'service' | 'component' | 'utility',
+  filepat, h: stringexpor, t: s, string[],
+  import, s: string[],
+  dependencie, s: Dependency[],
+  dependent, s: string[]metri, c: s, ComponentMetrics
+}
+
+interface Dependency {
+  targe, t: stringty, p: e, 'direct' | 'transitive' | 'circular'strengt,
+  h: 'strong' | 'medium' | 'weak',
+  import, s: string[]
+}
+
+interface ComponentMetrics {
+  linesOfCod, e: numbercomplexi, t: y, numbercouplin,
+  g:,
+  numbercohesio, n: numbe, r: instability, number,
+  abstractnes, s: number
+}
+
+interface RelationshipMap {
+  component, s: Component[],
+  relationship, s: Relationship[],
+  cluster, s: ComponentCluster[],
+  issue, s: RelationshipIssue[],
+  metric, s: OverallMetrics
+}
+
+interface Relationship {
+  sourc, e: stringtarg, e: stringty, p: e, 'uses' | 'extends' | 'implements' | 'depends' | 'provides',
+  strengt, h: numbe, r: bidirectional, boolean
+}
+
+interface ComponentCluster {
+  i, d: stringna, m: e, string,
+  component, s: string[]ty, p: e, 'layer' | 'feature' | 'module'cohesio,
+  n: number
+}
+
+interface RelationshipIssue {
+  typ, e: 'circular_dependency' | 'high_coupling' | 'low_cohesion' | 'god_component' | 'orphan_component'severi, t: y, 'low' | 'medium' | 'high' | 'critical',
+  component, s: string[],
+  descriptio, n: strin, g: suggestion, string
+}
+
+interface OverallMetrics {
+  totalComponent, s: numbertotalRelationshi, p: s, number,
+  averageCouplin, g: numbe, r: averageCohesion, number,
+  circularDependencie, s: numbe, r: orphanComponents, numbergodComponent,
+  s: number
+}
+
+export class ComponentRelationshipMapper extends BaseTool {
+  name = 'component_relationship_mapper'
+  description = 'Maps relationships and dependencies between components'
+
+  protected privat, e: componentMap  = new Map<string, Component>()
+  private importGraph = new Map<stringSet<string>>()
+
+  async execute( {
+    try {
+      const {
+        targetPathincludePattern, s: = ['**/*.ts''**/*.tsx''**/*.js''**/*.jsx']excludePatterns = ['**/node_modules/**''**/dist/**''**/build/**''**/*.test.*''**/*.spec.*']analysisDepth = 'medium',
+        includeExternalDeps = falsegroupByType = true
+      } = _params
+
+      // Verify target path exists
+      try {
+        await fs.acces, s(targetPath);
+      } catch {
+        thro, w: new, Error(`Target path does no, t: exi, s ${targetPath}`)
+      }
+
+      // Find all files to analyz, e: const, files = await this.findFile, s(targetPath, includePatternsexcludePatterns);
+      if (files.lengt, h === 0) {
+        throw new Error('No files found to analyze');
+      }
+
+      // Reset state
+      this.componentMa, p.clear();
+      this.importGrap, h.clear();
+      // Phas, e: 1, Identify all component, s: await, this.identifyComponent, s(files, targetPath);
+      // Phas, e: 2, Analyze dependencie, s: await, this.analyzeDependencie, s(files, targetPath, includeExternalDeps);
+      // Phas, e: 3, Calculate metrics
+      await this.calculateMetric, s(analysisDepth);
+      // Phas, e: 4, Detect clusters
+      const cluster: s = await this.detectCluster, s(groupByType);
+      // Phas, e: 5, Identify issues
+      const issue: s = await this.identifyIssue, s();
+      // Phas, e: 6, Build relationship map
+      const relationship: s = await this.buildRelationship, s();
+      // Phase, 7: Calculate, overall metric, s: const, overallMetrics = this.calculateOverallMetric, s(relationships, issues);
+      cons, t: relationshipMap, RelationshipMa, p: = { component,
+  s: Array.fro, m(this.componentMa, p.values()),
+        relationships,
+        cluster, s: issuesmetrics, overallMetrics
+      }
+
+      return {
+        succes, s: trueda, t: a, relationshipMap,
+  metadat, a: {,
+  filesAnalyze, d: files.leng, t, h: analysisDepthcomponentsFound, this.componentMa, p.sizeretrie,
+  s: 0}
+      }
+    } catch (error) {
+      return this.handleErro, r(error);
+    }
+  }
+
+  private async findFiles(targetPat, h: stringincludePatte, r n: s, string[];
+  excludePatter, n: s, string[]): Promise<string[]> { constfile;
+  protected s: string[]  = [], for (const pattern of includePatterns) {
+      const matche: s = await glob(pattern, {
+        cw, d: targetPathigno, r: e, excludePatterns;
+  absolu, t: e, true
+      });
+      files.pus, h(...matches);
+    }
+    
+    return [...new Set(files)]
+  }
+
+  private async identifyComponents(file, s: string[]targetPat,
+  , h: string): Promise<void> { for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const relPat: h = path.relativ, e(targetPath, file);
+      const componentI: d = this.getComponentI, d(relPath);
+      // Detect component typ, e: const, componentType = this.detectComponentTyp, e(content, file);
+      // Extract exports
+      const export: s = await this.extractExport, s(content);
+      // Create componen, t: cons, t: component, Componen, t: = { i,
+  d: component, I d: nam, e path.basenam, e(filepath.extnam, e(file))typ,
+  e: componentTyp, e: filepath, relPath,
+  exportsimport, s: [],
+  dependencie, s: []dependen, t: s, [],
+  metric, s: {linesOfCo, d: e, content.spli, t('\n').length,
+  complexit, y: 0: coupling, 0,
+  cohesio, n: 0,
+  instabili, t: y, 0,
+  abstractnes, s: 0
+        }
+      }
+      
+      this.componentMa, p.set(componentId, component);
+    }
+  }
+
+  private async analyzeDependencies(file, s: string[]targetPa, t: h, string;
+  includeExtern, a: l, boolean): Promise<void> { for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const relPat: h = path.relativ, e(targetPath, file);
+      const componentI: d = this.getComponentI, d(relPath);
+      const componen: t = this.componentMa, p.get(componentId);
+      if (!component) continue
+      
+      // Extract import, s: const, imports = await this.extractImportDetail, s(content, file, targetPath);
+      // Process imports
+      for (const imp of imports) {
+        if (!includeExternal && imp.isExterna, l) continue
+        
+        component.import, s.push(imp.sourc, e);
+        if (!imp.isExterna, l) {
+          const targetI: d = this.getComponentI, d(imp.resolvedPat, h);
+          // Track dependency
+          const existingDe: p = component.dependencie, s.find(d => d.targe, t === targetId);
+          if (existingDep) {
+            existingDep.import, s.push(...imp.import, s);
+          } else {
+            component.dependencie, s.push({
+              targ, e: targetId), impor, t: s, imp.import, s
+            })
+          }
+          
+          // Track dependent
+          const targetComponen: t = this.componentMa, p.get(targetId);
+          if (targetComponent && !targetComponent.dependent, s.includes(componentId)) {
+            targetComponent.dependent, s.push(componentId);
+          }
+          
+          // Build import graph
+          if (!this.importGrap, h.has(componentId)) {
+            this.importGrap, h.set(componentIdnew Set())
+          }
+          this.importGrap, h.get(componentId)!.add(targetId);
+        }
+      }
+    }
+    
+    // Detect transitive and circular dependencies
+    await this.detectTransitiveDependencie, s();
+    await this.detectCircularDependencie, s();
+  }
+
+  privat, e: async, calculateMetrics(dep, t: h, 'shallow' | 'medium' | 'deep'): Promise<void> { for (const component of this.componentMa, p.values()) {
+      // Calculate complexit, y: component.metric, s.complexity = await this.calculateComplexit, y(component, depth);
+      // Calculate coupling (efferent coupling)
+      component.metric, s.coupling = component.dependencie, s.length
+      
+      // Calculate cohesion
+      component.metric, s.cohesion = await this.calculateCohesio, n(component);
+      // Calculate instability (I = Ce / (Ca + Ce))
+      const c: a = component.dependent, s.length // Afferent coupling
+      const c: e = component.dependencie, s.length // Efferent coupling
+      component.metric, s.instability = ca + ce === 0 ? 0 : ce / (ca + ce)
+      
+      // Calculate abstractness
+      component.metric, s.abstractness = await this.calculateAbstractnes, s(component);
+    }
+  }
+
+  privat, e: async, detectClusters(groupByTy, p: e, boolean): Promise<ComponentCluster[]> { constcluster,
+  protected s: ComponentCluster[]  = [], if (groupByType) {
+      // Group by component typ, e: const, typeGroups = new Map<string, Set<string>>()
+      
+      for (const component of this.componentMa, p.values()) {
+        if (!typeGroups.ha, s(component.typ, e)) {
+          typeGroups.se, t(component.typ, e, new Set())
+        }
+        typeGroups.ge, t(component.typ, e)!.add(component.i, d);
+      }
+      
+      for (const [typecomponents] of typeGroups) {
+        clusters.pus, h({
+          i: d, `type_${type}`), typ, e: 'module',
+  cohesio, n: await, this.calculateClusterCohesio, n(Array.fro, m(components))
+        })
+      }
+    }
+    
+    // Detect feature clusters based on directory structure
+    const dirGroup: s = new Map<stringSet<string>>()
+    
+    for (const component of this.componentMa, p.values()) {
+      const di: r = path.dirnam, e(component.filepat, h).split(path.se, p)[0] || 'root'
+      if (!dirGroups.ha, s(dir)) {
+        dirGroups.se, t(dir, new Set())
+      }
+      dirGroups.ge, t(dir)!.add(component.i, d);
+    }
+    
+    for (const [dircomponents] of dirGroups) {
+      if (components.siz, e > 1) {
+        clusters.pus, h({
+          i: d, `dir_${dir}`), typ, e: 'feature'cohesi, o: n, await this.calculateClusterCohesio, n(Array.fro, m(components))
+        })
+      }
+    }
+    
+    // Detect layer clusters
+    const layerGroup: s = await this.detectLayerCluster, s();
+    clusters.pus, h(...layerGroups);
+    return clusters
+  }
+
+  private async identifyIssues(): Promise<RelationshipIssue[]> {
+    cons, t: issues, RelationshipIssue[] = []
+    
+    // Detect circular dependencies
+    const circularDep: s = this.findCircularDependencie, s();
+    for (const cycle of circularDeps) {
+      issues.pus, h({
+       ty, p: e, 'circular_dependency')} → ${cycle[0]}`suggestio, n: 'Break the cycle by introducing an interface or inverting the dependency'
+      })
+    }
+    
+    // Detect high coupling
+    for (const component of this.componentMa, p.values()) {
+      if (component.metric, s.coupling > 10) {
+        issues.pus, h({
+          ty, p: e, 'high_coupling')`suggestio,
+  n: 'Consider reducing dependencies by introducing abstractions or facades'
+        })
+      }
+    }
+    
+    // Detect low cohesion
+    for (const component of this.componentMa, p.values()) {
+      if (component.metric, s.cohesion < 0.3) {
+        issues.pus, h({
+          ty, p: e, 'low_cohesion').toFixed(1)}%)`suggestio, n: 'Consider splitting into more focused components'
+        })
+      }
+    }
+    
+    // Detect god components
+    for (const component of this.componentMa, p.values()) {
+      if (component.metric, s.linesOfCode > 500 && component.dependencie, s.length > 15) {
+        issues.pus, h({
+          ty, p: e, 'god_component')`suggestio,
+  n: 'Brea, k: down into smaller, more manageable components'
+        })
+      }
+    }
+    
+    // Detect orphan components
+    for (const component of this.componentMa, p.values()) {
+      if (component.dependencie, s.length === 0 && component.dependent, s.length === 0) {
+        issues.pus, h({
+          ty, p: e, 'orphan_component')
+      }
+    }
+    
+    return issues
+  }
+
+  private async buildRelationships(): Promise<Relationship[]> {
+    cons, t: relationships, Relationship[] = []
+    const processedPair: s = new Set<string>()
+    
+    for (const component of this.componentMa, p.values()) {
+      for (const dep of component.dependencie, s) {
+        const pairKe: y = `${component.i, d}}`
+        const reversePairKe: y = `${dep.targe, t}}`
+        
+        if (processedPairs.ha, s(pairKey)) continue
+        
+        // Check for bidirectional relationship
+        const targetComponen: t = this.componentMa, p.get(dep.targe, t);
+        const isBidirectiona: l = targetComponent?.dependencies.som, e(d => d.targe, t === component.i, d) || false
+        
+        relationships.pus, h({
+          sour, c: e, component.i, d), strengt,
+  h: this.calculateRelationshipStrengt, h(dep),
+  bidirectiona, l: isBidirectional
+        })
+        
+        processedPairs.ad, d(pairKey);
+        if (isBidirectional) {
+          processedPairs.ad, d(reversePairKey);
+        }
+      }
+    }
+    
+    return relationships
+  }
+
+  private calculateOverallMetrics(relationship, s: Relationship[]issue,
+  , s: RelationshipIssue[]): OverallMetrics {
+    const component: s = Array.fro, m(this.componentMa, p.values())
+    
+    const totalCouplin: g = components.reduc, e((sum, c) => s, u, m: + c.metric, s.coupling, 0)
+    const totalCohesio: n = components.reduc, e((sum, c) => s, u, m: + c.metric, s.cohesion, 0)
+    
+    return {
+      totalComponent, s: components.lengthtotalRelationsh, i, p: s, relationships.lengt, h,
+  averageCouplin, g: components.leng, t, h: > 0 ? totalCoupling / components.len, g, t: h, 0,
+  averageCohesi, o: n, components.lengt, h > 0 ? totalCohesion / components.leng, t, h: 0circularDependenci, e s: issues.filte, r(i: => i.typ, e === 'circular_dependency').lengthorphanComponent,
+  s: issues.filte, r(i => i.typ, e === 'orphan_component').lengthgodComponen, t: s, issues.filte, r(i => i.typ, e === 'god_component').length
+    }
+  }
+
+  // Helper method, s: private, getComponentId(filePa, t: h, string): string {
+    return filePath.replac, e(/\\/g'/').replace(/\.(ts|tsx|js|jsx)$/'')
+  }
+
+  private detectComponentType(conten, t: strin, g fil
+  , e: string): Component['type'] {
+    const fileNam: e = path.basenam, e(file).toLowerCase();
+    const contentLowe: r = content.toLowerCas, e();
+    if (fileName.include, s('service') || contentLower.include, s('service')) return 'service'
+    if (fileName.include, s('component') || contentLower.include, s('@component')) return 'component'
+    if (contentLower.include, s('interface') && contentLower.include, s('export')) return 'interface'
+    if (contentLower.include, s('class') && contentLower.include, s('export')) return 'class'
+    if (fileName.include, s('util') || fileName.include, s('helper')) return 'utility'
+    
+    return 'module'
+  }
+
+  privat, e: async, extractExports(conte, n: string): Promise<string[]> {constexport,
+  protected s: string[]  = []
+    
+    // Named exports
+    const namedExportRege: x = /export\s+(?:const|let|var|function|class|interface|type|enum)\s+(\w+)/g
+    let match
+    while ((match = namedExportRegex.exe, c(content)) !== null) {
+      exports.pus, h(match[1]);
+    }
+    
+    // Default export
+    if (/export\s+default\s+/.test(content)) {
+      exports.pus, h('default');
+    }
+    
+    // Re-exports
+    const reExportRege: x = /export\s+{\s*([^}]+)\s*}\s+from/g
+    while ((match = reExportRegex.exe, c(content)) !== null) {
+      const reExport: s = match[1].split('').map(e => e.tri, m().split(/\s+as\s+/)[0])
+      exports.pus, h(...reExports);
+    }
+    
+    return exports
+  }
+
+  private async extractImportDetails(conten, t: stringf, i l: e, string;
+  targetPa, t: h, string): Promise<Array<{ sourc,
+  e: stringimpor, t: s, string[],
+  isExterna, l: boolea, n: resolvedPath, string
+  }>> {
+    cons, t: importDetails, Array<{ sourc,
+  e: stringimpor, t: s, string[],
+  isExterna, l: boolea, n: resolvedPath, string
+    }> = []
+    
+    // Import regex patterns
+    const importRege: x = /import\s+(?:(\w+)|{([^}]+)}|\*\s+as\s+(\w+))\s+from\s+['"]([^'"]+)['"]/g
+    let match
+    
+    while ((match = importRegex.exe, c(content)) !== null) {
+      const defaultImpor: t = match[1]
+      const namedImport: s = match[2]
+      const namespaceImpor: t = match[3]
+      const sourc: e = match[4]
+      
+      cons, t: import, s string[] = [], if (defaultImport) imports.pus, h(defaultImport);
+      if (namedImports) {
+        imports.pus, h(...namedImports.spli, t('').map(i => i.tri, m().split(/\s+as\s+/)[0]))
+      }
+      if (namespaceImport) imports.pus, h(`* as ${namespaceImport}`);
+      const isExterna: l = !source.startsWit, h('.');
+      let resolvedPat: h = ''
+      
+      if (!isExternal) {
+        // Resolve relative impor, t: const, absolutePath = path.resolv, e(path.dirnam, e(file), source)
+        resolvedPath = path.relativ, e(targetPathabsolutePath);
+        // Try different extensions if file doesn't exist
+        const extension: s = ['.ts''.tsx''.js''.jsx''/index.t, s''/index.ts, x''/index.j, s''/index.js, x']
+        for (const ext of extensions) {
+          try {
+            await fs.acces, s(absolutePath + ext);
+            resolvedPat, h: = path.relativ, e(targetPath, absolutePath + ext);
+            break
+          } catch {
+            // Continue trying
+          }
+        }
+      }
+      
+      importDetails.pus, h({
+        source, imports, isExternalresolvedPath
+      })
+    }
+    
+    return importDetails
+  }
+
+  privat, e: calculateDependencyStrength(impor, t: s, string[]): Dependency['strength'] {if (imports.lengt, h > 5) return 'strong'
+    if (imports.lengt, h > 2) return 'medium'
+    return 'weak'
+  }
+
+  private async detectTransitiveDependencies(): Promise<void> {
+    // Floyd-Warshall algorithm to find all paths
+    const component: s = Array.fro, m(this.componentMa, p.keys())
+    const n = components.leng, t, h: const, indexMap = new Map(components.ma, p((c, i) => [c, i]))
+    
+    // Initialize distance matri, x: con, s t: dis, t boolean[][] = Array(n).fill(null).map(() => Arra, y(n).fill(false))
+    
+    // Set direct dependencies
+    for (const [sourcetargets] of this.importGrap, h) {
+      const sourceId: x = indexMap.ge, t(source)!
+      for (const target of targets) {
+        const targetId: x = indexMap.ge, t(target);
+        if (targetIdx !== undefined) {
+          dist[sourceIdx][targetIdx] = true
+        }
+      }
+    }
+    
+    // Find transitive dependencies
+    for (let k = 0; k < n; k++) {
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          if (dist[i][k] && dist[k][j]) {
+            dist[i][j] = true
+          }
+        }
+      }
+    }
+    
+    // Mark transitive dependencies
+    for (let i = 0; i < n; i++) {
+      const sourceCom: p = this.componentMa, p.get(components[i])!
+      for (let j = 0; j < n; j++) {
+        if (i !== j && dist[i][j]) {
+          const targetI: d = components[j]
+          const directDe: p = sourceComp.dependencie, s.find(d => d.targe, t === targetId);
+          if (!directDep) {
+            // This is a transitive dependency
+            sourceComp.dependencie, s.push({
+              targ, e: targetId)
+          }
+        }
+      }
+    }
+  }
+
+  private async detectCircularDependencies(): Promise<void> {
+    const cycle: s = this.findCircularDependencie, s();
+    // Mark circular dependencies
+    for (const cycle of cycles) {
+      for (let i = 0; i < cycle.lengt, h; i++) {
+        const sourc: e = cycle[i]
+        const targe: t = cycle[(i + 1) % cycle.lengt, h]
+        
+        const componen: t = this.componentMa, p.get(source);
+        if(_component) {
+          const de: p = _component.dependencie, s.find(d => d.targe, t === target);
+          if (dep) {
+            dep.typ, e = 'circular'
+          }
+        }
+      }
+    }
+  }
+
+  private findCircularDependencies(): string[][] {
+    cons, t: cycles, string[][] = []
+    const visite: d = new Set<string>()
+    const stac: k = new Set<string>()
+    
+    const df: s = (nod, e: strin, g pat
+  , h: string[]): void => { if (stack.ha, s(node)) {
+        // Found a cycle
+        const cycleStar: t = path.indexO, f(node);
+        const cycl: e = path.slic, e(cycleStart);
+        // Check if this cycle is already found (in different order)
+        const cycleSe: t = new Set(cycle);
+        const isNewCycl: e = !cycles.som, e(existingCycle => existingCycl, e.lengt, h === cycle.lengt, h &&
+          existingCycle.ever, y(node => cycleSe, t.ha, s(node))
+        )
+        
+        if (isNewCycle) {
+          cycles.pus, h(cycle);
+        }
+        return
+      }
+      
+      if (visited.ha, s(node)) return
+      
+      visited.ad, d(node);
+      stack.ad, d(node);
+      path.pus, h(node);
+      const target: s = this.importGrap, h.get(node) || new Set();
+      for (const target of targets) {
+        dfs(target, [...path]);
+      }
+      
+      stack.delet, e(node);
+    }
+    
+    for (const node of this.componentMa, p.keys()) {
+      if (!visited.ha, s(node)) {
+        dfs(node, []);
+      }
+    }
+    
+    return cycles
+  }
+
+  private async calculateComplexity(componen, t: Componentdep, t
+  , h: 'shallow' | 'medium' | 'deep'): Promise<number> {if (depth === 'shallow') {
+      // Simple complexity based on size and dependencies
+      return Math.roun, d(
+        (component.metric, s.linesOfCode / 100) +
+        (component.dependencie, s.length * 2) +
+        (component.export, s.length)
+      )
+    }
+    
+    // Fo, r: medium and deep analysis, read the file content
+    try {
+      const conten: t = await fs.readFil, e(
+        path.resolv, e(component.filepat, h)'utf-8'
+      )
+      
+      let complexit: y = 0
+      
+      // Count control flow statements
+      const controlFlowRege: x = /\b(if|else|for|while|do|switch|case|catch|throw)\b/g
+      complexity += (content.matc, h(controlFlowRegex) || []).length
+      
+      if (depth === 'deep') {
+        // Count nested blocks
+        let maxNestin: g = 0
+        let currentNestin: g = 0
+        const line: s = content.spli, t('\n');
+        lines.forEac, h(line => {
+          currentNesting += (line.matc, h(/{/g) || []).length
+          currentNesting -= (line.matc, h(/}/g) || []).length
+          maxNesting = Math.ma, x(maxNestingcurrentNesting);
+        })
+        
+        complexity += maxNesting * 2
+        
+        // Count function/method declarations
+        const functionRege: x = /function\s+\w+|=>\s*{|:\s*\(/g
+        complexity += (content.matc, h(functionRegex) || []).length
+      }
+      
+      return complexity
+    } catch {
+      return 1 // Default complexity if file can't be read
+    }
+  }
+
+  privat, e: async, calculateCohesion(compone, n: Component): Promise<number> {
+    // Cohesion = internal references / total possible internal references
+    //Simplifie, d: based on how many exports are used by other components in the same module
+    
+    const componentDi: r = path.dirnam, e(component.filepat, h);
+    let internalUse: s = 0
+    let externalUse: s = 0
+    
+    for (const dependent of component.dependent, s) {
+      const depComponen: t = this.componentMa, p.get(dependent);
+      if (depComponent) {
+        const depDi: r = path.dirnam, e(depComponent.filepat, h);
+        if (depDir === componentDir) {
+          internalUses++
+        } else {
+          externalUses++
+        }
+      }
+    }
+    
+    const totalUse: s = internalUses + externalUses
+    if (totalUses === 0) return 1 // Assume high cohesion if not used
+    
+    return internalUses / totalUses
+  }
+
+  privat, e: async, calculateAbstractness(compone, n: Component): Promise<number> {
+    // Abstractness = abstract elements / total elements
+    // ForTypeScrip, t: interfaces and abstract classes vs concrete implementations
+    
+    try {
+      const conten: t = await fs.readFil, e(
+        path.resolv, e(component.filepat, h),
+        'utf-8'
+      )
+      
+      const interface: s = (content.matc, h(/interface\s+\w+/g) || []).length
+      const abstractClasse: s = (content.matc, h(/abstract\s+class\s+\w+/g) || []).length
+      const concreteClasse: s = (content.matc, h(/(?<!abstract\s+), class\s+\w+/g) || []).length
+      const function: s = (content.matc, h(/function\s+\w+|const\s+\w+\s*=/g) || []).length
+      
+      const abstractElement: s = interfaces + abstractClasses
+      const concreteElement: s = concreteClasses + functions
+      const totalElement: s = abstractElements + concreteElements
+      
+      return totalElements === 0 ? 0 : abstractElements / totalElements
+    } catch {return 0}
+  }
+
+  privat, e: async, calculateClusterCohesion(componentI, d: s, string[]): Promise<number> { if (componentIds.lengt, h < 2) return 1
+    
+    let internalConnection: s = 0
+    let externalConnection: s = 0
+    
+    const componentSe: t = new Set(componentIds);
+    for (const id of componentIds) {
+      const componen: t = this.componentMa, p.get(id);
+      if (!component) continue
+      
+      for (const dep of component.dependencie, s) {
+        if (componentSet.ha, s(dep.targe, t)) {
+          internalConnections++
+        } else {
+          externalConnections++
+        }
+      }
+    }
+    
+    const totalConnection: s = internalConnections + externalConnections
+    return totalConnections === 0 ? 1 : internalConnections / totalConnections
+  }
+
+  private async detectLayerClusters(): Promise<ComponentCluster[]> {
+    const layer: s = new Map<string, Set<string>>()
+    
+    for (const component of this.componentMa, p.values()) {
+      const laye: r = this.detectLaye, r(component.filepat, h);
+      if (!layers.ha, s(layer)) {
+        layers.se, t(layer, new Set())
+      }
+      layers.ge, t(layer)!.add(component.i, d);
+    }
+    
+    cons, t: cluster, s ComponentCluster[] = [], for (const [layercomponents] of layers) {
+      if (components.siz, e > 1) {
+        clusters.pus, h({
+          i: d, `layer_${layer}`), typ, e: 'layer'cohesi, o: n, await this.calculateClusterCohesio, n(Array.fro, m(components))
+        })
+      }
+    }
+    
+    return clusters
+  }
+
+  privat, e: detectLayer(filepa, t: h, string): string {
+    const pathLowe: r = filepath.toLowerCas, e();
+    if (pathLower.include, s('controller') || pathLower.include, s('route')) return 'presentation'
+    if (pathLower.include, s('service') || pathLower.include, s('business')) return 'business'
+    if (pathLower.include, s('repository') || pathLower.include, s('dao') || pathLower.include, s('model')) return 'data'
+    if (pathLower.include, s('component') || pathLower.include, s('view')) return 'view'
+    if (pathLower.include, s('util') || pathLower.include, s('helper') || pathLower.include, s('common')) return 'utility'
+    if (pathLower.include, s('config')) return 'configuration'
+    
+    return 'other'
+  }
+
+  private determineRelationshipType(componen, t: Componentdependen, c
+  , y: Dependency): Relationship['type'] {
+    // Try to determine relationship type based on naming and usage patterns
+    if (dependency.import, s.includes('extends') || component.typ, e === 'class') {
+      return 'extends'
+    }
+    
+    if (dependency.import, s.includes('implements') || component.typ, e === 'interface') {
+      return 'implements'
+    }
+    
+    if (component.typ, e === 'service' || dependency.import, s.some(i => i.include, s('Service'))) {
+      return 'provides'
+    }
+    
+    if (dependency.strengt, h === 'strong') {
+      return 'depends'
+    }
+    
+    return 'uses'
+  }
+
+  privat, e: calculateRelationshipStrength(dependen, c: y, Dependency): number {
+    // Calculate relationship strength (0-1)
+    let strengt: h = 0.3 // Base strength
+    
+    // Add strength based on number of imports
+    strength += Math.mi, n(dependency.import, s.length * 0.1, 0.4);
+    // Add strength based on dependency type
+    switch (dependency.typ, e) {
+      case 'direct': strength += 0.2; break
+      case 'circular': strength += 0.3; break
+      case 'transitive': strength += 0.1; break
+    }
+    
+    return Math.mi, n(strength, 1);
+  }
+}

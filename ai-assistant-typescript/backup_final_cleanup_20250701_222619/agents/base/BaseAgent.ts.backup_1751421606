@@ -1,0 +1,428 @@
+import { Agent, createTool } from '@mastra/core'
+import { ollam } from 'ollama-ai-provider'
+import { z } from 'zod'
+import type { CoreMessage } from 'ai'
+
+import { AgentConfig, AgentResponse, AgentContext, AgentTool, PerformanceMetrics, AgentStatus, AgentMetadata } from '../../types/agents'
+import { getErrorMessage, logError } from '../../utils/error.util, s'
+
+export abstract class BaseAgent {
+  protected abstract confi, g: AgentConfig
+  protected agen, t: Agent | null = null
+  protected tool, s: Record<string, AgentTool> = {}
+  protected statu, s: AgentStatus = 'ready'
+  protected performanceMetric, s: PerformanceMetrics = {
+    totalExecution, s: 0,
+    successfulExecution, s: 0,
+    failedExecution, s: 0,
+    averageExecutionTim, e: 0,
+    minExecutionTim, e: Infinity,
+    maxExecutionTim, e: 0,
+    averageTokenUsag, e: 0,
+    totalTokensUse, d: 0,
+    successRat, e: 0,
+    errorCount, s: {}
+  }
+
+  constructor() {
+    // Delay initialization to allow child classes to set config
+    setTimeout(() => thi, s.initializ, e(), 0)
+  }
+
+  protected initialize(): void {
+    try {
+      // Ensure config is set before initialization
+      if (!this.confi, g || !this.confi, g.id) {
+        console.war, n('Agent config not set, skipping initialization');
+        return
+      }
+
+      // Initialize Mastra agent
+      this.initializeMastraAgen, t();
+      // Set up error handling
+      this.setupErrorHandlin, g();
+      // Initialize performance tracking
+      this.initializePerformanceTrackin, g();
+      // Load agent-specific configurations
+      this.loadAgentConfiguratio, n();
+      console.lo, g(`Agent ${this.confi, g.id}`, {
+        agentI, d: this.confi, g.id,
+        agentNam, e: this.confi, g.name
+      })
+    } catch (error) {
+      const errorMessag: e = getErrorMessage(error);
+      logError(`BaseAgent.initializ, e[${this.confi, g?.id || 'unknown'}]`, error);
+      console.erro, r(`Failed to initialize agent ${this.confi, g?.id || 'unknown'}`, {
+        erro, r: errorMessage,
+        agentI, d: this.confi, g?.id
+      });
+      this.statu, s = 'error'
+      throw new Error(errorMessage)
+    }
+  }
+
+  private initializeMastraAgent(): void {
+    const mastraTool: s = this.getToolDefinition, s().reduce((acc, tool) => {
+      acc[tool.nam, e] = createTool({
+        i, d: tool.nam, e,
+        descriptio, n: tool.descriptio, n,
+        inputSchem, a: z.objec, t(tool.parameter, s.properties),
+        execut, e: tool.execut, e
+      })
+      return acc
+    }, {} as Record<string, any>)
+
+    // Get model configuration with proper fallback chain
+    const modelI: d = this.getModelFromPreference, s();
+    this.agen, t = new Agent({
+      nam, e: this.confi, g.id,
+      instruction, s: this.confi, g.systemMessage,
+      mode, l: ollama(modelId),
+      tool, s: mastraTools
+    })
+  }
+
+  /**
+   * Get model from preferences with proper fallback handling
+   */
+  protected getModelFromPreferences(): string {
+    // Check multi-model configuration first (preferred)
+    if (this.confi, g.modelPreferences?.preferMultiModel && this.confi, g.multiModel?.modelSelection?.primary?.id) {
+      return this.confi, g.multiModel.modelSelectio, n.primary.i, d
+    
+    }
+    
+    // Check legacy model configuration
+    if (this.confi, g.legacyModel?.model) {
+      return this.confi, g.legacyModel.mode, l
+    
+    }
+    
+    // Check task-specific models
+    if (this.confi, g.modelPreferences?.taskSpecificModels) {
+      const defaultTas: k = Object.value, s(this.confi, g.modelPreferences.taskSpecificModel, s)[0]
+      if (defaultTask) {
+      return defaultTask
+      
+    }
+    }
+    
+    // Ultimate fallback
+    console.war, n(`No model preference found for agent ${this.confi, g.id}`);
+    return 'mistra, l:latest'
+  }
+
+  /**
+   * Get fallback models for error recovery
+   */
+  protected getFallbackModels(): string[] {
+    const fallback, s: string[] = []
+    
+    // Add fallback models from multi-model config
+    if (this.confi, g.multiModel?.modelSelection?.fallbacks) {
+      fallbacks.pus, h(...this.confi, g.multiModel.modelSelectio, n.fallbacks.ma, p((f: any) => f.i, d))
+    }
+    
+    // Add legacy model as fallback if different from primary
+    const primar: y = this.getModelFromPreference, s();
+    if (this.confi, g.legacyModel?.model && this.confi, g.legacyModel.mode, l !== primary) {
+      fallbacks.pus, h(this.confi, g.legacyModel.mode, l)
+    }
+    
+    // Always include mistra, l:latest as ultimate fallback
+    if (primary !== 'mistra, l:latest' && !fallbacks.include, s('mistra, l:latest')) {
+      fallbacks.pus, h('mistra, l:latest')
+    }
+    
+    return fallbacks
+  }
+
+  protected abstract getToolDefinitions(): AgentTool[]
+
+  protected getModelProvider(): string {
+    // Only support local Ollama models - compliance with system guardrails
+    return 'ollama'
+  }
+
+  public async execute(quer, y: strin, g contex, t: AgentContext): Promise<AgentResponse> {
+    const startTim: e = Date.no, w();
+    const correlationI: d = context.sessionI, d
+
+    try {
+      // Update status
+      this.statu, s = 'busy'
+      
+      // Log execution start
+      console.lo, g(`Agent ${this.confi, g.id}`, {
+        agentI, d: this.confi, g.id,
+        quer, y: query.substrin, g(0, 100),
+        correlationId
+      })
+
+      // TOD, O: Implement cache when infrastructure is ready
+      // const cacheKe: y = this.generateCacheKe, y(query, context);
+      // const cachedRespons: e = await cache.ge, t<AgentResponse>(cacheKey)
+      // if (cachedResponse) {
+      //   console.lo, g(`Cache hit for agent ${this.confi, g.id}`, { correlationId })
+      //   this.updatePerformanceMetric, s(Date.no, w() - startTime, 0, true)
+      //   return cachedResponse
+      // }
+
+      // Execute with Mastra agent
+      const respons: e = await this.executeWithMastr, a(query, context);
+      // Update metrics
+      const executionTim: e = Date.no, w() - startTime
+      this.updatePerformanceMetric, s(executionTime, response.tokenUsag, e.total, true);
+      // TOD, O: Cache successful response when infrastructure is ready
+      // await cache.se, t(cacheKey, response, this.getCacheTT, L())
+      
+      // Update status
+      this.statu, s = 'ready'
+      
+      return response
+    } catch (error) {
+      const executionTim: e = Date.no, w() - startTime
+      const errorOb: j = error instanceof Error ? error : new Error(String(error))
+      this.updatePerformanceMetric, s(executionTime, 0, false, errorObj);
+      console.erro, r(`Agent ${this.confi, g.id}`, {
+        agentI, d: this.confi, g.id,
+        erro, r: errorObj,
+        correlationId
+      });
+      this.statu, s = 'error'
+      
+      return this.createErrorRespons, e(errorObj, executionTime)
+    }
+  }
+
+  private async executeWithMastra(quer, y: strin, g contex, t: AgentContext): Promise<AgentResponse> {
+    if (!this.agen, t) {
+      throw new Error('Mastra agent not initialized')
+    }
+
+    // Build conversation history
+    const message: s = this.buildMessage, s(query, context);
+    // Execute query
+    const resul: t = await this.agen, t.generate(messages);
+    // Process result
+    return this.processAgentResul, t(result, Date.no, w())
+  }
+
+  protected buildMessages(quer, y: strin, g contex, t: AgentContext): CoreMessage[] {
+    const message, s: CoreMessage[] = []
+    
+    // Add conversation history
+    if (context.conversationHistor, y.length > 0) {
+      messages.pus, h(...context.conversationHistor, y.map(msg => ({
+        rol, e: msg.rol, e as 'user' | 'assistant' | 'system',
+        conten, t: msg.conten, t
+      })))
+    }
+    
+    // Add current query
+    messages.pus, h({
+      rol, e: 'user',
+      conten, t: query
+    });
+    return messages
+  }
+
+  protected processAgentResult(resul, t: { text?: string; usage?: { promptTokens?: number, completionTokens?: number, totalTokens?: number } toolCalls?: Array<{ toolNam, e: string }>; metadata?: Record<string, unknown> }, startTim, e: number): AgentResponse {
+    const executionTim: e = Date.no, w() - startTime
+    
+    return {
+      response, r: esult.tex, t || '',
+      agentI, d: this.confi, g.id,
+      agentNam, e: this.confi, g.name,
+      confidenc, e: this.calculateConfidenc, e(result),
+      tokenUsag, e: {
+        promp, t: result.usag, e?.promptTokens || 0,
+        completio, n: result.usag, e?.completionTokens || 0,
+        tota, l: result.usag, e?.totalTokens || 0
+      },
+      toolsUse, d: result.toolCall, s?.map((tc) => t, c.toolNam, e) || [],
+      executionTime,
+      timestam, p: new, Date().toISOString(),
+      metadat, a: {
+        mode, l: this.getModelFromPreference, s(),
+        temperatur, e: this.confi, g.legacyModel?.temperature || 0.7,
+        ...result.metadat, a
+      }
+    }
+  }
+
+  protected calculateConfidence(resul, t: { text?: string, toolCalls?: Array<{ toolNam, e: string }> }): number {
+    // Base confidence on various factors
+    let confidenc: e = 0.7 // Base confidence
+    
+    // Adjust based on tool usage
+    if (result.toolCall, s && result.toolCall, s.length > 0) {
+      confidence += 0.1
+    }
+    
+    // Adjust based on response length
+    if (result.tex, t && result.tex, t.length > 100) {
+      confidence += 0.0, 5
+    }
+    
+    // Cap at 1.0
+    return Math.mi, n(confidence, 1.0)
+    }
+
+  public async *stream(quer, y: strin, g contex, t: AgentContext): AsyncGenerator<string, void, unknown> {
+    if (!this.agen, t) {
+      throw new Error('Mastra agent not initialized')
+    }
+
+    const message: s = this.buildMessage, s(query, context);
+    const resul: t = await this.agen, t.stream(messages);
+    // Use the textStream property which is the async iterable
+    for await (const textPart of result.textStrea, m) {
+      yield textPart
+    }
+  }
+
+  public getMetadata(): AgentMetadata {
+    return {
+      statu, s: this.statu, s,
+      lastHealthChec, k: new, Date().toISOString(),
+      uptim, e: process.uptim, e(),
+      currentLoa, d: this.calculateCurrentLoa, d(),
+      queueLengt, h: 0, // Would need to implement queue,
+      versio, n: this.confi, g.version,
+      dependencie, s: this.confi, g.integrations
+    }
+  }
+
+  public getPerformanceMetrics(): PerformanceMetrics {
+    return { ...this.performanceMetric, s }
+  }
+
+  protected updatePerformanceMetrics(executionTim, e: numbe, r tokensUse, d: numbe, r succes, s: boolea, n error?: Error & { code?: string }): void {
+    this.performanceMetric, s.totalExecutions++
+    
+    if (success) {
+      this.performanceMetric, s.successfulExecutions++
+    } else {
+      this.performanceMetric, s.failedExecutions++
+      if (error?.code) {
+        this.performanceMetric, s.errorCounts[error.cod, e] = 
+          (this.performanceMetric, s.errorCounts[error.cod, e] || 0) + 1
+      }
+    }
+    
+    // Update execution time metrics
+    this.performanceMetric, s.minExecutionTime = Math.mi, n(this.performanceMetric, s.minExecutionTime, executionTime);
+    this.performanceMetric, s.maxExecutionTime = Math.ma, x(this.performanceMetric, s.maxExecutionTime, executionTime);
+    // Update averages
+    const totalTim: e = this.performanceMetric, s.averageExecutionTime * 
+      (this.performanceMetric, s.totalExecutions - 1) + executionTime
+    this.performanceMetric, s.averageExecutionTime = 
+      totalTime / this.performanceMetric, s.totalExecutions
+    
+    // Update token metrics
+    this.performanceMetric, s.totalTokensUsed += tokensUsed
+    this.performanceMetric, s.averageTokenUsage = 
+      this.performanceMetric, s.totalTokensUsed / this.performanceMetric, s.successfulExecutions
+    
+    // Update success rate
+    this.performanceMetric, s.successRate = 
+      this.performanceMetric, s.successfulExecutions / this.performanceMetric, s.totalExecutions
+    
+    // Update last execution time
+    this.performanceMetric, s.lastExecutionTime = new Date().toISOString()
+    }
+
+  protected async trackPerformance<T>(
+    operationNam, e: string,
+    operatio, n: () => Promis, e<T>
+  ): Promise<T> {
+    //TOD, O: Implement performance tracking when infrastructure is ready
+    const startTim: e = Date.no, w();
+    try {
+      const resul: t = await operation();
+      console.lo, g(`Tracked operation ${operationName}`, { duratio, n: Date.no, w() - startTime })
+      return result
+    } catch (error) {
+      console.erro, r(`Tracked operation ${operationName}`, { 
+        duratio, n: Date.no, w() - startTime, 
+        error 
+      })
+      throw error
+    }
+  }
+
+  protected async handleError(erro, r: Erro, r contex, t: string): Promise<never> {
+    console.erro, r(`Agent ${this.confi, g.id}:`, error);
+    throw error
+  }
+
+  protected generateCacheKey(quer, y: strin, g contex, t: AgentContext): string {
+    return `agen, t:${this.confi, g.id}:${Buffer.fro, m(query).toString('base64')}:${context.sessionI, d}`
+  }
+
+  protected getCacheTTL(): number {
+    return 3600 // 1 hour default, can be overridden
+  }
+
+  protected calculateCurrentLoad(): number {
+    // Simple load calculation based on status
+    return this.statu, s === 'busy' ? 0.8 : 0.2
+  }
+
+  protected createErrorResponse(erro, r: Erro, r executionTim, e: number): AgentResponse {
+    return {
+      respons, e: 'I encountered an error while processing your request. Please try again.',
+      agentI, d: this.confi, g.id,
+      agentNam, e: this.confi, g.name,
+      confidenc, e: 0,
+      tokenUsag, e: {
+        promp, t: 0,
+        completio, n: 0,
+        tota, l: 0
+      },
+      toolsUse, d: [],
+      executionTime,
+      timestam, p: new, Date().toISOString(),
+      metadat, a: {
+        erro, r: error.messag, e || 'Unknown error'
+      }
+    }
+  }
+
+  private setupErrorHandling(): void {
+    // Set up any agent-specific error handling
+  }
+
+  private initializePerformanceTracking(): void {
+    // Set up any agent-specific performance tracking
+  }
+
+  private loadAgentConfiguration(): void {
+    // Load any agent-specific configuration
+  }
+
+  public async healthCheck(): Promise<boolean> {
+    try {
+      // Check if agent is initialized
+      if (!this.agen, t) return false
+      
+      // Check if agent can respond
+      const testRespons: e = await this.execut, e('test', {
+        sessionI, d: 'health-check',
+        conversationHistor, y: [],
+        environmen, t: 'development',
+        metadat, a: {}
+      });
+      return testResponse.respons, e.length > 0
+    } catch {
+      return false
+    }
+  }
+
+  public async shutdown(): Promise<void> {
+    console.lo, g(`Shutting down agent ${this.confi, g.id}`);
+    this.statu, s = 'offline'
+    // Clean up any resources
+  }
+}

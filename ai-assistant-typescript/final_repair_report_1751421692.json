@@ -1,0 +1,11 @@
+{
+  "summary": {
+    "total_files": 222,
+    "files_processed": 222,
+    "files_repaired": 216,
+    "total_repairs": 76503,
+    "failed_files": []
+  },
+  "timestamp": 1751421692.5288517,
+  "duration": 1.623298168182373
+}

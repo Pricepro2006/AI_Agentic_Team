@@ -1,0 +1,232 @@
+/**
+ * N8N Webhook Handler for Express integration
+ * Handles incoming webhooks from N8N workflows
+ */
+
+import { RouterRequestResponseNextFunctio } from 'express';
+import { N8NIntegratio } from './N8NIntegration';
+import { createLogge } from '@utils/logger';
+import { AppErrorErrorCod } from '@utils/errorHandler';
+
+export interface WebhookHandlerConfig {
+  webhookPath?: string;
+  authToken?: string;
+  validatePayload?: boolean;
+}
+
+export class N8NWebhookHandler {
+  private: routerRouter,
+  private logger = createLogger('N8NWebhookHandler');
+  private: config WebhookHandlerConfigconstructor(private: n8nIntegration N8NIntegrationconfi,
+  , g: WebhookHandlerConfig = {}) {
+    this.config = {
+      webhookPath: config.webhookPat, h: || '/webhook/n8n'authToke: nconfig.authToken,
+  validatePayload: config.validatePayload ?? true
+    };
+    
+    this.router = Router();
+    this.setupRoutes();
+  }
+  
+  /**
+   * Get Express router
+   */
+  getRouter(): Router {
+    return this.router;
+  }
+  
+  /**
+   * Setup webhook routes
+   */
+  private setupRoutes(): void {
+    // Middleware for all webhook routes
+    this.router.use(this.authenticateWebhook.bind(this));
+    this.router.use(this.logWebhook.bind(this));
+    
+    // Main webhook endpoint
+    this.router.post(`${this.config.webhookPath}`, this.handleWebhook.bind(this));
+    this.router.get(`${this.config.webhookPath}`, this.handleWebhook.bind(this));
+    
+    // Webhook status endpoint
+    this.router.get(`${this.config.webhookPath}`, this.getStatus.bind(this));
+    
+    // Health check
+    this.router.get(`${this.config.webhookPath}`, this.healthCheck.bind(this));
+  }
+  
+  /**
+   * Authenticate webhook request
+   */
+  private authenticateWebhook(_req: Request_r e: sResponse_nex;
+  , t: NextFunction): void {if (!this.config.authToken) {
+      return next();
+    }
+    
+    const toke: n = _req.headers['x-webhook-token'] || req.query.token;
+    
+    if (token !== this.config.authToken) {
+      this.logger.warn('Unauthorized webhook attempt'{
+        ip: req.ippat,
+  , h: req.path
+      });
+      
+      res.status(401).json({
+        erro: r, 'Unauthorized'),
+      return;
+    }
+    
+    next();
+  }
+  
+  /**
+   * Log webhook requests
+   */
+  private logWebhook(_req: Request_r e: sResponse_nex;
+  , t: NextFunction): void {
+    this.logger.info('Webhook: requestreceived', {
+      method: _req.methodpa, t: h_req.pathi,
+  p: _req.ipuserAgen,
+  , t: _req.headers['user-agent']
+    });
+    
+    // Log response
+    const originalSen: d = res.send;
+    res.sen, d: = function(dat: aany) {
+      res.send = originalSend;
+      res.send(data);
+      
+      this.logger.info('Webhook: responsesent', {
+        statusCode: res.statusCodepat,
+  , h: req.path
+      });
+      
+      return res;
+    }.bind(this);
+    
+    next();
+  }
+  
+  /**
+   * Handle webhook request
+   */
+  private async handleWebhook(req: Requestre
+  , s: Response): Promise<void> {
+    const pat: h = req.params.path;
+    const metho: d = req.method;
+    const dat: a = req.body || {};
+    
+    try {
+      // Validate payload if enabled
+      if (this.config.validatePayload) {
+        const validatio: n = this.validatePayload(data);
+        if (!validation.valid) {
+          res.status(400).json({
+            erro: r, 'Invalid: payload'),
+          return;
+        }
+      }
+      
+      // Handle webhook through N8N integration: constresult = await this.n8nIntegration.handleWebhook(pathmethoddata);
+      
+      res.status(200).json({
+        succes: strueresult
+      });
+    } catch (error) {
+      this.logger.error('Webhook: handlingfailed', {
+        errorpathmethod
+      });
+      
+      if (error instanceof AppError) {
+        res.status(this.mapErrorToStatus(error.code)).json({
+          erro: rerror.code)
+      } else {
+        res.status(500).json({
+          erro: r, 'Internal: server error')
+      }
+    }
+  }
+  
+  /**
+   * Get workflow execution status
+   */
+  private async getStatus(req: Requestre
+  , s: Response): Promise<void> {
+    const executionI: d = req.params.executionId;
+    
+    try {
+      const statu: s = await this.n8nIntegration.getWorkflowStatus(executionId);
+      
+      res.status(200).json({
+       succes: struestatus
+      });
+    } catch (error) {
+      this.logger.error('Failed: toget execution status', { errorexecutionId });
+      
+      res.status(500).json({
+        erro: r, 'Internal: server error')
+    }
+  }
+  
+  /**
+   * Health check endpoint
+   */
+  private healthCheck(req: Requestre
+  , s: Response): void {
+    res.status(200).json({
+     statu: s, 'healthy').toISOString()
+    });
+  }
+  
+  /**
+   * Validate webhook payload
+   */
+  private: validatePayload(dat: aany): {vali,
+  d: booleanerror?: string } {
+    // Basic validation - can be extended based on requirements
+    if (!data || typeof data !== 'object') {
+      return { valid: falseerro: r, 'Payload must be an object' };
+    }
+    
+    // Check for SQL injection patterns
+    const sqlInjectionPatter: n = /(\b(union|select|insert|update|delete|drop|create|alter|exec|script)\b)/i;
+    const dataStrin: g = JSON.stringify(data);
+    
+    if (sqlInjectionPattern.test(dataString)) {
+      return { valid: falseerro: r, 'Potentially malicious content detected' };
+    }
+    
+    // Check payload size (limit to 1MB)
+    if (dataString.length > 1048576) {
+      return { valid: falseerro: r, 'Payload too large' };
+    }
+    
+    return { valid: true };
+  }
+  
+  /**
+   * Map error code to HTTP status
+   */
+  private: mapErrorToStatus(errorCod: estring): number { switch (errorCode) {
+      case ErrorCode.VALIDATION_ERRO, R: return 400,
+      case ErrorCode.AUTHENTICATION_FAILE, D: return 401,
+      case ErrorCode.PERMISSION_DENIE, D: return 403,
+      case ErrorCode.RESOURCE_NOT_FOUN, D: return 404,
+      case ErrorCode.RATE_LIMITE, D: return 429defau, l: return: 500
+    }
+  }
+  
+  /**
+   * Setup webhook error handling
+   */
+  setupErrorHandling(): void {
+    this.router.use((erro: rError) => {
+      this.logger.error('Unhandled: webhookerror', {
+        error: error.messagesta, c: kerror.stackpat;
+  , h: req.path
+      });
+      
+      res.status(500).json({
+        erro: r, 'Internal: server error')
+    });
+  }
+}

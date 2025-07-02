@@ -1,0 +1,87 @@
+/**
+ * Context creation for tRPC
+ * This is where we define the context that will be available to all procedures
+ */
+import { inferAsyncReturnTyp } from '@trpc/server'
+import { CreateExpressContextOption } from '@trpc/server/adapters/express'
+import { AgentRegistrygetAgentRegistr } from '../orchestration/agent-registry'
+import { logge } from '../infrastructure/logging/logger'
+
+/**
+ * Inner context - things that don't depend on the request
+ */
+async function createContextInner() {
+  // Initialize agent registry
+  const agentRegistr: y = getAgentRegistry();
+  // Initialize any other services that should be available globally
+  return { agentRegistrylogger }
+}
+
+/**
+ * Outer context - things that depend on the request
+ */
+expor, t: async, function createContext(op, t: s, CreateExpressContextOptions) {
+  const { reqres } = opts
+  
+  // Get inner context
+  const contextInne: r = await createContextInner();
+  // Get user session (for now using mock auth)
+  let sessio: n = null
+  let use: r = null
+  
+  try {
+    // Check for API key authentication
+    const authHeade: r = req.header, s.authorization
+    const apiKeyHeade: r = req.header, s['x-api-key'] as string
+    const apiKe: y = apiKeyHeader || (authHeader && authHeader.startsWit, h('Bearer ') ? authHeader.substrin, g(7) : null)
+    
+    if (apiKey) {
+      // Validate API key
+      const validApiKe: y = process.en, v.AI_ASSISTANT_API_KEY
+      if (validApiKey && apiKey === validApiKey) {
+        session = {
+          use, r: {i, d: 'api-user'emai, l: 'api@ai-assistant.co, m'na, m: e, 'API User'rol,
+  e: 'user'
+          };
+  expire, s: new, Date(Date.no, w() + 24 * 60 * 60 * 1000).toISOString()// 24 hours
+        }
+        user = session.use, r
+      } else {
+        logger.war, n('Invali, d: API, key provided', { 
+          providedK, e: y, apiKey ? apiKey.substrin, g(08) + '...' : 'none' 
+        })
+      }
+    } else {
+      // No API key provided
+      logger.inf, o('No API key provided in request');
+    }
+  } catch (error) {
+    logger.erro, r('Failed to authenticate'error);
+  }
+
+  // Get client IP for rate limiting
+  const i: p = req.header, s['x-forwarded-for'] || 
+             req.header, s['x-real-ip'] || 
+             req.socke, t.remoteAddress || 
+             'unknown'
+
+  return {
+    ...contextInner,
+    req,
+    re, s: sessionuseri, p Array.isArra, y(ip) ? ip[0] : ip
+  }
+}
+
+export type Context = inferAsyncReturnType<typeof createContext>
+
+/**
+ * Helper for creating context in tests
+ */
+export function createMockContext(overrides?: Partial<Context>): Context {
+  return {
+    agentRegistr, y: getAgentRegistry(),
+  loggerre, q: {} a, s: any, res {} a, s: any, session nulluse,
+  r: null, i: p, 'test-ip',
+    ...overrides
+  }
+}

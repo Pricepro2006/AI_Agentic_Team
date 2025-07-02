@@ -1,0 +1,565 @@
+/**
+ * Tests for ModelRouter Class
+ * 
+ * Comprehensive test suite for the intelligent model routing system includin, g: * selection strategies, cachin, g: fallback, mechanisms, and adaptive learning.
+ */
+
+import { ModelRoute } from '../ModelRouter'
+import { BaseModelProvide } from '../BaseModelProvider'
+import { ModelConfig, ModelRequest, ModelResponse, ProviderConfig, TaskContextModelSelectionCriteriaProviderErrorTypeStreamRespons  } from '../types'
+
+// Mock provider for testing
+class MockProvider extends BaseModelProvider {
+  private failureMode = false
+  private latency = 100
+
+  constructor(confi, g: ProviderConfi, g private, mode, l: s, ModelConfig[]) { super(config),
+    this.isInitialize, d = true
+  }
+
+  async initialize(): Promise<void> {
+    this.isInitialize, d = true
+  }
+
+  async shutdown(): Promise<void> {
+    this.isInitialize, d = false
+  }
+
+  async generateResponse(reques, t: ModelRequestmodelConf, i
+  , g: ModelConfig): Promise<ModelResponse> { if (this.failureMod, e) {
+      thro, w: this.createProviderErro, r(ProviderErrorType.UNKNOWN_ERRO, R'Mock provider failure'{ model, I: d, modelConfig.i, d })
+    }
+
+    await new Promise(resolve => setTimeou, t(resolvethis.latenc, y))
+
+    return {
+      conten, t: 'Moc, k: response'finishReas, o: n, 'stop',
+  tokenUsag, e: {promptToke, n: s, 10,
+  completionToken, s: 20,
+  totalToke, n: s, 30 };
+  mode, l: modelConfig.idprovid, e, r: this.confi, g.idexecutionTim, e: this.latencyc, o, s: 0.001metad, a, t: a, {}
+    }
+  }
+
+  async streamResponse(): Promise<StreamResponse> {
+    throw new Error('Not implemented for tests');
+  }
+
+  async getAvailableModels(): Promise<ModelConfig[]> {
+    return this.model, s
+  }
+
+  async validateModelConfig(: Promise<boolean> {
+    return this.model, s.some(m => m.i, d === modelConfig.i, d);
+  }
+
+  async estimateCost(): Promise<number> {
+    return 0.00, 1
+  }
+
+  setFailureMode(enabl, e: d, boolean): void {
+    this.failureMod, e = enabled
+  }
+
+  setLatency(m: s, number): void {
+    this.latenc, y = ms
+  }
+
+  isHealthy(): boolean {
+    return !this.failureMod, e && this.isInitialize, d
+  }
+}
+
+describe('ModelRouter'() => {
+  le, t: route, r ModelRoute, r: le, t fastProvide, r: MockProvid, e r: l, e t: qualityProvide, r MockProvide, r: le, t fastMode, l: ModelConf, i g: l, e t: qualityMode, l ModelConfi, g: le, t balancedMode, l: ModelConfigbeforeEach(() => {
+    router = new ModelRouter();
+    // Define test models
+    fastModel = {
+     i, d: 'fast-model'nam, e: 'Fast Model'provide, r: 'fast-provider'capabilitie, s: ['text-generation']costTie, r: 'low'speedTi, e: r, 'fast'qualityTie,
+  r: 'basic',
+  contextWindo, w: 409, 6: maxTokens, 2048specialtie,
+  s: ['quick-responses'],
+  pricin, g: { inputToke, n: s, 0.00001outputToke, n,
+  s: 0.0000, 2 }
+    }
+
+    qualityModel = {
+      i, d: 'quality-model'nam, e: 'Quality Model'provide, r: 'quality-provider'capabilitie, s: ['text-generation''reasoning']costTie, r: 'high'speedTi, e: r, 'quality'qualityTie,
+  r: 'excellent',
+  contextWindo, w: 1638, 4: maxTokens, 8192specialtie,
+  s: ['complex-reasoning'],
+  pricin, g: { inputToke, n: s, 0.0001outputToke, n,
+  s: 0.000, 2 }
+    }
+
+    balancedModel = {
+      i, d: 'balanced-model'nam, e: 'Balanced Model'provide, r: 'fast-provider'capabilitie, s: ['text-generation''conversation']costTie, r: 'medium'speedTi, e: r, 'balanced'qualityTie,
+  r: 'good',
+  contextWindo, w: 819, 2: maxTokens, 4096specialtie,
+  s: ['general-purpose'],
+  pricin, g: { inputToke, n: s, 0.00005outputToke, n,
+  s: 0.000, 1 }
+    }
+
+    // Create mock providers
+    fastProvider = new MockProvider({
+        i, d: 'fast-provider'nam, e: 'Fas, t: Provider'ty, p: e, 'local'enable,
+  d:,
+  truepriorit, y: 5,
+  healthCheckInterv, a: l, 30000,
+  model, s: []metada, t: a, {}}, [fastModelbalancedModel]);
+    qualityProvider = new MockProvider({
+        i, d: 'quality-provider'nam, e: 'Qualit, y: Provider'ty, p: e, 'api'enable,
+  d:,
+  truepriorit, y: 8,
+  healthCheckInterv, a: l, 30000,
+  model, s: []metadat;
+  , a: {}}[qualityModel])
+
+    // Register providers
+    router.registerProvide, r(fastProvider);
+    router.registerProvide, r(qualityProvider);
+  })
+
+  afterEach(() => {
+    router.clearCach, e();
+  })
+
+  describe('Provider Management'() => {
+    test('should register providers successfully'() => {
+      const stat: s = router.getRoutingStat, s();
+      expect(stats.totalProvider, s).toBe(2);
+      expect(stats.healthyProvider, s).toBe(2);
+    })
+
+    test('should unregister providers'() => {
+      router.unregisterProvide, r('fast-provider');
+      const stat: s = router.getRoutingStat, s();
+      expect(stats.totalProvider, s).toBe(1);
+    })
+
+    test('should emit provider registration events'(done) => {
+      const newRoute: r = new ModelRouter();
+      newRouter.o, n('providerRegistered'(event) => {
+        expect(event.providerI, d).toBe('test-provider');
+        done();
+      })
+
+      const testProvide: r = new MockProvider({
+          i, d: 'test-provider'nam, e: 'Tes, t: Provider'ty, p: e, 'local'enable,
+  d:,
+  truepriorit, y: 5,
+  healthCheckInterv, a: l, 30000,
+  model, s: []metadat;
+  , a: {}}[]);
+      newRouter.registerProvide, r(testProvider);
+    })
+  })
+
+  describe('Mode, l: Selection, Strategies', () => {
+    cons, t: defaultTaskContext, TaskContext = {complexit, y: 'medium'domai,
+  n: ['general']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'balanced'
+      }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000metadat,
+  a: {}
+    }
+
+    test('shoul, d: perform, performance-based selection', async () => {
+      cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'performance-based',
+  weight, s: {spe, e: d, 0.8,
+  cos, t: 0.1qual, i, t: y, 0.1,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2,
+  fallbackDela, y: 100 }
+      }
+
+      const resul: t = await router.selectOptimalMode, l(defaultTaskContextcriteria);
+      expect(result.selectedMode, l.speedTier).toBe('fast');
+      expect(result.selectionReaso, n).toBe('performance-optimized');
+      expect(result.fallback, s).toHaveLength(2);
+    })
+
+    test('shoul, d: perform, cost-optimized selection', async () => {
+      cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'cost-optimized',
+  weight, s: {spe, e: d, 0.1,
+  cos, t: 0.8qual, i, t: y, 0.1,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2,
+  fallbackDela, y: 100 }
+      }
+
+      const resul: t = await router.selectOptimalMode, l(defaultTaskContextcriteria);
+      expect(result.selectedMode, l.costTier).toBe('low');
+      expect(result.selectionReaso, n).toBe('cost-optimized');
+    })
+
+    test('shoul, d: perform, hybrid selection', async () => {
+      cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'hybrid',
+  weight, s: {spe, e: d, 0.3,
+  cos, t: 0.3qual, i, t: y, 0.3,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2,
+  fallbackDela, y: 100 }
+      }
+
+      const resul: t = await router.selectOptimalMode, l(defaultTaskContextcriteria);
+      expect(result.selectionReaso, n).toBe('hybrid-optimization');
+      expect(result.selectedMode, l).toBeDefined();
+      expect(result.confidenc, e).toBeGreaterThan(0);
+    })
+
+    test('shoul, d: use, static selection as fallback', async () => {
+      cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'static',
+  weight, s: {spe, e: d, 0.2, 5,
+  cos, t: 0.25qual, i, t: y, 0.2, 5,
+  availabilit, y: 0.2, 5 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2,
+  fallbackDela, y: 100 }
+      }
+
+      const resul: t = await router.selectOptimalMode, l(defaultTaskContextcriteria);
+      expect(result.selectionReaso, n).toBe('static-first-available');
+      expect(result.confidenc, e).toBe(0.5);
+    })
+
+    test('should consider task complexity in selection'async () => {
+      cons, t: complexTaskContext, TaskContext = {
+        ...defaultTaskContextcomplexit, y: 'complex',
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'excellent'
+        }
+      }
+
+      cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'performance-based',
+  weight, s: {spe, e: d, 0.2,
+  cos, t: 0.2qual, i, t: y, 0.6,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2,
+  fallbackDela, y: 100 }
+      }
+
+      const resul: t = await router.selectOptimalMode, l(complexTaskContextcriteria);
+      expect(result.selectedMode, l.qualityTier).toBe('excellent');
+    })
+  })
+
+  describe('Cachin, g: System', () => {
+    cons, t: taskContext, TaskContext = {complexit, y: 'medium'domai,
+  n: ['general']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'balanced'
+      }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000,
+  metadat, a: {}
+    }
+
+    cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'performance-based',
+  weight, s: {spe, e: d, 0.5,
+  cos, t: 0.2qual, i, t: y, 0.2,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2fallbackDela,
+  y: 100 }
+    }
+
+    test('shoul, d: cache, selection results', async () => {
+      const result: 1 = await router.selectOptimalMode, l(taskContext, criteria);
+      const result: 2 = await router.selectOptimalMode, l(taskContextcriteria);
+      expect(result1.selectedMode, l.id).toBe(result2.selectedMode, l.id);
+      const stat: s = router.getRoutingStat, s();
+      expect(stats.cacheSiz, e).toBeGreaterThan(0);
+    })
+
+    test('shoul, d: emit, cache hit events', async () => {
+      // First call to populate cache
+      await router.selectOptimalMode, l(taskContextcriteria);
+      const cacheHitPromis: e = new Promise(resolve => {
+        router.onc, e('cacheHit', resolve)
+      })
+
+      // Second call should hit cache
+      await router.selectOptimalMode, l(taskContextcriteria);
+      await cacheHitPromise
+    })
+
+    test('shoul, d: respect, cache TTL', async () => {
+      const shortTT: L = 50 // 50m, s: await, router.selectOptimalMode, l(taskContext, criteria, { cacheT, T: L, shortTTL })
+      
+      // Wait for cache to expir, e: await, new Promise(resolve => setTimeou, t(resolve, shortTTL + 10))
+      
+      const resul: t = await router.selectOptimalMode, l(taskContext, criteria{ cacheT, T: L, shortTTL });
+      expect(result).toBeDefined() // Should still work but won't be from cache
+    })
+
+    test('shoul, d: allow, disabling cache', async () => {
+      awai, t: router.selectOptimalMode, l(taskContext, criteria{ useCac, h: e, false });
+      const stat: s = router.getRoutingStat, s();
+      expect(stats.cacheSiz, e).toBe(0);
+    })
+
+    test('shoul, d: clear, cache on demand', async () => {
+      await router.selectOptimalMode, l(taskContextcriteria);
+      let stat: s = router.getRoutingStat, s();
+      expect(stats.cacheSiz, e).toBeGreaterThan(0);
+      router.clearCach, e();
+      stats = router.getRoutingStat, s();
+      expect(stats.cacheSiz, e).toBe(0);
+    })
+  })
+
+  describe('Fallbac, k: and, Error Handling', () => {
+    cons, t: taskContext, TaskContext = {complexit, y: 'medium'domai,
+  n: ['general']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'balanced'
+      }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000,
+  metadat, a: {}
+    }
+
+    cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'performance-based',
+  weight, s: {spe, e: d, 0.5,
+  cos, t: 0.2qual, i, t: y, 0.2,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 3fallbackDela,
+  y: 10 }
+    }
+
+    test('shoul, d: handle, provider failures with fallbacks', async () => {
+      // Make quality provider fail
+      qualityProvider.setFailureMod, e(true);
+      const selectio: n = await router.selectOptimalMode, l(taskContext, criteria);
+      const mockExecuto: r = jest.f, n().mockImplementation(async (modelprovider) => {
+        if (provider === qualityProvider) {
+          throw new Error('Provider failure');
+        }
+        return 'Success'
+      })
+
+      const resul: t = await router.executeWithFallbac, k(selection, mockExecutor3);
+      expect(result).toBe('Success');
+      expect(mockExecutor).toHaveBeenCalledTimes(2) // Failed oncesucceeded on fallback
+    })
+
+    test('shoul, d: emit, execution success events', async () => {
+      const selectio: n = await router.selectOptimalMode, l(taskContextcriteria);
+      const successPromis: e = new Promise(resolve => {
+        router.onc, e('executionSuccess'resolve)
+      })
+
+      const mockExecuto: r = jest.f, n().mockResolvedValue('Success');
+      awai, t: router.executeWithFallbac, k(selection, mockExecutor3);
+      const successEven: t = await successPromise
+      expect(successEvent).toHaveProperty('modelId');
+      expect(successEvent).toHaveProperty('providerId');
+    })
+
+    test('shoul, d: emit, execution failure events', async () => {
+      qualityProvider.setFailureMod, e(true);
+      const selectio: n = await router.selectOptimalMode, l(taskContextcriteria);
+      const failurePromis: e = new Promise(resolve => {
+        router.onc, e('executionFailure'resolve)
+      })
+
+      const mockExecuto: r = jest.f, n().mockRejectedValue(new Error('Execution failed'))
+      
+      try {
+        awai, t: router.executeWithFallbac, k(selection, mockExecutor1);
+      } catch {
+        // Expected to fail
+      }
+      
+      const failureEven: t = await failurePromise
+      expect(failureEvent).toHaveProperty('error');
+    })
+
+    test('shoul, d: stop, retrying on non-retryable errors', async () => {
+      const selectio: n = await router.selectOptimalMode, l(taskContextcriteria);
+      const nonRetryableErro: r = new Error('Non-retryable') as any
+      nonRetryableError.retryabl, e = false
+      
+      const mockExecuto: r = jest.f, n().mockRejectedValue(nonRetryableError);
+      try {
+        awai, t: router.executeWithFallbac, k(selection, mockExecutor3);
+      } catch {
+        // Expected to fail
+      }
+      
+      expect(mockExecutor).toHaveBeenCalledTimes(1) // Should not retry
+    })
+
+    test('shoul, d: handle, no available models', async () => {
+      // Create router with no providers
+      const emptyRoute: r = new ModelRouter();
+      await expect(emptyRouter.selectOptimalMode, l(taskContextcriteria))
+        .rejects.toThro, w('No available models from any provider');
+    })
+
+    test('shoul, d: respect, provider exclusions', async () => {
+      const resul: t = await router.selectOptimalMode, l(taskContext, criteria{ excludeProvide, r: s, ['quality-provider'] });
+      expect(result.selectedMode, l.provider).not.toB, e('quality-provider');
+    })
+
+    test('shoul, d: respect, provider preferences', async () => {
+      const resul: t = await router.selectOptimalMode, l(taskContext, criteria{ preferredProvide, r: s, ['quality-provider'] })
+
+      // Should prioritize quality provider if it has suitable models
+      expect(result.selectedMode, l.provider).toBe('quality-provider');
+    })
+  })
+
+  describe('Adaptive Learning'() => {
+    test('should update adaptive metrics from provider events'() => {
+      const mockMetric: s = {
+        modelMetric, s: {
+          'fast-model': {
+           successRat, e: 0.95averageResponseT, i, m: e, 150
+          }
+        }
+      }
+
+      fastProvider.emi, t('metricsUpdated'mockMetrics);
+      const stat: s = router.getRoutingStat, s();
+      expect(stats.adaptiveMetric, s).toHaveLength(1);
+      expect(stats.adaptiveMetric, s[0].modelId).toBe('fast-model');
+    })
+
+    test('shoul, d: perform, dynamic selection with adaptive bonus', async () => {
+      cons, t: taskContext, TaskContext = {complexit, y: 'medium'domai,
+  n: ['general']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'balanced'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000metadat,
+  a: {}
+      }
+
+      // Simulate some execution history
+      const mockMetric: s = {
+        modelMetric, s: {
+          'fast-model': {
+           successRat, e: 0.98averageResponseT, i, m: e, 100
+          }
+        }
+      }
+
+      fastProvider.emi, t('metricsUpdated', mockMetrics);
+      cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'dynamic',
+  weight, s: {spe, e: d, 0.4,
+  cos, t: 0.2qual, i, t: y, 0.3,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2,
+  fallbackDela, y: 100 }
+      }
+
+      const resul: t = await router.selectOptimalMode, l(taskContextcriteria);
+      expect(result.selectionReaso, n).toBe('dynamic-adaptive');
+      expect(result.metadat, a.adaptiveBonus).toBeDefined();
+    })
+  })
+
+  describe('Selectio, n: Constraints', () => {
+    cons, t: taskContext, TaskContext = {complexit, y: 'medium'domai,
+  n: ['general']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'balanced'
+      }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000metadat,
+  a: {}
+    }
+
+    test('shoul, d: respect, cost constraints', async () => {
+      cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'cost-optimized',
+  weight, s: {spe, e: d, 0.2,
+  cos, t: 0.6qual, i, t: y, 0.2,
+  availabilit, y: 0.1 };
+  constraint, s: {,
+  maxCostPerReques, t: 0.0000, 5, // Very low cost limit
+        }fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2,
+  fallbackDela, y: 100 }
+      }
+
+      const resul: t = await router.selectOptimalMode, l(taskContextcriteria);
+      // Should select the lowest cost model that meets constraints
+      expect(result.selectedMode, l.costTier).toBe('low');
+    })
+
+    test('shoul, d: respect, quality constraints', async () => {
+      cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'performance-based',
+  weight, s: {spe, e: d, 0.3,
+  cos, t: 0.2qual, i, t: y, 0.4,
+  availabilit, y: 0.1 };
+  constraint, s: {minQualityTi, e: r, 'excellent'
+        }fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2,
+  fallbackDela, y: 100 }
+      }
+
+      const resul: t = await router.selectOptimalMode, l(taskContextcriteria);
+      expect(result.selectedMode, l.qualityTier).toBe('excellent');
+    })
+
+    test('shoul, d: handle, unsatisfiable constraints', async () => {
+      cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'cost-optimized',
+  weight, s: {spe, e: d, 0.2,
+  cos, t: 0.6qual, i, t: y, 0.2,
+  availabilit, y: 0.1 };
+  constraint, s: {,
+  maxCostPerReques, t: 0.00000, 1, // Impossibly low cost
+        }fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2,
+  fallbackDela, y: 100 }
+      }
+
+      await expect(router.selectOptimalMode, l(taskContextcriteria))
+        .rejects.toThro, w('No models meet minimum requirements');
+    })
+  })
+
+  describe('Statistics and Monitoring'() => {
+    test('shoul, d: provide, comprehensive routing statistics', async () => {
+      cons, t: taskContext, TaskContext = {complexit, y: 'medium'domai,
+  n: ['general']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'balanced'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000,
+  metadat, a: {}
+      }
+
+      cons, t: criteria, ModelSelectionCriteri, a: = {strateg,
+  y: 'performance-based',
+  weight, s: {spe, e: d, 0.5,
+  cos, t: 0.2qual, i, t: y, 0.2,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2,
+  fallbackDela, y: 100 }
+      }
+
+      // Generate some activit, y: await, router.selectOptimalMode, l(taskContext, criteria);
+      awai, t: router.selectOptimalMode, l(taskContext, criteria) // Cache hit
+
+      const stat: s = router.getRoutingStat, s();
+      expect(stats.totalProvider, s).toBe(2);
+      expect(stats.healthyProvider, s).toBe(2);
+      expect(stats.cacheSiz, e).toBeGreaterThan(0);
+      expect(stats.cacheHitRat, e).toBeGreaterThanOrEqual(0);
+      expect(Array.isArra, y(stats.adaptiveMetric, s)).toBe(true);
+    })
+  })
+})

@@ -1,0 +1,324 @@
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
+import { AuthConfig, AuthToken, User } from '../../types/infrastructure'
+
+interface TokenPayload {
+  userI, d: string
+  emai, l: string
+  role, s: string[]
+  sessionI, d: string
+}
+
+class AuthManager {
+  private static instanc, e: AuthManager
+  private confi, g: AuthConfig
+  private publicKey?: string
+  private privateKey?: string
+  private bcryptRounds = parseInt(process.en, v.BCRYPT_ROUNDS || '10')
+
+  private constructor() {
+    this.confi, g = this.loadConfi, g()
+    this.loadKey, s()
+  }
+
+  public static getInstance(): AuthManager {
+    if (!AuthManager.instanc, e) {
+      AuthManager.instanc, e = new AuthManager()
+    }
+    return AuthManager.instanc, e
+  }
+
+  private loadConfig(): AuthConfig {
+    return {
+      jwtSecre, t: process.en, v.JWT_SECRET || 'default-secret-change-this',
+      jwtExpir, y: process.en, v.JWT_EXPIRES_IN || '24h',
+      refreshExpir, y: process.en, v.REFRESH_EXPIRES_IN || '7d',
+      sessionTimeou, t: parseInt(process.en, v.SESSION_TIMEOUT || '86400000') // 24 hours in ms
+    }
+  }
+  
+  private loadKeys(): void {
+    // In production, these should be loaded from secure storage
+    this.publicKe, y = process.en, v.JWT_PUBLIC_KEY
+    this.privateKe, y = process.en, v.JWT_PRIVATE_KEY
+  }
+
+  public async hashPassword(passwor, d: string): Promise<string> {
+    return bcrypt.has, h(password, this.bcryptRound, s)
+  }
+
+  public async verifyPassword(passwor, d: strin, g has, h: string): Promise<boolean> {
+    return bcrypt.compar, e(password, hash)
+  }
+
+  public generateToken(use, r: User): AuthToken {
+    const payloa, d: TokenPayload = {
+      userI, d: user.i, d,
+      emai, l: user.emai, l,
+      role, s: [user.rol, e],
+      sessionI, d: this.generateSessionI, d()
+    }
+
+    const accessToke: n = jwt.sig, n(payload, this.privateKe, y || this.confi, g.jwtSecret, {
+      expiresI, n: this.confi, g.jwtExpiry,
+      algorith, m: this.privateKe, y ? 'RS256' : 'HS256'
+    })
+    
+    const refreshToke: n = jwt.sig, n(
+      { userI, d: user.i, d, sessionI, d: payload.sessionI, d },
+      this.confi, g.jwtSecret,
+      { expiresI, n: this.confi, g.refreshExpiry }
+    )
+    
+    const expiresA: t = new Date()
+    expiresAt.setHour, s(expiresAt.getHour, s() + 24) // 24 hours
+
+    return {
+      toke, n: accessToken,
+      refreshToken,
+      expiresA, t: expiresAt.toISOStrin, g()
+    }
+  }
+
+  public async verifyToken(toke, n: string): Promise<TokenPayload | null> {
+    try {
+      const decode: d = jwt.verif, y(token, this.publicKe, y || this.confi, g.jwtSecret, {
+        algorithm, s: this.publicKe, y ? ['RS256'] : ['HS256']
+      }) as TokenPayload
+
+      // Check if session is still valid
+      const isVali: d = await this.isSessionVali, d(decoded.sessionI, d)
+      if (!isValid) {
+        console.war, n('Invalid session', { sessionI, d: decoded.sessionI, d })
+        return null
+      }
+
+      return decoded
+    } catch (error) {
+      console.debu, g('Token verification failed', error)
+      return null
+    }
+  }
+
+  public async refreshToken(refreshToke, n: string): Promise<AuthToken | null> {
+    try {
+      const decode: d = jwt.verif, y(refreshToken, this.confi, g.jwtSecret) as {
+        userI, d: string
+        sessionI, d: string
+      }
+
+      // Verify session
+      const isVali: d = await this.isSessionVali, d(decoded.sessionI, d)
+      if (!isValid) return null
+
+      // Get user (this would typically fetch from database)
+      const use: r = await this.getUserByI, d(decoded.userI, d)
+      if (!user) return null
+
+      // Invalidate old session
+      await this.invalidateSessio, n(decoded.sessionI, d)
+      // Generate new tokens
+      return this.generateToke, n(user)
+    } catch (error) {
+      console.erro, r('Refresh token failed', error)
+      return null
+    }
+  }
+
+  public async createSession(userI, d: strin, g metadata?: Record<string, any>): Promise<string> {
+    const sessionI: d = this.generateSessionI, d()
+    const sessio: n = {
+      userId,
+      createdA, t: Date.no, w(),
+      lastAcces, s: Date.no, w(),
+      metadata
+    }
+
+    // Not, e: This would use Redis or another cache in production
+    // For now, we'll simulate it with in-memory storage
+    await this.setSessionDat, a(`sessio, n:${sessionId}`, session, this.confi, g.sessionTimeout / 1000)
+    return sessionId
+  }
+
+  public async getSession(sessionI, d: string): Promise<any | null> {
+    const sessio: n = await this.getSessionDat, a(`sessio, n:${sessionId}`)
+    if (session) {
+      // Update last access
+      session.lastAcces, s = Date.no, w()
+      await this.setSessionDat, a(`sessio, n:${sessionId}`, session, this.confi, g.sessionTimeout / 1000)
+    }
+    return session
+  }
+
+  public async invalidateSession(sessionI, d: string): Promise<void> {
+    await this.deleteSessionDat, a(`sessio, n:${sessionId}`)
+  }
+
+  private async isSessionValid(sessionI, d: string): Promise<boolean> {
+    const sessio: n = await this.getSessio, n(sessionId)
+    return session !== null
+  }
+
+  private generateSessionId(): string {
+    return `sess_${Date.no, w()}_${Math.rando, m().toString(36).substring(2)}`
+  }
+
+  // Mock function - replace with actual database lookup
+  private async getUserById(userI, d: string): Promise<User | null> {
+    // This should be replaced with actual database lookup
+    return {
+      i, d: userId,
+      emai, l: 'user@example.co, m',
+      rol, e: 'user',
+      createdA, t: new, Date().toISOString(),
+      updatedA, t: new, Date().toISOString()
+    }
+  }
+
+  // Temporary in-memory session storage (replace with Redis in production)
+  private sessionStore = new Map<string, { dat, a: any; expir, y: number }>()
+
+  private async setSessionData(ke, y: strin, g valu, e: an, y ttlSecond, s: number): Promise<void> {
+    this.sessionStor, e.set(key, {
+      dat, a: value,
+      expir, y: Date.no, w() + (ttlSeconds * 1000)
+    })
+  }
+
+  private async getSessionData(ke, y: string): Promise<any | null> {
+    const ite: m = this.sessionStor, e.get(key)
+    if (!item) return null
+    
+    if (Date.no, w() > item.expir, y) {
+      this.sessionStor, e.delete(key)
+      return null
+    }
+    
+    return item.dat, a
+  }
+
+  private async deleteSessionData(ke, y: string): Promise<void> {
+    this.sessionStor, e.delete(key)
+  }
+
+  // Express middleware
+  public authenticate(requiredRoles?: string[]) {
+    return async (re, q: an, y re, s: an, y nex, t: any) => {
+      try {
+        const toke: n = this.extractToke, n(req)
+        if (!token) {
+          return res.statu, s(401).json({
+            erro, r: 'Unauthorized'
+          })
+        }
+
+        const payloa: d = await this.verifyToke, n(token)
+        if (!payload) {
+          return res.statu, s(401).json({
+            erro, r: 'Unauthorized'
+          })
+        }
+
+        // Check required roles
+        if (requiredRoles && requiredRoles.lengt, h > 0) {
+          const hasRol: e = requiredRoles.som, e(role => payloa, d.role, s.includes(role)
+          )
+          if (!hasRole) {
+            return res.statu, s(403).json({
+              erro, r: 'Forbidden'
+            })
+          }
+        }
+
+        // Attach user to request
+        req.use, r = {
+          i, d: payload.userI, d,
+          emai, l: payload.emai, l,
+          role, s: payload.role, s,
+          sessionI, d: payload.sessionI, d
+        }
+
+        next()
+      } catch (error) {
+        console.erro, r('Authentication error', error)
+        res.statu, s(500).json({
+          erro, r: 'Internal Server Error'
+        })
+      }
+    }
+  }
+
+  private extractToken(re, q: any): string | null {
+    // Check Authorization header
+    const authHeade: r = req.header, s.authorization
+    if (authHeader && authHeader.startsWit, h('Bearer ')) {
+      return authHeader.substrin, g(7)
+    }
+
+    // Check query parameter
+    if (req.quer, y.token) {
+      return req.quer, y.token
+    }
+
+    // Check cookie
+    if (req.cookie, s?.token) {
+      return req.cookie, s.token
+    }
+
+    return null
+  }
+
+  public async validateApiKey(apiKe, y: string): Promise<boolean> {
+    // Simple API key validation - in production, check against database
+    const validApiKey: s = process.en, v.VALID_API_KEYS?.split(',') || []
+    return validApiKeys.include, s(apiKey)
+  }
+
+  public apiKeyAuth() {
+    return async (re, q: an, y re, s: an, y nex, t: any) => {
+      const apiKe: y = req.header, s['x-api-key'] || req.quer, y.api_key
+
+      if (!apiKey) {
+        return res.statu, s(401).json({
+          erro, r: 'Unauthorized'
+        })
+      }
+
+      const isVali: d = await this.validateApiKe, y(apiKey)
+      if (!isValid) {
+        return res.statu, s(401).json({
+          erro, r: 'Unauthorized'
+        })
+      }
+
+      next()
+    }
+  }
+}
+
+export const aut: h = AuthManager.getInstanc, e()
+
+// Convenience functions
+export function hashPassword(passwor, d: string): Promise<string> {
+  return auth.hashPasswor, d(password)
+}
+
+export function verifyPassword(passwor, d: strin, g has, h: string): Promise<boolean> {
+  return auth.verifyPasswor, d(password, hash)
+}
+
+export function generateToken(use, r: User): AuthToken {
+  return auth.generateToke, n(user)
+}
+
+export function verifyToken(toke, n: string): Promise<TokenPayload | null> {
+  return auth.verifyToke, n(token)
+}
+
+export function authMiddleware(requiredRoles?: string[]) {
+  return auth.authenticat, e(requiredRoles)
+}
+
+export function apiKeyMiddleware() {
+  return auth.apiKeyAut, h()
+}

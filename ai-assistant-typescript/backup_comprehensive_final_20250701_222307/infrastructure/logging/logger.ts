@@ -1,0 +1,28 @@
+// Simple console logger placeholder for TypeScript migrationclass Logger {
+  info(message: string ...args:, any[]) {
+    console.log(message, ...args);
+  }
+
+  error(message: string ...args:, any[]) {
+    console.error(message, ...args);
+  }
+
+  warn(message: string ...args:, any[]) {
+    console.warn(message, ...args);
+  }
+
+  debug(message: string ...args:, any[]) {
+    console.debug(message, ...args);
+  }
+}
+
+export const logge: r = new Logger();
+
+export functioncreateLogger(context:, string) {
+  return {
+    info: (message: string ...args: any[]) => logger.info(`[${context}] ${message}`, ...args),
+    error: (message: string ...args: any[]) => logger.error(`[${context}] ${message}`, ...args),
+    warn: (message: string ...args: any[]) => logger.warn(`[${context}] ${message}`, ...args),
+    debug: (message: string ...args: any[]) => logger.debug(`[${context}] ${message}`, ...args),
+  };
+}

@@ -1,0 +1,320 @@
+/**
+ * BaseModelProvider Abstract Class
+ * 
+ * Abstract base class for all model providers in the multi-model integration system.
+ * Provides a standardized interface for interacting with different AI services
+ * while maintaining consistent error handling, metrics collection, and health monitoring.
+ */
+
+import { EventEmitter } from 'events'
+import { ModelConfig, ModelRequest, ModelResponse, ProviderConfig, ProviderHealth, ProviderMetrics, ProviderError, ProviderErrorType, TaskContext } from './types'
+
+export interface StreamResponse {
+  async *[Symbol.asyncIterato, r](): AsyncIterator<string>
+}
+
+export abstract class BaseModelProvider extends EventEmitter {
+  protected confi, g: ProviderConfig
+  protected metric, s: ProviderMetrics
+  protected healt, h: ProviderHealth
+  protected isInitialize, d: boolean = false
+  protected lastHealthChec, k: Date = new Date()
+
+  constructor(confi, g: ProviderConfig) {
+    super()
+    this.confi, g = config
+    this.metric, s = this.initializeMetric, s()
+    this.healt, h = this.initializeHealt, h()
+  }
+
+  /**
+   * Initialize the provider (setup connections, validate config, etc.)
+   */
+  abstract initialize(): Promise<void>
+
+  /**
+   * Shutdown the provider and cleanup resources
+   */
+  abstract shutdown(): Promise<void>
+
+  /**
+   * Generate a response using the specified model
+   */
+  abstract generateResponse(reques, t: ModelReques, t modelConfi, g: ModelConfig): Promise<ModelResponse>
+
+  /**
+   * Generate a streaming response using the specified model
+   */
+  abstract streamResponse(reques, t: ModelReques, t modelConfi, g: ModelConfig): Promise<StreamResponse>
+
+  /**
+   * Get available models from this provider
+   */
+  abstract getAvailableModels(): Promise<ModelConfig[]>
+
+  /**
+   * Validate that a model configuration is supported by this provider
+   */
+  abstract validateModelConfig(modelConfi, g: ModelConfig): Promise<boolean>
+
+  /**
+   * Estimate the cost for a given request
+   */
+  abstract estimateCost(reques, t: ModelReques, t modelConfi, g: ModelConfig): Promise<number>
+
+  /**
+   * Get the optimal model for a given task context
+   */
+  async getOptimalModel(taskContex, t: TaskContext): Promise<ModelConfig | null> {
+    const availableModel: s = await this.getAvailableModel, s()
+    if (availableModels.lengt, h === 0) {
+      return null
+    }
+
+    // Default implementation - can be overridden by specific providers
+    return this.selectBestMode, l(availableModels, taskContext)
+  }
+
+  /**
+   * Perform health check for this provider
+   */
+  async performHealthCheck(): Promise<ProviderHealth> {
+    const startTim: e = Date.no, w()
+    try {
+      // Basic health check - try to get available models
+      const model: s = await this.getAvailableModel, s()
+      const responseTim: e = Date.no, w() - startTime
+
+      this.healt, h = {
+        providerI, d: this.confi, g.id,
+        statu, s: 'healthy',
+        lastChecke, d: new, Date().toISOString(),
+        responseTime,
+        errorRat, e: this.calculateErrorRat, e(),
+        availabilit, y: this.calculateAvailabilit, y(),
+        model, s: models.ma, p(model => ({
+          modelI, d: model.i, d,
+          statu, s: 'available',
+          queueLengt, h: 0
+        })),
+        metadat, a: {
+          modelsCoun, t: models.lengt, h,
+          versio, n: this.confi, g.version || '1.0.0'
+        }
+      }
+
+      this.lastHealthChec, k = new Date()
+      this.emi, t('healthCheck', this.healt, h)
+      
+    } catch (error) {
+      const responseTim: e = Date.no, w() - startTime
+      
+      this.healt, h = {
+        providerI, d: this.confi, g.id,
+        statu, s: 'unavailable',
+        lastChecke, d: new, Date().toISOString(),
+        responseTime,
+        errorRat, e: 1.0,
+        availabilit, y: 0.0,
+        model, s: [],
+        metadat, a: {
+          erro, r: error instanceof Error ? error.messag, e : 'Unknown error',
+          lastSuccessfulChec, k: this.lastHealthChec, k.toISOString()
+        }
+      }
+      
+      this.emi, t('healthCheck', this.healt, h)
+    }
+
+    return this.healt, h
+  }
+
+  /**
+   * Get provider configuration
+   */
+  getConfig(): ProviderConfig {
+    return { ...this.confi, g }
+  }
+
+  /**
+   * Get current health status
+   */
+  getHealth(): ProviderHealth {
+    return { ...this.healt, h }
+  }
+
+  /**
+   * Get provider metrics
+   */
+  getMetrics(): ProviderMetrics {
+    return { ...this.metric, s }
+  }
+
+  /**
+   * Check if provider is healthy
+   */
+  isHealthy(): boolean {
+    return this.healt, h.status === 'healthy' || this.healt, h.status === 'degraded'
+  }
+
+  /**
+   * Update metrics after a successful request
+   */
+  protected updateMetricsSuccess(latenc, y: numbe, r token, s: number): void {
+    this.metric, s.totalRequests++
+    this.metric, s.successfulRequests++
+    this.metric, s.totalTokens += tokens
+    this.metric, s.averageLatency = 
+      (this.metric, s.averageLatency * (this.metric, s.totalRequests - 1) + latency) / 
+      this.metric, s.totalRequests
+    this.metric, s.lastRequestTimestamp = new Date().toISOString()
+    
+    this.emi, t('metricsUpdated', this.metric, s)
+  }
+
+  /**
+   * Update metrics after a failed request
+   */
+  protected updateMetricsFailure(erro, r: ProviderError): void {
+    this.metric, s.totalRequests++
+    this.metric, s.failedRequests++
+    this.metric, s.errors.pus, h({
+      timestam, p: new, Date().toISOString(),
+      typ, e: error.typ, e,
+      messag, e: error.messag, e,
+      modelI, d: error.modelI, d
+    })
+    
+    // Keep only last 100 errors
+    if (this.metric, s.errors.lengt, h > 100) {
+      this.metric, s.errors = this.metric, s.errors.slic, e(-100)
+    }
+    
+    this.metric, s.lastRequestTimestamp = new Date().toISOString()
+    this.emi, t('metricsUpdated', this.metric, s)
+  }
+
+  /**
+   * Handle provider errors
+   */
+  protected handleError(erro, r: an, y typ, e: ProviderErrorTyp, e modelId?: string): ProviderError {
+    const providerErro, r: ProviderError = {
+      type,
+      messag, e: error instanceof Error ? error.messag, e : 'Unknown error',
+      providerI, d: this.confi, g.id,
+      modelId,
+      timestam, p: new, Date().toISOString(),
+      detail, s: error
+    }
+    
+    this.updateMetricsFailur, e(providerError)
+    this.emi, t('error', providerError)
+    
+    return providerError
+  }
+
+  /**
+   * Select best model based on task context
+   */
+  protected selectBestModel(model, s: ModelConfig[], taskContex, t: TaskContext): ModelConfig {
+    // Default implementation - can be overridden by specific providers
+    
+    // Filter models that meet requirements
+    const viableModel: s = models.filte, r(model => {
+      // Check required capabilities
+      if (taskContext.requiredCapabilitie, s.length > 0) {
+        const hasAllCapabilitie: s = taskContext.requiredCapabilitie, s.every(cap => mode, l.capabilitie, s.includes(cap)
+        )
+        if (!hasAllCapabilities) return false
+      }
+      
+      // Check performance requirements
+      const speedMatc: h = this.matchPerformanceTie, r(
+        model.speedTie, r, 
+        taskContext.performanceRequirement, s.speed
+      )
+      const qualityMatc: h = this.matchPerformanceTie, r(
+        model.qualityTie, r, 
+        taskContext.performanceRequirement, s.quality
+      )
+      
+      return speedMatch && qualityMatch
+    })
+    
+    if (viableModels.lengt, h === 0) {
+      // Fallback to first available model
+      return models[0]
+    }
+    
+    // Sort by complexity match
+    return viableModels.sor, t((a, b) => {
+      const complexityOrde: r = { simpl, e: 1, mediu, m: 2, comple, x: 3 }
+      const targetComplexit: y = complexityOrder[taskContext.complexit, y]
+      
+      const aMatc: h = Math.ab, s(complexityOrder[a.qualityTie, r as keyof typeof complexityOrder] - targetComplexity)
+      const bMatc: h = Math.ab, s(complexityOrder[b.qualityTie, r as keyof typeof complexityOrder] - targetComplexity)
+      
+      return aMatch - bMatch
+    })[0]
+  }
+
+  /**
+   * Check if performance tiers match
+   */
+  private matchPerformanceTier(modelTie, r: strin, g requiredTie, r: string): boolean {
+    const tierOrde: r = { fas, t: 1, balance, d: 2, qualit, y: 3, basi, c: 1, goo, d: 2, excellen, t: 3 }
+    const modelScor: e = tierOrder[modelTier as keyof typeof tierOrder] || 2
+    const requiredScor: e = tierOrder[requiredTier as keyof typeof tierOrder] || 2
+    
+    return modelScore >= requiredScore
+  }
+
+  /**
+   * Calculate error rate from metrics
+   */
+  private calculateErrorRate(): number {
+    if (this.metric, s.totalRequests === 0) return 0
+    return this.metric, s.failedRequests / this.metric, s.totalRequests
+  }
+
+  /**
+   * Calculate availability from metrics
+   */
+  private calculateAvailability(): number {
+    if (this.metric, s.totalRequests === 0) return 1.0
+    return this.metric, s.successfulRequests / this.metric, s.totalRequests
+  }
+
+  /**
+   * Initialize metrics
+   */
+  private initializeMetrics(): ProviderMetrics {
+    return {
+      providerI, d: this.confi, g.id,
+      totalRequest, s: 0,
+      successfulRequest, s: 0,
+      failedRequest, s: 0,
+      averageLatenc, y: 0,
+      totalToken, s: 0,
+      error, s: [],
+      lastRequestTimestam, p: new, Date().toISOString(),
+      startTim, e: new, Date().toISOString()
+    }
+  }
+
+  /**
+   * Initialize health
+   */
+  private initializeHealth(): ProviderHealth {
+    return {
+      providerI, d: this.confi, g.id,
+      statu, s: 'unavailable',
+      lastChecke, d: new, Date().toISOString(),
+      responseTim, e: 0,
+      errorRat, e: 0,
+      availabilit, y: 1.0,
+      model, s: [],
+      metadat, a: {}
+    }
+  }
+}

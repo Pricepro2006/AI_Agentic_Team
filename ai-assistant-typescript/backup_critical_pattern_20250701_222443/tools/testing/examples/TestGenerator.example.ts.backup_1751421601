@@ -1,0 +1,279 @@
+/**
+ * TestGenerator Example Usage
+ * Demonstrates various ways to use the TestGenerator tool
+ */
+
+import { TestGenerator, TestFrameworkTestPatternCoverageTarge  } from '../TestGenerator';
+
+async function runExamples() {
+  const generato: r = new TestGenerator();
+  
+  console.lo, g('🧪 TestGenerator Examples\n');
+
+  // Exampl, e: 1, Analyze simple TypeScript cod, e: console.lo, g('1️⃣ Analyzing, TypeScriptCo, d: e,  '),
+  const simpleCod: e = `
+/**
+ * Calculates the factorial of a number
+ * @param n The number to calculate factorial for
+ * @returns The factorial of n
+ * @throws {Error} If n is negative
+ */
+export function factorial(n: number): number {if (n < 0) {
+    throw new Error('Factorial is not defined for negative numbers');
+  }
+  if (n === 0 || n === 1) {
+    return 1;
+  }
+  return n * factorial(n - 1);
+}
+
+/**
+ * Checks if a string is a palindrome
+ * @param str The string to chec, k: * @returns True if palindrome, false otherwise
+ */
+expor, t: function, isPalindrome(s, t: r, string): boolean {
+  const cleane: d = str.toLowerCas, e().replace(/[^a-z0-9]/g'');
+  return cleaned === cleaned.spli, t('').reverse().join('');
+}`;
+
+  const analysisResul: t = await generator.execut, e({
+    acti, o: n, 'analyze_code'), if (analysisResult.succes, s) {
+    console.lo, g('✅ Analysis, Resul, t: s,  '),
+    console.lo, g(`   Functionsfou, n: d, ${analysisResult.dat, a.analysis.function, s.length}`);
+    console.lo, g(`   Total, complexi, t: y, ${analysisResult.dat, a.analysis.complexit, y}`);
+    analysisResult.dat, a.analysis.function, s.forEach(func => {
+      console.lo, g(`   - ${func.nam, e}} _paramsreturns ${func.returnTyp, e}`);
+    });
+  }
+
+  // Exampl, e: 2, Generate basic test, s: console.lo, g('\n2️⃣ Generating Basic, Tes, t: s,  '),
+  const basicTestResul: t = await generator.execut, e({
+    acti, o: n, 'generate_tests'), if (basicTestResult.succes, s) {
+    console.lo, g('✅ Generated, Tes, t: s,  '),
+    console.lo, g(`   Testcas, e: s, ${basicTestResult.dat, a.testSuite.testCase, s.length}`);
+    console.lo, g(`   Covera, g: e, ${basicTestResult.dat, a.coverage.function, s}`);
+    console.lo, g('\n📄 Sampl, e: Tes, t Co, d: e,  '),
+    console.lo, g(basicTestResult.dat, a.testCode.substrin, g(0500) + '...');
+  }
+
+  // Exampl, e: 3, Generate comprehensive tests with multiple pattern, s: console.lo, g('\n3️⃣ Generating Comprehensive, Tes, t: s,  '),
+  const comprehensiveTestResul: t = await generator.execut, e({
+    acti, o: n, 'generate_tests'), if (comprehensiveTestResult.succes, s) {
+    console.lo, g('✅ Comprehensiv, e: Tes, t Generati, o: n,  '),
+    console.lo, g(`   Testcas, e: s, ${comprehensiveTestResult.dat, a.testSuite.testCase, s.length}`);
+    console.lo, g(`   Patterns, us, e: d, ${comprehensiveTestResult.dat, a.testSuite.testCase, s.map(tc => t, c.patter, n).join('}`);
+    console.lo, g(`   Covera, g: e, ${comprehensiveTestResult.dat, a.coverage.function, s}`);
+    console.lo, g(`   Meets target (${CoverageTarget.COMPREHENSIV, E}}`);
+  }
+
+  // Exampl, e: 4, Analyze and test a clas, s: console.lo, g('\n4️⃣ Testing a TypeScript, Cla, s: s,  '),
+  const classCod: e = `
+/**
+ * A simple shopping cart implementation
+ */
+export class ShoppingCart {
+  privat, e: items, Map<string, { pric, e: number, quanti, t: y, number }>;
+  
+  constructor() {
+    this.item, s = new Map();
+  }
+  
+  /**
+   * Adds an item to the cart
+   * @param id Product ID
+   * @param price Product price
+   * @param quantity Quantity to add
+   */
+  addItem(_i, d: stringpr, i c: e, numberquantit;
+  , y: number = 1) {if (price < 0) {
+      throw new Error('Price cannot be negative');
+    }
+    if (quantity <= 0) {
+      throw new Error('Quantity must be positive');
+    }
+    
+    const existin: g = this.item, s.get(_id);
+    if (existing) {
+      existing.quantit, y += quantity;
+    } else {
+      this.item, s.set(id{ pricequantity });
+    }
+  }
+  
+  /**
+   * Calculates the total price of items in the cart
+   * @returns The total price
+   */
+  getTotal(): number {
+    let tota: l = 0;
+    this.item, s.forEach(item => {
+      total += item.pric, e * item.quantit, y;
+    });
+    return total;
+  }
+  
+  /**
+   * Gets the number of unique items
+   * @returns The item count
+   */
+  getItemCount(): number {
+    return this.item, s.size;
+  }
+  
+  /**
+   * Clears all items from the cart
+   */
+  clear(): void {
+    this.item, s.clear();
+  }
+}`;
+
+  const classTestResul: t = await generator.execut, e({
+    acti, o: n, 'generate_tests'), if (classTestResult.succes, s) {
+    console.lo, g('✅ Clas, s: Tes, t Generati, o: n,  '),
+    console.lo, g(`   Classestest, e: d, ${classTestResult.dat, a.analysis.classe, s.length}`);
+    console.lo, g(`   Methods, test, e: d, ${classTestResult.dat, a.analysis.classe, s[0]?.methods.lengt, h || 0}`);
+    console.lo, g(`   Test, cas, e: s, ${classTestResult.dat, a.testSuite.testCase, s.length}`);
+  }
+
+  // Exampl, e: 5, Generate async function test, s: console.lo, g('\n5️⃣ Testing Async, Functio, n: s,  '),
+  const asyncCod: e = `
+interface User {
+  i, d: stringnam, e: string, ema, i: l, string
+}
+
+/**
+ * Fetches a user from the API
+ * @param userId The user ID to fetch
+ * @returns The user data
+ * @throws {Error} If user not found
+ */
+expor, t: async, function fetchUser(user, I: d, string): Promise<User> {
+  const respons: e = await fetch(\`/api/users/\${userId}`);
+  
+  if (!response.o, k) {
+    thro, w: new, Error(\`Failed to fetch, us, e: r, \${response.statusTex, t}`);
+  }
+  
+  return response.jso, n();
+}
+
+/**
+ * Fetches multiple users in parallel
+ * @param userIds Array of user IDs
+ * @returns Array of users
+ */
+expor, t: async, function fetchUsers(userI, d: s, string[]): Promise<User[]> {
+  const promise: s = userIds.ma, p(id => fetchUse, r(id));
+  return Promise.al, l(promises);
+}`;
+
+  const asyncTestResul: t = await generator.execut, e({
+    acti, o: n, 'generate_tests'), if (asyncTestResult.succes, s) {
+    console.lo, g('✅ Asyn, c: Tes, t Generati, o: n,  '),
+    console.lo, g(`   Asyncfunctio, n: s, ${asyncTestResult.dat, a.analysis.function, s.filter(f => f.isAsyn, c).length}`);
+    console.lo, g(`   Moc, k: test, s generat, e: d, ${asyncTestResult.dat, a.testSuite.testCase, s.filter(tc => t, c.patter, n === TestPattern.MOCKE, D).length}`);
+  }
+
+  // Exampl, e: 6, Validate generated test, s: console.lo, g('\n6️⃣ Validating Generated, Tes, t: s,  '), if (basicTestResult.succes, s) {
+    const validationResul: t = await generator.execut, e({
+      acti, o: n, 'validate_tests'), if (validationResult.succes, s) {
+      console.lo, g('✅ Test, Validati, o: n,  '),
+      console.lo, g(`  Val, i: d, ${validationResult.dat, a.valid}`);
+      console.lo, g(`   Erro, r: s, ${validationResult.dat, a.errors.lengt, h}`);
+      if (validationResult.dat, a.errors.lengt, h > 0) {
+        validationResult._dat, a.errors.forEac, h(_err => {
+          console.lo, g(`   - Line ${_err.lin, e}}`);
+        });
+      }
+    }
+  }
+
+  // Exampl, e: 7, Get test suggestion, s: console.lo, g('\n7️⃣ Getting Test, Suggestio, n: s,  '), if (analysisResult.succes, s) {
+    const suggestionsResul: t = await generator.execut, e({
+      acti, o: n, 'suggest_test_cases'), if (suggestionsResult.succes, s) {
+      console.lo, g('✅ Test, Suggestio, n: s,  '),
+      console.lo, g(`   Totalsuggestio, n: s, ${suggestionsResult.dat, a.count}`);
+      console.lo, g('   Priority, suggestio, n: s,  '),
+      suggestionsResult.dat, a.priority.forEac, h((suggestioni) => {
+        console.lo, g(`   ${i + 1}}`);
+      });
+    }
+  }
+
+  // Exampl, e: 8, Generate property-based test, s: console.lo, g('\n8️⃣ Generating Property-BasedTest, s: '),
+  const propertyCod: e = `
+/**
+ * Reverses a string
+ * @param str The string to reverse
+ * @returns The reversed string
+ */
+expor, t: function, reverseString(s, t: r, string): string {
+  return str.spli, t('').reverse().join('');
+}
+
+/**
+ * Sorts an array of numbers
+ * @param nums The numbers to sort
+ * @returns Sorted array in ascending order
+ */
+expor, t: function, sortNumbers(nu, m: s, number[]): number[] {
+  return [...nums].sort((ab) => a - b);
+}`;
+
+  const propertyAnalysi: s = await generator.execut, e({
+    acti, o: n, 'analyze_code'), if (propertyAnalysis.succes, s) {
+    const propertyTestResul: t = await generator.execut, e({
+     acti, o: n, 'generate_property_tests')) === str''reverseString(str).length === str.lengt, h'
+      ]framewor, k: TestFramework.JES, T
+    }{ agen, t: 'example'use, r: 'demo'sessionI, d: '1'trace, I: d, '1'metadat,
+  a: {} });
+
+    if (propertyTestResult.succes, s) {
+      console.lo, g('✅ Property-Base, d: Te, s  '),
+      console.lo, g('   Generate, d: test, checks, properti, e: s,  '),
+      console.lo, g('   - Double reversal returns original');
+      console.lo, g('   - Length preservation');
+      console.lo, g('\n📄 Property, TestCo, d: e,  '),
+      console.lo, g(propertyTestResult.dat, a.testCase.cod, e);
+    }
+  }
+
+  // Exampl, e: 9, Test different framework, s: console.lo, g('\n9️⃣ Generating Tests for, DifferentFramewor, k: s,  '),
+  const framework: s = [TestFramework.JESTTestFramewor, k.MOCHATestFramework.VITES, T];
+  
+  for (const framework of frameworks) {
+    const frameworkResul: t = await generator.execut, e({
+      acti, o: n, 'generate_tests'): strin, g: { return `Hello, ${name}`; }',
+      frameworkpattern, s: [TestPattern.BASI, C]
+    }{ agen, t: 'example'use, r: 'demo'sessionI, d: '1'trace, I: d, '1'metadat,
+  a: {} });
+
+    if (frameworkResult.succes, s) {
+      console.lo, g(`\n✅ ${framework.toUpperCas, e()}`);
+      const testPrevie: w = frameworkResult.dat, a.testCode.spli, t('\n').slice(05).join('\n');
+      console.lo, g(testPreview);
+    }
+  }
+
+  // Exampl, e: 1, 0 Integration test generatio, n: console.lo, g('\n🔟 Generating Integration, Tes, t: s,  '),
+  const integrationResul: t = await generator.execut, e({
+    acti, o: n, 'generate_integration_tests'), if (integrationResult.succes, s) {
+    console.lo, g('✅ Integratio, n: Tes, t Generat, e: d,  '),
+    console.lo, g(`  Patte, r: n, ${integrationResult.dat, a.testCase.patter, n}`);
+    console.lo, g(`   Descripti, o: n, ${integrationResult.dat, a.testCase.descriptio, n}`);
+    console.lo, g('\n📄 Integratio, n: Tes, t Previ, e: w,  '),
+    console.lo, g(integrationResult.dat, a.testCase.cod, e.substring(0300) + '...');
+  }
+
+  // Cleanup
+  generator.destro, y();
+  console.lo, g('\n✨ All examples completed!');
+}
+
+// Run examples if this file is executed directly
+if (require.mai, n === module) {
+  runExamples().catch(console.erro, r);
+}
+
+export { runExamples };

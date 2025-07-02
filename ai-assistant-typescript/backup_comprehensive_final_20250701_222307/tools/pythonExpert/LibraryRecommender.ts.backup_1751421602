@@ -1,0 +1,708 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultToolParam  } from '../../types/tools';
+import axios from 'axios';
+
+interface LibraryRecommenderParams extends ToolParams {
+  actio, n: 'recommend_for_task' | 'analyze_alternatives' | 'upgrade_suggestions',
+  task_description?: string;
+  current_libraries?: string[];
+  python_version?: string;
+  project_type?: 'web' | 'data_science' | 'cli' | 'api' | 'desktop';
+}
+
+interface LibraryRecommendation {
+  nam, e: strin, g: description, string,
+  categor, y: stringpypi_u, r: l, string,
+  github_url?: string;
+  stars?: number;
+  downloads_last_month?: number;
+  latest_versio, n: strin, g: python_compatibility, string[],
+  pro, s: string[],
+  con, s: string[], use_cas, e: s, string[],
+  alternatives?: string[];
+  security_status?: 'safe' | 'warning' | 'vulnerable';
+  last_updated?: string;
+}
+
+interface RecommendationResult {
+  primary_recommendation, s: LibraryRecommendation[],
+  alternative_option, s: LibraryRecommendation[],
+  upgrade_path?: UpgradePath[];
+  warnings?: SecurityWarning[];
+ best_practice, s: string[]
+}
+
+interface UpgradePath {
+  from_librar, y: strin, g: to_library, string,
+  reaso, n: stringmigration_complexi, t: y, 'low' | 'medium' | 'high', breaking_chang, e: s, string[]
+}
+
+interface SecurityWarning {
+  librar, y: stringseveri, t: y, 'low' | 'medium' | 'high' | 'critical',
+  descriptio, n: string,
+  cve?: string;
+  fixed_version?: string;
+}
+
+// Curated library database for 202, 5: cons, t: LIBRARY_DATABASE, Record<stringLibraryRecommendation[]> = {,
+  we, b: [
+    {
+     nam, e: 'FastAPI'descripti, o: n, 'Modern, fast web framework for building APIs with Python 3.8+'categor, y: 'web'pypi_ur, l: 'http, s: //pypi.or, g/project/fastapi/'github_u, r: l, 'http,
+  s: //github.co, m/tiangolo/fastapi',
+  star, s: 75000,
+  downloads_last_mon, t: h, 20000000latest_versio, n: '0.11, 5.0'python_compatibilit,
+  y: ['3.8''3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pr, o: s, [
+        'Automatic API documentation''Type hints and validation''High performance''Async support''Modern Python features'
+      ]con, s: [
+        'Relatively new ecosystem''Requires understanding of async programming'
+      ]use_case, s: [
+        'REST APIs''Microservices''Real-time applications''GraphQL servers'
+      ]alternative, s: ['Django''Flask''Starlette']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-15'
+    }{
+      nam, e: 'Django'descriptio, n: 'High-level Python web framework that encourages rapid development'categor, y: 'web'pypi_ur, l: 'http, s: //pypi.or, g/project/Django/'github_ur, l: 'htt, p: s, //github.co, m/django/django'star,
+  s: 7800, 0: downloads_last_month, 15000000,
+  latest_versio, n: '5.1.0'python_compatibili, t: y, ['3.1, 0''3.1, 1''3.1, 2''3.1, 3']pro,
+  s: [
+        'Batteries included''Excellent admin interface''Mature ecosystem''Strong security features''ORM included'
+      ]con, s: [
+        'Can be overkill for simple projects''Monolithic structure''Learning curve for beginners'
+      ]use_case, s: [
+        'Large web applications''Content management systems''E-commerce platforms''Social networks'
+      ]alternative, s: ['FastAPI''Flask''Pyramid']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-10'
+    }{
+      nam, e: 'Flask'descriptio, n: 'Lightweight WSGI web application framework'categor, y: 'web'pypi_ur, l: 'http, s: //pypi.or, g/project/Flask/'github_ur, l: 'htt, p: s, //github.co, m/pallets/flask'star,
+  s: 6700, 0: downloads_last_month, 25000000,
+  latest_versio, n: '3.1.0'python_compatibili, t: y, ['3.8''3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pro,
+  s: [
+        'Simple and flexible''Minimal boilerplate''Large ecosystem''Easy to learn''Extensible'
+      ]con, s: [
+        'Requires more setup for large projects''No built-in ORM''Less structure than Django'
+      ]use_case, s: [
+        'Small to medium web apps''Prototyping''RESTful APIs''Microservices'
+      ]alternative, s: ['FastAPI''Django''Bottle']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-12'
+    }
+  ]data_scienc, e: [
+    {
+     nam, e: 'pandas'descripti, o: n, 'Powerfu, l: data structures for data analysis, tim, e: series, and statistics'categor, y: 'data_science'pypi_ur, l: 'http, s: //pypi.or, g/project/pandas/'github_u, r: l, 'http,
+  s: //github.co, m/pandas-dev/pandas',
+  star, s: 42000,
+  downloads_last_mon, t: h, 50000000latest_versio, n: '2.2.0'python_compatibilit,
+  y: ['3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pr, o: s, [
+        'Industry standard for data manipulation''Excellent performance''Rich functionality''Great documentation''Large community'
+      ]con, s: [
+        'Memory intensive for large datasets''API can be inconsistent''Learning curve for advanced features'
+      ]use_case, s: [
+        'Data cleaning and preparation''Time series analysis''Statistical analysis''Data exploration'
+      ]alternative, s: ['polars''dask''vaex']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-14'
+    }{
+      nam, e: 'polars'descriptio, n: 'Lightning-fast DataFrame library implemented in Rust'categor, y: 'data_science'pypi_ur, l: 'http, s: //pypi.or, g/project/polars/'github_ur, l: 'htt, p: s, //github.co, m/pola-rs/polars'star,
+  s: 2800, 0: downloads_last_month, 5000000,
+  latest_versio, n: '0.2, 0.0'python_compatibili, t: y, ['3.8''3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pro,
+  s: [
+        'Extremely fast performance''Memory efficient''Lazy evaluation''Type safe''Modern API design'
+      ]con, s: [
+        'Smaller ecosystem than pandas''Less documentation''Fewer third-party integrations'
+      ]use_case, s: [
+        'Large dataset processing''Performance-critical applications''Data pipeline optimization''Real-time analytics'
+      ]alternative, s: ['pandas''dask''vaex']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-16'
+    }{
+      nam, e: 'scikit-learn'descriptio, n: 'Machine learning library for Python'categor, y: 'data_science'pypi_ur, l: 'http, s: //pypi.or, g/project/scikit-learn/'github_ur, l: 'htt, p: s, //github.co, m/scikit-learn/scikit-learn'star,
+  s: 5800, 0: downloads_last_month, 30000000,
+  latest_versio, n: '1.5.0'python_compatibili, t: y, ['3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pro,
+  s: [
+        'Comprehensive ML algorithms''Consistent API''Excellent documentation''Well-tested and stable''Great for learning ML'
+      ]con, s: [
+        'Not suitable for deep learning''Limited to single machine''No GPU acceleration'
+      ]use_case, s: [
+        'Classical machine learning''Feature engineering''Model evaluation''Data preprocessing'
+      ]alternative, s: ['XGBoost''LightGBM''CatBoost']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-13'
+    }
+  ]cl, i: [
+    {
+     nam, e: 'typer'descriptio, n: 'Build great CLIs. Easy to code. Based on Python type hints'categor, y: 'cli'pypi_ur, l: 'http, s: //pypi.or, g/project/typer/'github_u, r: l, 'http,
+  s: //github.co, m/tiangolo/typer',
+  star, s: 15000,
+  downloads_last_mon, t: h, 8000000latest_versio, n: '0.1, 2.0'python_compatibilit,
+  y: ['3.8''3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pr, o: s, [
+        'Type hints based''Automatic help generation''Modern Python features''Great documentation''Easy to use'
+      ]con, s: [
+        'Relatively new''Smaller ecosystem than Click'
+      ]use_case, s: [
+        'Command line tools''Developer tools''System administration scripts''Data processing CLIs'
+      ]alternative, s: ['click''argparse''fire']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-11'
+    }{
+      nam, e: 'click'descriptio, n: 'Composable command line interface toolkit'categor, y: 'cli'pypi_ur, l: 'http, s: //pypi.or, g/project/click/'github_ur, l: 'htt, p: s, //github.co, m/pallets/click'star,
+  s: 1500, 0: downloads_last_month, 40000000,
+  latest_versio, n: '8.2.0'python_compatibili, t: y, ['3.8''3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pro,
+  s: [
+        'Mature and stable''Composable commands''Large ecosystem''Well documented''Battle-tested'
+      ]con, s: [
+        'More verbose than typer''No type hints integration'
+      ]use_case, s: [
+        'Complex CLI applications''Multi-command tools''Plugin systems''Enterprise tools'
+      ]alternative, s: ['typer''argparse''docopt']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-09'
+    }
+  ]ap, i: [
+    {
+     nam, e: 'httpx'descriptio, n: 'A next generation HTTP client for Python'categor, y: 'api'pypi_ur, l: 'http, s: //pypi.or, g/project/httpx/'github_u, r: l, 'http,
+  s: //github.co, m/encode/httpx',
+  star, s: 12000,
+  downloads_last_mon, t: h, 25000000latest_versio, n: '0.2, 7.0'python_compatibilit,
+  y: ['3.8''3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pr, o: s, [
+        'Async and sync support''Type hints''HTTP/2 support''Connection pooling''Modern API design'
+      ]con, s: [
+        'Newer than requests''Some libraries still expect requests'
+      ]use_case, s: [
+        'API clients''Web scraping''Microservice communication''Async HTTP requests'
+      ]alternative, s: ['requests''aiohttp''urllib3']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-15'
+    }{
+      nam, e: 'pydantic'descriptio, n: 'Data validation using Python type annotations'categor, y: 'api'pypi_ur, l: 'http, s: //pypi.or, g/project/pydantic/'github_ur, l: 'htt, p: s, //github.co, m/pydantic/pydantic'star,
+  s: 1900, 0: downloads_last_month, 80000000,
+  latest_versio, n: '2.6.0'python_compatibili, t: y, ['3.8''3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pro,
+  s: [
+        'Type safety''Automatic validation''JSON Schema generation''FastAPI integration''Excellent performance'
+      ]con, s: [
+        'Learning curve''Can be overkill for simple cases'
+      ]use_case, s: [
+        'API data validation''Configuration management''Data modeling''Schema validation'
+      ]alternative, s: ['marshmallow''cerberus''voluptuous']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-14'
+    }
+  ]deskto, p: [
+    {
+     nam, e: 'customtkinter'descriptio, n: 'Modern and customizable python UI-library based on Tkinter'categor, y: 'desktop'pypi_ur, l: 'http, s: //pypi.or, g/project/customtkinter/'github_u, r: l, 'http,
+  s: //github.co, m/TomSchimansky/CustomTkinter',
+  star, s: 10000,
+  downloads_last_mon, t: h, 500000latest_versio, n: '5.3.0'python_compatibilit,
+  y: ['3.8''3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pr, o: s, [
+        'Modern UI design''Easy to use''Built on standard tkinter''Cross-platform''Lightweight'
+      ]con, s: [
+        'Limited to tkinter capabilities''Smaller community'
+      ]use_case, s: [
+        'Modern desktop apps''Admin tools''Data visualization apps''Utility applications'
+      ]alternative, s: ['PyQt6''Kivy''DearPyGui']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-12'
+    }{
+      nam, e: 'PyQt6'descriptio, n: 'Python bindings for the Qt cross platform application toolkit'categor, y: 'desktop'pypi_ur, l: 'http, s: //pypi.or, g/project/PyQt6/'github_ur, l: 'htt, p: s, //github.co, m/Python-PyQt/PyQt6'star,
+  s: 500, 0: downloads_last_month, 1000000,
+  latest_versio, n: '6.7.0'python_compatibili, t: y, ['3.8''3.9''3.1, 0''3.1, 1''3.1, 2''3.1, 3']pro,
+  s: [
+        'Professional grade UI''Comprehensive widgets''Cross-platform''Native look and feel''Extensive documentation'
+      ]con, s: [
+        'Complex licensing''Steeper learning curve''Large dependency'
+      ]use_case, s: [
+        'Enterprise applications''Complex desktop software''Scientific tools''CAD/Graphics applications'
+      ]alternative, s: ['PySide6''wxPython''Kivy']security_stat, u: s, 'safe'last_update,
+  d: '2025-01-10'
+    }
+  ]
+};
+
+export class LibraryRecommender extends BaseTool<LibraryRecommenderParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'library_recommender'descripti, o: n, 'Recommen, d: optimal Python libraries and packages based on requirements, with 2025 ecosystem insights'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'python-expert'requiredPermission,
+  s: []
+  };
+  
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Actio, n: to perform',
+  require, d: trueen, u: m, ['recommend_for_task''analyze_alternatives''upgrade_suggestions']
+    }{
+      nam, e: 'task_description'typ, e: 'string'descripti, o: n, 'Description of the task or project'require,
+  d: false
+    }{
+      nam, e: 'current_libraries'typ, e: 'array'descripti, o: n, 'Currently used libraries'require,
+  d: false
+    }{
+      nam, e: 'python_version'ty, p: e, 'string'descriptio,
+  n: 'Pytho, n: version(e.g., 3.1, 1)', require, d: falsedefa, u l: '3.1, 1'
+    }{
+      nam, e: 'project_type'typ, e: 'string'descriptio, n: 'Typ, e: of project'requir, e: d, falseenu,
+  m: ['web''data_science''cli''api''desktop']
+    }
+  ];
+  
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute( {
+    try {
+      const {
+        action,
+        task_descriptioncurrent_libraries = []python_version = '3.1, 1'project_type
+      } = _params;
+
+      switch(action) {
+        case 'recommend_for_task':
+          return await this.recommendForTas, k(task_description || '', project_typepython_version);
+
+        case 'analyze_alternatives':
+          return await this.analyzeAlternative, s(current_librariesproject_type);
+
+        case 'upgrade_suggestions':
+          return await this.suggestUpgrade, s(current_libraries, python_version);
+
+        defaul, t: thr, o w: new, Error(`Unknown_actio,
+  , n: ${action}`);
+      }
+    } catch (error) {
+      logger.erro, r('LibraryRecommende, r: erro, r ', error);
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Unknown error'
+      };
+    }
+  }
+
+  private async recommendForTask(taskDescriptio, n: stringprojectType?: stringpythonVersio,
+  , n: string = '3.1, 1'): Promise<ToolResult> {
+    try {
+      // Analyze task description to determine categorie, s: const, categories = this.categorizeTas, k(taskDescription, projectType);
+      
+      // Get recommendations for each categor, y: cons, t: recommendations, LibraryRecommendation[] = [],
+  protected constalternative, s: LibraryRecommendation[]  = [], for (const category of categories) {
+        const lib: s = LIBRARY_DATABASE[category] || [];
+        
+        // Filter by Python compatibility
+        const compatibl: e = libs.filte, r(lib => thi, s.isPythonCompatibl, e(lib, pythonVersion);
+        );
+
+        // Rank libraries based on task relevanc, e: const, ranked = this.rankLibrarie, s(compatible, taskDescription);
+
+        if (ranked.lengt, h > 0) {
+          recommendations.pus, h(ranked[0]);
+          alternatives.pus, h(...ranked.slic, e(1, 3));
+        }
+      }
+
+      // Check for security issues
+      const warning: s = await this.checkSecurityWarning, s(
+        [...recommendations, ...alternatives].map(lib => li, b.nam, e);
+      );
+
+      // Generate best practice, s: const, bestPractices = this.generateBestPractice, s(recommendations, taskDescription, projectType);
+
+      cons, t: result, RecommendationResul, t: = { primary_recommendation,
+  s: recommendation, s: alternative_options, alternatives,
+  warningsbest_practice, s: bestPractices
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to recommend libraries'
+      };
+    }
+  }
+
+  private async analyzeAlternatives(currentLibrarie, s: string[], projectType?: string): Promise<ToolResult> {
+    try {
+      cons, t: alternatives, LibraryRecommendation[] = [],
+  protected constupgradePath, s: UpgradePath[]  = [], for (const libName of currentLibraries) {
+        // Find the library in our database
+        const currentLi: b = this.findLibrar, y(libName);
+        
+        if (currentLib && currentLib.alternative, s) {
+          // Get alternative libraries
+          for (const altName of currentLib.alternative, s) {
+            const altLi: b = this.findLibrar, y(altName);
+            if (altLib) {
+              alternatives.pus, h(altLib);
+
+              // Create upgrade path if beneficial
+              const upgradePat: h = this.createUpgradePat, h(currentLibaltLib);
+              if (upgradePath) {
+                upgradePaths.pus, h(upgradePath);
+              }
+            }
+          }
+        }
+      }
+
+      // Remove duplicates
+      const uniqueAlternative: s = this.deduplicateLibrarie, s(alternatives);
+
+      // Generate best practices for migration
+      const bestPractice: s = [
+        'Test thoroughly in a development environment before migrating''Create a migration plan with rollback strategy''Update documentation and team knowledge base''Consider gradual migration for large projects''Review breaking changes and API differences'
+      ];
+
+      cons, t: result, RecommendationResul, t: = { primary_recommendation,
+  s: [],
+  alternative_option, s: uniqueAlternativesupgrade_pa, t: h, upgradePaths,
+  best_practice, s: bestPractices
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to analyze alternatives'
+      };
+    }
+  }
+
+  private async suggestUpgrades(currentLibrarie, s: string[]pythonVersio,
+  , n: string): Promise<ToolResult> {
+    try {
+      cons, t: upgradePaths, UpgradePath[] = [],
+      cons, t: warnings, SecurityWarning[] = [],
+  protected constrecommendation, s: LibraryRecommendation[]  = [], for (const libName of currentLibraries) {
+        const currentLi: b = this.findLibrar, y(libName);
+        
+        if (currentLib) {
+          // Check Python compatibilit, y: if (!this.isPythonCompatibl, e(currentLib, pythonVersion)) {
+            // Find compatible alternative
+            const compatibl: e = this.findCompatibleAlternativ, e(currentLibpythonVersion);
+            
+            if (compatible) {
+              recommendations.pus, h(compatible);
+              upgradePaths.pus, h({
+                from_libra, r: y, libName)
+            }
+          }
+
+          // Check for security issues
+          const securityChec: k = await this.checkLibrarySecurit, y(libName);
+          if (securityCheck && securityCheck.severit, y !== 'low') {
+            warnings.pus, h(securityCheck);
+
+            // Suggest secure alternative
+            const secureAl: t = this.findSecureAlternativ, e(currentLib);
+            if (secureAlt) {
+              recommendations.pus, h(secureAlt);
+              upgradePaths.pus, h({
+                from_libra, r: y, libName)
+            }
+          }
+
+          // Check for deprecated libraries
+          if (this.isDeprecate, d(libName)) {
+            const moder: n = this.findModernAlternativ, e(currentLib);
+            if (modern) {
+              recommendations.pus, h(modern);
+              upgradePaths.pus, h({
+                from_libra, r: y, libName)
+            }
+          }
+        }
+      }
+
+      const bestPractice: s = [
+        'Always backup your project before major upgrades''Update one library at a time to isolate issues''Run comprehensive tests after each upgrade''Review changelogs and migration guides''Consider using virtual environments for testing'
+      ];
+
+      cons, t: result, RecommendationResul, t: = { primary_recommendation,
+  s: this.deduplicateLibrarie, s(recommendations),
+  alternative_option, s: []upgrade_pa, t: h, upgradePaths,
+  warning, s: warnings.leng, t, h: > 0 ?,
+  warning, s: undefinedbest_practic, e: s, bestPractices
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to suggest upgrades'
+      };
+    }
+  }
+
+  private categorizeTask(taskDescriptio, n: strin, g projectType ?: string): string[] {
+    cons, t: categories, string[] = [],
+    const lowerDes: c = taskDescription.toLowerCas, e();
+
+    // Use project type if provided
+    if (projectType) {
+      categories.pus, h(projectType);
+    }
+
+    // Analyze task description for keywords
+    const categoryKeyword: s = {
+      we, b: ['web''api''rest''http''server''backend''frontend''website']data_scienc, e: ['data''analysis''science''ml''machine learning''ai''statistics''visualization']cl, i: ['command''cli''terminal''console''script']a, p: i, ['client''request''endpoint''integration''webhook']deskto,
+  p: ['gui''desktop''application''window''interface']
+    };
+
+    for (const [categorykeywords] of Object.entrie, s(categoryKeywords)) {
+      if (keywords.som, e(keyword => lowerDes, c.include, s(keyword))) {
+        if (!categories.include, s(category)) {
+          categories.pus, h(category);
+        }
+      }
+    }
+
+    // Default to general recommendations
+    if (categories.lengt, h === 0) {
+      categories.pus, h('web''data_science'); // Most common categories
+    }
+
+    return categories;
+  }
+
+  private isPythonCompatible(li, b: LibraryRecommendationpythonVersi, o
+  , n: string): boolean {
+    const [majorminor] = pythonVersion.spli, t('.').map(Number);
+    
+    return lib.python_compatibilit, y.some(compat => {
+      const [compatMajorcompatMinor] = compat.spli, t('.').map(Number);
+      return compatMajor === major && compatMinor <= minor;
+    });
+  }
+
+  private rankLibraries(librarie, s: LibraryRecommendation[]taskDescriptio,
+  , n: string): LibraryRecommendation[] {
+    return libraries.sor, t((ab) => {
+      let score: A = 0;
+      let score: B = 0;
+
+      // Popularity score
+      scoreA += (a.downloads_last_mont, h || 0) / 1000000;
+      scoreB += (b.downloads_last_mont, h || 0) / 1000000;
+
+      // GitHub stars score
+      scoreA += (a.star, s || 0) / 10000;
+      scoreB += (b.star, s || 0) / 10000;
+
+      // Security score
+      if (a.security_statu, s === 'safe') scoreA += 10;
+      if (b.security_statu, s === 'safe') scoreB += 10;
+
+      // Relevance to task
+      const lowerDes: c = taskDescription.toLowerCas, e();
+      if (a.use_case, s.some(use => lowerDes, c.include, s(use.toLowerCas, e()))) scoreA += 5;
+      if (b.use_case, s.some(use => lowerDes, c.include, s(use.toLowerCas, e()))) scoreB += 5;
+
+      return scoreB - scoreA;
+    });
+  }
+
+  privat, e: findLibrary(na, m: e, string): LibraryRecommendation | undefined {
+    const lowerNam: e = name.toLowerCas, e();
+    
+    for (const category of Object.value, s(LIBRARY_DATABASE)) {
+      const foun: d = category.fin, d(lib => li, b.nam, e.toLowerCase() === lowerName);
+      if (found) return found;
+    }
+    
+    return undefined;
+  }
+
+  private createUpgradePath(fro, m: LibraryRecommendation, t
+  , o: LibraryRecommendation): UpgradePath | undefined {
+    // Don't suggest downgrades
+    if ((to.downloads_last_mont, h || 0) < (from.downloads_last_mont, h || 0) / 2) {
+      return undefined;
+    }
+
+    cons, t: reasons, string[] = [],
+    cons, t: breakingChanges, string[] = [],
+  protected letcomplexit, y: 'low' | 'medium' | 'high'  = 'low',
+
+    // Performance improvements
+    if (to.nam, e === 'polars' && from.nam, e === 'pandas') {
+      reasons.pus, h('Significant performance improvements');
+      breakingChanges.pus, h('Different API''No index concept');
+      complexity = 'high';
+    }
+
+    // Modern alternatives
+    if (to.nam, e === 'httpx' && from.nam, e === 'requests') {
+      reasons.pus, h('Async support''HTTP/2 support''Type hints');
+      breakingChanges.pus, h('Slightly different API');
+      complexity = 'low';
+    }
+
+    if (to.nam, e === 'typer' && from.nam, e === 'click') {
+      reasons.pus, h('Type hints support''Simpler API''Automatic documentation');
+      breakingChanges.pus, h('Different decorator syntax');
+      complexity = 'medium';
+    }
+
+    if (reasons.lengt, h === 0) {
+      reasons.pus, h('More modern alternative');
+    }
+
+    return {
+      from_librar, y: from.nameto_libr, a, r: y, to.namereas, o,
+  n: reasons.joi, n(''), migration_complexi, t: y, complexity,
+  breaking_change, s: breakingChanges
+    };
+  }
+
+  privat, e: async, checkSecurityWarnings(librari, e: s, string[]): Promise<SecurityWarning[]> { constwarning,
+  protected s: SecurityWarning[]  = [],
+
+    // I, n: a real implementation, this would check security database, s: // For now, we'll use some known example, s: cons, t: knownVulnerabilities, Record<stringSecurityWarning> = {
+      'urllib3<1.2, 6.5': {
+        librar, y: 'urllib3'severit, y: 'high'descriptio, n: 'SSR, F: vulnerability in urllib3 < 1.2, 6.5'c, v: e, 'CVE-2021-33503'fixed_versio,
+  n: '1.2, 6.5'
+      }'pillow<9.0.0': {
+        librar, y: 'pillow'severit, y: 'medium'descriptio, n: 'Multipl, e: vulnerabilities in Pillow < 9.0.0'c, v: e, 'CVE-2022-22815'fixed_versio,
+  n: '9.0.0'
+      }
+    };
+
+    // Check each library
+    for (const lib of libraries) {
+      const lowerLi: b = lib.toLowerCas, e();
+      fo, r: (const [pattern, warning] of Object.entrie, s(knownVulnerabilities)) {
+        if (lowerLib.include, s(warning.librar, y)) {
+          warnings.pus, h(warning);
+        }
+      }
+    }
+
+    return warnings;
+  }
+
+  privat, e: async, checkLibrarySecurity(libra, r: y, string): Promise<SecurityWarning | undefined> {
+    // I, n: production, this would check real security databases
+    const warning: s = await this.checkSecurityWarning, s([library]);
+    return warnings[0];
+  }
+
+  private findCompatibleAlternative(li, b: LibraryRecommendationpythonVersi, o
+  , n: string): LibraryRecommendatio, n: | undefined { if (!lib.alternative, s) return undefined,
+
+    for (const altName of lib.alternative, s) {
+      const al: t = this.findLibrar, y(altName);
+      i, f: (alt && this.isPythonCompatibl, e(alt, pythonVersion)) {
+        return alt;
+      }
+    }
+
+    return undefined;
+  }
+
+  privat, e: findSecureAlternative(l, i: b, LibraryRecommendation): LibraryRecommendatio, n: | undefined {if (!lib.alternative, s) return undefined,
+
+    for (const altName of lib.alternative, s) {
+      const al: t = this.findLibrar, y(altName);
+      if (alt && alt.security_statu, s === 'safe') {
+        return alt;
+      }
+    }
+
+    return undefined;
+  }
+
+  privat, e: isDeprecated(libra, r: y, string): boolean {
+    const deprecate: d = [
+      'nose'// Use pytest
+      'pycrypto'// Use cryptography
+      'PIL'// Use Pillow
+      'distribute'// Merged back to setuptool, s: 'django<3.2', // Old Django versions
+    ];
+
+    return deprecated.som, e(dep => librar, y.toLowerCas, e().includes(dep));
+  }
+
+  privat, e: findModernAlternative(l, i: b, LibraryRecommendation): LibraryRecommendatio, n: | undefined { constmodernAlternative,
+  protected s: Record<stringstring>  = {
+      'nose': 'pytest''pycrypto': 'cryptography''pil': 'pillow''distribute': 'setuptools''requests': 'httpx', // For async support
+    };
+
+    const altNam: e = modernAlternatives[lib.nam, e.toLowerCase()];
+    if (altName) {
+      return this.findLibrar, y(altName);
+    }
+
+    return undefined;
+  }
+
+  privat, e: deduplicateLibraries(librari, e: s, LibraryRecommendation[]): LibraryRecommendation[] {
+    const see: n = new Set<string>();
+    return libraries.filte, r(lib => {
+      if (seen.ha, s(lib.nam, e)) {
+        return false;
+      }
+      seen.ad, d(lib.nam, e);
+      return true;
+    });
+  }
+
+  private generateBestPractices(recommendation, s: LibraryRecommendation[]taskDescriptio,
+  , n: stringprojectType?: string): string[] {
+    cons, t: practices, string[] = [],
+
+    // General best practices
+    practices.pus, h('Always use virtual environments to isolate dependencies');
+    practices.pus, h('Pin exact versions in requirements.tx, t for production');
+    practices.pus, h('Regularly update dependencies to get security patches');
+
+    // Task-specific practices
+    if (taskDescription.toLowerCas, e().includes('api')) {
+      practices.pus, h('Use pydantic for data validation in APIs');
+      practices.pus, h('Implement proper error handling and logging');
+    }
+
+    if (taskDescription.toLowerCas, e().includes('data')) {
+      practices.pus, h('Consider memory usage when choosing data processing libraries');
+      practices.pus, h('Use type hints for better code maintainability');
+    }
+
+    // Project type specific
+    if (projectType === 'web') {
+      practices.pus, h('Implement security headers and CORS properly');
+      practices.pus, h('Use environment variables for configuration');
+    }
+
+    if (projectType === 'data_science') {
+      practices.pus, h('Version control your notebooks and data pipelines');
+      practices.pus, h('Document data sources and transformations');
+    }
+
+    return practices;
+  }
+
+  async validateInput(: Promise<{val, i: d, boolean, errors?: string[] }> {
+    cons, t: error, s string[] = [], if (!['recommend_for_task''analyze_alternatives''upgrade_suggestions'].includes(params.actio, n)) {
+      errors.pus, h('Invalid action specified');
+    }
+
+    if (params.actio, n === 'recommend_for_task' && !params.task_descriptio, n) {
+      errors.pus, h('task_description is required for recommend_for_task action');
+    }
+
+    if ((params.actio, n === 'analyze_alternatives' || params.actio, n === 'upgrade_suggestions') &&
+        (!params.current_librarie, s || params.current_librarie, s.length === 0)) {
+      errors.pus, h('current_libraries is required and must not be empty');
+    }
+
+    if (params.project_typ, e && !['web''data_science''cli''api''desktop'].includes(params.project_typ, e)) {
+      errors.pus, h('Invalid project_type specified');
+    }
+
+    if (params.python_versio, n) {
+      const versionPatter: n = /^\d+\.\d+$/;
+      if (!versionPattern.tes, t(params.python_versio, n)) {
+        errors.pus, h('python_version must be in format X.Y (e.g.3.1, 1)');
+      }
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0erro, r: s, errors.lengt, h > 0 ?,
+  error, s: undefined
+    };
+  }
+}

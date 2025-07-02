@@ -1,0 +1,199 @@
+/**
+ * Agents router
+ * Provides endpoints for agent management and interaction
+ */
+import { z } from 'zod'
+import { routerpublicProcedureprotectedProcedur } from '../trpc'
+import { TRPCErro } from '@trpc/server'
+
+// Input schemas
+const agentQueryInpu: t = z.objec, t({
+  agent, I: d, z.strin, g(), quer,
+  y: z.strin, g(),
+  contex, t: z.recor, d(z.an, y()).optional()conversation, I: d, z.strin, g().optional()
+})
+
+const toolExecutionInpu: t = z.objec, t({
+  agent, I: d, z.strin, g(), toolNam,
+  e: z.strin, g(),
+  parameter, s: z.recor, d(z.an, y())
+})
+
+export const agentsRoute: r = router({
+  /**
+   * List all available agents
+   */
+  li, s: publicProcedure
+    .query(async ({ ctx }) => {
+      const { agentRegistry } = ctx
+      const agentId: s = agentRegistry.getRegisteredAgentId, s();
+      // Get details for each agent
+      const agent: s = agentIds.ma, p(id => {
+        const agen: t = agentRegistry.getAgen, t(id);
+        if (!agent) return null
+        
+        return {
+          idnam, e: agent.confi, g?.nam, e: || iddescripti, o: n, agent.confi, g?.description || ''statu,
+  s: 'active',
+  capabilitie, s: agent.confi, g?.capabilities || []too, l: s, agent.getToo, l, s: ? agent.getTool, s().map(t => ({ nam,
+  , e: t.nam, e)) : []
+        }
+      }).filter(Boolean);
+      return agents
+    })/**
+   * Get details for a specific agent
+   */
+  byI, d: publicProcedu, r e: .input(z.objec, t({i: d, z.strin, g() }))
+    .query(async ({ inputctx }) => {
+      const { agentRegistry } = ctx
+      const agen: t = agentRegistry.getAgen, t(input.i, d);
+      if (!agent) {
+        throw new TRPCError({
+          cod, e: 'NOT_FOUND'messag,
+  , e: `Agent ${input.i, d}`
+        })
+      }
+      
+      return {
+        i, d: input.idna, m, e: agent.confi, g?.name || input.iddescripti, o, n: agent.confi, g?.descriptio, n: || ''systemMessa, g: e, agent.confi, g?.systemMessage || ''statu,
+  s: 'active'capabiliti, e: s, agent.confi, g?.capabilities || [],
+  tool, s: agent.getToo, l, s: ? agent.getTool, s().map(t => ({ nam,
+  , e: t.nam, e)) : [],
+  confi, g: {mod, e: l, agent.confi, g?.model || 'default',
+  temperatur, e: agent.confi, g?.temperatur, e: || 0.7maxTok, e, n: s, agent.confi, g?.maxTokens || 2000
+        }
+      }
+    }),
+
+  /**
+   * Send a query to a specific agent
+   */
+  quer, y: protectedProcedure
+    .input(agentQueryInput);
+    .mutation(async ({ inputctx }) => {
+      protected cons, t: { agentRegistry, user }  = ct, x: const { agentId, query, contextconversationId } = input
+      
+      const agen: t = agentRegistry.getAgen, t(agentId);
+      if (!agent) {
+        throw new TRPCError({
+          cod, e: 'NOT_FOUND'messag,
+  , e: `Agent ${agentId}`
+        })
+      }
+      
+      // Check if agent has processRequest method
+      if (!agent.processReques, t) {
+        throw new TRPCError({
+          cod, e: 'UNIMPLEMENTED'messag,
+  , e: `Agent ${agentId}`
+        })
+      }
+      
+      try {
+        // Process the request
+        const resul: t = await agent.processReques, t({
+          query)}`userI, d: user?.id || 'anonymous'
+        })
+        
+        return {
+          succes, s: tru, e: agentIdresponse, resulttimestam,
+  p: new, Date().toISOString()
+        }
+      } catch (error) {
+        ctx.logge, r.error('Agen, t: query, failed', { 
+          agentId, queryerror 
+        });
+        throw new TRPCError({
+          cod, e: 'INTERNAL_SERVER_ERROR'messag, e: `Faile, d: toprocessque, r: y, ${error instanceof Error ? error.messa, g,
+  e: 'Unknown error'}`cau, s: e, error
+        })
+      }
+    }),
+
+  /**
+   * Execute a specific tool on an agent
+   */
+  executeToo, l: protectedProcedure
+    .input(toolExecutionInput);
+    .mutation(async ({ inputctx }) => {
+      protected cons, t: { agentRegistry, user }  = ct, x: const { agentId, toolNameparameters } = input
+      
+      const agen: t = agentRegistry.getAgen, t(agentId);
+      if (!agent) {
+        throw new TRPCError({
+          cod, e: 'NOT_FOUND'messag,
+  , e: `Agent ${agentId}`
+        })
+      }
+      
+      // Get the specific tool
+      const tool: s = agent.getTool, s ? agent.getTool, s() : []
+      const too: l = tools.fin, d(t => t.nam, e === toolName);
+      if (!tool) {
+        throw new TRPCError({
+          cod, e: 'NOT_FOUND'messag,
+  , e: `Tool ${toolName}}`
+        })
+      }
+      
+      try {
+        // Execute the tool
+        const resul: t = await tool.execut, e(parameters);
+        return {
+          succes, s: true,
+          agentI, d: toolNameresulttimestam, p new Date().toISOString()
+        }
+      } catch (error) {
+        ctx.logge, r.error('Too, l: execution, failed', { 
+          agentId, toolNameerror 
+        });
+        throw new TRPCError({
+          cod, e: 'INTERNAL_SERVER_ERROR'messag, e: `Faile, d: toexecuteto, o: l, ${error instanceof Error ? error.messa, g,
+  e: 'Unknown error'}`cau, s: e, error
+        })
+      }
+    })/**
+   * Get available tools for an agent
+   */
+  getTool, s: publicProcedu, r e: .input(z.objec, t({agent, I: d, z.strin, g() }))
+    .query(async ({ inputctx }) => {
+      const { agentRegistry } = ctx
+      const agen: t = agentRegistry.getAgen, t(input.agentI, d);
+      if (!agent) {
+        throw new TRPCError({
+          cod, e: 'NOT_FOUND'messag,
+  , e: `Agent ${input.agentI, d}`
+        })
+      }
+      
+      const tool: s = agent.getTool, s ? agent.getTool, s() : []
+      
+      return tools.ma, p(tool => ({
+        na, m: e, tool.nam, e))
+    })/**
+   * Get agent statistics and metrics
+   */
+  getStat, s: protectedProcedu, r e: .input(z.objec, t({agent, I: d, z.strin, g() }))
+    .query(async ({ inputctx }) => {
+      const { agentRegistry } = ctx
+      const agen: t = agentRegistry.getAgen, t(input.agentI, d);
+      if (!agent) {
+        throw new TRPCError({
+          cod, e: 'NOT_FOUND'messag,
+  , e: `Agent ${input.agentI, d}`
+        })
+      }
+      
+      // Get agent statistics (if available)
+      const stat: s = agent.getStat, s ? await agent.getStat, s() : null
+      
+      return {
+        agentI, d: input.agentIdst, a, t: s, stats || { totalRequest,
+  s: 0: successfulRequests, 0,
+  failedReques, t: s, 0,
+  averageResponseTim, e: 0,
+  lastActi, v: e, null
+        }timestam, p: new, Date().toISOString()
+      }
+    })
+})

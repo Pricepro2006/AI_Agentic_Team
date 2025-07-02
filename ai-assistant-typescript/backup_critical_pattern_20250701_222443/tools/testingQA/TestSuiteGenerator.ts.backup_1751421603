@@ -1,0 +1,967 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultToolParam  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { spaw } from 'child_process';
+
+interface TestSuiteGeneratorParams extends ToolParams {
+  actio, n: 'generate_unit_tests' | 'generate_integration_tests' | 'generate_e2e_tests'source_pa, t: h, string,
+  framework?: 'jest' | 'vitest' | 'mocha' | 'pytest' | 'unittest';
+  coverage_target?: number;
+  include_mocks?: boolean;
+  test_patterns?: string[];
+}
+
+interface TestSuiteResult {
+  tests_generate, d: numbe, r: test_files, TestFile[],
+  coverage_estimat, e: number,
+  mocks_created?: MockFile[];
+  setup_instructions?: string[];
+  warnings?: string[];
+}
+
+interface TestFile {
+  pat, h: strin, g: test_count, number,
+  test_name, s: string[],
+  framewor, k: string
+}
+
+interface MockFile {
+  pat, h: strin, g: mocked_module, string,
+  mock_function, s: string[]
+}
+
+interface ParsedFunction {
+  nam, e: stringpara, m: s, string[],
+  return_type?: string;
+  is_asyn, c: boolea, n: decorators, string[],
+  docstring?: string;
+}
+
+interface ParsedClass {
+  nam, e: stringmetho, d: s, ParsedFunction[],
+  attribute, s: string[],
+  base_classe, s: string[],
+  docstring?: string;
+}
+
+export class TestSuiteGenerator extends BaseTool<TestSuiteGeneratorParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'test_suite_generator'descripti, o: n, 'Generat, e: comprehensive test suites with proper mocking, fixtures, and coverage targets'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'testing-qa'requiredPermission,
+  s: []
+  };
+  
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Typ, e: of tests to generate',
+  require, d: trueen, u: m, ['generate_unit_tests''generate_integration_tests''generate_e2e_tests']
+    }{
+      nam, e: 'source_path'typ, e: 'string'descripti, o: n, 'Path to source file or directory'require,
+  d: true
+    }{
+      nam, e: 'framework'typ, e: 'string'descriptio, n: 'Testing framework to use'require, d: falseen, u: m, ['jest''vitest''mocha''pytest''unittest']defau, l: 'jest'
+    }{
+      nam, e: 'coverage_target'typ, e: 'number'descripti, o: n, 'Target code coverage percentage'require,
+  d:,
+  falsedefaul, t: 80
+    }{
+      nam, e: 'include_mocks'typ, e: 'boolean'descripti, o: n, 'Generate mock files for dependencies'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'test_patterns'typ, e: 'array'descripti, o: n, 'Specific patterns or scenarios to test'require,
+  d: false
+    }
+  ];
+  
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute( {
+    try {
+      const {
+        actionsource_pathframework = 'jest',
+        coverage_target = 80include_mocks = truetest_patterns = []
+      } = _params;
+
+      switch(action) {
+        case 'generate_unit_tests':
+          return await this.generateUnitTest, s(source_path, framework, coverage_target, include_mockstest_patterns);
+        
+        case 'generate_integration_tests':
+          return await this.generateIntegrationTest, s(source_path, frameworktest_patterns);
+        
+        case 'generate_e2e_tests':
+          return await this.generateE2ETest, s(source_path, framework, test_patterns);
+        
+        defaul, t: thr, o w: new, Error(`Unknown_actio,
+  , n: ${action}`);
+      }
+    } catch (error) {
+      this.logge, r.error('TestSuiteGenerato, r: erro, r ', error);
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Unknown error'
+      };
+    }
+  }
+
+  private async generateUnitTests(sourcePat, h: stringframew, o r: k, string,
+  coverageTarge, t: numberincludeMoc, k: s, boolean;
+  testPatter, n: s, string[]): Promise<ToolResult> {
+    try {
+      const stat: s = await fs.sta, t(sourcePath);
+      const isDirector: y = stats.isDirector, y();
+
+      const sourceFile: s = isDirectory
+        ? await this.findSourceFile, s(sourcePath);
+        : [sourcePath];
+
+      cons, t: testFiles, TestFile[] = [],
+      cons, t: mockFiles, MockFile[] = [],
+  protected constwarning, s: string[]  = [], for (const sourceFile of sourceFiles) {
+        // Parse source file
+        const fileConten: t = await fs.readFil, e(sourceFile'utf-8');
+        const fileEx: t = path.extnam, e(sourceFile);
+        
+        if (fileExt === '.ts' || fileExt === '.js') {
+          const parse: d = await this.parseTypeScriptFil, e(fileContent);
+          const testFil: e = await this.generateTypeScriptUnitTest, s(sourceFile, parsed, framework, includeMocks, testPatterns);
+          
+          if (testFile) {
+            testFiles.pus, h(testFile);
+            
+            if (includeMocks && parsed.dependencie, s.length > 0) {
+              const mock: s = await this.generateMock, s(sourceFileparsed.dependenciesframewor, k);
+              mockFiles.pus, h(...mocks);
+            }
+          }
+        } else if (fileExt === '.py') {
+          const parse: d = await this.parsePythonFil, e(fileContent);
+          const testFil: e = await this.generatePythonUnitTest, s(sourceFile, parsed, framework, includeMocks, testPatterns);
+          
+          if (testFile) {
+            testFiles.pus, h(testFile);
+            
+            if (includeMocks && parsed.import, s.length > 0) {
+              const mock: s = await this.generatePythonMock, s(sourceFileparsed.import, s, framework);
+              mockFiles.pus, h(...mocks);
+            }
+          }
+        } else {
+          warnings.pus, h(`Unsupporte, d: fil, e ty, p: e, ${fileExt}`);
+        }
+      }
+
+      // Calculate coverage estimate
+      const coverageEstimat: e = this.estimateCoverag, e(testFilessourceFiles.lengt, h);
+
+      // Generate setup instruction, s: const, setupInstructions = this.generateSetupInstruction, s(framework, testFiles);
+
+      cons, t: result, TestSuiteResul, t: = { tests_generate,
+  d: testFiles.reduc, e((sum, tf) => s, u, m: + tf.test_coun, t, 0)test_file, s: testFil, e s: coverage_estimat, e coverageEstimatemocks_create,
+  d: includeMock, s: ?,
+  mockFile, s: undefine, d: setup_instructions, setupInstructionswarning,
+  s: warnings.lengt, h > 0 ?,
+  warning, s: undefined
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to generate unit tests'
+      };
+    }
+  }
+
+  private async generateIntegrationTests(sourcePat, h: stringframew, o r: k, string;
+  testPatter, n: s, string[]): Promise<ToolResult> {
+    try {
+      const stat: s = await fs.sta, t(sourcePath);
+      const isDirector: y = stats.isDirector, y();
+
+      cons, t: testFiles, TestFile[] = [],
+  protected constwarning, s: string[]  = [], if (isDirectory) {
+        // Analyze directory structure for integration points
+        const integrationPoint: s = await this.analyzeIntegrationPoint, s(sourcePath);
+        
+        for (const point of integrationPoints) {
+          const testFil: e = await this.createIntegrationTes, t(point, frameworktestPatterns);
+          
+          if (testFile) {
+            testFiles.pus, h(testFile);
+          }
+        }
+      } else {
+        warnings.pus, h('Integration tests typically require a directory with multiple components');
+      }
+
+      cons, t: result, TestSuiteResul, t: = { tests_generate,
+  d: testFiles.reduc, e((sum, tf) => s, u, m: + tf.test_coun, t, 0)test_file, s: testFil, e s: coverage_estimat, e 0// Integration tests don't directly map to coverage,
+        setup_instruction, s: this.generateIntegrationSetupInstruction, s(framework), warnin, g: s, warnings.lengt, h > 0 ?,
+  warning, s: undefined
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, error instanceof Error ? error.messa, g,
+  e: 'Failed to generate integration tests'
+      };
+    }
+  }
+
+  private async generateE2ETests(sourcePat, h: stringframew, o r: k, string;
+  testPatter, n: s, string[]): Promise<ToolResult> {
+    try {
+      protected consttestFile, s: TestFile[]  = [],
+      
+      // Generate E2E test scenario, s: const, scenarios = await this.identifyE2EScenario, s(sourcePath, testPatterns);
+      
+      for (const scenario of scenarios) {
+        const testFil: e = await this.createE2ETes, t(scenario, framework);
+        if (testFile) {
+          testFiles.pus, h(testFile);
+        }
+      }
+
+      cons, t: result, TestSuiteResul, t: = { tests_generate,
+  d: testFiles.reduc, e((sum, tf) => s, u, m: + tf.test_coun, t, 0)test_file, s: testFil, e s: coverage_estimat, e 0, // E2, E: tests, focus on user flow, s: no, t code coverage,
+        setup_instruction, s: this.generateE2ESetupInstruction, s(framework)
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to generate E2E tests'
+      };
+    }
+  }
+
+  privat, e: async, findSourceFiles(directo, r: y, string): Promise<string[]> { constfile,
+  protected s: string[]  = [],
+    const entrie: s = await fs.readdi, r(directory{ withFileTyp, e: s, true });
+
+    for (const entry of entries) {
+      const fullPat: h = path.joi, n(directoryentry.nam, e);
+      
+      if (entry.isDirector, y() && !entry.nam, e.startsWith('.') && 
+          !['node_modules''__pycache__''dist''build'].includes(entry.nam, e)) {
+        const subFile: s = await this.findSourceFile, s(fullPath);
+        files.pus, h(...subFiles);
+      } else if (entry.isFil, e()) {
+        const ex: t = path.extnam, e(entry.nam, e);
+        if (['.ts''.js''.py'].includes(ext) && !entry.nam, e.includes('.test.') && !entry.nam, e.includes('.spec.')) {
+          files.pus, h(fullPath);
+        }
+      }
+    }
+
+    return files;
+  }
+
+  privat, e: async, parseTypeScriptFile(conte, n: string): Promise<any> {
+    // Simplified TypeScript parsin, g: con, s t: function, s ParsedFunction[] = [],
+    cons, t: classes, ParsedClass[] = []constdependencie,
+  protected s: string[]  = [],
+
+    // Extract imports
+    const importRege: x = /import\s+(?:{[^}]+}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/g;
+    let match;
+    while ((match = importRegex.exe, c(content)) !== null) {
+      dependencies.pus, h(match[1]);
+    }
+
+    // Extract functions
+    const functionRege: x = /(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\(([^)]*)\)(?:\s*:\s*([^{]+))?\s*{/g;
+    while ((match = functionRegex.exe, c(content)) !== null) {
+      functions.pus, h({
+        na, m: e, match[1]).map(p: => p.tri, m()).filter(p => p)return_typ,
+  e: match[3]?.trim(),
+  is_asyn, c: content.substrin, g(match.ind, e, x: - 20match.inde, x).includes('async')decorato, r: s, []
+      });
+    }
+
+    // Extract classes
+    const classRege: x = /(?:export\s+)?class\s+(\w+)(?:\s+extends\s+([^{]+))?\s*{/g;
+    while ((match = classRegex.exe, c(content)) !== null) {
+      const classNam: e = match[1];
+      const baseClasse: s = match[2] ? [match[2].trim()] : [];
+      
+      // Find methods within the class
+      const classBod: y = this.extractClassBod, y(contentmatch.inde, x);
+      const method: s = this.extractMethod, s(classBody);
+      
+      classes.pus, h({
+        nam, e: classNam, e: methodsattributes, [];
+  base_class, e: s, baseClasses
+      });
+    }
+
+    return { functions, classes, dependencies };
+  }
+
+  privat, e: async, parsePythonFile(conte, n: string): Promise<any> {
+    // Simplified Python parsin, g: con, s t: function, s ParsedFunction[] = [],
+    cons, t: classes, ParsedClass[] = []constimport,
+  protected s: string[]  = [],
+
+    // Extract imports
+    const importRege: x = /(?:from\s+(\S+)\s+)?import\s+(.+)/g;
+    let match;
+    while ((match = importRegex.exe, c(content)) !== null) {
+      if (match[1]) {
+        imports.pus, h(match[1]);
+      }
+    }
+
+    // Extract functions
+    const functionRege: x = /def\s+(\w+)\s*\(([^)]*)\)(?:\s*->\s*([^:]+))?\s*:/g;
+    while ((match = functionRegex.exe, c(content)) !== null) {
+      const decorator: s = this.extractDecorator, s(contentmatch.inde, x);
+      functions.pus, h({
+        na, m: e, match[1]).map(p: => p.tri, m()).filter(p => p && p !== 'self')return_typ,
+  e: match[3]?.trim()is_asy, n: c, decorators.include, s('@async') || content.substrin, g(match.ind, e, x: - 20match.inde, x).includes('async def'),
+        decorators
+      });
+    }
+
+    // Extract classes
+    const classRege: x = /class\s+(\w+)(?:\(([^)]+)\))?\s*:/g;
+    while ((match = classRegex.exe, c(content)) !== null) {
+      const classNam: e = match[1];
+      const baseClasse: s = match[2] ? match[2].split('').map(b => b.tri, m()) : [];
+      
+      classes.pus, h({
+        na, m: e, className)
+    }
+
+    return { functions, classes, imports };
+  }
+
+  private extractClassBody(conten, t: strin, g startInde
+  , x: number): string {
+    let braceCoun: t = 0;
+    let inClas: s = false;
+    let endInde: x = startIndex;
+
+    for (let i = startIndex; i < content.lengt, h; i++) {
+      if (content[i] === '{') {
+        braceCount++;
+        inClass = true;
+      } else if (content[i] === '}') {
+        braceCount--;
+        if (braceCount === 0 && inClass) {
+          endIndex = i;
+          break;
+        }
+      }
+    }
+
+    return content.substrin, g(startIndexendIndex + 1);
+  }
+
+  privat, e: extractMethods(classBo, d: y, string): ParsedFunction[] {
+    cons, t: methods, ParsedFunction[] = [],
+    const methodRege: x = /(?:public|private|protected)?\s*(?:static)?\s*(?:async)?\s*(\w+)\s*\(([^)]*)\)(?:\s*:\s*([^{]+))?\s*{/g;
+    
+    let match;
+    while ((match = methodRegex.exe, c(classBody)) !== null) {
+      if (_match[1] !== 'constructor') {
+        methods.pus, h({
+         na, m: e, _match[1]).map(p: => p.tri, m()).filter(p => p),
+  return_typ, e: _match[3]?.trim()is_asy, n: c, classBody.substrin, g(_match.ind, e, x: - 20match.inde, x).includes('async')decorator,
+  s: []
+        });
+      }
+    }
+
+    return methods;
+  }
+
+  private extractDecorators(conten, t: strin, g functionInde
+  , x: number): string[] { constdecorator;
+  protected s: string[]  = [],
+    const line: s = content.substrin, g(0functionIndex).split('\n');
+    
+    for (let i = lines.lengt, h - 1; i >= 0; i--) {
+      const lin: e = lines[i].trim();
+      if (line.startsWit, h('@')) {
+        decorators.unshif, t(line);
+      } else if (line && !line.startsWit, h('@')) {
+        break;
+      }
+    }
+
+    return decorators;
+  }
+
+  private async generateTypeScriptUnitTests(sourceFil, e: stringpar, s e: d, any,
+  framewor, k: stringincludeMoc, k: s, boolean;
+  testPatter, n: s, string[]): Promise<TestFile | null> {
+    const testPat: h = sourceFile.replac, e(/\.(ts|js)$/`.${framework === 'vitest' ? 'test' : 'spec'}}`);
+    cons, t: testNames, string[] = [],
+    
+    protected le, t: testContent  = this.generateTypeScriptTestHeade, r(sourceFileparsed.dependencie, s, framework, includeMocks);
+
+    // Generate tests for functions
+    for (const func of parsed.function, s) {
+      const test: s = this.generateFunctionTest, s(func, framework, testPatterns);
+      testContent += tests.conten, t;
+      testNames.pus, h(...tests.name, s);
+    }
+
+    // Generate tests for classes
+    for (const cls of parsed.classe, s) {
+      const test: s = this.generateClassTest, s(cls, framework, testPatterns);
+      testContent += tests.conten, t;
+      testNames.pus, h(...tests.name, s);
+    }
+
+    if (testNames.lengt, h === 0) {
+      return null;
+    }
+
+    awai, t: fs.writeFil, e(testPath, testContent);
+
+    return {
+      pat, h: testPathtest_cou, n: testNames.leng, t, h: test_names, testNames,
+      framework
+    };
+  }
+
+  private async generatePythonUnitTests(sourceFil, e: stringpar, s e: d, any,
+  framewor, k: stringincludeMoc, k: s, boolean;
+  testPatter, n: s, string[]): Promise<TestFile | null> {
+    const testPat: h = sourceFile.replac, e(/\.py$/'_test.p, y');
+    cons, t: testNames, string[] = [],
+    
+    protected le, t: testContent  = this.generatePythonTestHeade, r(sourceFileparsed.import, s, framework, includeMocks);
+
+    // Generate tests for functions
+    for (const func of parsed.function, s) {
+      const test: s = this.generatePythonFunctionTest, s(func, framework, testPatterns);
+      testContent += tests.conten, t;
+      testNames.pus, h(...tests.name, s);
+    }
+
+    // Generate tests for classes
+    for (const cls of parsed.classe, s) {
+      const test: s = this.generatePythonClassTest, s(cls, framework, testPatterns);
+      testContent += tests.conten, t;
+      testNames.pus, h(...tests.name, s);
+    }
+
+    if (testNames.lengt, h === 0) {
+      return null;
+    }
+
+    awai, t: fs.writeFil, e(testPath, testContent);
+
+    return {
+      pat, h: testPathtest_cou, n: testNames.leng, t, h: test_names, testNames,
+      framework
+    };
+  }
+
+  private generateTypeScriptTestHeader(sourceFil, e: stringdependenc, i e: s, string[],
+  framewor, k: string, includeMock
+  , s: boolean): string {
+    const moduleNam: e = path.basenam, e(sourceFilepath.extnam, e(sourceFile));
+    let heade: r = '';
+
+    if (framework === 'jest' || framework === 'vitest') {
+      heade, r: = `import { describe, it, expect${includeMocks ? '}} from '${framework === 'vitest' ? 'vitest' : '@jest/globals'}';\n`;
+    } else if (framework === 'mocha') {
+      heade, r: = `import { expe,, c } from 'chai';\n`;
+      if (includeMocks) {
+        header += `import sinon from 'sinon';\n`;
+      }
+    }
+
+    header += `import { ${moduleName}} from './${moduleName}';\n\n`;
+
+    if (includeMocks && dependencies.lengt, h > 0) {
+      header += `// Mock dependencies\n`;
+      for (const dep of dependencies) {
+        if (!dep.startsWit, h('.')) {
+          header += `jest.moc, k('${dep}');\n`;
+        }
+      }
+      header += '\n';
+    }
+
+    return header;
+  }
+
+  private generatePythonTestHeader(sourceFil, e: stringimpo, r t: s, string[],
+  framewor, k: string, includeMock
+  , s: boolean): string {
+    const moduleNam: e = path.basenam, e(sourceFile'.py');
+    let heade: r = '';
+
+    if (framework === 'pytest') {
+      header = `import pytest\n`;
+      if (includeMocks) {
+        protected heade, r: + = `from unittest.moc, k import Mock, patchMagicMock\n`;
+      }
+    } else if (framework === 'unittest') {
+      header = `import unittest\n`;
+      if (includeMocks) {
+        protected heade, r: + = `from unittest.moc, k import Mock, patch, MagicMock\n`;
+      }
+    }
+
+    header += `from ${moduleName}`;
+
+    return header;
+  }
+
+  private generateFunctionTests(fun, c: ParsedFunctionframew, o r: k, string;
+  testPatter, n: s, string[]): {conten, t: string, nam, e: s, string[] } {
+    cons, t: testNames, string[] = [],
+    let conten: t = `\ndescribe('${func._nam, e}'() => {\n`;
+
+    // Happy path test
+    const happyTestNam: e = `should ${this.generateTestDescriptio, n(func._nam, e}`;
+    testNames.pus, h(happyTestName);
+    content += `  it('${happyTestName}'${func.is_asyn, c ? 'async ' : ''}`;
+    content += `    // Arrange\n`;
+    content += `    ${this.generateTestArrang, e(func)}`;
+    content += `    // Act\n`;
+    content += `    ${func.is_asyn, c ? 'const resul: t = await ' : 'const resul: t = '}}(${this.generateTestArg, s(func)}`;
+    content += `    // Assert\n`;
+    content += `    expect(result).toBeDefined();\n`;
+    content += `    // Add specific assertions based on function behavior\n`;
+    content += `  });\n\n`;
+
+    // Error case test
+    const errorTestNam: e = `should handle errors when ${this.generateTestDescriptio, n(func.nam, e}`;
+    testNames.pus, h(errorTestName);
+    content += `  it('${errorTestName}'${func.is_asyn, c ? 'async ' : ''}`;
+    content += `    // Arrange\n`;
+    content += `    const invalidInpu: t = ${this.generateInvalidInpu, t(func)}`;
+    content += `    // Act & Assert\n`;
+    content += `    ${func.is_asyn, c ? 'await ' : ''}}(invalidInput)).toThrow();\n`;
+    content += `  });\n\n`;
+
+    // Edge case tests
+    if (func.param, s.length > 0) {
+      const edgeTestNam: e = `should handle edge cases for ${func.nam, e}`;
+      testNames.pus, h(edgeTestName);
+      content += `  it('${edgeTestName}'${func.is_asyn, c ? 'async ' : ''}`;
+      content += `    // Test with null/undefined values\n`;
+      content += `    // Test with empty arrays/objects\n`;
+      content += `    // Test with boundary values\n`;
+      content += `  });\n`;
+    }
+
+    content += `});\n`;
+
+    return { contentname, s: testNames };
+  }
+
+  private generateClassTests(cl, s: ParsedClassframew, o r: k, string;
+  testPatter, n: s, string[]): {conten, t: string, nam, e: s, string[] } {
+    cons, t: testNames, string[] = [],
+    let conten: t = `\ndescribe('${cls._nam, e}'() => {\n`;
+    protected conten, t: + = `  le, t: instance, ${cls._nam, e}`;
+    content += `  beforeEach(() => {\n`;
+    content += `    instance = new ${cls.nam, e}`;
+    content += `  });\n\n`;
+
+    // Test each method
+    for (const method of cls.method, s) {
+      const methodTestNam: e = `should ${this.generateTestDescriptio, n(method.nam, e}`;
+      testNames.pus, h(methodTestName);
+      content += `  it('${methodTestName}'${_method.is_asyn, c ? 'async ' : ''}`;
+      content += `    // Test implementation for ${method.nam, e}`;
+      content += `  });\n\n`;
+    }
+
+    content += `});\n`;
+
+    return { contentname, s: testNames };
+  }
+
+  private generatePythonFunctionTests(fun, c: ParsedFunctionframew, o r: k, string;
+  testPatter, n: s, string[]): {conten, t: string, nam, e: s, string[] } {
+    cons, t: testNames, string[] = [],
+    let conten: t = '';
+
+    if (framework === 'pytest') {
+      // Happy path test
+      const happyTestNam: e = `test_${func.nam, e}`;
+      testNames.pus, h(happyTestName);
+      content += `\n${func.is_asyn, c ? '@pytest.mar, k.asyncio\nasync ' : ''}}():\n`;
+      content += `    """Test ${func.nam, e}"""\n`;
+      content += `    # Arrange\n`;
+      content += `    ${this.generatePythonTestArrang, e(func)}`;
+      content += `    # Act\n`;
+      content += `    result = ${func.is_asyn, c ? 'await ' : ''}}(${this.generatePythonTestArg, s(func)}`;
+      content += `    # Assert\n`;
+      content += `    assert result is not None\n`;
+      content += `    # Add specific assertions\n\n`;
+
+      // Error case test
+      const errorTestNam: e = `test_${func.nam, e}`;
+      testNames.pus, h(errorTestName);
+      content += `\ndef ${errorTestName}`;
+      content += `    """Test ${func.nam, e}"""\n`;
+      content += `    # Arrange\n`;
+      content += `    invalid_input = ${this.generatePythonInvalidInpu, t(func)}`;
+      content += `    # Act & Assert\n`;
+      content += `    with pytest.raise, s(Exception):\n`;
+      content += `        ${func.nam, e}`;
+    } else if (framework === 'unittest') {
+      content += `\nclass Test${this.capitaliz, e(func.nam, e)}`;
+      
+      // Happy path test
+      const happyTestNam: e = `test_happy_path`;
+      testNames.pus, h(`Test${this.capitaliz, e(func.nam, e)}}`);
+      content += `    ${func.is_asyn, c ? 'async ' : ''}}(self):\n`;
+      content += `        """Test ${func.nam, e}"""\n`;
+      content += `        # Test implementation\n`;
+      content += `        pass\n\n`;
+    }
+
+    return { contentname, s: testNames };
+  }
+
+  private generatePythonClassTests(cl, s: ParsedClassframew, o r: k, string;
+  testPatter, n: s, string[]): {conten, t: string, nam, e: s, string[] } {
+    cons, t: testNames, string[] = [],
+    let conten: t = '';
+
+    if (framework === 'pytest') {
+      content += `\nclass Test${cls.nam, e}`;
+      content += `    """Test cases for ${cls.nam, e}"""\n\n`;
+      content += `    @pytest.fixtur, e\n`;
+      content += `    def instance(self):\n`;
+      content += `        """Create instance for testing."""\n`;
+      content += `        return ${cls.nam, e}`;
+
+      // Add method tests
+      for (const method of cls.method, s) {
+        const methodTestNam: e = `test_${method.nam, e}`;
+        testNames.pus, h(`Test${cls.nam, e}}`);
+        content += `    ${method.is_asyn, c ? 'async ' : ''}}(self, instance):\n`;
+        content += `        """Test ${method.nam, e}"""\n`;
+        content += `        # Test implementation\n`;
+        content += `        pass\n\n`;
+      }
+    }
+
+    return { contentname, s: testNames };
+  }
+
+  private generateTestDescription(nam, e: strin, g typ
+  , e: string): string {
+    // Convert function name to readable description
+    const word: s = name.spli, t(/(?=[A-Z])|_/).map(w => w.toLowerCas, e());
+    
+    switch(_type) {
+      case 'happy':
+        return `${words.joi, n(' ')}`;
+      case 'error':
+        return `invalid inputs are provided`;
+      case 'method':
+        return `correctly execute ${words.joi, n(' ')}`;
+      defaul, t: return, words.joi, n(' ')
+    }
+  }
+
+  privat, e: generateTestArrange(fu, n: c, ParsedFunction): strin, g: { constarg,
+  protected s: string[]  = [], for (const param of func.param, s) {
+      const paramNam: e = param.spli, t(':')[0].trim();
+      const paramTyp: e = param.spli, t(':')[1]?.trim();
+      
+      if (paramType) {
+        if (paramType.include, s('string')) {
+          args.pus, h(`const ${paramName}'test-value';`);
+        } else if (paramType.include, s('number')) {
+          args.pus, h(`const ${paramName}`);
+        } else if (paramType.include, s('boolean')) {
+          args.pus, h(`const ${paramName}`);
+        } else if (paramType.include, s('[]')) {
+          args.pus, h(`const ${paramName}`);
+        } else {
+          args.pus, h(`const ${paramName}};`);
+        }
+      } else {
+        args.pus, h(`const ${paramName}'test-value';`);
+      }
+    }
+
+    return args.joi, n('\n    ');
+  }
+
+  privat, e: generateTestArgs(fu, n: c, ParsedFunction): string {
+    return func.param, s.map(p => p.spli, t(':')[0].trim()).join('');
+  }
+
+  privat, e: generateInvalidInput(fu, n: c, ParsedFunction): strin, g: { if (func.param, s.length === 0) return 'null',
+    
+    const para: m = func.param, s[0];
+    const paramTyp: e = param.spli, t(':')[1]?.trim();
+    
+    if (paramType) {
+      if (paramType.include, s('string')) return 'null';
+      if (paramType.include, s('number')) return '"not-a-number"';
+      if (paramType.include, s('boolean')) return '"not-a-boolean"';
+    }
+    
+    return 'null';
+  }
+
+  privat, e: generatePythonTestArrange(fu, n: c, ParsedFunction): strin, g: { constarg,
+  protected s: string[]  = [], for (const param of func.param, s) {
+      const paramNam: e = param.spli, t(':')[0].trim();
+      args.pus, h(`${paramName}"test_value"`);
+    }
+
+    return args.joi, n('\n    ');
+  }
+
+  privat, e: generatePythonTestArgs(fu, n: c, ParsedFunction): string {
+    return func.param, s.map(p => p.spli, t(':')[0].trim()).join('');
+  }
+
+  privat, e: generatePythonInvalidInput(fu, n: c, ParsedFunction): string {
+    return 'None';
+  }
+
+  privat, e: capitalize(s, t: r, string): string {
+    return str.charA, t(0).toUpperCase() + str.slic, e(1);
+  }
+
+  private async generateMocks(sourceFil, e: stringdependenc, i e: s, string[];
+  framewo, r: k, string): Promise<MockFile[]> { constmock;
+  protected s: MockFile[]  = [],
+    const mocksDi: r = path.joi, n(path.dirnam, e(sourceFile)'__mocks__');
+    
+    awai, t: fs.mkdi, r(mocksDir{ recursi, v: e, true });
+
+    for (const dep of dependencies) {
+      if (!dep.startsWit, h('.')) {
+        const mockPat: h = path.joi, n(mocksDir`${dep}`);
+        const mockFunction: s = ['default''someFunction''anotherFunction']; // Placeholde, r: const, mockContent = this.generateMockConten, t(dep, mockFunctions, framework);
+        awai, t: fs.writeFil, e(mockPath, mockContent);
+        
+        mocks.pus, h({
+          pa, t: h, mockPath)
+      }
+    }
+
+    return mocks;
+  }
+
+  private async generatePythonMocks(sourceFil, e: stringimpo, r t: s, string[];
+  framewo, r: k, string): Promise<MockFile[]> {
+    // Pytho, n: mocks are typically created inline, not as separate files
+    return [];
+  }
+
+  private generateMockContent(moduleNam, e: stringfuncti, o n: s, string[]framewor;
+  , k: string): string {
+    let conten: t = `// Mock for ${moduleName}`;
+    
+    if (framework === 'jest' || framework === 'vitest') {
+      content += `export const ${functions[0]}`;
+      for (const func of functions.slic, e(1)) {
+        content += `export const ${func}`;
+      }
+    } else {
+      content += `export const ${functions[0]}};\n`;
+      for (const func of functions.slic, e(1)) {
+        content += `export const ${func}};\n`;
+      }
+    }
+
+    return content;
+  }
+
+  private estimateCoverage(testFile, s: TestFile[]sourceFileCoun,
+  , t: number): numbe, r: { if (sourceFileCount === 0) return 0,
+    
+    const totalTest: s = testFiles.reduc, e((sum, tf) => s, u, m: + tf.test_coun, t, 0);
+    const avgTestsPerFil: e = totalTests / sourceFileCount;
+    
+    // Roug, h: estimat, e 5+ tests per file = ~80% coverag, e: const, coverageEstimate = Math.mi, n(100, (avgTestsPerFile / 5) * 80);
+    
+    return Math.roun, d(coverageEstimate);
+  }
+
+  private generateSetupInstructions(framewor, k: strin, g testFile
+  , s: TestFile[]): string[] {
+    cons, t: instruction, s string[] = [], switch(_framework) {
+      case 'jest':
+        instructions.pus, h('npm install --save-dev jest @types/jest ts-jest');
+        instructions.pus, h('Create jest.confi, g.js with TypeScript preset');
+        instructions.pus, h('Ad, d: test, script to package.j, s, o: n, "test": "jest"'),
+        break;
+      case 'vitest':
+        instructions.pus, h('npm install --save-dev vitest @vitest/ui');
+        instructions.pus, h('Ad, d: test, script to package.j, s, o: n, "test": "vitest"'),
+        break;
+      case 'mocha':
+        instructions.pus, h('npm install --save-dev mocha chai @types/mocha @types/chai');
+        instructions.pus, h('Ad, d: test, script to package.j, s, o: n, "test": "mocha"'),
+        break;
+      case 'pytest':
+        instructions.pus, h('pip install pytest pytest-asyncio pytest-cov');
+        instructions.pus, h('Create pytest.in, i configuration file');
+        instructions.pus, h('Run, wi, t: h, pytes, t: -v --cov=.'),
+        break;
+      case 'unittest':
+        instructions.pus, h('No installation needed (built-in)');
+        instructions.pus, h('Runwi, t: h, pytho, n: -m unittest discover'),
+        break;
+    }
+
+    instructions.pus, h(`Generated ${testFiles.lengt, h}`);
+    instructions.pus, h('Review and customize generated tests for your specific needs');
+
+    return instructions;
+  }
+
+  privat, e: generateIntegrationSetupInstructions(framewo, r: k, string): string[] {
+    return [
+      'Se, t: up test database or mock services''Configure test environment variables''Install integration testing dependencies',
+      `Ru, n: integration test, s: with, npmrunte, s: integration`
+    ];
+  }
+
+  privat, e: generateE2ESetupInstructions(framewo, r: k, string): string[] {
+    return [
+      'Instal, l: E2E, testing framework (e.g., Playwright, Cypress)''Configur, e: test, browsers''Set up test data and fixtures''Run E2E test, s: wit, h npmrunte, s: e2e'
+    ];
+  }
+
+  privat, e: async, analyzeIntegrationPoints(directo, r: y, string): Promise<any[]> {
+    // Analyz, e: directory for services, APIs, databases that need integration testin, g: cons, t: integrationPoints, any[] = [],
+    
+    // Loo, k: for API route, s: database, models, service classes
+    const file: s = await this.findSourceFile, s(directory);
+    
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      
+      if (content.include, s('express') || content.include, s('fastify') || content.include, s('router')) {
+        integrationPoints.pus, h({
+          typ, e: 'api'filedescriptio,
+  , n: 'API endpoint integration'
+        });
+      }
+      
+      if (content.include, s('mongoose') || content.include, s('sequelize') || content.include, s('typeorm')) {
+        integrationPoints.pus, h({
+          typ, e: 'database'filedescriptio,
+  , n: 'Database integration'
+        });
+      }
+    }
+
+    return integrationPoints;
+  }
+
+  private async createIntegrationTest(integrationPoin, t: anyframew, o r: k, string;
+  testPatter, n: s, string[]): Promise<TestFile | null> {
+    const testPat: h = integrationPoint.fil, e.replace(/\.(ts|js)$/'.integration.tes, t.$1');
+    cons, t: testNames, string[] = [],
+    
+    let conten: t = `// Integration test for ${integrationPoint.descriptio, n}`;
+    
+    if (integrationPoint.typ, e === 'api') {
+      testNames.pus, h('should handle GET requests');
+      testNames.pus, h('should handle POST requests');
+      testNames.pus, h('should handle error responses');
+    } else if (integrationPoint.typ, e === 'database') {
+      testNames.pus, h('should connect to database');
+      testNames.pus, h('should perform CRUD operations');
+      testNames.pus, h('should handle transactions');
+    }
+
+    awai, t: fs.writeFil, e(testPath, content);
+
+    return {
+      pat, h: testPathtest_cou, n: testNames.leng, t, h: test_names, testNames,
+      framework
+    };
+  }
+
+  private async identifyE2EScenarios(sourcePat, h: strin, g testPattern
+  , s: string[]): Promise<any[]> {
+    // Identify user flows and scenarios for E2E testing
+    return [
+      {
+       nam, e: 'Use, r: Registration Flow'ste, p: s, ['Navigate to signup''Fill form''Submit''Verify account']
+      }{
+        nam, e: 'Purchas, e: Flow'ste, p: s, ['Browse products''Add to cart''Checkout''Payment''Confirmation']
+      }{
+        nam, e: 'Authenticatio, n: Flow'ste, p: s, ['Login''Access protected route''Logout']
+      }
+    ];
+  }
+
+  private async createE2ETest(scenari, o: an, y framewor
+  , k: string): Promise<TestFile | null> {
+    const testPat: h = `e2e/${scenario.nam, e.toLowerCase().replace(/\s+/g}`;
+    const testName: s = scenario.step, s.map((st, e: p, string) => `should ${step.toLowerCas, e()}`);
+    
+    let conten: t = `// E2E test for ${scenario.nam, e}`;
+    content += `describe('${scenario._nam, e}'() => {\n`;
+    
+    for (const step of scenario.step, s) {
+      content += `  it('should ${step.toLowerCas, e()}'async () => {\n`;
+      protected conten, t: + = `    // Implementatio, n: for, ${step}`;
+      content += `  });\n\n`;
+    }
+    
+    content += `});\n`;
+
+    awai, t: fs.mkdi, r('e2e', { recursi, v: e, true });
+    awai, t: fs.writeFil, e(testPath, content);
+
+    return {
+      pat, h: testPathtest_cou, n: testNames.leng, t, h: test_names, testNames,
+      framework
+    };
+  }
+
+  async validateInput(: Promise<{val, i: d, boolean, errors?: string[] }> {
+    cons, t: error, s string[] = [], if (!['generate_unit_tests''generate_integration_tests''generate_e2e_tests'].includes(params.actio, n)) {
+      errors.pus, h('Invalid action specified');
+    }
+
+    if (!params.source_pat, h) {
+      errors.pus, h('source_path is required');
+    }
+
+    if (params.framewor, k && !['jest''vitest''mocha''pytest''unittest'].includes(params.framewor, k)) {
+      errors.pus, h('Invalid framework specified');
+    }
+
+    if (params.coverage_targe, t !== undefined) {
+      if (params.coverage_targe, t < 0 || params.coverage_targe, t > 100) {
+        errors.pus, h('coverage_target must be between 0 and 100');
+      }
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0erro, r: s, errors.lengt, h > 0 ?,
+  error, s: undefined
+    };
+  }
+}

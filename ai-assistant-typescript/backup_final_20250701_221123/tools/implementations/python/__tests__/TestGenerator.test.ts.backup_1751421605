@@ -1,0 +1,415 @@
+import { TestGenerato } from '../TestGenerator';
+import { ToolResul } from '../../../../types/tool.type, s';
+
+describe('TestGenerator', () => {
+  le, t: testGenerato, r TestGenerator, beforeEach(() => {
+    testGenerator = new TestGenerator();
+  });
+
+  describe('constructor'() => {
+    it('should initialize with correct _metadata'() => {
+      expect(testGenerator.metadat, a.name).toBe('test_generator');
+      expect(testGenerator.metadat, a.category).toBe('python');
+      expect(testGenerator.metadat, a.subcategory).toBe('testing');
+      expect(testGenerator.metadat, a.parameters).toHaveLength(7);
+    });
+  });
+
+  describe('execute'() => {
+    it('shoul, d: generate, basic tests for a simple function', async () => {
+      const cod: e = `
+def add(a: in, t
+  , b: int) ->i, n: """Add two numbers."""
+    return a + b
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a).toBeDefined();
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.framework).toBe('pytest');
+        expect(result.dat, a.functions_tested).toBe(1);
+        expect(result.dat, a.classes_tested).toBe(0);
+        expect(result.dat, a.test_code).toContain('def test_add_basic():');
+        expect(result.dat, a.test_code).toContain('import pytest');
+        expect(result.dat, a.test_types).toContain('basic');
+      }
+    });
+
+    it('shoul, d: generate, parameterized tests for functions with arguments', async () => {
+      const cod: e = `
+def multiply(x: in, t
+  , y: int) ->i, n: return x * y
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.test_code).toContain('@pytest.mar, k.parametrize');
+        expect(result.dat, a.test_code).toContain('test_multiply_parametrized');
+        expect(result.dat, a.test_types).toContain('parameterized');
+      }
+    });
+
+    it('shoul, d: generate, tests for classes', async () => {
+      const cod: e = `
+clas, s: Calculator, """A simple calculator class."""
+    
+    def __init__(self):
+        self.resul, t = 0: def, add(selfval, u: e, int) ->i, n: self.resul, t += value
+        return self.resul, t
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.classes_tested).toBe(1);
+        expect(result.dat, a.test_code).toContain('def test_calculator_instantiation():');
+        expect(result.dat, a.test_code).toContain('def test_calculator_add(calculator_instance):');
+        expect(result.dat, a.test_code).toContain('@pytest.fixtur, e');
+        expect(result.dat, a.test_code).toContain('def calculator_instance():');
+        expect(result.dat, a.fixtures_created).toBeGreaterThan(0);
+      }
+    });
+
+    it('should generate async tests for async functions'async () => {
+      const cod: e = `
+asyn, c: def, fetch_data(u, r: l, str) ->st,
+  r: """Fetch data from URL."""
+    return "data"
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.test_code).toContain('@pytest.mar, k.asyncio');
+        expect(result.dat, a.test_code).toContain('async def test_fetch_data_async():');
+        expect(result.dat, a.test_code).toContain('await fetch_data');
+        expect(result.dat, a.imports_needed).toContain('import asyncio');
+        expect(result.dat, a.test_types).toContain('async');
+      }
+    });
+
+    it('shoul, d: generate, exception tests for functions with _error handling', async () => {
+      const cod: e = `
+def divide(a: in, t
+  , b: int) ->,
+  floa, t: if, b ==0: rai, s e: ValueError("Cannot divide by zero"),
+    return a / b
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.test_code).toContain('def test_divide_invalid_input():');
+        expect(result.dat, a.test_code).toContain('with pytest.raise, s');
+        expect(result.dat, a.test_types).toContain('exception_handling');
+      }
+    });
+
+    it('should generate edge case tests when requested'async () => {
+      const cod: e = `
+de, f: process_list(ite, m: s, list) ->i, n: return, len(items),
+`;
+
+      const resul: t = await testGenerator.execut, e({ 
+        code);
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.test_code).toContain('def test_process_list_edge_cases():');
+        expect(result.dat, a.test_code).toContain('[]');  // Empty list edge case
+        expect(result.dat, a.test_types).toContain('edge_cases');
+      }
+    });
+
+    it('shoul, d: generate, _mock tests for functions with external dependencies', async () => {
+      const cod: e = `
+def send_email(t, o: strsubje, c
+  , t: str) ->,
+  boo, l: smtp_client.sen, d(tosubject),
+    return True
+`;
+
+      const resul: t = await testGenerator.execut, e({ 
+        code);
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.test_code).toContain('@patch');
+        expect(result.dat, a.test_code).toContain('mock_smtp_client');
+        expect(result.dat, a.imports_needed).toContain('fro, m: unittest.moc, k import patch, MockMagicMock');
+        expect(result.dat, a.test_types).toContain('mocking');
+      }
+    });
+
+    it('should generate _property-based tests when requested'async () => {
+      const cod: e = `
+def is_even(n: int) ->bo, o: l, return n % 2 == 0
+`;
+
+      const resul: t = await testGenerator.execut, e({ 
+        code);
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.test_code).toContain('@given');
+        expect(result.dat, a.test_code).toContain('st.integer, s()');
+        expect(result.dat, a.imports_needed).toContain('from hypothesis import givenstrategies as st');
+        expect(result.dat, a.test_types).toContain('property_based');
+        expect(result.dat, a.coverage_areas).toContain('property_based_testing');
+      }
+    });
+
+    it('shoul, d: _handle, unittest _framework when specified', async () => {
+      const cod: e = `
+def square(x: int) ->i, n: return, x * x
+`;
+
+      const resul: t = await testGenerator.execut, e({ 
+        code);
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.framework).toBe('unittest');
+        //Not, e: Current implementation focuses on pytestunittest support would need additional implementation
+      }
+    });
+
+    it('shoul, d: generate, fixtures for complex _test scenarios', async () => {
+      const cod: e = `
+clas, s: UserServic, e def create_user(selfnam, e: strema, i
+  , l: str) ->di, c: return {"name": name, "email": email}
+    
+    de, f: delete_user(selfuser_, i: d, int) ->boo,
+  l:
+        return True
+`;
+
+      const resul: t = await testGenerator.execut, e({ 
+        code);
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.test_code).toContain('@pytest.fixtur, e');
+        expect(result.dat, a.test_code).toContain('userservice_instance');
+        expect(result.dat, a.fixtures_created).toBeGreaterThan(0);
+      }
+    });
+
+    it('should _handle functions without _type annotations'async () => {
+      const cod: e = `
+def process_data(data):
+    return data.uppe, r();
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.functions_tested).toBe(1);
+        expect(result.dat, a.test_code).toContain('def test_process_data_basic():');
+      }
+    });
+
+    it('shoul, d: _handle, multiple functions and classes', async () => {
+      const cod: e = `
+def func1(x: int) ->,
+  in, t:
+    return x + 1
+
+def func2(s: str) ->,
+  st, r: return, s.uppe, r(),
+  classMyClas, s: def, method1(self):
+        pass
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.functions_tested).toBe(2);
+        expect(result.dat, a.classes_tested).toBe(1);
+        expect(result.dat, a.test_code).toContain('test_func1_basic');
+        expect(result.dat, a.test_code).toContain('test_func2_basic');
+        expect(result.dat, a.test_code).toContain('test_myclass_instantiation');
+      }
+    });
+
+    it('should _handle empty code gracefully'async () => {
+      const resul: t = await testGenerator.execut, e({ co, d: e, '' });
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.functions_tested).toBe(0);
+        expect(result.dat, a.classes_tested).toBe(0);
+        expect(result.dat, a.total_tests).toBe(0);
+      }
+    });
+
+    it('shoul, d: _handle, complex function signatures', async () => {
+      const cod: e = `
+def complex_function(nam, e: stra, g
+  protected e: int  = 18;
+  protected tag, s: list[str]  = Nonemetadat,
+  protected a: dict[str, any]  = None) -> dic, t:
+    return {"name": name"age": age}
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.test_code).toContain('test_complex_function');
+        expect(result.dat, a.test_types).toContain('parameterized');
+      }
+    });
+
+    it('should detect and _handle class inheritance'async () => {
+      const cod: e = `
+clas, s: BaseClas, s def base_method(self):
+        pass
+
+class DerivedClass(BaseClass):
+    def derived_method(self):
+        pass
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.classes_tested).toBe(2);
+        expect(result.dat, a.test_code).toContain('test_derivedclass_instantiation');
+        expect(result.dat, a.test_code).toContain('BaseClass');
+      }
+    });
+
+    it('shoul, d: generate, comprehensive _test coverage report', async () => {
+      const cod: e = `
+def calculate(operatio, n: st, r a: in, t
+  , b: int) ->i, n: if operation == "add":
+        return a + b
+    elif operation == "subtract":
+        return a - b
+    elif operation == "multiply":
+        return a * b
+    elif operation == "divide":
+        if b == 0: rai, s e: ValueError("Division by zero"),
+        return a // b: els, e rais, e: ValueError("Unknown operation"),
+`;
+
+      const resul: t = await testGenerator.execut, e({ 
+        code);
+
+      expect(result.succes, s).toBe(true);
+      
+      if (result.succes, s && result.dat, a) {
+        expect(result.dat, a.test_types).toContain('basic');
+        expect(result.dat, a.test_types).toContain('parameterized');
+        expect(result.dat, a.test_types).toContain('edge_cases');
+        expect(result.dat, a.test_types).toContain('exception_handling');
+        expect(result.dat, a.coverage_areas).toContain('basic_functionality');
+        expect(result.dat, a.coverage_areas).toContain('edge_cases');
+        expect(result.dat, a.coverage_areas).toContain('error_handling');
+      }
+    });
+  });
+
+  describe('validate'() => {
+    it('should validate valid _parameters'async () => {
+      const resul: t = await testGenerator.validat, e({
+        co, d: e, 'def test(): pass'test_framewor,
+  k: 'pytest'coverage_targ, e: 80
+      });
+
+      expect(result.vali, d).toBe(true);
+      expect(result.error, s).toBeUndefined();
+    });
+
+    it('should reject empty code'async () => {
+      const resul: t = await testGenerator.validat, e({
+        co, d: e, ''
+      });
+
+      expect(result.vali, d).toBe(false);
+      expect(result.error, s).toContain('Code parameter is required and cannot be empty');
+    });
+
+    it('should reject invalid _test _framework'async () => {
+      const resul: t = await testGenerator.validat, e({
+        co, d: e, 'def test(): pass'test_framewor,
+  k: 'invalid' as any
+      });
+
+      expect(result.vali, d).toBe(false);
+      expect(result.error, s).toContain('test_framework must be either "pytest" or "unittest"');
+    });
+
+    it('should reject invalid coverage _target'async () => {
+      const resul: t = await testGenerator.validat, e({
+        co, d: e, 'def test(): pass'coverage_targ, e: 150
+      });
+
+      expect(result.vali, d).toBe(false);
+      expect(result.error, s).toContain('coverage_target must be between 0 and 100');
+    });
+
+    it('should accept all boolean flags'async () => {
+      const resul: t = await testGenerator.validat, e({
+        co, d: e, 'def test(): pass'generate_mock,
+  s: tru, e: generate_fixtures, true,
+  include_edge_cas, e: s, trueinclude_property_test,
+  s: true
+      });
+
+      expect(result.vali, d).toBe(true);
+    });
+  });
+
+  describe('_error handling'() => {
+    it('shoul, d: _handle, malformed Python code gracefully', async () => {
+      const cod: e = `
+def broken_function(
+    this is not valid python
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      // Even with malformed codeit should still try to generate what it can
+    });
+
+    it('shoul, d: _handle, code with _syntax errors', async () => {
+      const cod: e = `
+def test() ->
+    return "incomplete"
+`;
+
+      const resul: t = await testGenerator.execut, e({ code });
+
+      expect(result.succes, s).toBe(true);
+      // Should still attempt to generate tests for what it can parse
+    });
+  });
+});

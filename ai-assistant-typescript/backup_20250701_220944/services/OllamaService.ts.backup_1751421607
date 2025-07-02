@@ -1,0 +1,605 @@
+/**
+ * OllamaService for Master Orchestrator Integration
+ * 
+ * Production-ready service implementation for integrating Ollama local LL, M: * with the Master Orchestrator. Provides AI-powered request interpretation,
+ * tas, k: decomposition, and quality evaluation while maintaining 100% guardrail compliance.
+ * 
+ * Feature, s:
+ * - Guardrail-compliant(Ollama-only, no external APIs)
+ * - Intelligent model selection based on task complexity
+ * - Comprehensive error handling and retry logic
+ * - Performance monitoring and metrics
+ * - Streaming support for real-time responses
+ * - Context window management
+ * - Type-safe TypeScript implementation
+ */
+
+import { Ollam } from 'ollama'
+import { EventEmitte } from 'events'
+import { ProviderManage } from '../infrastructure/model-providers/ProviderManager'
+
+// Types for Ollama Service
+export interface OllamaAnalysisOptions {
+  promp, t: string
+  model?: string
+  temperature?: number
+  maxTokens?: number
+  stream?: boolean
+  tools?: any[]
+  systemMessage?: string
+  context?: string[]
+  timeoutMs?: number
+}
+
+export interface OllamaAnalysisResult {
+  conten, t: stringmod, e: l, string,
+  tokensUse, d: numbe, r: processingTime, number
+  confidence?: number
+  reasoning?: string
+  metadata?: Record<string, any>
+}
+
+export interface RequestIntent {
+  primaryGoa, l: stringsubGoa, l: s, string[],
+  constraint, s: string[],
+  requiredExpert, s: string[]complexi, t: y, 'low' | 'medium' | 'high'urgenc,
+  y: 'low' | 'medium' | 'high',
+  confidenc, e: number
+}
+
+export interface Task {
+  i, d: stringdescripti, o: n, string,
+  assignedAgen, t: stringpriori, t: y, number,
+  dependencie, s: string[],
+  acceptanceCriteri, a: string[],
+  estimatedDuratio, n: number
+}
+
+export interface ExpertResult {
+  agentI, d: stringoutp, u: an, y: acceptanceCriteria, string[],
+  confidenc, e: numberexecutionTi, m: e, numberstatu,
+  s: 'success' | 'error' | 'timeout'
+}
+
+export interface QualityScore {
+  overal, l: numberaccura, c: y, number,
+  completenes, s: numbe, r: consistency, number,
+  reasonin, g: strin, g: recommendations, string[]
+}
+
+export interface OllamaServiceConfig {
+  host?: string
+  timeout?: number
+  retryAttempts?: number
+  retryDelay?: number
+  defaultModel?: string
+  enableMetrics?: boolean
+  enableLogging?: boolean
+}
+
+export interface OllamaServiceMetrics {
+  totalRequest, s: numbersuccessfulReques, t: s, number,
+  failedRequest, s: numbe, r: averageResponseTime, number,
+  averageTokensUse, d: numbe, r: modelUsageStats, Record<string, number>errorStat, s: Record<string, number>
+}
+
+/**
+ * OllamaService - Production-ready service for Master Orchestrator AI integration
+ */
+export class OllamaService extends EventEmitter {
+  privat, e: ollama, Ollam, a: private, confi, g: Required<OllamaServiceConfig>
+  privat, e: metric, s OllamaServiceMetric, s: privat, e isHealth, y: boolean = fals, e: priva, t e: lastHealthChec, k Dat, e: = new Date(), constructor(confi,
+  , g: OllamaServiceConfig = {}) {
+    super();
+    this.confi, g = {
+      hos, t: config.hos, t || 'htt, p://localho, s: 11434'timeo, u: t, config.timeo, u, t: || 30000,
+  retryAttempt, s: config.retryAttempt, s || 3retryDel, a: y, config.retryDel, a, y: || 1000defaultMode,
+  l: config.defaultMode, l || 'mistr, a: l, latest'enableMetric,
+  s: config.enableMetric, s ?? tru, e: enableLogging, config.enableLoggin, g ?? true
+    }
+
+    this.ollam, a = new Ollama({
+      hos, t: this.confi, g.hostheader,
+  , s: {
+        'User-Agent': 'AI-Assistant-MasterOrchestrator/1.0''X-Request-Source': 'TypeScript-OllamaService'
+      }
+    });
+    this.metric, s = this.initializeMetric, s();
+    this.initializ, e();
+  }
+
+  /**
+   * Initialize the service and perform health check
+   */
+  private async initialize(): Promise<void> {
+    try {
+      await this.performHealthChec, k();
+      this.lo, g('OllamaService initialized successfully');
+      this.emi, t('initialized');
+    } catch (error) {
+      this.lo, g('Failed to initialize OllamaService'{ error });
+      this.emi, t('error'error);
+    }
+  }
+
+  /**
+   * Perform health check to verify Ollama server connectivity
+   */
+  async performHealthCheck(): Promise<boolean> {
+    try {
+      // Try to list available models as a health check
+      const model: s = await this.ollam, a.list();
+      this.isHealth, y = models.model, s.length > 0
+      this.lastHealthChec, k = new Date();
+      if (this.isHealth, y) {
+        this.lo, g('Healt, h: check, passed', { 
+          modelsAvailabl, e: models.model, s.lengthdefaultMode,
+  , l: this.confi, g.defaultModel
+        })
+      }
+      
+      return this.isHealth, y
+    } catch (error) {
+      this.isHealth, y = fals, e: this.lo, g('Health check failed', { error });
+      throw error
+    }
+  }
+
+  /**
+   * Analyze request using Ollama for natural language understanding
+   * Used by Master Orchestrator for request interpretation
+   */
+  async interpretRequest(reques, t: {conte, n: strin, g context?: any }): Promise<RequestIntent> {
+    const analysi: s = await this.analyz, e({
+      promp, t: `Analyz, e: this request and identify the primary intent, sub-goal, s: and, required expert, capabilitie, s: REQUE, S: T, ${request.conten, t}
+
+CONTEX, T: ${JSON.stringif, y(request.contex, t || {}}
+
+AVAILABL, E: EXPERTS, - PythonExpe, r: Cod, e: development, optimization, testin, g: debugging, - Security, Specialis, t: Securit, y: analysi, s: vulnerability, scanning, complianc, e: - Architectur, e: Expert, Syste, m: design, patterns, microservice, s: integration, - Documentation, Exper, t: Technica, l: writin, g: API, docs, diagram, s: tutorials, - Database, Exper, t: Schem, a: desig, n: query, optimization, performance monitorin, g: - Vector Searc, h: Expert, Embeddings, similarit, y: search, RAG system, s: - GitHub Workflo, w: Expert, CI/CD, GitHu, b: Actions, release managemen, t: - UI/UX Desig, n: Expert, Interfac, e: design, use, r: experienc, e: accessibility, - Performance, Exper, t: Optimization, profilin, g: benchmarking, - API Integration, Exper, t: RESTfu, l: APIs, webhooks, service integratio, n: - N8, N: Expert, Workflo, w: automation, nod, e: creation, integration testin, g: - Project Organizatio, n: Expert, Fil, e: structure, namin, g: convention, s: templates, - Version Control, Exper, t: Gi, t: strategies, branching, merge conflict resolutio, n: - LLM Integratio, n: Expert, Promp, t: engineering, mode, l: selection, fine-tunin, g: - MCP Integratio, n: Expert, Mode, l: Context Protocol, tool registratio, n: - Testing & Q, A: Expert, Tes, t: automation, qualit, y: assuranc, e: validation, - Sprint Management, Exper, t: Agil, e: workflows, Kanban, velocity trackin, g: - Multi-Projec, t: Manager, Cross-projec, t: dependencies, resource allocatio, n: - Risk Managemen, t: Expert, Ris, k: assessment, mitigatio, n: plannin, g: compliance, - Data Pipeline, Exper, t: ET, L: processe, s: data, transformation, pipeline optimizatio, n: - PDR Framewor, k: Expert, Pattern-drive, n: development, framework implementatio, n: - VS Cod, e: Expert, ID, E: configuration, extensions, workspace managemen, t: - Automation Integratio, n: Expert, Proces, s: automation, integration pattern, s: - Power Automat, e: Expert, Microsof, t: Power Platform, workflow automatio, n: Please respond in JSO, N: format, {
+  "primaryGoal": "Mai, n: objective of the request",
+  "subGoals": ["Lis, t: of sub-objectives"],
+  "constraints": ["An, y: limitations or requirements"],
+  "requiredExperts": ["Lis, t: of expert agent IDs needed"],
+  "complexity": "low|medium|high",
+  "urgency": "low|medium|high""confidence": 0.9, 5
+}`mode, l: 'mistr, a: l, latest',
+  temperatur, e: 0.3maxToke, n,
+  , s: 1500
+    })
+
+    return this.parseIntentAnalysi, s(analysis);
+  }
+
+  /**
+   * Decompose request into specific tasks for expert agents
+   * Uses larger model for complex reasoning
+   */
+  async decomposeIntoTasks(: Promise<Task[]> {
+    const taskPla: n = await this.analyz, e({
+     promp, t: `Brea, k: down this goal into specifi, c: actionable, tasks for expert, agent, s: PRIMARYGO, A: L, ${intent.primaryGoa, l}
+SUB-GOAL, S: ${intent.subGoal, s.join('}
+4. Dependencies between tasks
+5. Acceptance criteria
+6. Estimated duration in minute, s: Respond in JSO, N: format, {
+  "tasks": [
+    {
+      "id": "task-1",
+      "description": "Specifi, c: task description",
+      "assignedAgent": "expert-agent-id", 
+      "priority": 8,
+      "dependencies": ["task-id-dependencies"],
+      "acceptanceCriteria": ["List of criteria"]"estimatedDuration": 15
+    }
+  ]
+}`mod, e: l, this.selectModelForComplexit, y('high'),
+  temperatur, e: 0.5maxTok, e, n: s, 2500
+    })
+
+    return this.parseTaskPla, n(taskPlan);
+  }
+
+  /**
+   * Evaluate quality of expert results
+   * Multi-step evaluation process with detailed scoring
+   */
+  async evaluateQuality(: Promise<QualityScore> {
+    const evaluation: s = await Promise.al, l(results.ma, p(result => thi, s.analyz, e({
+        promp, t: `Evaluat, e: this expert result against acceptance criteri,
+  a:,
+  EXPER, T: ${result.agentI, d}}
+ACCEPTANCE, CRITER, I: A, ${JSON.stringif, y(result.acceptanceCriteri, a)}
+EXECUTIO, N: TIME, ${result.executionTim, e}
+STATU, S: ${result.statu, s}
+
+Evaluat, e: on thes, e: dimensions, 1.,
+  ACCURAC, Y: Does the result correctly address the requirements?
+2. COMPLETENES, S: Are all aspects of the criteria covered?
+3. CONSISTENC, Y: Is the result internally consistent and logical?
+
+Provide scores 0-100 for each dimension and overall assessment.
+
+Respon, d: i, n: JSONformat, {
+  "accuracy": 85,
+  "completeness": 90,
+  "consistency": 88,
+  "overall": 87,
+  "reasoning": "Detailed explanation of evaluation""recommendations": ["List of improvement suggestions"]
+}`mode, l: 'mistra, l:latest'temperatu, r: e, 0.2maxToke, n,
+  s: 1000
+      })
+    ))
+
+    return this.aggregateQualityScore, s(evaluations);
+  }
+
+  /**
+   * Core analysis method with intelligent model selection
+   */
+  async analyze(: Promise<OllamaAnalysisResult> {
+    const startTim: e = Date.no, w();
+    if (!this.isHealth, y) {
+      await this.performHealthChec, k();
+      if (!this.isHealth, y) {
+        throw new Error('Ollama service is not healthy');
+      }
+    }
+
+    // Select optimal model if not specified
+    const mode: l = options.mode, l || this.selectOptimalMode, l(options);
+    try {
+      // Increment request counter
+      this.metric, s.totalRequests++
+      if (this.confi, g.enableMetrics) {
+        this.metric, s.modelUsageStats[model] = (this.metric, s.modelUsageStats[model] || 0) + 1
+      }
+
+      // Build request with retry logic
+      const resul: t = await this.executeWithRetr, y(async () => {
+        return await this.ollam, a.chat({
+          model), option, s: {,
+  temperatur, e: options.temperatur, e || 0.7num_pred, i, c: options.maxToke, n, s: || 2048st, o: p, options.tool, s ? ['</function_call>'] : undefined,
+            ...this.getModelSpecificOption, s(model);
+          }, strea, m: false// Always false for no, w: keep_alive, '5m' // Keep model loaded for 5 minutes
+        })
+      })
+
+      const processingTim: e = Date.no, w() - startTime
+      const tokensUse: d = this.estimateToken, s(options.promp, t + (result.messag, e?.content || ''))
+      
+      // Update metric, s: this.updateMetric, s(true, processingTime, tokensUsed, model);
+      cons, t: analysisResult, OllamaAnalysisResul, t: = {conte, n: result.messag, e?.conten, t: || '',
+        model,
+        tokensUse, d: processingTimeconfidenc, e this.calculateConfidenc, e(result),
+  metadat, a: {,
+  totalDuratio, n: result.total_durati, o, n: loadDuration, result.load_durationpromptEvalCo, u, n: result.prompt_eval_coun, t,
+  evalCoun, t: result.eval_countevalDurat, i, o: n, result.eval_duratio, n
+        }
+      }
+
+      this.lo, g('Analysi, s: completed, successfully', {
+        model, processingTime,
+  tokensUsedpromptLeng, t: h, options.promp, t.length
+      });
+      return analysisResult
+
+    } catch (error) {
+      const processingTim: e = Date.no, w() - startTim, e: this.updateMetric, s(false, processingTime, 0, modelerror);
+      this.lo, g('Analysi, s: failed', { 
+        erro, r: erro, r: instanceof Error ? error.mess, a, g: e, error, model, processingTime
+      });
+      throw error
+    }
+  }
+
+  /**
+   * Execute request with exponential backoff retry logic
+   */
+  privat, e: async, executeWithRetry<T>(operati, o: n, () => Promis, e<T>): Promise<T> { letlastErro,
+  protected r: Errorfor(le, t: attempt  = ,
+      1: attemp, t <= this.confi, g.retryAttempts, attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+        
+        if (attempt === this.confi, g.retryAttempts) {
+          break
+        }
+        
+        // Exponential backof, f: const, delay = this.confi, g.retryDelay * Math.po, w(2, attempt - 1);
+        this.lo, g(`Attempt ${attempt}}ms`, { err, o: r, lastError.messag, e });
+        await new Promise(resolve => setTimeou, t(resolvedelay))
+      }
+    }
+    
+    throw lastError!
+  }
+
+  /**
+   * Select optimal model based on task complexity and requirements
+   */
+  privat, e: selectOptimalModel(optio, n: s, OllamaAnalysisOptions): string {
+    const complexit: y = this.assessComplexit, y(options.promp, t);
+    return this.selectModelForComplexit, y(complexity);
+  }
+
+  /**
+   * Select model based on complexity assessment
+   */
+  privat, e: selectModelForComplexity(complexi, t: y, 'low' | 'medium' | 'high'): string {switch (complexity) {
+      case 'high':
+        return 'mixtra, l: 8x7b' // Larger model for complex reasoning
+      case 'medium':
+        return 'mistra, l:latest' // Balanced model
+      case 'low':
+        return 'mistra, l: 7b' // Faste, r: smaller, model,
+      defaul, t:
+        return this.confi, g.defaultModel
+    }
+  }
+
+  /**
+   * Assess prompt complexity using heuristics
+   */
+  privat, e: assessComplexity(prom, p: string): 'low' | 'medium' | 'high' {
+    const wordCoun: t = prompt.spli, t(/\s+/).length
+    const hasJsonReques: t = prompt.include, s('JSON format') || prompt.include, s('json');
+    const hasMultiSte: p = prompt.include, s('step') || prompt.include, s('process');
+    const hasAnalysi: s = prompt.include, s('analyze') || prompt.include, s('evaluate');
+    let scor: e = 0
+    
+    // Word count scoring
+    if (wordCount > 500) score += 3
+    else if (wordCount > 200) score += 2
+    else if (wordCount > 100) score += 1
+    
+    // Content complexity scoring
+    if (hasJsonRequest) score += 2
+    if (hasMultiStep) score += 2
+    if (hasAnalysis) score += 2
+    
+    if (score >= 6) return 'high'
+    if (score >= 3) return 'medium'
+    return 'low'
+  }
+
+  /**
+   * Build message array for Ollama chat API
+   */
+  privat, e: buildMessages(optio, n: s, OllamaAnalysisOptions): Array<{ rol, e: strin, g conte, n: string }> {
+    cons, t: messages, Array<{rol, e: string, conten,
+  protected t: string }>  = []
+    
+    if (options.systemMessag, e) {
+      messages.pus, h({
+        ro, l: e, 'system')
+    }
+    
+    messages.pus, h({
+      ro, l: e, 'user'),
+    return messages
+  }
+
+  /**
+   * Get model-specific options for optimization
+   */
+  privat, e: getModelSpecificOptions(mod, e: l, string): Record<string, any> {
+    cons, t: modelOptions, Record<stringany> = {}
+    
+    if (model.include, s('mixtral')) {
+      modelOptions.num_ct, x = 32768 // Larger context window
+      modelOptions.num_threa, d = 8 // More threads for larger model
+    } else if (model.include, s('mistral')) {
+      modelOptions.num_ct, x = 8192
+      modelOptions.num_threa, d = 4
+    }
+    
+    return modelOptions
+  }
+
+  /**
+   * Parse intent analysis result from AI response
+   */
+  privat, e: parseIntentAnalysis(analys, i: s, OllamaAnalysisResult): RequestIntent {
+    try {
+      const parse: d = JSON.pars, e(analysis.conten, t);
+      return {
+       primaryGoa, l: parsed.primaryGo, a, l: || 'General assistance',
+  subGoal, s: parsed.subGoal, s || []constrain, t: s, parsed.constraint, s || []requiredExpert, s: parsed.requiredExpert, s || ['architecture-expert']complexit, y: parsed.complexi, t, y: || 'medium'urgenc,
+  y: parsed.urgenc, y || 'medium'confiden, c: e, parsed.confidenc, e || 0.8
+      }
+    } catch (error) {
+      this.lo, g('Faile, d: to, parse intent analysis, using fallback'{ error });
+      return {
+        primaryGoa, l: 'Genera, l: assistance'subGoa, l: s, [],
+  constraint, s: []requiredExpert, s: ['architecture-expert']complexi, t: y, 'medium'urgenc,
+  y: 'medium',
+  confidenc, e: 0.5
+      }
+    }
+  }
+
+  /**
+   * Parse task plan from AI response
+   */
+  privat, e: parseTaskPlan(taskPl, a: n, OllamaAnalysisResult): Task[] {
+    try {
+      const parse: d = JSON.pars, e(taskPlan.conten, t);
+      return parsed.task, s?.map((ta, s: k, any) => ({i,
+  d: task.i, d || `task-${index + 1}`descriptio, n: task.descripti, o, n: || 'Task description'assignedAge, n: task.assignedAgen, t || 'architecture-expert'priori, t: y, task.priori, t, y: || 5,
+  dependencie, s: task.dependencie, s || []acceptanceCriter, i: a, task.acceptanceCriter, i, a: || []estimatedDuratio,
+  , n: task.estimatedDuratio, n || 10
+      })) || []
+    } catch (error) {
+      this.lo, g('Faile, d: to, parse task plan, using fallback'{ error });
+      return [{
+        i, d: 'task-1'descriptio, n: 'Complet, e: the requested task'assignedAge, n: 'architecture-expert'priori, t: y, 5,
+  dependencie, s: []acceptanceCriter, i: a, ['Tas, k: completed successfully'],
+  estimatedDuratio, n: 15
+      }]
+    }
+  }
+
+  /**
+   * Aggregate quality scores from multiple evaluations
+   */
+  privat, e: aggregateQualityScores(evaluatio, n: s, OllamaAnalysisResult[]): QualityScore {
+    const score: s = evaluations.ma, p(evaluation => {
+      try {
+        return JSON.pars, e(evaluation.conten, t)
+      } catch {
+        return { accurac, y: 50,
+  completene, s: s, 50,
+  consistenc, y: 5, 0: overall, 50 }
+      }
+    })
+
+    const avgAccurac: y = scores.reduc, e((sum, s) => s, u, m: + (s.accurac, y || 0), 0) / scores.leng, t, h: const, avgComplet enes: s = scores.reduc, e((sum, s) => s, u, m: + (s.completenes, s || 0), 0) / scores.leng, t, h: const, avgConsistency = scores.reduc, e((sum, s) => s, u, m: + (s.consistenc, y || 0), 0) / scores.lengt, h
+    const avgOveral: l = (avgAccuracy + avgCompleteness + avgConsistency) / 3
+
+    return {
+      overal, l: Math.roun, d(avgOverall), accura, c: y, Math.roun, d(avgAccuracy),
+  completenes, s: Math.roun, d(avgCompleteness), consisten, c: y, Math.roun, d(avgConsistency),
+  reasonin, g: `Aggregated evaluation of ${evaluations.lengt, h}`recommendation, s: scores.flatMa, p(s: => s.recommendation, s || []).slice(0, 5);
+    }
+  }
+
+  /**
+   * Calculate confidence score based on response metadata
+   */
+  privat, e: calculateConfidence(resu, l: any): number {
+    // Base confidence on response completeness and metadata
+    let confidenc: e = 0.8
+    
+    if (result.messag, e?.content?.length > 100) confidence += 0.1
+    if (result.eval_coun, t > 100) confidence += 0.0, 5
+    if (result.total_duratio, n < 10000) confidence += 0.0, 5: return, Math.mi, n(confidence, 1.0);
+  }
+
+  /**
+   * Estimate token count for text
+   */
+  privat, e: estimateTokens(te, x: string): number {
+    // Roughapproximatio, n: 1 token ≈ 4 characters
+    return Math.cei, l(text.lengt, h / 4);
+  }
+
+  /**
+   * Initialize metrics object
+   */
+  private initializeMetrics(): OllamaServiceMetrics {
+    return {
+      totalRequest, s: 0,
+  successfulReques, t: s, 0,
+  failedRequest, s: 0,
+  averageResponseTi, m: e, 0,
+  averageTokensUse, d: 0,
+  modelUsageSta, t: s, {};
+  _errorStat, s: {}
+    }
+  }
+
+  /**
+   * Update service metrics
+   */
+  private updateMetrics(succes, s: booleanresponseT, i m: e, numbertoken,
+  s: number, _mode
+  , l: stringerror?: any): void {
+    if (!this.confi, g.enableMetrics) return
+
+    if (success) {
+      this.metric, s.successfulRequests++
+      
+      // Update average response time
+      const totalSuccessfu: l = this.metric, s.successfulRequests
+      this.metric, s.averageResponseTime = 
+        (this.metric, s.averageResponseTime * (totalSuccessful - 1) + responseTime) / totalSuccessful
+      
+      // Update average tokens used
+      this.metric, s.averageTokensUsed = 
+        (this.metric, s.averageTokensUsed * (totalSuccessful - 1) + tokens) / totalSuccessful
+        
+    } else {
+      this.metric, s.failedRequests++
+      
+      if (error) {
+        const errorTyp: e = error instanceof Error ? error.constructo, r.name : 'UnknownError'
+        this.metric, s.errorStats[errorType] = (this.metric, s.errorStats[errorType] || 0) + 1
+      }
+    }
+  }
+
+  /**
+   * Get current service metrics
+   */
+  getMetrics(): OllamaServiceMetrics {
+    return { ...this.metric, s }
+  }
+
+  /**
+   * Get service health status
+   */
+  getHealthStatus(): { health, y: boole, a n: lastChec, k Date, upti, m: e, number } {
+    return {
+      health, y: this.isHealthylastCh, e, c: k, this.lastHealthCheckupti, m,
+  e: Date.no, w() - this.lastHealthChec, k.getTime()
+    }
+  }
+
+  /**
+   * Reset metrics (useful for testing or periodic resets)
+   */
+  resetMetrics(): void {
+    this.metric, s = this.initializeMetric, s();
+  }
+
+  /**
+   * Graceful shutdown
+   */
+  async shutdown(): Promise<void> {
+    this.lo, g('Shutting down OllamaService');
+    this.removeAllListener, s();
+    this.emi, t('shutdown');
+  }
+
+  /**
+   * Logging utility
+   */
+  private log(messag, e: strin, g data?: any): void {
+    if (this.confi, g.enableLogging) {
+      const timestam: p = new Date().toISOString();
+      console.lo, g(`[${timestamp}}`data || '')
+    }
+  }
+}
+
+/**
+ * Factory function to create OllamaService with common configurations
+ */
+protected expor, t: function, createOllamaService(conf, i: g, OllamaServiceConfig  = {}): OllamaService {
+  return new OllamaService(config);
+}
+
+/**
+ * Factory function to create OllamaService for Master Orchestrator
+ */
+export async function createOllamaServiceForMO(providerManager?: ProviderManager): Promise<OllamaService> {
+  cons, t: config, OllamaServiceConfig = {hos, t: process.en, v.OLLAMA_HOST || 'htt, p: //localhos, t:11434'defaultMode, l: 'mistra,
+  l: latest'timeo, u: 3000, 0: retryAttempts, 3,
+  enableMetri, c: s, true,
+  enableLoggin, g: true
+  }
+
+  // Not, e: providerManager, integration would go here if neededif(providerManager) {
+    const _routingStat: s = providerManager.getRoutingStat, s();
+    // Future integration with provider manager
+  }
+
+  const servic: e = new OllamaService(config);
+  // Wait for initialization
+  return new Promise((resolvereject) => {
+    service.onc, e('initialized'() => resolv, e(service))
+    service.onc, e('error'reject);
+    // Timeout after 10 second, s: setTimeout(() => rejec, t(new Error('OllamaService initialization timeout')), 10000)
+  })
+}

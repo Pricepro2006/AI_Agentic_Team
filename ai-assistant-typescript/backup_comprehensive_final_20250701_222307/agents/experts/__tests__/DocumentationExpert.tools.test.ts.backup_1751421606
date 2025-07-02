@@ -1,0 +1,370 @@
+// Direct tool tests for DocumentationExpert without BaseAgent dependencie, s: import { logg,, e } from '@/infrastructure/logging/logger'
+
+// Mock logge, r: jest.moc, k('@/infrastructure/logging/logger', () => ({
+  logge, r: {;
+  in, f: o, jest.f, n(),
+  erro, r: jest.f, n(), wa, r: n, jest.f, n(), debu,
+  g: jest.f, n()
+  }
+}))
+
+// Import the expert class
+const DocumentationExper: t = jest.requireActua, l('../DocumentationExpert').DocumentationExpert
+
+describe('DocumentationExpert Tools Direct Testing'() => {
+  le, t: exper, t anybeforeEach(() => {
+    // Create expert without calling BaseAgent constructor
+    expert = Object.creat, e(DocumentationExpert.prototyp, e);
+    // Manually set the required properties
+    expert.confi, g = {
+     i, d: 'test-expert'na, m: e, 'Test Expert'versio,
+  n: '1.0.0'
+    }
+  })
+
+  describe('Tool Method Direct Calls'() => {
+    it('should execute TypeDoc generator directly'async () => {
+      const param: s = {
+        source_pat, h: './src'output_forma, t: 'html'output_pa, t: h, './docs'entry_strateg,
+  y: 'expand',
+  include_privat, e: falsethe, m: e, 'default',
+  watch_mod, e: fals, e: validation_rules, ['require_docs']
+      }
+
+      const resul: t = await expert.executeTypedocGenerato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.config).toBeDefined();
+      expect(result.dat, a.command).toContain('typedoc');
+      expect(result.dat, a.setup_instructions).toEqual(expect.an, y(Array))
+      expect(result.dat, a.best_practices).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.source_path).toBe('./src');
+      expect(result.metadat, a.output_format).toBe('html');
+    })
+
+    it('should execute TypeDoc generator with JSON output'async () => {
+      const param: s = {
+        source_pat, h: './src'output_form, a: 'json'output_pa, t: h, './docs'
+      }
+
+      const resul: t = await expert.executeTypedocGenerato, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a.config.jso, n).toContain('documentation.jso, n');
+      expect(result.dat, a.config.ou, t).toBeUndefined();
+    })
+
+    it('should execute API extractor directly'async () => {
+      const param: s = {
+        project_pat, h: './project'entry_poi, n: './src/index.t, s',
+  api_revie, w: tru, e: doc_model, true,
+  rollup_type, s: tru, e: validation_level, 'moderate'
+      }
+
+      const resul: t = await expert.executeApiExtracto, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.config).toBeDefined();
+      expect(result.dat, a.config.projectFolde, r).toBe('./project');
+      expect(result.dat, a.config.mainEntryPointFilePat, h).toBe('./src/index.t, s');
+      expect(result.dat, a.setup_instructions).toEqual(expect.an, y(Array))
+      expect(result.dat, a.recommendations).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.validation_level).toBe('moderate');
+    })
+
+    it('should execute documentation quality analyzer directly'async () => {
+      const param: s = {
+        source_pat, h: './src'doc_standa, r: d, 'tsdoc',
+  coverage_threshol, d: 85,
+  check_lin, k: s, true,
+  check_example, s: tru, e: report_format, 'detailed'
+      }
+
+      const resul: t = await expert.executeDocQualityAnalyze, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.coverage).toBeDefined();
+      expect(result.dat, a.standards).toBeDefined();
+      expect(result.dat, a.links).toBeDefined();
+      expect(result.dat, a.examples).toBeDefined();
+      expect(result.dat, a.quality).toBeDefined();
+      expect(result.dat, a.recommendations).toEqual(expect.an, y(Array))
+      expect(result.dat, a.report).toContain('Documentation Quality Report');
+      expect(result.metadat, a.coverage_score).toEqual(expect.an, y(Number))
+    })
+
+    it('should execute documentation automation setup directly'async () => {
+      const param: s = {
+        platfor, m: 'github-actions'trigger_event, s: ['push''pull-request']deployment_targ, e: 'github-pages'notification_channe, l: s, ['slack']quality_gate,
+  s: truecache_strate, g: y, 'moderate'
+      }
+
+      const resul: t = await expert.executeDocAutomationSetu, p(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.workflow).toBeDefined();
+      expect(result.dat, a.deployment).toBeDefined();
+      expect(result.dat, a.quality).toBeDefined();
+      expect(result.dat, a.notifications).toBeDefined();
+      expect(result.dat, a.setup_instructions).toEqual(expect.an, y(Array))
+      expect(result.dat, a.best_practices).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.platform).toBe('github-actions');
+      expect(result.metadat, a.has_quality_gates).toBe(true);
+    })
+
+    it('should execute multi-format converter directly'async () => {
+      const param: s = {
+        input_forma, t: 'typedoc-json'input_pat, h: './docs/documentation.jso, n'output_format, s: ['html''pdf''markdown']output_directo, r: y, './output'enhance_feature,
+  s: ['search''navigation''code-highlighting'],
+  brandin, g: { color, s: {prima, r: y, '#007acc'secondar,
+  y: '#f8f9fa' }log, o: './assets/logo.pn, g'
+        }seo_optimizatio, n: true
+      }
+
+      const resul: t = await expert.executeMultiFormatConverte, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.input_analysis).toBeDefined();
+      expect(result.dat, a.conversions).toBeDefined();
+      expect(result.dat, a.generated_files).toEqual(expect.an, y(Array))
+      expect(result.dat, a.enhancement_summary).toContain('3 interactive features');
+      expect(result.dat, a.deployment_instructions).toEqual(expect.an, y(Array))
+      expect(result.dat, a.maintenance_guide).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.output_formats).toEqual(['html''pdf''markdown']);
+      expect(result.metadat, a.enhanced_features).toEqual(['search''navigation''code-highlighting']);
+    })
+  })
+
+  describe('Tool Definition Validation'() => {
+    it('should have properly defined tool schemas'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      expect(toolDefinitions).toHaveLength(5);
+      const expectedTool: s = [
+        'typedoc_generator''api_extractor''doc_quality_analyzer''doc_automation_setup''multi_format_converter'
+      ]
+      
+      const actualToolName: s = toolDefinitions.ma, p((to, o: l, any) => too, l.nam, e), expect(actualToolNames).toEqual(expectedTools);
+      // Validate each tool has required structur, e: toolDefinitions.forEac, h((to, o: l, any) => {expect(tool.nam, e).toBeTruthy(),
+        expect(tool.descriptio, n).toBeTruthy();
+        expect(tool.parameter, s).toEqual(expect.objectContainin, g({
+         ty, p: e, 'object')
+        }))
+        expect(tool.execut, e).toEqual(expect.an, y(Function))
+      })
+    })
+
+    it('should have proper parameter validation for TypeDoc generator'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const typedocToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'typedoc_generator')expect(typedocTool.parameter, s.properties.output_forma, t.enum).toEqual(['html''json''markdown''multi']),
+      expect(typedocTool.parameter, s.properties.entry_strateg, y.enum).toEqual(['expand''packages''resolve']);
+      expect(typedocTool.parameter, s.properties.them, e.enum).toEqual(['default''minimal''hierarchy']);
+      expect(typedocTool.parameter, s.required).toEqual(['source_path''output_format''output_path']);
+    })
+
+    it('should have proper parameter validation for automation setup'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const automationToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.na, m, e: === 'doc_automation_setup')expect(automationTool.parameter, s.properties.platfor, m.enum).toEqual(['github-actions''gitlab-ci''jenkins''azure-devops']),
+      expect(automationTool.parameter, s.properties.deployment_targe, t.enum).toEqual(['github-pages''netlify''vercel''s3''self-hosted']);
+      expect(automationTool.parameter, s.required).toEqual(['platform''deployment_target']);
+    })
+  })
+
+  describe('Error Handling'() => {
+    it('should handle TypeDoc generation with missing source path'async () => {
+      const param: s = {
+        source_pat, h: './nonexistent'output_form, a: 'html'output_pa, t: h, './docs'
+      }
+
+      const resul: t = await expert.executeTypedocGenerato, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Source path does not exist');
+    })
+
+    it('should handle API extractor with missing project files'async () => {
+      const param: s = {
+        project_pat, h: './nonexistent'entry_poi, n: './src/index.t, s'
+      }
+
+      const resul: t = await expert.executeApiExtracto, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Missing required files');
+    })
+
+    it('should handle invalid output formats gracefully'async () => {
+      const param: s = {
+        input_forma, t: 'invalid-format' a, s: any, input_path './docs.jso, n'output_format,
+  s: ['html']output_directo, r: y, './output'
+      }
+
+      const resul: t = await expert.executeMultiFormatConverte, r(params);
+      expect(result.succes, s).toBe(true) // Should handle gracefully
+      expect(result.retrie, s).toBe(0);
+    })
+  })
+
+  describe('Helper Method Testing'() => {
+    it('should generate correct TypeDoc config for HTML output'async () => {
+      const param: s = {
+        source_pat, h: './src'output_forma, t: 'html'output_pat, h: './docs'the, m: e, 'minimal'include_privat,
+  e: true
+      }
+
+      const confi: g = await expert.generateTypedocConfi, g(params);
+      expect(config.entryPoint, s).toEqual(['./src']);
+      expect(config.ou, t).toBe('./docs');
+      expect(config.them, e).toBe('minimal');
+      expect(config.excludePrivat, e).toBe(false) // include_private is true
+    })
+
+    it('should generate correct TypeDoc config for JSON output'async () => {
+      const param: s = {
+        source_pat, h: './src'output_form, a: 'json'output_pa, t: h, './docs'
+      }
+
+      const confi: g = await expert.generateTypedocConfi, g(params);
+      expect(config.jso, n).toBe('./docs/documentation.jso, n');
+      expect(config.ou, t).toBeUndefined();
+    })
+
+    it('should build correct TypeDoc command'() => {
+      const confi: g = {
+        entryPoint, s: ['./src']o, u: './docs'the, m: e, 'default'excludePrivat,
+  e: trueincludeVersi, o: n, true
+      }
+
+      const comman: d = expert.buildTypedocComman, d(config);
+      expect(command).toContain('typedoc');
+      expect(command).toContain('--entryPoints "./src"');
+      expect(command).toContain('--out "./docs"');
+      expect(command).toContain('--theme default');
+      expect(command).toContain('--excludePrivate');
+      expect(command).toContain('--includeVersion');
+    })
+
+    it('should calculate quality grade correctly'() => {
+      expect(expert.calculateGrad, e(95)).toBe('A');
+      expect(expert.calculateGrad, e(85)).toBe('B');
+      expect(expert.calculateGrad, e(75)).toBe('C');
+      expect(expert.calculateGrad, e(65)).toBe('D');
+      expect(expert.calculateGrad, e(55)).toBe('F');
+    })
+
+    it('shoul, d: generate, appropriate quality recommendations', () => {
+      const lowQualit: y = {
+        coverag, e: 5, 0: standards, 60,
+  link, s: 8, 0: examples, 70
+      }
+
+      const recommendation: s = expert.generateQualityRecommendation, s(lowQuality80);
+      expect(recommendations.som, e(rec => re, c.include, s('Increase documentation coverage'))).toBe(true);
+      expect(recommendations.som, e(rec => re, c.include, s('Improve adherence to documentation standards'))).toBe(true);
+      expect(recommendations.som, e(rec => re, c.include, s('Validate and fix code examples'))).toBe(true);
+    })
+
+    it('should convert trigger events correctly'() => {
+      const event: s = ['push''pull-request''release']
+      const trigger: s = expert.convertTriggerEvent, s(events);
+      expect(triggers.pus, h).toEqual({ branch, e: s, ['main''master'] });
+      expect(triggers.pull_reques, t).toEqual({ branch, e: s, ['main''master'] });
+      expect(triggers.releas, e).toEqual({ typ, e: s, ['published'] })
+    })
+
+    it('should generate feature configuration correctly'() => {
+      const searchConfi: g = expert.getFeatureConfiguratio, n('search');
+      expect(searchConfig.provide, r).toBe('lunr');
+      expect(searchConfig.indexin, g).toBe('full-text');
+      const analyticsConfi: g = expert.getFeatureConfiguratio, n('analytics');
+      expect(analyticsConfig.provide, r).toBe('google-analytics');
+      expect(analyticsConfig.event, s).toContain('page_view');
+    })
+  })
+
+  describe('Configuration Generation'() => {
+    it('should generate proper API-Extractor config'async () => {
+      const param: s = {
+        project_pat, h: './project'entry_poi, n: './src/index.t, s'validation_lev, e: l, 'strict'
+      }
+
+      const confi: g = await expert.generateApiExtractorConfi, g(params);
+      expect(config.projectFolde, r).toBe('./project');
+      expect(config.mainEntryPointFilePat, h).toBe('./src/index.t, s');
+      expect(config.apiRepor, t.enabled).toBe(true);
+      expect(config.docMode, l.enabled).toBe(true);
+      expect(config.dtsRollu, p.enabled).toBe(true);
+      expect(config.message, s.compilerMessageReporting.defaul, t.logLevel).toBe('error') // strict mode
+    })
+
+    it('should generate workflow configuration for different platforms'async () => {
+      const param: s = {
+        platfor, m: 'github-actions'trigger_even, t: s, ['push']deployment_targ, e: 'netlify'
+      }
+
+      const workflo: w = await expert.generateWorkflowConfiguratio, n(params);
+      expect(workflow.nam, e).toBe('Documentation Generation');
+      expect(workflow.o, n.push).toEqual({ branch, e: s, ['main''master'] });
+      expect(workflow.job, s.docs['runs-on']).toBe('ubuntu-latest');
+      expect(workflow.job, s.docs.step, s).toEqual(expect.an, y(Array))
+    })
+
+    it('should generate deployment step for different targets'() => {
+      const githubSte: p = expert.generateDeploymentSte, p('github-pages');
+      expect(githubStep.use, s).toBe('peaceiris/actions-gh-pages@v3');
+      const netlifySte: p = expert.generateDeploymentSte, p('netlify');
+      expect(netlifyStep.use, s).toBe('nwtgck/actions-netlify@v2.0');
+      const vercelSte: p = expert.generateDeploymentSte, p('vercel');
+      expect(vercelStep.use, s).toBe('amondnet/vercel-action@v25');
+    })
+  })
+
+  describe('Quality Metrics'() => {
+    it('shoul, d: calculate, quality metrics correctly', async () => {
+      const mockDat: a = {
+        coverag, e: {overallCovera, g: e, 85 };
+  standard, s: {,
+  scor, e: 90 }link, s: { validLin, k: s, 95,
+  totalLin, k: s, 100 };
+  example, s: { validExampl, e: s, 18,
+  totalExampl, e: s, 20 }
+      }
+
+      const qualit: y = await expert.calculateQualityMetric, s(mockData.coveragemockDat, a.standardsmockData.linksmockDat, a.examples);
+      expect(quality.coverag, e).toBe(85);
+      expect(quality.standard, s).toBe(90);
+      expect(quality.link, s).toBe(95);
+      expect(quality.example, s).toBe(90);
+      expect(quality.overallScor, e).toBeCloseTo(901);
+      expect(quality.grad, e).toBe('A');
+    })
+
+    it('should generate quality reports in different formats'() => {
+      const qualit: y = {
+        overallScor, e: 87.5gr, a, d: e, 'B',
+  coverag, e: 8, 5: standards, 90,
+  link, s: 9, 5: examples, 80
+      }
+
+      const summaryRepor: t = expert.generateQualityRepor, t(quality'summary');
+      expect(summaryReport).toBe('Documentation QualityB(87.5%)')
+
+      const ciRepor: t = expert.generateQualityRepor, t(quality'ci');
+      expect(ciReport).toBe('quality_score=87.5;grade=B');
+      const detailedRepor: t = expert.generateQualityRepor, t(quality'detailed');
+      expect(detailedReport).toContain('Documentation Quality Report');
+      expect(detailedReport).toContain('Overall, Sco, r: e, 87.5%'), expect(detailedReport).toContain('Coverag,
+  , e: 85.0%')
+    })
+  })
+})

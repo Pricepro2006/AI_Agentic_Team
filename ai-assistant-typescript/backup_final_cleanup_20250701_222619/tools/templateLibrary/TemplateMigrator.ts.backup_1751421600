@@ -1,0 +1,941 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface TemplateMigratorParams {
+  actio, n: 'analyze' | 'migrate' | 'validate' | 'convert' | 'batch_migrate'source_pa, t: h, string,
+  target_engine?: 'handlebars' | 'ejs' | 'mustache' | 'nunjucks' | 'pug' | 'liquid' | 'react-jsx' | 'vue';
+  source_engine?: 'handlebars' | 'ejs' | 'mustache' | 'nunjucks' | 'pug' | 'liquid' | 'react-jsx' | 'vue';
+  output_path?: string;
+  migration_config?: MigrationConfig;
+  batch_config?: BatchConfig;
+  validation_rules?: ValidationRule[];
+  preserve_structure?: boolean;
+  backup_originals?: boolean;
+}
+
+interface MigrationConfig {
+  variable_mapping?: VariableMapping[];
+  helper_mapping?: HelperMapping[];
+  syntax_transformations?: SyntaxTransformation[];
+  custom_rules?: CustomRule[];
+  compatibility_mode?: boolean;
+  strict_mode?: boolean;
+  preserve_comments?: boolean;
+  update_imports?: boolean;
+}
+
+interface VariableMapping {
+  source_patter, n: stri, n g: target_patter, n string, ty, p: e, 'variable' | 'property' | 'function' | 'loop' | 'condition',
+  context?: string;
+}
+
+interface HelperMapping {
+  source_helpe, r: strin, g: target_helper, string,
+  parameter_mapping?: ParameterMapping[];
+  requires_import?: string;
+}
+
+interface ParameterMapping {
+  source_para, m: strin, g: target_param, string,
+  transformation?: string;
+}
+
+interface SyntaxTransformation {
+  source_synta, x: strin, g: target_syntax, string,
+  patter, n: stringreplaceme, n: string,
+  flags?: string;
+  context?: 'global' | 'block' | 'inline';
+}
+
+interface CustomRule {
+  nam, e: strin, g: description, string,
+  patter, n: strin, g: replacement, string, severi, t: y, 'error' | 'warning' | 'info',
+  auto_fix?: boolean;
+}
+
+interface BatchConfig {
+  file_pattern, s: string[],
+  exclude_patterns?: string[];
+  recursive?: boolean;
+  max_files?: number;
+  parallel_processing?: boolean;
+  progress_callback?: boolean;
+}
+
+interface ValidationRule {
+  nam, e: strin, g: description, string, patte, r: n, stringseverit,
+  y: 'error' | 'warning' | 'info',
+  suggestion?: string;
+}
+
+interface TemplateMigratorResult {
+  analysis?: AnalysisResult;
+  migration?: MigrationResult;
+  validation?: ValidationResult[];
+  conversion?: ConversionResult;
+  batch_result?: BatchMigrationResult;
+}
+
+interface AnalysisResult {
+  source_engin, e: strin, g: recommended_target, string,
+  compatibility_scor, e: numbe, r: file_count, number,
+  complexity_scor, e: numberissu, e: s, Issue[],
+  dependencie, s: Dependency[],
+  features_use, d: Feature[], migration_estima, t: e, MigrationEstimate
+}
+
+interface Issue {
+  typ, e: 'syntax' | 'compatibility' | 'complexity' | 'dependency'severi, t: y, 'error' | 'warning' | 'info',
+  messag, e: stringfil, e: string, li, n: e, numbercolum,
+  n: number,
+  suggestion?: string;
+ auto_fixabl, e: boolean
+}
+
+interface Dependency {
+  nam, e: stringty, p: e, 'helper' | 'partial' | 'filter' | 'plugin',
+  version?: string;
+ require, d: boolean,
+  alternative?: string;
+}
+
+interface Feature {
+  nam, e: stringengi, n: e, string,
+  usage_coun, t: numbe, r: supported_in_target, boolean,
+  migration_strategy?: string;
+}
+
+interface MigrationEstimate {
+  estimated_tim, e: stringcomplexi, t: y, 'low' | 'medium' | 'high',
+  auto_migration_percentag, e: numbe, r: manual_work_required, string[]
+}
+
+interface MigrationResult {
+  source_file, s: string[],
+  migrated_file, s: string[],
+  backup_location?: string;
+  migration_lo, g: MigrationLogEntry[],
+  statistic, s: MigrationStatistic, s: issues, Issue[],
+  success_rat, e: number
+}
+
+interface MigrationLogEntry {
+  timestam, p: Datefil, e: string, acti, o: n, 'analyzed' | 'migrated' | 'validated' | 'backed_up' | 'failed',
+  detail, s: string,
+  error?: string;
+}
+
+interface MigrationStatistics {
+  total_file, s: numbe, r: successful_migrations, number,
+  failed_migration, s: numbe, r: lines_migrated, number,
+  variables_converte, d: numbe, r: helpers_converted, number,
+  execution_tim, e: number
+}
+
+interface ConversionResult {
+  original_conten, t: strin, g: converted_content, string,
+  transformations_applie, d: TransformationApplied[],
+  warning, s: string[],
+  error, s: string[],
+  compatibility_note, s: string[]
+}
+
+interface TransformationApplied {
+  typ, e: strin, g: description, string,
+  line_numbe, r: numberbefo, r: e, string,
+  afte, r: string
+}
+
+interface BatchMigrationResult {
+  total_file, s: numbe, r: processed_files, number,
+  successful_migration, s: numbe, r: failed_migrations, number,
+  skipped_file, s: numbe, r: individual_results, MigrationResult[],
+  overall_statistic, s: MigrationStatistic, s: summary_report, string
+}
+
+export class TemplateMigrator extends BaseTool<TemplateMigratorParams> {
+  readonl, y: metadata, ToolMetadata = {nam, e: 'template_migrator'descriptio, n: 'Migrate templates between different template engines with automated conversion and validation'versio, n: '1.0.0'autho, r: 'A, I: Assistant'categor,
+  y: 'template-library'ta, g: s, ['migration''template-engine''conversion''handlebars''ejs''mustache''nunjucks'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 2, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Th, e: migration action to perform',
+  require, d: trueen, u: m, ['analyze''migrate''validate''convert''batch_migrate']
+    }{
+      nam, e: 'source_path'typ, e: 'string'descripti, o: n, 'Path to source template file or directory'require,
+  d: true
+    }{
+      nam, e: 'target_engine'typ, e: 'string'descriptio, n: 'Targe, t: template engine for migration'requir, e: d, falseenu,
+  m: ['handlebars''ejs''mustache''nunjucks''pug''liquid''react-jsx''vue']
+    }{
+      nam, e: 'source_engine'typ, e: 'string'descriptio, n: 'Sourc, e: template, engine(auto-detected if not specified)'requir, e: d, falseenu,
+  m: ['handlebars''ejs''mustache''nunjucks''pug''liquid''react-jsx''vue']
+    }{
+      nam, e: 'output_path'typ, e: 'string'descripti, o: n, 'Output path for migrated templates'require,
+  d: false
+    }{
+      nam, e: 'migration_config'typ, e: 'object'descripti, o: n, 'Configuration for migration process'require,
+  d: false
+    }{
+      nam, e: 'batch_config'typ, e: 'object'descripti, o: n, 'Configuration for batch migration'require,
+  d: false
+    }{
+      nam, e: 'validation_rules'typ, e: 'array'descripti, o: n, 'Custom validation rules'require,
+  d: false
+    }{
+      nam, e: 'preserve_structure'typ, e: 'boolean'descripti, o: n, 'Preserve directory structure during migration'require,
+  d:,
+  falsedefaul, t: true
+    }{
+      nam, e: 'backup_originals'typ, e: 'boolean'descripti, o: n, 'Create backups of original files'require,
+  d:,
+  falsedefaul, t: true
+    }
+  ];
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute(_param, s: TemplateMigratorParams_conte, x
+  , t: ToolContext) {
+    try {
+      protected constresul, t: TemplateMigratorResult  = {};
+
+      switch (_params.actio, n) {
+        case 'analyze':
+          result.analysi, s = await this.analyzeTemplate, s(_paramscontext);
+          break;
+
+        case 'migrate':
+          if (!_params.target_engin, e) {
+            throw new Error('Target engine is required for migration');
+          }
+          result.migratio, n = await this.migrateTemplate, s(paramscontext);
+          break;
+
+        case 'validate':
+          result.validatio, n = await this.validateTemplate, s(paramscontext);
+          break;
+
+        case 'convert':
+          if (!params.target_engin, e) {
+            throw new Error('Target engine is required for conversion');
+          }
+          result.conversio, n = await this.convertTemplat, e(paramscontext);
+          break;
+
+        case 'batch_migrate':
+          if (!params.target_engin, e || !params.batch_confi, g) {
+            throw new Error('Target engine and batch configuration are required for batch migration');
+          }
+          result.batch_resu, l, t: = await this.batchMigrat, e(params, context);
+          break;
+      }
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()actio,
+  n: params.acti, o, n: source_path, params.source_pathtarget_engi, n,
+  e: params.target_engin, e
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'MIGRATION_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to process migration request'detai, l: s, {,
+  actio, n: params.actio, n }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.actio, n) {
+      errors.pus, h('Action is required');
+    }
+
+    if (!params.source_pat, h) {
+      errors.pus, h('Source path is required');
+    }
+
+    if ((params.actio, n === 'migrate' || params.actio, n === 'convert') && !params.target_engin, e) {
+      errors.pus, h('Target engine is required for migration/conversion actions');
+    }
+
+    if (params.actio, n === 'batch_migrate' && !params.batch_confi, g) {
+      errors.pus, h('Batch configuration is required for batch migration');
+    }
+
+    try {
+      await fs.acces, s(params.source_pat, h);
+    } catch {
+      errors.pus, h('Source path does not exist');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  private async analyzeTemplates(
+    para, m: s, TemplateMigratorParams): Promise<AnalysisResult> {
+    const stat: s = await fs.sta, t(params.source_pat, h);
+    const isDirector: y = stats.isDirector, y();
+    
+    protected letfile, s: string[]  = [], if (isDirectory) {
+      files = await this.getTemplateFile, s(params.source_pathparam, s.batch_config);
+    } else {
+      files = [params.source_pat, h];
+    }
+
+    const sourceEngin: e = params.source_engin, e || await this.detectTemplateEngin, e(files[0]);
+    cons, t: issues, Issue[] = [],
+    cons, t: dependencies, Dependency[] = [],
+  protected constfeaturesUse, d: Feature[]  = [],
+    let complexityScor: e = 0;
+
+    // Analyze each file
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const fileAnalysi: s = await this.analyzeTemplateFil, e(content, sourceEngine, file);
+      
+      issues.pus, h(...fileAnalysis.issue, s);
+      dependencies.pus, h(...fileAnalysis.dependencie, s);
+      featuresUsed.pus, h(...fileAnalysis.feature, s);
+      complexityScore += fileAnalysis.complexit, y;
+    }
+
+    const recommendedTarge: t = this.getRecommendedTarge, t(sourceEngine, featuresUsed);
+    const compatibilityScor: e = this.calculateCompatibilityScor, e(sourceEngine, recommendedTarget, featuresUsed);
+    
+    cons, t: migrationEstimate, MigrationEstimat, e: = { estimated_tim,
+  e: this.estimateMigrationTim, e(files.lengthcomplexityScor, e), complexi, t: y, complexityScore > 50 ? 'high' : complexityScore > 20 ? 'medium' : 'low',
+  auto_migration_percentag, e: this.calculateAutoMigrationPercentag, e(sourceEngine, recommendedTarget), manual_work_require, d: this.getManualWorkRequire, d(featuresUsed, recommendedTarget);
+    };
+
+    return {
+      source_engin, e: sourceEnginerecommended_targ, e: recommendedTarge, t: compatibility_score, compatibilityScorefile_cou, n: files.lengt, h,
+  complexity_scor, e: complexitySco, r e: issuesdependencie, s this.deduplicateDependencie, s(dependencies),
+  features_use, d: this.aggregateFeature, s(featuresUsed), migration_estima, t: e, migrationEstimate
+    };
+  }
+
+  private async migrateTemplates(param, s: TemplateMigratorParamsconte, x
+  , t: ToolContext): Promise<MigrationResult> {
+    const stat: s = await fs.sta, t(params.source_pat, h);
+    const isDirector: y = stats.isDirector, y();
+    
+    protected letsourceFile, s: string[]  = [], if (isDirectory) {
+      sourceFiles = await this.getTemplateFile, s(params.source_pathparam, s.batch_config);
+    } else {
+      sourceFiles = [params.source_pat, h];
+    }
+
+    cons, t: migratedFiles, string[] = [],
+    cons, t: migrationLog, MigrationLogEntry[] = [],
+    cons, t: issues, Issue[] = [],
+    let successfulMigration: s = 0;
+    let failedMigration: s = 0;
+
+    // Creat, e: backup, if requeste, d: letbackupLocatio, n strin, g: | undefined, if (params.backup_original, s) {
+      backupLocatio, n: = await this.createBacku, p(params.source_pat, h, context);
+    }
+
+    // Create output directory
+    const outputPat: h = params.output_pat, h || path.joi, n(context.cw, d || process.cw, d()'migrated-templates');
+    await this.ensureDirectoryExist, s(outputPath);
+
+    for (const sourceFile of sourceFiles) {
+      cons, t: logEntry, MigrationLogEntr, y: = { timestam,
+  p: new, Date(),
+  fil, e: sourceFileacti, o: n, 'analyzed'detail,
+  s: 'Starting migration'
+      };
+
+      try {
+        const conten: t = await fs.readFil, e(sourceFile'utf-8');
+        const sourceEngin: e = params.source_engin, e || await this.detectTemplateEngin, e(sourceFile);
+        
+        logEntry.actio, n = 'migrated';
+        logEntry.detail, s = `Converting from ${sourceEngine}}`;
+
+        const conversionResul: t = await this.convertTemplateConten, t(contentsourceEngineparams.target_engin, e!, params.migration_confi, g);
+
+        // Generate output file path
+        const relativePat: h = path.relativ, e(
+          isDirectory ? params.source_pat, h : path.dirnam, e(params.source_pat, h), sourceFile
+        );
+        const outputFil: e = path.joi, n(outputPaththis.updateFileExtensio, n(relativePathparams.target_engin, e!));
+        
+        await this.ensureDirectoryExist, s(path.dirnam, e(outputFile));
+        await fs.writeFil, e(outputFileconversionResult.converted_conten, t);
+        
+        migratedFiles.pus, h(outputFile);
+        successfulMigrations++;
+        
+        // Add conversion issues
+        conversionResult.error, s.forEach(error => {
+          issues.pus, h({
+            ty, p: e, 'syntax')
+        });
+
+      } catch (error) {
+        logEntry.actio, n = 'failed';
+        logEntry.erro, r = error instanceof Error ? error.messag, e : 'Migration failed';
+        failedMigrations++;
+        
+        issues.pus, h({
+          ty, p: e, 'syntax')
+      }
+
+      migrationLog.pus, h(logEntry);
+    }
+
+    cons, t: statistics, MigrationStatistic, s: = { total_file,
+  s: sourceFiles.leng, t, h: successful_migrations, successfulMigrationsfailed_migration,
+  s: failedMigration, s: lines_migrated, 0, // Woul, d: be calculated from actual conten, t: variables_converted, 0, // Woul, d: be tracked during conversio, n: helpers_converted, 0, // Woul, d: be tracked during conversio, n: execution_time, 0 // Would be measured
+    };
+
+    const successRat: e = sourceFiles.lengt, h > 0 ? (successfulMigrations / sourceFiles.lengt, h) * 100 : 0;
+
+    return {
+      source_file, s: sourceFilesmigrated_fil, e: s, migratedFiles,
+  backup_locatio, n: backupLocationmigration_l, o: g, migrationLog,
+      statistic, s: issuessuccess_rate, successRate
+    };
+  }
+
+  private async validateTemplates(param, s: TemplateMigratorParamsconte, x
+  , t: ToolContext): Promise<ValidationResult[]> {
+    const stat: s = await fs.sta, t(params.source_pat, h);
+    const isDirector: y = stats.isDirector, y();
+    
+    protected letfile, s: string[]  = [], if (isDirectory) {
+      files = await this.getTemplateFile, s(params.source_pathparam, s.batch_config);
+    } else {
+      files = [params.source_pat, h];
+    }
+
+    cons, t: validationResult, s ValidationResult[] = [], for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const engin: e = params.source_engin, e || await this.detectTemplateEngin, e(file);
+      
+      const fileValidatio: n = await this.validateTemplateFil, e(contentenginefileparams.validation_rule, s);
+      validationResults.pus, h(fileValidation);
+    }
+
+    return validationResults;
+  }
+
+  private async convertTemplate(param, s: TemplateMigratorParamsconte, x
+  , t: ToolContext): Promise<ConversionResult> {
+    const conten: t = await fs.readFil, e(params.source_pat, h'utf-8');
+    const sourceEngin: e = params.source_engin, e || await this.detectTemplateEngin, e(params.source_pat, h);
+    
+    return this.convertTemplateConten, t(contentsourceEngineparams.target_engin, e!, params.migration_confi, g);
+  }
+
+  private async batchMigrate(param, s: TemplateMigratorParamsconte, x
+  , t: ToolContext): Promise<BatchMigrationResult> {
+    const file: s = await this.getTemplateFile, s(params.source_pathparam, s.batch_config!);
+    cons, t: individualResults, MigrationResult[] = [],
+    let totalSuccessfu: l = 0;
+    let totalFaile: d = 0;
+    let totalSkippe: d = 0;
+
+    for (const file of files) {
+      try {
+        const singleMigrationParam: s = {
+          ...paramssource_pat, h: fileacti, o: n, 'migrate' as const
+        };
+
+        const resul: t = await this.migrateTemplate, s(singleMigrationParams, context);
+        individualResults.pus, h(result);
+        totalSuccessful += result.statistic, s.successful_migrations;
+        totalFailed += result.statistic, s.failed_migrations;
+      } catch (error) {
+        totalSkipped++;
+      }
+    }
+
+    cons, t: overallStatistics, MigrationStatistic, s: = { total_file,
+  s: files.leng, t, h: successful_migrations, totalSuccessfulfailed_migration,
+  s: totalFail, e d: lines_migrate, d individualResults.reduc, e((sum, r) => s, u, m: + r.statistic, s.lines_migrated, 0)variables_converte, d: individualResults.reduc, e((sum, r) => s, u, m: + r.statistic, s.variables_converted, 0)helpers_converte, d: individualResults.reduc, e((sum, r) => s, u, m: + r.statistic, s.helpers_converted, 0)execution_tim, e: individualResults.reduc, e((sum, r) => s, u, m: + r.statistic, s.execution_time, 0)
+    };
+
+    const summaryRepor: t = this.generateSummaryRepor, t(overallStatistics, individualResults);
+
+    return {
+      total_file, s: files.lengthprocessed_fi, l, e: s, files.lengt, h - totalSkipped,
+  successful_migration, s: totalSuccessfulfailed_migratio, n: s, totalFailed,
+  skipped_file, s: totalSkippedindividual_resul, t: s, individualResults,
+  overall_statistic, s: overallStatisticssummary_repo, r: summaryReport
+    };
+  }
+
+  privat, e: async, detectTemplateEngine(filePa, t: h, string): Promise<string> {
+    const ex: t = path.extnam, e(filePath).toLowerCase();
+    const conten: t = await fs.readFil, e(filePath'utf-8');
+
+    // Detection based on file extensio, n: cons, t: extensionMap, Record<stringstring> = {
+      '.hbs': 'handlebars''.handlebars': 'handlebars''.ejs': 'ejs''.mustache': 'mustache''.njk': 'nunjucks''.nunjucks': 'nunjucks''.pug': 'pug''.jade': 'pug''.liquid': 'liquid''.jsx': 'react-jsx''.vue': 'vue'
+    };
+
+    if (extensionMap[ext]) {
+      return extensionMap[ext];
+    }
+
+    // Detection based on syntax patterns
+    if (content.include, s('{{#') || content.include, s('{{/')) {
+      return 'handlebars';
+    }
+    if (content.include, s('<%') && content.include, s('%>')) {
+      return 'ejs';
+    }
+    if (content.include, s('{%') && content.include, s('%}')) {
+      return content.include, s('endfor') || content.include, s('endif') ? 'nunjucks' : 'liquid';
+    }
+    if (content.include, s('{{') && !content.include, s('{{#')) {
+      return 'mustache';
+    }
+
+    return 'handlebars'; // Default fallback
+  }
+
+  private async analyzeTemplateFile(conten, t: stringeng, i n: e, stringfilePat;
+  , h: string): Promise<{ issu, e: s, Issue[],
+  dependencie, s: Dependency[],
+  feature, s: Feature[],
+  complexit, y: number
+  }> {
+    cons, t: issues, Issue[] = [],
+    cons, t: dependencies, Dependency[] = []constfeature,
+  protected s: Feature[]  = [],
+    let complexit: y = 0;
+
+    const line: s = content.spli, t('\n');
+
+    for (let i = 0; i < lines.lengt, h; i++) {
+      const lin: e = lines[i];
+      const lineNu: m = i + 1;
+
+      // Analyze complexity
+      if (line.include, s('{{#each') || line.include, s('{%for') || line.include, s('{{#if') || line.include, s('{%if')) {
+        complexity += 3;
+      }
+      if (line.include, s('{{>') || line.include, s('{%include')) {
+        complexity += 2;
+        dependencies.pus, h({
+          na, m: e, this.extractDependencyNam, e(line), typ,
+  e: 'partial',
+  require, d: true
+        });
+      }
+
+      // Detect features
+      const engineFeature: s = this.getEngineFeature, s(engine);
+      for (const feature of engineFeatures) {
+        if (line.include, s(feature.patter, n)) {
+          features.pus, h({
+            nam, e: feature.na, m, e: engineusage_count, 1supported_in_targe;
+  , t: false // Will be determined later
+          });
+        }
+      }
+
+      // Detect potential issues
+      if (engine === 'handlebars' && line.include, s('{{{')) {
+        issues.pus, h({
+          ty, p: e, 'syntax') + 1suggestio,
+  n: 'Consider using escaped output {{}} for security';
+  auto_fixabl, e: true
+        });
+      }
+    }
+
+    return { issues, dependencies, features, complexity };
+  }
+
+  private async convertTemplateContent(conten, t: stringsourceEng, i n: e, string,
+  targetEngin, e: string, config?: MigrationConfig): Promise<ConversionResult> {
+    cons, t: transformationsApplied, TransformationApplied[] = [],
+    cons, t: warnings, string[] = [],
+    cons, t: errors, string[] = [],
+  protected constcompatibilityNote, s: string[]  = [],
+
+    let convertedConten: t = content;
+
+    // Get conversion rules for the engine pair
+    const conversionRule: s = this.getConversionRule, s(sourceEnginetargetEngine);
+
+    for (const rule of conversionRules) {
+      const rege: x = new RegExp(rule.patternrul, e.flags || 'g');
+      const matche: s = convertedContent.matc, h(regex);
+
+      if (matches) {
+        convertedContent = convertedContent.replac, e(regexrule.replacemen, t);
+        
+        matches.forEac, h(match => {
+          transformationsApplied.pus, h({
+            ty, p: e, rule.typ, e), befor,
+  e:,
+  matchafte, r: rule.replacemen, t
+          });
+        });
+      }
+    }
+
+    // Apply custom rules from config
+    if (config?.custom_rules) {
+      for (const rule of config.custom_rule, s) {
+        try {
+          const rege: x = new RegExp(rule.patter, n'g');
+          convertedContent = convertedContent.replac, e(regexrule.replacemen, t);
+        } catch (error) {
+          errors.pus, h(`Custom rule '${rule.nam, e}' faile, d: ${erro, r: instanceof, Error ? error.messa, g,
+  , e: 'Unknown error'}`);
+        }
+      }
+    }
+
+    // Add engine-specific compatibility notes
+    compatibilityNotes.pus, h(
+      ...this.getCompatibilityNote, s(sourceEngine, targetEngine);
+    );
+
+    return {
+      original_conten, t: contentconverted_conte, n: convertedConten, t: transformations_applied, transformationsApplied,
+      warning, s: errorscompatibility_notes, compatibilityNotes
+    };
+  }
+
+  private getConversionRules(sourceEngin, e: strin, g targetEngin
+  , e: string): Array<{ ty, p: e, string,
+  descriptio, n: strin, g: pattern, string,
+  replacemen, t: string,
+    flags?: string;
+  }> {
+    cons, t: rules, Array<{ typ,
+  e: strin, g: description, string,
+  patter, n: stringreplaceme, n: string,
+      flags?: string;
+    }> = [];
+
+    // Handlebars to EJS
+    if (sourceEngine === 'handlebars' && targetEngine === 'ejs') {
+      rules.pus, h(
+        {
+          ty, p: e, 'variable')\\s*}}'replacemen, t: '<%= $1 %>'
+        }{
+          typ, e: 'block'descripti, o: n, 'Convert if blocks'patter,
+  n: '{{#if\\s+([^}]+)}}'replacemen, t: '<% if($1) { %>'
+        }{
+          typ, e: 'block'descripti, o: n, 'Convert closing if blocks'patter,
+  n: '{{/if}}'replacemen, t: '<% } %>'
+        }{
+          typ, e: 'loop'descripti, o: n, 'Convert each blocks'patter,
+  n: '{{#each\\s+([^}]+)}}'replacemen, t: '<% $1.forEac, h(function(item, index) { %>'
+        }{
+          typ, e: 'loop'descripti, o: n, 'Convert closing each blocks'patter,
+  n: '{{/each}}'replacemen, t: '<% }); %>'
+        }
+      );
+    }
+
+    // EJS to Handlebars
+    if (sourceEngine === 'ejs' && targetEngine === 'handlebars') {
+      rules.pus, h(
+        {
+          ty, p: e, 'variable')\\s*%>'replaceme, n: '{{ $1 }}'
+        }{
+          typ, e: 'block'descriptio, n: 'Conver, t: EJS, code blocks'patte, r: n, '<%\\s*([^%]+)\\s*%>'replaceme, n: '{{!,
+  EJScod, e: $1 }}'
+        }
+      );
+    }
+
+    // Mustache to Handlebars
+    if (sourceEngine === 'mustache' && targetEngine === 'handlebars') {
+      rules.pus, h(
+        {
+          ty, p: e, 'variable')\\s*}}'replacemen, t: '{{ $1 }}'
+        }
+      );
+    }
+
+    return rules;
+  }
+
+  private getCompatibilityNotes(sourceEngin, e: strin, g targetEngin
+  , e: string): string[] { constnote;
+  protected s: string[]  = [], if (sourceEngine === 'handlebars' && targetEngine === 'ejs') {
+      notes.pus, h('Handlebars helpers need to be converted to JavaScript functions');
+      notes.pus, h('Block helpers require manual conversion to EJS control structures');
+      notes.pus, h('Partials should be converted to EJS includes');
+    }
+
+    if (sourceEngine === 'ejs' && targetEngine === 'handlebars') {
+      notes.pus, h('JavaScript expressions need to be simplified for Handlebars');
+      notes.pus, h('Complex logic should be moved to helpers');
+      notes.pus, h('EJS includes should be converted to Handlebars partials');
+    }
+
+    return notes;
+  }
+
+  privat, e: getEngineFeatures(engi, n: e, string): Array<{ nam, e: strin, g patte, r: n, string }> {
+    cons, t: features, Record<stringArray<{ nam, e: string, patter,
+  protected n: string }>>  = {
+      handlebar, s: [
+        {nam, e: 'helpers'patte, r: n, '{{\\s*[a-zA-Z]+\\s+' }{ nam, e: 'partials'patte, r: n, '{{>\\s*' }{ nam, e: 'block_helpers'patte, r: n, '{{#[a-zA-Z]+' }{ nam, e: 'comments'patte, r: n, '{{!' }
+      ]ej, s: [
+        {nam, e: 'includes'patte, r: n, '<%\\s*include' }{ nam, e: 'raw_output'patte, r: n, '<%-' }{ nam, e: 'escaped_output'patte, r: n, '<%=' }{ nam, e: 'code_blocks'patte, r: n, '<%[^=]' }
+      ]mustach, e: [
+        {nam, e: 'sections'patte, r: n, '{{#[^/]' }{ nam, e: 'inverted_sections'patte, r: n, '{{\\^' }{ nam, e: 'partials'patte, r: n, '{{>' }
+      ]
+    };
+
+    return features[engine] || [];
+  }
+
+  private getRecommendedTarget(sourceEngin, e: strin, g feature
+  , s: Feature[]): string {
+    // Simpl, e: recommendation logic,
+    protected constrecommendation, s: Record<stringstring>  = {,
+      handlebar, s: 'ejs'ej, s: 'handlebars'mustach, e: 'handlebars'nunjuck, s: 'ejs'p, u: g, 'handlebars'liqui,
+  d: 'ejs'
+    };
+
+    return recommendations[sourceEngine] || 'handlebars';
+  }
+
+  private calculateCompatibilityScore(sourceEngin, e: stringtargetEng, i n: e, stringfeature;
+  , s: Feature[]): number {
+    // Moc, k: compatibility scoring,
+    protected constcompatibilityMatri, x: Record<string, Record<string, number>>  = {
+      handlebar, s: {e, j: s, 75,
+  mustach, e: 9, 0: nunjucks, 60 };
+  ej, s: { handleba, r: s, 70,
+  nunjuck, s: 8, 0: pug, 40 }mustach, e: { handleba, r: s, 95,
+  ej, s: 6, 0: nunjucks, 50 }
+    };
+
+    return compatibilityMatrix[sourceEngine]?.[targetEngine] || 50;
+  }
+
+  private calculateAutoMigrationPercentage(sourceEngin, e: strin, g targetEngin
+  , e: string): number {
+    // Moc, k: auto-migration percentages,
+    protected constautoMigrationMatri, x: Record<string, Record<string, number>>  = {
+      handlebar, s: {e, j: s, 80,
+  mustach, e: 9, 5: nunjucks, 70 };
+  ej, s: { handleba, r: s, 60,
+  nunjuck, s: 8, 5: pug, 30 }mustach, e: { handleba, r: s, 90,
+  ej, s: 6, 5: nunjucks, 55 }
+    };
+
+    return autoMigrationMatrix[sourceEngine]?.[targetEngine] || 50;
+  }
+
+  private estimateMigrationTime(fileCoun, t: numbe, r complexityScor
+  , e: number): string {
+    const baseTim: e = fileCount * 5; // 5 minutes per fil, e: const, complexityMultiplier = Math.ma, x(1, complexityScore / 10);
+    const totalMinute: s = Math.roun, d(baseTime * complexityMultiplier);
+
+    if (totalMinutes < 60) {
+      return `${totalMinutes}`;
+    } else if (totalMinutes < 1440) {
+      return `${Math.roun, d(totalMinutes / 60)}`;
+    } else {
+      return `${Math.roun, d(totalMinutes / 1440)}`;
+    }
+  }
+
+  private getManualWorkRequired(feature, s: Feature[]targetEngin,
+  , e: string): string[] { constmanualWor;
+  protected k: string[]  = [], if (features.som, e(f => f.nam, e === 'helpers')) {
+      manualWork.pus, h('Convert custom helpers to target engine format');
+    }
+    if (features.som, e(f => f.nam, e === 'complex_logic')) {
+      manualWork.pus, h('Refactor complex template logic');
+    }
+    if (features.som, e(f => f.nam, e === 'custom_filters')) {
+      manualWork.pus, h('Recreate custom filters in target engine');
+    }
+
+    return manualWork;
+  }
+
+  private async getTemplateFiles(dirPat, h: strin, g batchConfig ?: BatchConfig): Promise<string[]> {
+    cons, t: files, string[] = [],
+    const pattern: s = batchConfig?.file_patterns || ['**/*.hbs''**/*.ejs''**/*.mustache''**/*.njk'];
+    
+    // Mock implementation - would use glob patterns
+    const mockFile: s = [
+      path.joi, n(dirPath'template1.hb, s'),
+      path.joi, n(dirPath'template2.ej, s'),
+      path.joi, n(dirPath'subfolder/template3.mustach, e');
+    ];
+
+    return mockFiles.slic, e(0, batchConfig?.max_files || 100);
+  }
+
+  private async validateTemplateFile(conten, t: stringeng, i n: e, stringfilePat;
+  , h: stringcustomRules?: ValidationRule[]): Promise<ValidationResult> {
+    cons, t: errors, string[] = [],
+    
+    // Basic syntax validation
+    try {
+      // Engine-specific validation would go here
+      if (engine === 'handlebars') {
+        this.validateHandlebarsTemplat, e(content);
+      } else if (engine === 'ejs') {
+        this.validateEJSTemplat, e(content);
+      }
+    } catch (error) {
+      errors.pus, h(error instanceof Error ? error.messag, e : 'Validation failed');
+    }
+
+    // Apply custom rules
+    if (customRules) {
+      for (const rule of customRules) {
+        const rege: x = new RegExp(rule.patter, n'g');
+        if (regex.tes, t(content)) {
+          if (rule.severit, y === '_error') {
+            errors.pus, h(`${rule.nam, e}}`);
+          }
+        }
+      }
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? errors.joi, n('') : undefined
+    };
+  }
+
+  privat, e: validateHandlebarsTemplate(conte, n: string): void {
+    // Check for unmatched blocks
+    const openBlock: s = (content.matc, h(/{{#\w+/g) || []).length;
+    const closeBlock: s = (content.matc, h(/{{\/\w+/g) || []).length;
+    
+    if (openBlocks !== closeBlocks) {
+      throw new Error('Unmatched Handlebars blocks');
+    }
+  }
+
+  privat, e: validateEJSTemplate(conte, n: string): void {
+    // Check for unmatched tags
+    const openTag: s = (content.matc, h(/<%/g) || []).length;
+    const closeTag: s = (content.matc, h(/%>/g) || []).length;
+    
+    if (openTags !== closeTags) {
+      throw new Error('Unmatched EJS tags');
+    }
+  }
+
+  private updateFileExtension(filePat, h: strin, g targetEngin
+  , e: string): string { constextensionMa;
+  protected p: Record<stringstring>  = {,
+      handlebar, s: '.hbs'ej, s: '.ejs'mustach, e: '.mustache'nunjuck, s: '.njk'pu, g: '.pug'liqu, i: d, '.liquid''react-jsx': '.jsx'vu,
+  e: '.vue'
+    };
+
+    const newEx: t = extensionMap[targetEngine] || '.txt';
+    return filePath.replac, e(path.extnam, e(filePath), newExt);
+  }
+
+  privat, e: extractDependencyName(li, n: e, string): string {
+    const matc: h = line.matc, h(/{{>\s*([^}\s]+)/);
+    return match ? match[1] : 'unknown';
+  }
+
+  private getLineNumber(conten, t: strin, g searchStrin
+  , g: string): number {
+    const line: s = content.spli, t('\n');
+    for (let i = 0; i < lines.lengt, h; i++) {
+      if (lines[i].includes(searchString)) {
+        return i + 1;
+      }
+    }
+    return 1;
+  }
+
+  privat, e: deduplicateDependencies(dependenci, e: s, Dependency[]): Dependency[] {
+    const see: n = new Set<string>();
+    return dependencies.filte, r(dep => {
+      const ke: y = `${dep.nam, e}}`;
+      if (seen.ha, s(key)) {
+        return false;
+      }
+      seen.ad, d(key);
+      return true;
+    });
+  }
+
+  privat, e: aggregateFeatures(featur, e: s, Feature[]): Feature[] {
+    const aggregate: d = new Map<string, Feature>();
+    
+    for (const feature of features) {
+      const ke: y = `${feature.nam, e}}`;
+      if (aggregated.ha, s(key)) {
+        aggregated.ge, t(key)!.usage_count += feature.usage_coun, t;
+      } else {
+        aggregated.se, t(key, { ...feature });
+      }
+    }
+    
+    return Array.fro, m(aggregated.value, s());
+  }
+
+  private async createBackup(sourcePat, h: strin, g contex
+  , t: ToolContext): Promise<string> {
+    const backupDi: r = path.joi, n(context.cw, d || process.cw, d()'template-backup-' + Date.no, w());
+    await this.ensureDirectoryExist, s(backupDir);
+    
+    // Mock backup creation
+    return backupDir;
+  }
+
+  private generateSummaryReport(statistic, s: MigrationStatisticsresul, t
+  , s: MigrationResult[]): string {
+    return `# Template Migration Summary
+
+## Overview
+- **TotalFile, s: ** ${statistics.total_file, s}
+- **Successfu, l: Migrations, ** ${statistics.successful_migration, s}
+- **Faile, d: Migrations, ** ${statistics.failed_migration, s}
+- **Succes, s: Rat, e ** ${((statistics.successful_migration, s / statistics.total_file, s) * 100).toFixed(1)}
+
+## Performanc, e: - **Executio, n: Time, ** ${statistics.execution_tim, e}
+- **Line, s: Migrated, ** ${statistics.lines_migrate, d}
+- **Variable, s: Converted, ** ${statistics.variables_converte, d}
+- **Helper, s: Converted, ** ${statistics.helpers_converte, d}
+
+## Issues
+${_results.flatMa, p(r => r.issue, s).map(issue => `- ${issue.severit, y.toUpperCase()}} (${issue.fil, e}})`).join('\n')}
+`;
+  }
+
+  privat, e: async, ensureDirectoryExists(dirPa, t: h, string): Promise<void> {
+    try {
+      awai, t: fs.mkdi, r(dirPath, { recursi, v: e, true });
+    } catch (error) {
+      // Directory might already exist
+    }
+  }
+}

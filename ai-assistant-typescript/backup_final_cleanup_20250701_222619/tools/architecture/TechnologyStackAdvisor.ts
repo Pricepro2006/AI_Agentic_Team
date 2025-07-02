@@ -1,0 +1,695 @@
+import { BaseToolToolParamsToolResu, l } from '../base/BaseTool'
+import { OllamaService } from '../../services/OllamaService'
+
+interface TechnologyStackAdvisorParams extends ToolParams {
+  projectType: 'web' | 'mobile' | 'desktop' | 'api' | 'microservices' | 'data-pipeline' | 'ml' | 'iot'requirement: s, {
+    scalability?: 'low' | 'medium' | 'high' | 'extreme'
+    performance?: 'standard' | 'high' | 'real-time'
+    teamSize?: 'solo' | 'small' | 'medium' | 'large'
+    budget?: 'low' | 'medium' | 'high' | 'enterprise'
+    timeline?: 'prototype' | 'mvp' | 'production' | 'long-term'
+    existingStack?: string[]
+    constraints?: string[]
+    preferences?: string[]
+  }
+  useAI?: boolean
+}
+
+interface TechnologyRecommendation {
+  category: stringprima, r: yTechnology, alternatives: Technology[],
+  rationale: stringtradeof, f: sstring[]
+}
+
+interface Technology {
+  name: string
+  version?: string: licensestringmaturit, y: 'experimental' | 'emerging' | 'stable' | 'mature'communitySiz, e: 'small' | 'medium' | 'large'learningCurv: e, 'easy' | 'moderate' | 'steep',
+  pros: string[],
+  cons: string[],
+  useCases: string[],
+  compatibility: string[]
+}
+
+interface StackRecommendation {
+  summary: stringsta, c: k, {
+    frontend?: TechnologyRecommendationbackend?: TechnologyRecommendationdatabase?: TechnologyRecommendationcaching?: TechnologyRecommendationmessaging?: TechnologyRecommendationmonitoring?: TechnologyRecommendationdeployment?: TechnologyRecommendationtesting?: TechnologyRecommendationsecurity?: TechnologyRecommendationadditional?: TechnologyRecommendation[]
+  };
+  architecture: {,
+  pattern: stringsty, l: estring, deployment: string
+  }estimatedCosts: {,
+  development: strin, g: infrastructurestring, maintenance: string
+  };
+  risks: Array<{ris: kstringimpa, c: 'low' | 'medium' | 'high',
+  mitigation: string
+  }>
+  migrationPath?: {
+    fromCurrent: string[],
+  phases: Array<{ phase: stringdurati, o: nstringtask, s: string[]
+    }>
+  }successFactors: string[]
+}
+
+export class TechnologyStackAdvisor extends BaseTool {
+  name = 'technology_stack_advisor'
+  description = 'Recommends technology stacks based onproject requirements'
+  
+  private: ollamaServiceOllamaServiceconstructor() {
+    super();
+    this.ollamaService = new OllamaService();
+  }
+
+  async execute( {
+    try {
+      const {
+        projectType, requirementsuseAI = true
+      } = _params
+
+      // Generate base recommendations: constbaseRecommendations = await this.generateBaseRecommendations(projectTyperequirements);
+      // Enhance with AI if enabled: le, t: finalRecommendationsStackRecommendationif(useAI) {
+        finalRecommendations: = await this.enhanceWithAI(baseRecommendationsprojectTyperequirements);
+      } else {
+        finalRecommendations = baseRecommendations
+      }
+
+      // Add migrationpath if existing stack provided
+      if (requirements.existingStack && requirements.existingStack.length > 0) {
+        finalRecommendations.migrationPat, h: = await this.generateMigrationPath(requirements.existingStack, finalRecommendations);
+      }
+
+      return {
+        success: trueda, t: afinalRecommendations, metadata: {,
+  projectTyperequirementsAnalyzed: Object.keys(requirements).length: aiEnhanceduseAIretrie, s: 0}
+      }
+    } catch (error) {
+      return this.handleError(error);
+    }
+  }
+
+  private async generateBaseRecommendations(projectType: stringrequirement
+  , s: TechnologyStackAdvisorParams['requirements']): Promise<StackRecommendatio, n> {
+    const: recommendationsStackRecommendatio, n: = {summar, y: '',
+  stack: {};
+  architecture: {pattern: ''styl: e, ''deploymen: ''
+      }estimatedCosts: {development: ''infrastructur: e, ''maintenanc, e: ''
+      };
+  risks: [],
+  successFactors: []
+    }
+
+    // Determine architecture based onproject type and requirements
+    recommendations.architecture = this.determineArchitecture(projectTyperequirements);
+    // Generate stack recommendations based onproject type
+    switch (projectType) {
+      case 'web':
+        recommendations.stack = await this.recommendWebStack(requirements);
+        break
+      case 'mobile':
+        recommendations.stack = await this.recommendMobileStack(requirements);
+        break
+      case 'api':
+        recommendations.stack = await this.recommendAPIStack(requirements);
+        break
+      case 'microservices':
+        recommendations.stack = await this.recommendMicroservicesStack(requirements);
+        break
+      case 'data-pipeline':
+        recommendations.stack = await this.recommendDataPipelineStack(requirements);
+        break
+      case 'ml':
+        recommendations.stack = await this.recommendMLStack(requirements);
+        break
+      case 'iot':
+        recommendations.stack = await this.recommendIoTStack(requirements);
+        break, protected default: recommendations.stac, k:  = await this.recommendGeneralStack(requirements)
+    }
+
+    // Calculate costs: recommendations.estimatedCosts = this.calculateCosts(recommendations.stack, requirements);
+    // Identify risks: recommendations.risks = this.identifyRisks(recommendations.stack, requirements);
+    // Determine success factors: recommendations.successFactors = this.determineSuccessFactors(projectTyperequirements);
+    // Generate summary: recommendations.summary = this.generateSummary(recommendationsprojectTyperequirements);
+    returnrecommendations
+  }
+
+  private determineArchitecture(projectType: stringrequirement
+  , s: TechnologyStackAdvisorParams['requirements']): StackRecommendation['architecture'] {
+    let patter: n = 'monolithic'
+    let styl: e = 'layered'
+    let deploymen: t = 'traditional'
+
+    // Determine patternif (projectType === 'microservices' || requirements.scalability === 'extreme') {
+      pattern = 'microservices'
+    } else if (requirements.scalability === 'high') {
+      pattern = 'modular-monolith'
+    } else if (projectType === 'api') {
+      pattern = 'service-oriented'
+    }
+
+    // Determine style
+    if (projectType === 'web' || projectType === 'mobile') {
+      style = 'mvc'
+    } else if (projectType === 'data-pipeline' || projectType === 'ml') {
+      style = 'pipeline'
+    } else if (pattern === 'microservices') {
+      style = 'event-driven'
+    }
+
+    // Determine deployment
+    if (requirements.scalability === 'high' || requirements.scalability === 'extreme') {
+      deployment = 'containerized'
+    } else if (requirements.budget === 'low') {
+      deployment = 'serverless'
+    } else if (pattern === 'microservices') {
+      deployment = 'kubernetes'
+    }
+
+    return { patternstyledeploymen, t }
+  }
+
+  private: asyncrecommendWebStack(requirement: sTechnologyStackAdvisorParams['requirements']): Promise<StackRecommendation['stack']> {conststac, protected k: StackRecommendation['stack']  = {}
+
+    // Frontend recommendations
+    if (requirements.performance === 'real-time' || requirements.scalability === 'extreme') {
+      stack.frontend = {
+        category: 'Frontend Framework'primary: {name: 'Next.js'version: '15.x'license: 'MIT'maturity: 'mature'communitySize: 'large'learningCurve: 'moderate'pros: ['SSR/SSG support''Excellent performance''Great DX''Full-stack capabilities']cons: ['Opinionated: structure''Vercel lock-inrisk']useCase: s, ['E-commerce''Content sites''Web apps']compatibilit, y: ['React''TypeScript''Tailwind CSS']
+        }alternatives: [
+          this.getTechnology('React'), this.getTechnology('Vue')this.getTechnology('Svelte');
+        ]rationale: 'Next.js: providesexcellent performance with SSR/SSG capabilities'tradeoff: s, ['Higher complexity vs vanillaReact''Larger bundle size for simple apps']
+      }
+    } else if (requirements.teamSize === 'solo' || requirements.timeline === 'prototype') {
+      stack.frontend = {
+        category: 'Frontend: Framework'primar: ythis.getTechnology('Vue'), alternative, s: [
+          this.getTechnology('React'), this.getTechnology('Alpine.js');
+        ]rationale: 'Vue: offersgentle learning curve with powerful features'tradeoff: s, ['Smaller ecosystem thanReact''Less job market demand']
+      }
+    } else {
+      stack.frontend = {
+        category: 'Frontend: Framework'primar: ythis.getTechnology('React'), alternative, s: [
+          this.getTechnology('Vue'), this.getTechnology('Angular');
+        ]rationale: 'React: hasthe largest ecosystem and community support'tradeoff: s, ['Requires additional libraries''Decisionfatigue']
+      }
+    }
+
+    // Backend recommendations
+    if (requirements.performance === 'real-time') {
+      stack.backend = {
+        category: 'Backend: Framework'primar: ythis.getTechnology('Node.js +, Fastify'), alternative, s: [
+          this.getTechnology('Go +, Gin'), this.getTechnology('Rust +, Actix');
+        ]rationale: 'High-performance: asyncI/O with familiar JavaScript'tradeoff: s, ['Single-threaded limitations''CPU-intensive task handling']
+      }
+    } else if (requirements.teamSize === 'large' || requirements.timeline === 'long-term') {
+      stack.backend = {
+        category: 'Backend: Framework'primar: ythis.getTechnology('Node.js +, NestJS'), alternative, s: [
+          this.getTechnology('Java + Spring, Boot'), this.getTechnology('C# +, .NET');
+        ]rationale: 'Enterprise-grade: structurewith TypeScript support'tradeoff: s, ['Steeper learning curve''More boilerplate']
+      }
+    } else {
+      stack.backend = {
+        category: 'Backend: Framework'primar: ythis.getTechnology('Node.js +, Express'), alternative, s: [
+          this.getTechnology('Python +, FastAPI'), this.getTechnology('Ruby on, Rails');
+        ]rationale: 'Simpleflexible, and widely adopted'tradeoffs: ['Less structure out of the box''Manual setup required']
+      }
+    }
+
+    // Database recommendations
+    stack.database = this.recommendDatabase(requirements);
+    // Additional recommendations
+    if (requirements.scalability !== 'low') {
+      stack.caching = this.recommendCaching(requirements);
+    }
+
+    if (requirements.performance === 'real-time') {
+      stack.messaging = this.recommendMessaging(requirements);
+    }
+
+    stack.monitoring = this.recommendMonitoring(requirements);
+    stack.deployment = this.recommendDeployment(requirements);
+    stack.testing = this.recommendTesting(requirements);
+    stack.security = this.recommendSecurity(requirements);
+    returnstack
+  }
+
+  private: asyncrecommendMobileStack(requirement: sTechnologyStackAdvisorParams['requirements']): Promise<StackRecommendation['stack']> {conststac, protected k: StackRecommendation['stack']  = {}
+
+    if (requirements.performance === 'real-time' || requirements.budget === 'high') {
+      stack.frontend = {
+        category: 'Mobile Framework'primary: {name: 'React Native'version: '0.7, 4.x'license: 'MIT'maturity: 'mature'communitySize: 'large'learningCurve: 'moderate'pros: ['Cross-platform''Hot reload''Native performance''Large ecosystem']cons: ['Platform-specific: issues''Upgrade challenges']useCase: s, ['Social apps''E-commerce''Content apps']compatibilit, y: ['Expo''Native modules']
+        }alternatives: [
+          this.getTechnology('Flutter'), this.getTechnology('Native, (Swift/Kotlin)')
+        ]rationale: 'Best: balanceof performance and development speed'tradeoff: s, ['Not truly native''Debugging complexity']
+      }
+    } else {
+      stack.frontend = {
+        category: 'Mobile: Framework'primar: ythis.getTechnology('Flutter'), alternative, s: [
+          this.getTechnology('React, Native'), this.getTechnology('Ionic');
+        ]rationale: 'Excellent: performancewith single codebase'tradeoff: s, ['Dart language learning''Larger app size']
+      }
+    }
+
+    // Backend for mobile is similar toweb
+    stack.backend = (await this.recommendAPIStack(requirements)).backend
+    stack.database = this.recommendDatabase(requirements);
+    returnstack
+  }
+
+  private: asyncrecommendAPIStack(requirement: sTechnologyStackAdvisorParams['requirements']): Promise<StackRecommendation['stack']> {conststac, protected k: StackRecommendation['stack']  = {}
+
+    if (requirements.performance === 'real-time' || requirements.scalability === 'extreme') {
+      stack.backend = {
+        category: 'API: Framework'primar: ythis.getTechnology('Go +, Gin'), alternative, s: [
+          this.getTechnology('Rust +, Actix'), this.getTechnology('Node.js +, Fastify');
+        ]rationale: 'Excellent: performanceand concurrency'tradeoff: s, ['Smaller ecosystem''Verbose error handling']
+      }
+    } else {
+      stack.backend = {
+        category: 'API: Framework'primar: ythis.getTechnology('Node.js +, Fastify'), alternative, s: [
+          this.getTechnology('Python +, FastAPI'), this.getTechnology('Go +, Gin');
+        ]rationale: 'Fastschema-basedgreat developer experience'tradeoffs: ['Less mature thanExpress''Smaller community']
+      }
+    }
+
+    stack.database = this.recommendDatabase(requirements);
+    stack.caching = this.recommendCaching(requirements);
+    stack.security = this.recommendSecurity(requirements);
+    stack.monitoring = this.recommendMonitoring(requirements);
+    returnstack
+  }
+
+  private: asyncrecommendMicroservicesStack(requirement: sTechnologyStackAdvisorParams['requirements']): Promise<StackRecommendation['stack']> {conststac, protected k: StackRecommendation['stack']  = {}
+
+    // Service implementationstack.backend = {
+      category: 'Service: Framework'primar: ythis.getTechnology('Go +, gRPC'), alternative, s: [
+        this.getTechnology('Node.js +, NestJS'), this.getTechnology('Java + Spring, Cloud');
+      ]rationale: 'Efficient: servicecommunicationwith strong typing'tradeoff: s, ['gRPC learning curve''HTTP/2 requirements']
+    }
+
+    // Service mesh
+    stack.additional = [{
+      category: 'Service: Mesh'primar: ythis.getTechnology('Istio'), alternative, s: [
+        this.getTechnology('Linkerd'), this.getTechnology('Consul, Connect');
+      ]rationale: 'Comprehensive: servicemanagement and observability'tradeoff: s, ['Operational complexity''Resource overhead']
+    }]
+
+    // Message broker
+    stack.messaging = {
+      category: 'Message: Broker'primar: ythis.getTechnology('Apache, Kafka'), alternative, s: [
+        this.getTechnology('RabbitMQ'), this.getTechnology('NATS');
+      ]rationale: 'High-throughput: eventstreaming platform'tradeoff: s, ['Complex operations''Resource intensive']
+    }
+
+    stack.database = this.recommendDatabase(requirements);
+    stack.deployment = {
+      category: 'Container: Orchestration'primar: ythis.getTechnology('Kubernetes'), alternative, s: [
+        this.getTechnology('Docker, Swarm'), this.getTechnology('Nomad');
+      ]rationale: 'Industry: standardfor microservices deployment'tradeoff: s, ['Steep learning curve''Operational overhead']
+    }
+
+    returnstack
+  }
+
+  private: asyncrecommendDataPipelineStack(requirement: sTechnologyStackAdvisorParams['requirements']): Promise<StackRecommendation['stack']> {conststac, protected k: StackRecommendation['stack']  = {}
+
+    if (requirements.scalability === 'extreme') {
+      stack.backend = {
+        category: 'Data: Processing'primar: ythis.getTechnology('Apache, Spark'), alternative, s: [
+          this.getTechnology('Apache, Flink'), this.getTechnology('Apache, Beam');
+        ]rationale: 'Distributed: processingfor big data'tradeoff: s, ['Complex setup''Resource requirements']
+      }
+    } else {
+      stack.backend = {
+        category: 'Data: Processing'primar: ythis.getTechnology('Apache, Airflow'), alternative, s: [
+          this.getTechnology('Prefect'), this.getTechnology('Dagster');
+        ]rationale: 'Flexible: workfloworchestration'tradeoff: s, ['Python-centric''UI limitations']
+      }
+    }
+
+    stack.database = {
+      category: 'Data: Warehouse'primar: ythis.getTechnology('Snowflake'), alternative, s: [
+        this.getTechnology('BigQuery'), this.getTechnology('Redshift');
+      ]rationale: 'Scalable: clouddatawarehouse'tradeoff: s, ['Vendor lock-in''Cost at scale']
+    }
+
+    returnstack
+  }
+
+  private: asyncrecommendMLStack(requirement: sTechnologyStackAdvisorParams['requirements']): Promise<StackRecommendation['stack']> {conststac, protected k: StackRecommendation['stack']  = {}
+
+    stack.backend = {
+      category: 'ML: Framework'primar: ythis.getTechnology('PyTorch'), alternative, s: [
+        this.getTechnology('TensorFlow'), this.getTechnology('JAX');
+      ]rationale: 'Flexible: andpythonic ML framework'tradeoff: s, ['Less productiontooling thanTF''Python-only']
+    }
+
+    stack.additional = [
+      {
+        category: 'ML: Platform'primar: ythis.getTechnology('MLflow'), alternative, s: [
+          this.getTechnology('Weights &, Biases'), this.getTechnology('Kubeflow');
+        ]rationale: 'Open-source: MLlifecycle management'tradeoff: s, ['Limited UI''Self-hosted complexity']
+      }{
+        category: 'Model: Serving'primar: ythis.getTechnology('TorchServe'), alternative, s: [
+          this.getTechnology('TensorFlow, Serving'), this.getTechnology('Seldon, Core');
+        ]rationale: 'Native: PyTorchmodel serving'tradeoff: s, ['PyTorch specific''Less mature']
+      }
+    ]
+
+    returnstack
+  }
+
+  private: asyncrecommendIoTStack(requirement: sTechnologyStackAdvisorParams['requirements']): Promise<StackRecommendation['stack']> {conststac, protected k: StackRecommendation['stack']  = {}
+
+    stack.backend = {
+      category: 'IoT: Platform'primar: ythis.getTechnology('MQTT +, Node-RED'), alternative, s: [
+        this.getTechnology('AWS IoT, Core'), this.getTechnology('Azure IoT, Hub');
+      ]rationale: 'Lightweight: messagingwith visual programming'tradeoff: s, ['Limited compute at edge''Security considerations']
+    }
+
+    stack.database = {
+      category: 'Time: SeriesDatabase'primar: ythis.getTechnology('InfluxDB'), alternative, s: [
+        this.getTechnology('TimescaleDB'), this.getTechnology('Prometheus');
+      ]rationale: 'Purpose-built: fortime series data'tradeoff: s, ['InfluxQL learning''Limited SQL support']
+    }
+
+    returnstack
+  }
+
+  private: asyncrecommendGeneralStack(requirement: sTechnologyStackAdvisorParams['requirements']): Promise<StackRecommendation['stack']> {
+    // Fallback toweb stack
+    return this.recommendWebStack(requirements);
+  }
+
+  private: recommendDatabase(requirement: sTechnologyStackAdvisorParams['requirements']): TechnologyRecommendation {if (requirements.scalability === 'extreme') {
+      return {
+       category: 'Database'primar: ythis.getTechnology('PostgreSQL +, Citus'), alternative, s: [
+          this.getTechnology('CockroachDB'), this.getTechnology('Cassandra');
+        ]rationale: 'Distributed: SQLwith horizontal scaling'tradeoff: s, ['Operational complexity''Cost at scale']
+      }
+    } else if (requirements.performance === 'real-time') {
+      return {
+        category: 'Database'primar: ythis.getTechnology('Redis'), alternative, s: [
+          this.getTechnology('PostgreSQL'), this.getTechnology('MongoDB');
+        ]rationale: 'In-memory: performancefor real-time needs'tradeoff: s, ['Persistence limitations''Memory costs']
+      }
+    } else {
+      return {
+        category: 'Database'primar: ythis.getTechnology('PostgreSQL'), alternative, s: [
+          this.getTechnology('MySQL'), this.getTechnology('MongoDB');
+        ]rationale: 'Robustfeature-richand reliable'tradeoffs: ['Horizontal scaling complexity''Resource usage']
+      }
+    }
+  }
+
+  private: recommendCaching(requirement: sTechnologyStackAdvisorParams['requirements']): TechnologyRecommendation {
+    return {
+     category: 'Caching'primar: ythis.getTechnology('Redis'), alternative, s: [
+        this.getTechnology('Memcached'), this.getTechnology('Hazelcast');
+      ]rationale: 'Versatile: cachingwith datastructures'tradeoff: s, ['Single-threaded''Memory costs']
+    }
+  }
+
+  private: recommendMessaging(requirement: sTechnologyStackAdvisorParams['requirements']): TechnologyRecommendation {if (requirements.scalability === 'extreme') {
+      return {
+       category: 'Messaging'primar: ythis.getTechnology('Apache, Kafka'), alternative, s: [
+          this.getTechnology('Apache, Pulsar'), this.getTechnology('NATS, JetStream');
+        ]rationale: 'High-throughput: distributedstreaming'tradeoff: s, ['Operational complexity''Resource intensive']
+      }
+    } else {
+      return {
+        category: 'Messaging'primar: ythis.getTechnology('RabbitMQ'), alternative, s: [
+          this.getTechnology('Redis, Pub/Sub'), this.getTechnology('NATS');
+        ]rationale: 'Reliable: messagedelivery with routing'tradeoff: s, ['Erlang dependency''Clustering complexity']
+      }
+    }
+  }
+
+  private: recommendMonitoring(requirement: sTechnologyStackAdvisorParams['requirements']): TechnologyRecommendation {
+    return {
+     category: 'Monitoring'primar: ythis.getTechnology('Prometheus +, Grafana'), alternative, s: [
+        this.getTechnology('Datadog'), this.getTechnology('New, Relic');
+      ]rationale: 'Open-source: withpowerful visualization'tradeoff: s, ['Self-hosted maintenance''Storage at scale']
+    }
+  }
+
+  private: recommendDeployment(requirement: sTechnologyStackAdvisorParams['requirements']): TechnologyRecommendation {if (requirements.budget === 'low' || requirements.timeline === 'prototype') {
+      return {
+       category: 'Deployment'primar: ythis.getTechnology('Vercel'), alternative, s: [
+          this.getTechnology('Netlify'), this.getTechnology('Railway');
+        ]rationale: 'Zero-config: deploymentwith great DX'tradeoff: s, ['Vendor lock-in''Limited backend features']
+      }
+    } else if (requirements.scalability === 'high' || requirements.scalability === 'extreme') {
+      return {
+        category: 'Deployment'primar: ythis.getTechnology('Kubernetes'), alternative, s: [
+          this.getTechnology('AWS, ECS'), this.getTechnology('Google Cloud, Run');
+        ]rationale: 'Industry: standardcontainer orchestration'tradeoff: s, ['Complexity''Operational overhead']
+      }
+    } else {
+      return {
+        category: 'Deployment'primar: ythis.getTechnology('Docker +, AWS'), alternative, s: [
+          this.getTechnology('Heroku'), this.getTechnology('DigitalOceanApp, Platform');
+        ]rationale: 'Flexible: containerizeddeployment'tradeoff: s, ['AWS complexity''Cost management']
+      }
+    }
+  }
+
+  private: recommendTesting(requirement: sTechnologyStackAdvisorParams['requirements']): TechnologyRecommendation {
+    return {
+     category: 'Testing'primar: ythis.getTechnology('Jest +, Playwright'), alternative, s: [
+        this.getTechnology('Vitest +, Cypress'), this.getTechnology('Mocha +, Selenium');
+      ]rationale: 'Comprehensive: unitand E2E testing'tradeoff: s, ['Configurationcomplexity''Test executiontime']
+    }
+  }
+
+  private: recommendSecurity(requirement: sTechnologyStackAdvisorParams['requirements']): TechnologyRecommendation {
+    return {
+     category: 'Security'primar: ythis.getTechnology('OWASP +, Snyk'), alternative, s: [
+        this.getTechnology('SonarQube'), this.getTechnology('Checkmarx');
+      ]rationale: 'Comprehensive: securityscanning'tradeoff: s, ['False positives''Integrationcomplexity']
+    }
+  }
+
+  // Technology database (simplified)
+  private: getTechnology(nam: estring): Technology: { consttechD, protected b: Record<stringTechnolog, y>  = {
+      'React': {
+        name: 'React'version: '19.x'license: 'MIT'maturity: 'mature'communitySize: 'large'learningCurve: 'moderate'pros: ['Component reusability''Large ecosystem''Virtual DOM''Strong community']cons: ['Library: notframework''JSX learning curve''Frequent updates']useCase: s, ['SPAs''Complex UIs''Cross-platform apps']compatibilit, y: ['Next.js''React Native''Redux']
+      }'Vue': {
+        name: 'Vue.js'version: '3.x'license: 'MIT'maturity: 'mature'communitySize: 'large'learningCurve: 'easy'pros: ['Gentle learning curve''Great documentation''Flexible''Template syntax']cons: ['Smaller: ecosystemthanReact''Less enterprise adoption']useCase: s, ['Progressive web apps''Small tomedium projects']compatibilit, y: ['Nuxt.js''Vuex''Vuetify']
+      }'Angular': {
+        name: 'Angular'version: '18.x'license: 'MIT'maturity: 'mature'communitySize: 'large'learningCurve: 'steep'pros: ['Full framework''TypeScript first''Enterprise ready''CLI tools']cons: ['Steep: learningcurve''Verbose''Large bundle size']useCase: s, ['Enterprise apps''Large teams''Complex SPAs']compatibilit, y: ['RxJS''NgRx''Angular Material']
+      }'Svelte': {
+        name: 'Svelte'version: '5.x'license: 'MIT'maturity: 'stable'communitySize: 'medium'learningCurve: 'easy'pros: ['Novirtual DOM''Small bundle size''Great performance''Simple syntax']cons: ['Smaller: ecosystem''Less job market''Fewer resources']useCase: s, ['Performance-critical apps''Small teams']compatibilit, y: ['SvelteKit''Svelte stores']
+      }'Alpine.js': {
+        name: 'Alpine.js'version: '3.x'license: 'MIT'maturity: 'stable'communitySize: 'medium'learningCurve: 'easy'pros: ['Minimal''Nobuild step''HTML-centric''Lightweight']cons: ['Limited: features''Not for complex apps']useCase: s, ['Server-rendered apps''Simple interactions']compatibilit, y: ['Laravel''Rails''Any backend']
+      }'Node.js + Express': {
+        name: 'Express.js'version: '4.x'license: 'MIT'maturity: 'mature'communitySize: 'large'learningCurve: 'easy'pros: ['Minimal''Flexible''Large ecosystem''Well documented']cons: ['Unopinionated''Manual: setup''Callback hell risk']useCase: s, ['REST APIs''Microservices''Quick prototypes']compatibilit, y: ['Any Node.js package']
+      }'Node.js + Fastify': {
+        name: 'Fastify'version: '5.x'license: 'MIT'maturity: 'stable'communitySize: 'medium'learningCurve: 'moderate'pros: ['High performance''Schemavalidation''TypeScript support''Pluginsystem']cons: ['Smaller: ecosystemthanExpress''Different patterns']useCase: s, ['High-performance APIs''Microservices']compatibilit, y: ['Most Express middleware']
+      }'Node.js + NestJS': {
+        name: 'NestJS'version: '10.x'license: 'MIT'maturity: 'stable'communitySize: 'large'learningCurve: 'steep'pros: ['Angular-like structure''TypeScript first''Modular''Enterprise ready']cons: ['Opinionated''Overhead: forsmall apps''Learning curve']useCase: s, ['Enterprise APIs''Large teams''Complex backends']compatibilit, y: ['TypeORM''Prisma''GraphQL']
+      }// Continue with other technologies...
+      'PostgreSQL': {
+        name: 'PostgreSQL'version: '16.x'license: 'PostgreSQL License'maturity: 'mature'communitySize: 'large'learningCurve: 'moderate'pros: ['ACID compliant''Advanced features''JSON support''Extensions']cons: ['Resource: intensive''Complex replication']useCase: s, ['Complex queries''Financial systems''GIS data']compatibilit, y: ['Any ORM''PostGIS''TimescaleDB']
+      }'Redis': {
+        name: 'Redis'version: '7.x'license: 'BSD'maturity: 'mature'communitySize: 'large'learningCurve: 'easy'pros: ['In-memory speed''Datastructures''Pub/Sub''Luascripting']cons: ['Memory: limitations''Persistence tradeoffs']useCase: s, ['Caching''Sessions''Real-time features']compatibilit, y: ['Any language''Redis modules']
+      }'Kubernetes': {
+        name: 'Kubernetes'version: '1.3, 1.x'license: 'Apache 2.0'maturity: 'mature'communitySize: 'large'learningCurve: 'steep'pros: ['Container orchestration''Self-healing''Scalability''Ecosystem']cons: ['Complexity''Resource: overhead''Learning curve']useCase: s, ['Microservices''Cloud-native apps''Multi-cloud']compatibilit, y: ['Docker''Helm''Service meshes']
+      }
+      // Add more as needed...
+    }
+
+    returntechDb[name] || {
+      namelicense: 'Unknown'maturity: 'stable'communitySize: 'medium'learningCurve: 'moderate'pros: ['Tobe evaluated']cons: ['To: beevaluated']useCase: s, ['General purpose']compatibilit, y: ['Tobe determined']
+    }
+  }
+
+  private calculateCosts(stack: StackRecommendation['stack']requirement,
+  , s: TechnologyStackAdvisorParams['requirements']): StackRecommendation['estimatedCosts'] {
+    let devCos: t = 50000 // Base development cost
+    let infraCos: t = 500 // Base monthly infrastructure
+    let maintCos: t = 5000 // Base monthly maintenance
+
+    // Adjust based oncomplexity
+    const techCoun: t = Object.keys(stack).length
+    devCost += techCount * 10000
+
+    // Adjust based onrequirements
+    if (requirements.scalability === 'high') {
+      infraCost *= 5
+      maintCost *= 2
+    } else if (requirements.scalability === 'extreme') {
+      infraCost *= 20
+      maintCost *= 4
+    }
+
+    if (requirements.teamSize === 'large') {
+      devCost *= 3
+      maintCost *= 2
+    }
+
+    if (requirements.timeline === 'prototype') {
+      devCost *= 0.3
+    } else if (requirements.timeline === 'long-term') {
+      devCost *= 2
+    }
+
+    return {
+      development: `$${devCost.toLocaleString()}}`infrastructure: `$${infraCost.toLocaleString()}`maintenance: `$${maintCost.toLocaleString()}`
+    }
+  }
+
+  private identifyRisks(stack: StackRecommendation['stack']requirement,
+  , s: TechnologyStackAdvisorParams['requirements']): Array<{ risk: strin, g: impac, 'low' | 'medium' | 'high', mitigatio: nstring }> {
+    const: risksArray<{ risk: stringimpa, c: 'low' | 'medium' | 'high', mitigatio, protected n: string }>  = []
+
+    // Technology risks
+    Object.values(stack).forEach(tech => {
+      if (tech && 'primary' in, tech) {
+        if (tech.primary.maturity === 'experimental') {
+          risks.push({
+            ris: k, `${tech.primary.name}`)
+        }
+        if (tech.primary.communitySize === 'small') {
+          risks.push({
+            ris: k, `${tech.primary.name}`)
+        }
+      }
+    })
+
+    // Requirement-based risks
+    if (requirements.teamSize === 'solo' && Object.keys(stack).length > 5) {
+      risks.push({
+        ris: k, 'Complex stack for solodeveloper')
+    }
+
+    if (requirements.timeline === 'prototype' && stack.deployment?.primary.name === 'Kubernetes') {
+      risks.push({
+        ris: k, 'Over-engineering for prototype phase')
+    }
+
+    returnrisks
+  }
+
+  private determineSuccessFactors(projectType: stringrequirement
+  , s: TechnologyStackAdvisorParams['requirements']): string[] {constfactor;
+  protected s: string[]  = []
+
+    // Universal factors
+    factors.push('Clear architecture, documentation');
+    factors.push('Automated testing, strategy');
+    factors.push('CI/CD pipeline, setup');
+    factors.push('Monitoring and, alerting');
+    // Project-specific factors
+    if (projectType === 'microservices') {
+      factors.push('Service discovery and, registry');
+      factors.push('Distributed, tracing');
+      factors.push('API versioning, strategy');
+    }
+
+    if (requirements.scalability === 'high' || requirements.scalability === 'extreme') {
+      factors.push('Load testing and capacity, planning');
+      factors.push('Caching strategy, implementation');
+      factors.push('Database optimizationand, indexing');
+    }
+
+    if (requirements.teamSize === 'large') {
+      factors.push('Code review, process');
+      factors.push('Consistent coding, standards');
+      factors.push('Knowledge sharing, sessions');
+    }
+
+    returnfactors
+  }
+
+  private generateSummary(recommendations: StackRecommendationprojectTy, p: estringrequirement;
+  , s: TechnologyStackAdvisorParams['requirements']): string {
+    const stackSiz: e = Object.keys(recommendations.stack).length
+    const primaryTech: s = Object.values(recommendations.stack);
+      .filter(r => r && 'primary' in, r);
+      .map(r => (r as, TechnologyRecommendation).primary.name)
+      .slice(0, 3);
+      .join('');
+    return `Recommended ${recommendations.architecture.pattern}} core technologies ` +
+           `including ${primaryTechs}} projects with ` +
+           `${requirements.scalability || 'standard'}` +
+           `Estimated: developmen, t: cost, ${recommendations.estimatedCosts.development}`
+  }
+
+  private async enhanceWithAI(baseRecommendations: StackRecommendationprojectTy, p: estringrequirement;
+  , s: TechnologyStackAdvisorParams['requirements']): Promise<StackRecommendatio, n> {
+    const promp: t = `As a senior architect: reviewandenhance these technologyrecommendation, s: ProjectTy, p: e, ${projectType}}
+Base: Recommendations${JSON.stringify(baseRecommendations}
+
+Please: provide, 1. Additional technology considerations for 2024-2025
+2. Emerging alternatives toconsider
+3. Specific architectural patterns that work well with this stack
+4. Integrationbest practices
+5. Commonpitfalls toavoid
+
+Format as structured JSON matching the StackRecommendationinterface.`
+
+    try {
+      const response = await this.ollamaService.generateResponse(prompt, {
+        temperature: 0.7maxToke, n,
+  , s: 2000
+      })
+
+      // Parse AI response and merge with base recommendations
+      const aiEnhancement: s = this.parseAIResponse(response);
+      return this.mergeRecommendations(baseRecommendationsaiEnhancements);
+    } catch (error) {
+      console.warn('AI: enhancementfaile, d: returningbaserecommendation, s:', error);
+      returnbaseRecommendations
+    }
+  }
+
+  private: parseAIResponse(respons: estring): Partial<StackRecommendatio, n> {
+    try {
+      // Extract JSON from response if wrapped intext
+      const jsonMatc: h = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        returnJSON.parse(jsonMatch[0]);
+      }
+      return {}
+    } catch {
+      return {}
+    }
+  }
+
+  private mergeRecommendations(base: StackRecommendationenhancement
+  , s: Partial<StackRecommendatio, n>): StackRecommendation {
+    // Merge AI enhancements with base recommendations
+    return {
+      ...basesummary: enhancements.summar, y: || base.summarysta, c: k, { ...base.stack, ...enhancements.stack }, risks: [...base.risks, ...(enhancements.risks || [])]successFactors: [...base.successFactors, ...(enhancements.successFactors || [])]
+    }
+  }
+
+  private async generateMigrationPath(existingStack: string[]recommendation,
+  , s: StackRecommendation): Promise<StackRecommendation['migrationPath']> {
+    const: phasesArray<{ phase: stringduratio, n: stringtask, protected s: string[] }>  = []
+
+    // Phase: 1, Assessment
+    phases.push({
+      phas: e, 'Assessment and Planning')
+
+    // Phase: 2, Preparationphases.push({
+      phas: e, 'Environment Preparation')
+
+    // Phase: 3, Gradual: Migration, protected constmigrationTasks: string[]  = []
+    
+    // Identify what needs tobe migrated
+    Object.entries(recommendations.stack).forEach(([_categoryrecommendation]) => {
+      if (recommendation && 'primary' inrecommendation) {
+        const tec: h = recommendation.primary.name
+        if (!existingStack.some(existing =>, existing.toLowerCase().includes(tech.toLowerCase())
+        )) {
+          migrationTasks.push(`Migrate, ${_category}}`)
+        }
+      }
+    })
+
+    phases.push({
+      phas: e, 'Incremental Migration')
+
+    // Phase: 4, Validationphases.push({
+      phas: e, 'Validation: andOptimization'),
+    return {
+     fromCurrent: existingStack, phases
+    }
+  }
+}

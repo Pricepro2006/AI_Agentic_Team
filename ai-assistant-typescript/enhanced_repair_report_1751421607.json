@@ -1,0 +1,2499 @@
+{
+  "summary": {
+    "total_files": 222,
+    "files_processed": 222,
+    "files_repaired": 207,
+    "total_repairs": 76036,
+    "failed_files": [],
+    "repaired_files": [
+      {
+        "file": "src/index.ts",
+        "repairs_made": 1,
+        "backup_path": "src/index.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/server.ts",
+        "repairs_made": 105,
+        "backup_path": "src/server.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tests/integration/master-orchestrator-python-expert.test.ts",
+        "repairs_made": 92,
+        "backup_path": "src/tests/integration/master-orchestrator-python-expert.test.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/config/config.ts",
+        "repairs_made": 63,
+        "backup_path": "src/config/config.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/registry.ts",
+        "repairs_made": 47,
+        "backup_path": "src/tools/registry.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/web-scraping/ScrapingStrategies.ts",
+        "repairs_made": 231,
+        "backup_path": "src/tools/web-scraping/ScrapingStrategies.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/web-scraping/WebScraperTool.ts",
+        "repairs_made": 453,
+        "backup_path": "src/tools/web-scraping/WebScraperTool.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/templateLibrary/CustomGeneratorBuilder.ts",
+        "repairs_made": 474,
+        "backup_path": "src/tools/templateLibrary/CustomGeneratorBuilder.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/templateLibrary/YeomanScaffolder.ts",
+        "repairs_made": 668,
+        "backup_path": "src/tools/templateLibrary/YeomanScaffolder.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/templateLibrary/TemplateMarketplace.ts",
+        "repairs_made": 300,
+        "backup_path": "src/tools/templateLibrary/TemplateMarketplace.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/templateLibrary/ComponentLibraryBuilder.ts",
+        "repairs_made": 642,
+        "backup_path": "src/tools/templateLibrary/ComponentLibraryBuilder.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/templateLibrary/PlopfileGenerator.ts",
+        "repairs_made": 603,
+        "backup_path": "src/tools/templateLibrary/PlopfileGenerator.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/templateLibrary/TemplateMigrator.ts",
+        "repairs_made": 814,
+        "backup_path": "src/tools/templateLibrary/TemplateMigrator.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/templateLibrary/TemplateValidator.ts",
+        "repairs_made": 603,
+        "backup_path": "src/tools/templateLibrary/TemplateValidator.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/templateLibrary/SnippetLibraryManager.ts",
+        "repairs_made": 763,
+        "backup_path": "src/tools/templateLibrary/SnippetLibraryManager.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testing/TestGenerator.ts",
+        "repairs_made": 1143,
+        "backup_path": "src/tools/testing/TestGenerator.ts.backup_1751421600",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testing/examples/TestGenerator.example.ts",
+        "repairs_made": 305,
+        "backup_path": "src/tools/testing/examples/TestGenerator.example.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testing/__tests__/TestGenerator.test.ts",
+        "repairs_made": 675,
+        "backup_path": "src/tools/testing/__tests__/TestGenerator.test.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/documentation/tutorial_builder.ts",
+        "repairs_made": 187,
+        "backup_path": "src/tools/documentation/tutorial_builder.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/documentation/DocAutomationSetup.ts",
+        "repairs_made": 892,
+        "backup_path": "src/tools/documentation/DocAutomationSetup.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/documentation/ApiExtractor.ts",
+        "repairs_made": 578,
+        "backup_path": "src/tools/documentation/ApiExtractor.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/documentation/ChangelogManager.ts",
+        "repairs_made": 1404,
+        "backup_path": "src/tools/documentation/ChangelogManager.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/documentation/ReadmeGenerator.ts",
+        "repairs_made": 1400,
+        "backup_path": "src/tools/documentation/ReadmeGenerator.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/documentation/DiagramGenerator.ts",
+        "repairs_made": 1718,
+        "backup_path": "src/tools/documentation/DiagramGenerator.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/documentation/DocQualityAnalyzer.ts",
+        "repairs_made": 972,
+        "backup_path": "src/tools/documentation/DocQualityAnalyzer.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/documentation/MultiFormatConverter.ts",
+        "repairs_made": 1046,
+        "backup_path": "src/tools/documentation/MultiFormatConverter.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/documentation/__tests__/tutorial_builder.test.ts",
+        "repairs_made": 261,
+        "backup_path": "src/tools/documentation/__tests__/tutorial_builder.test.ts.backup_1751421601",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/TypeHintAnalyzer.ts",
+        "repairs_made": 689,
+        "backup_path": "src/tools/pythonExpert/TypeHintAnalyzer.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/DebuggingAssistant.ts",
+        "repairs_made": 941,
+        "backup_path": "src/tools/pythonExpert/DebuggingAssistant.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts",
+        "repairs_made": 958,
+        "backup_path": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/CodeQualityAnalyzer.ts",
+        "repairs_made": 876,
+        "backup_path": "src/tools/pythonExpert/CodeQualityAnalyzer.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/LibraryRecommender.ts",
+        "repairs_made": 577,
+        "backup_path": "src/tools/pythonExpert/LibraryRecommender.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/CodeOptimizer.ts",
+        "repairs_made": 350,
+        "backup_path": "src/tools/pythonExpert/CodeOptimizer.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+        "repairs_made": 426,
+        "backup_path": "src/tools/pythonExpert/PerformanceProfiler.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts",
+        "repairs_made": 763,
+        "backup_path": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/DocumentationGenerator.ts",
+        "repairs_made": 718,
+        "backup_path": "src/tools/pythonExpert/DocumentationGenerator.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/examples/code-optimizer-example.ts",
+        "repairs_made": 98,
+        "backup_path": "src/tools/pythonExpert/examples/code-optimizer-example.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/pythonExpert/__tests__/CodeOptimizer.test.ts",
+        "repairs_made": 231,
+        "backup_path": "src/tools/pythonExpert/__tests__/CodeOptimizer.test.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/base/BaseTool.ts",
+        "repairs_made": 134,
+        "backup_path": "src/tools/base/BaseTool.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/base/ToolManager.ts",
+        "repairs_made": 250,
+        "backup_path": "src/tools/base/ToolManager.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+        "repairs_made": 703,
+        "backup_path": "src/tools/architecture/ArchitectureDocumentationGenerator.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/architecture/PerformanceBottleneckDetector.ts",
+        "repairs_made": 490,
+        "backup_path": "src/tools/architecture/PerformanceBottleneckDetector.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/architecture/TechnologyStackAdvisor.ts",
+        "repairs_made": 878,
+        "backup_path": "src/tools/architecture/TechnologyStackAdvisor.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/architecture/ScalabilityAnalyzer.ts",
+        "repairs_made": 568,
+        "backup_path": "src/tools/architecture/ScalabilityAnalyzer.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/architecture/SystemDesignAnalyzer.ts",
+        "repairs_made": 715,
+        "backup_path": "src/tools/architecture/SystemDesignAnalyzer.ts.backup_1751421602",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/architecture/SecurityArchitectureReviewer.ts",
+        "repairs_made": 525,
+        "backup_path": "src/tools/architecture/SecurityArchitectureReviewer.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/architecture/ArchitectureDiagramGenerator.ts",
+        "repairs_made": 540,
+        "backup_path": "src/tools/architecture/ArchitectureDiagramGenerator.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/architecture/ComponentRelationshipMapper.ts",
+        "repairs_made": 545,
+        "backup_path": "src/tools/architecture/ComponentRelationshipMapper.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testingQA/TestAnalyticsReporter.ts",
+        "repairs_made": 566,
+        "backup_path": "src/tools/testingQA/TestAnalyticsReporter.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testingQA/TestFrameworkMigrator.ts",
+        "repairs_made": 882,
+        "backup_path": "src/tools/testingQA/TestFrameworkMigrator.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testingQA/TestSuiteGenerator.ts",
+        "repairs_made": 810,
+        "backup_path": "src/tools/testingQA/TestSuiteGenerator.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+        "repairs_made": 794,
+        "backup_path": "src/tools/testingQA/PerformanceLoadTester.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testingQA/QAWorkflowOrchestrator.ts",
+        "repairs_made": 540,
+        "backup_path": "src/tools/testingQA/QAWorkflowOrchestrator.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testingQA/TestDataManager.ts",
+        "repairs_made": 809,
+        "backup_path": "src/tools/testingQA/TestDataManager.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testingQA/CoverageAnalyzer.ts",
+        "repairs_made": 667,
+        "backup_path": "src/tools/testingQA/CoverageAnalyzer.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/testingQA/QualityGateOptimizer.ts",
+        "repairs_made": 756,
+        "backup_path": "src/tools/testingQA/QualityGateOptimizer.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/codeReview/index.ts",
+        "repairs_made": 1,
+        "backup_path": "src/tools/codeReview/index.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/codeReview/CodeReviewOptimizer.ts",
+        "repairs_made": 762,
+        "backup_path": "src/tools/codeReview/CodeReviewOptimizer.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/codeReview/PullRequestReviewer.ts",
+        "repairs_made": 623,
+        "backup_path": "src/tools/codeReview/PullRequestReviewer.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/codeReview/SecurityVulnerabilityScanner.ts",
+        "repairs_made": 592,
+        "backup_path": "src/tools/codeReview/SecurityVulnerabilityScanner.ts.backup_1751421603",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/codeReview/CICDIntegrator.ts",
+        "repairs_made": 646,
+        "backup_path": "src/tools/codeReview/CICDIntegrator.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/codeReview/ReviewAnalyticsReporter.ts",
+        "repairs_made": 1350,
+        "backup_path": "src/tools/codeReview/ReviewAnalyticsReporter.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/codeReview/CodeStyleEnforcer.ts",
+        "repairs_made": 487,
+        "backup_path": "src/tools/codeReview/CodeStyleEnforcer.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/codeReview/CodeQualityMetricsCalculator.ts",
+        "repairs_made": 674,
+        "backup_path": "src/tools/codeReview/CodeQualityMetricsCalculator.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/codeReview/AutomatedCodeAnalyzer.ts",
+        "repairs_made": 413,
+        "backup_path": "src/tools/codeReview/AutomatedCodeAnalyzer.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/database/QueryOptimizer.ts",
+        "repairs_made": 457,
+        "backup_path": "src/tools/database/QueryOptimizer.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/database/DataIntegrityChecker.ts",
+        "repairs_made": 436,
+        "backup_path": "src/tools/database/DataIntegrityChecker.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/database/MigrationManager.ts",
+        "repairs_made": 684,
+        "backup_path": "src/tools/database/MigrationManager.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/database/SchemaAnalyzer.ts",
+        "repairs_made": 377,
+        "backup_path": "src/tools/database/SchemaAnalyzer.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/WorkflowManager.ts",
+        "repairs_made": 1078,
+        "backup_path": "src/tools/implementations/orchestrator/WorkflowManager.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/index.ts",
+        "repairs_made": 2,
+        "backup_path": "src/tools/implementations/orchestrator/index.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+        "repairs_made": 758,
+        "backup_path": "src/tools/implementations/orchestrator/TaskDistributor.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/ResponseCoordinator.ts",
+        "repairs_made": 737,
+        "backup_path": "src/tools/implementations/orchestrator/ResponseCoordinator.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/CrossAgentCommunicator.ts",
+        "repairs_made": 162,
+        "backup_path": "src/tools/implementations/orchestrator/CrossAgentCommunicator.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/SystemMonitor.ts",
+        "repairs_made": 686,
+        "backup_path": "src/tools/implementations/orchestrator/SystemMonitor.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/examples/TaskDistributor.example.ts",
+        "repairs_made": 235,
+        "backup_path": "src/tools/implementations/orchestrator/examples/TaskDistributor.example.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/__tests__/WorkflowManager.test.ts",
+        "repairs_made": 310,
+        "backup_path": "src/tools/implementations/orchestrator/__tests__/WorkflowManager.test.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/__tests__/TaskDistributor.test.ts",
+        "repairs_made": 396,
+        "backup_path": "src/tools/implementations/orchestrator/__tests__/TaskDistributor.test.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/__tests__/SystemMonitor.test.ts",
+        "repairs_made": 321,
+        "backup_path": "src/tools/implementations/orchestrator/__tests__/SystemMonitor.test.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/orchestrator/__tests__/ResponseCoordinator.test.ts",
+        "repairs_made": 249,
+        "backup_path": "src/tools/implementations/orchestrator/__tests__/ResponseCoordinator.test.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+        "repairs_made": 936,
+        "backup_path": "src/tools/implementations/python/DebuggingAssistant.ts.backup_1751421604",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/python/CodeQualityAnalyzer.ts",
+        "repairs_made": 1282,
+        "backup_path": "src/tools/implementations/python/CodeQualityAnalyzer.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.simple.test.ts",
+        "repairs_made": 161,
+        "backup_path": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.simple.test.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/python/__tests__/TestGenerator.test.ts",
+        "repairs_made": 260,
+        "backup_path": "src/tools/implementations/python/__tests__/TestGenerator.test.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts",
+        "repairs_made": 643,
+        "backup_path": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/vector/ChunkManager.ts",
+        "repairs_made": 338,
+        "backup_path": "src/tools/vector/ChunkManager.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/vector/EmbeddingGenerator.ts",
+        "repairs_made": 295,
+        "backup_path": "src/tools/vector/EmbeddingGenerator.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/vector/VectorIndexManager.ts",
+        "repairs_made": 427,
+        "backup_path": "src/tools/vector/VectorIndexManager.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/vector/RAGSystemManager.ts",
+        "repairs_made": 479,
+        "backup_path": "src/tools/vector/RAGSystemManager.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/vector/SimilaritySearcher.ts",
+        "repairs_made": 364,
+        "backup_path": "src/tools/vector/SimilaritySearcher.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/vector/VectorDatabaseConnector.ts",
+        "repairs_made": 486,
+        "backup_path": "src/tools/vector/VectorDatabaseConnector.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/orchestrator/AgentRouter.ts",
+        "repairs_made": 292,
+        "backup_path": "src/tools/orchestrator/AgentRouter.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/orchestrator/index.ts",
+        "repairs_made": 8,
+        "backup_path": "src/tools/orchestrator/index.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/orchestrator/CrossAgentCommunicator.ts",
+        "repairs_made": 333,
+        "backup_path": "src/tools/orchestrator/CrossAgentCommunicator.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/orchestrator/types.ts",
+        "repairs_made": 63,
+        "backup_path": "src/tools/orchestrator/types.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/tools/orchestrator/EnhancedParser.ts",
+        "repairs_made": 246,
+        "backup_path": "src/tools/orchestrator/EnhancedParser.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/types/agents.ts",
+        "repairs_made": 237,
+        "backup_path": "src/types/agents.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/types/agents.d.ts",
+        "repairs_made": 29,
+        "backup_path": "src/types/agents.d.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/types/integration.ts",
+        "repairs_made": 229,
+        "backup_path": "src/types/integration.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/types/models.d.ts",
+        "repairs_made": 11,
+        "backup_path": "src/types/models.d.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/types/tools.ts",
+        "repairs_made": 181,
+        "backup_path": "src/types/tools.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/types/orchestration.ts",
+        "repairs_made": 378,
+        "backup_path": "src/types/orchestration.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/types/tool.types.ts",
+        "repairs_made": 23,
+        "backup_path": "src/types/tool.types.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/types/infrastructure.ts",
+        "repairs_made": 288,
+        "backup_path": "src/types/infrastructure.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/types/tools.d.ts",
+        "repairs_made": 23,
+        "backup_path": "src/types/tools.d.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/examples/trpc-client-usage.tsx",
+        "repairs_made": 101,
+        "backup_path": "src/examples/trpc-client-usage.tsx.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/pages/_app.tsx",
+        "repairs_made": 4,
+        "backup_path": "src/pages/_app.tsx.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/pages/index.tsx",
+        "repairs_made": 140,
+        "backup_path": "src/pages/index.tsx.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/pages/api/trpc/[trpc].ts",
+        "repairs_made": 17,
+        "backup_path": "src/pages/api/trpc/[trpc].ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/orchestration/router.ts",
+        "repairs_made": 207,
+        "backup_path": "src/orchestration/router.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/orchestration/agent-registry.ts",
+        "repairs_made": 66,
+        "backup_path": "src/orchestration/agent-registry.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/orchestration/ExpertRouter.ts",
+        "repairs_made": 344,
+        "backup_path": "src/orchestration/ExpertRouter.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/orchestration/conversation-state.ts",
+        "repairs_made": 312,
+        "backup_path": "src/orchestration/conversation-state.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/orchestration/response-aggregator.ts",
+        "repairs_made": 333,
+        "backup_path": "src/orchestration/response-aggregator.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/orchestration/coordinator.ts",
+        "repairs_made": 299,
+        "backup_path": "src/orchestration/coordinator.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/orchestration/__tests__/response-aggregator.test.ts",
+        "repairs_made": 220,
+        "backup_path": "src/orchestration/__tests__/response-aggregator.test.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/orchestration/__tests__/conversation-state.test.ts",
+        "repairs_made": 227,
+        "backup_path": "src/orchestration/__tests__/conversation-state.test.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/base/ExpertAgentTemplate.ts",
+        "repairs_made": 379,
+        "backup_path": "src/agents/base/ExpertAgentTemplate.ts.backup_1751421605",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/base/BaseAgent.ts",
+        "repairs_made": 323,
+        "backup_path": "src/agents/base/BaseAgent.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/CodeReviewExpert.ts",
+        "repairs_made": 839,
+        "backup_path": "src/agents/experts/CodeReviewExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/TemplateLibraryExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/TemplateLibraryExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/N8NIntegrationExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/N8NIntegrationExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/GitHubActionsExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/GitHubActionsExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/index.ts",
+        "repairs_made": 32,
+        "backup_path": "src/agents/experts/index.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/APIIntegrationExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/APIIntegrationExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/UIUXDesignExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/UIUXDesignExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/TestingAndQAExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/TestingAndQAExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/ErrorAnalysisExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/ErrorAnalysisExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/SprintManager.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/SprintManager.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/AutomationIntegrationExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/AutomationIntegrationExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/MultiProjectManager.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/MultiProjectManager.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/VectorSearchExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/VectorSearchExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/SecuritySpecialist.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/SecuritySpecialist.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/ProjectOrganizationExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/ProjectOrganizationExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/ArchitectureExpert.ts",
+        "repairs_made": 636,
+        "backup_path": "src/agents/experts/ArchitectureExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/LLMIntegrationExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/LLMIntegrationExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/MCPIntegrationExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/MCPIntegrationExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/DatabaseExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/DatabaseExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/PowerAutomateExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/PowerAutomateExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/MasterOrchestrator.ts",
+        "repairs_made": 1138,
+        "backup_path": "src/agents/experts/MasterOrchestrator.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/PythonExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/PythonExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/PerformanceOptimizationExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/PerformanceOptimizationExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/TestExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/TestExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/VersionControlExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/VersionControlExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/ProjectPlanningExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/ProjectPlanningExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/VSCodeExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/VSCodeExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/DataPipelineExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/DataPipelineExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/GitHubIntegrationExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/GitHubIntegrationExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/RiskManagementExpert.ts",
+        "repairs_made": 25,
+        "backup_path": "src/agents/experts/RiskManagementExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/DocumentationExpert.ts",
+        "repairs_made": 994,
+        "backup_path": "src/agents/experts/DocumentationExpert.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/TestingAndQAExpert.tools.test.ts",
+        "repairs_made": 415,
+        "backup_path": "src/agents/experts/__tests__/TestingAndQAExpert.tools.test.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/MasterOrchestrator.integration.test.ts",
+        "repairs_made": 292,
+        "backup_path": "src/agents/experts/__tests__/MasterOrchestrator.integration.test.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/TemplateLibraryExpert.tools.test.ts",
+        "repairs_made": 337,
+        "backup_path": "src/agents/experts/__tests__/TemplateLibraryExpert.tools.test.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/ErrorAnalysisExpert.tools.test.ts",
+        "repairs_made": 698,
+        "backup_path": "src/agents/experts/__tests__/ErrorAnalysisExpert.tools.test.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/GitHubIntegrationExpert.tools.test.ts",
+        "repairs_made": 579,
+        "backup_path": "src/agents/experts/__tests__/GitHubIntegrationExpert.tools.test.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/ProjectPlanningExpert.tools.test.ts",
+        "repairs_made": 792,
+        "backup_path": "src/agents/experts/__tests__/ProjectPlanningExpert.tools.test.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.integration.test.ts",
+        "repairs_made": 174,
+        "backup_path": "src/agents/experts/__tests__/ProjectOrganizationExpert.integration.test.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/DocumentationExpert.tools.test.ts",
+        "repairs_made": 316,
+        "backup_path": "src/agents/experts/__tests__/DocumentationExpert.tools.test.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/GitHubActionsExpert.tools.test.ts",
+        "repairs_made": 621,
+        "backup_path": "src/agents/experts/__tests__/GitHubActionsExpert.tools.test.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.functional.test.ts",
+        "repairs_made": 205,
+        "backup_path": "src/agents/experts/__tests__/ProjectOrganizationExpert.functional.test.ts.backup_1751421606",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/MasterOrchestrator.tools.test.ts",
+        "repairs_made": 85,
+        "backup_path": "src/agents/experts/__tests__/MasterOrchestrator.tools.test.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/CodeReviewExpert.tools.test.ts",
+        "repairs_made": 408,
+        "backup_path": "src/agents/experts/__tests__/CodeReviewExpert.tools.test.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.tools.test.ts",
+        "repairs_made": 149,
+        "backup_path": "src/agents/experts/__tests__/ProjectOrganizationExpert.tools.test.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/services/OllamaService.ts",
+        "repairs_made": 611,
+        "backup_path": "src/services/OllamaService.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/services/__tests__/OllamaService.test.ts",
+        "repairs_made": 368,
+        "backup_path": "src/services/__tests__/OllamaService.test.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/services/n8n/N8NWebhookHandler.ts",
+        "repairs_made": 158,
+        "backup_path": "src/services/n8n/N8NWebhookHandler.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/services/n8n/N8NClient.ts",
+        "repairs_made": 260,
+        "backup_path": "src/services/n8n/N8NClient.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/services/n8n/N8NIntegration.ts",
+        "repairs_made": 304,
+        "backup_path": "src/services/n8n/N8NIntegration.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/services/n8n/__tests__/N8NIntegration.test.ts",
+        "repairs_made": 126,
+        "backup_path": "src/services/n8n/__tests__/N8NIntegration.test.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/models/ollama/OllamaProvider.ts",
+        "repairs_made": 266,
+        "backup_path": "src/models/ollama/OllamaProvider.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/utils/logger.ts",
+        "repairs_made": 23,
+        "backup_path": "src/utils/logger.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/utils/trpc.ts",
+        "repairs_made": 29,
+        "backup_path": "src/utils/trpc.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/utils/errorHandler.ts",
+        "repairs_made": 178,
+        "backup_path": "src/utils/errorHandler.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/utils/error.utils.ts",
+        "repairs_made": 32,
+        "backup_path": "src/utils/error.utils.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/server/trpc.ts",
+        "repairs_made": 31,
+        "backup_path": "src/server/trpc.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/server/context.ts",
+        "repairs_made": 39,
+        "backup_path": "src/server/context.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/server/routers/auth.ts",
+        "repairs_made": 63,
+        "backup_path": "src/server/routers/auth.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/server/routers/agents.ts",
+        "repairs_made": 161,
+        "backup_path": "src/server/routers/agents.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/server/routers/tools.ts",
+        "repairs_made": 187,
+        "backup_path": "src/server/routers/tools.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/server/routers/orchestration.ts",
+        "repairs_made": 330,
+        "backup_path": "src/server/routers/orchestration.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/server/routers/_app.ts",
+        "repairs_made": 5,
+        "backup_path": "src/server/routers/_app.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/server/routers/health.ts",
+        "repairs_made": 80,
+        "backup_path": "src/server/routers/health.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/performance/tracker.ts",
+        "repairs_made": 114,
+        "backup_path": "src/infrastructure/performance/tracker.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/rate-limiting/RateLimiter.ts",
+        "repairs_made": 57,
+        "backup_path": "src/infrastructure/rate-limiting/RateLimiter.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/tools/ToolExecutionFramework.ts",
+        "repairs_made": 388,
+        "backup_path": "src/infrastructure/tools/ToolExecutionFramework.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/security/auth.ts",
+        "repairs_made": 220,
+        "backup_path": "src/infrastructure/security/auth.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/security/rateLimiter.ts",
+        "repairs_made": 255,
+        "backup_path": "src/infrastructure/security/rateLimiter.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/security/validator.ts",
+        "repairs_made": 207,
+        "backup_path": "src/infrastructure/security/validator.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/security/sanitizer.ts",
+        "repairs_made": 143,
+        "backup_path": "src/infrastructure/security/sanitizer.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/model-providers/ModelRouter.ts",
+        "repairs_made": 494,
+        "backup_path": "src/infrastructure/model-providers/ModelRouter.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/model-providers/AgentModelAdapter.ts",
+        "repairs_made": 119,
+        "backup_path": "src/infrastructure/model-providers/AgentModelAdapter.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/model-providers/ProviderManager.ts",
+        "repairs_made": 210,
+        "backup_path": "src/infrastructure/model-providers/ProviderManager.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/model-providers/OllamaProvider.ts",
+        "repairs_made": 297,
+        "backup_path": "src/infrastructure/model-providers/OllamaProvider.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/model-providers/types.ts",
+        "repairs_made": 218,
+        "backup_path": "src/infrastructure/model-providers/types.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/model-providers/BaseModelProvider.ts",
+        "repairs_made": 194,
+        "backup_path": "src/infrastructure/model-providers/BaseModelProvider.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/model-providers/__tests__/ModelRouter.test.ts",
+        "repairs_made": 514,
+        "backup_path": "src/infrastructure/model-providers/__tests__/ModelRouter.test.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/model-providers/__tests__/ProviderManager.test.ts",
+        "repairs_made": 328,
+        "backup_path": "src/infrastructure/model-providers/__tests__/ProviderManager.test.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts",
+        "repairs_made": 370,
+        "backup_path": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/model-providers/__tests__/AgentModelAdapter.test.ts",
+        "repairs_made": 649,
+        "backup_path": "src/infrastructure/model-providers/__tests__/AgentModelAdapter.test.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/cache/manager.ts",
+        "repairs_made": 176,
+        "backup_path": "src/infrastructure/cache/manager.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/error-handling/handler.ts",
+        "repairs_made": 143,
+        "backup_path": "src/infrastructure/error-handling/handler.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/monitoring/MetricsCollector.ts",
+        "repairs_made": 52,
+        "backup_path": "src/infrastructure/monitoring/MetricsCollector.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/monitoring/alerts.ts",
+        "repairs_made": 226,
+        "backup_path": "src/infrastructure/monitoring/alerts.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/monitoring/metrics.ts",
+        "repairs_made": 190,
+        "backup_path": "src/infrastructure/monitoring/metrics.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/monitoring/health.ts",
+        "repairs_made": 149,
+        "backup_path": "src/infrastructure/monitoring/health.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/infrastructure/logging/logger.ts",
+        "repairs_made": 41,
+        "backup_path": "src/infrastructure/logging/logger.ts.backup_1751421607",
+        "repaired": true
+      },
+      {
+        "file": "src/app/api/trpc/[trpc]/route.ts",
+        "repairs_made": 12,
+        "backup_path": "src/app/api/trpc/[trpc]/route.ts.backup_1751421607",
+        "repaired": true
+      }
+    ]
+  },
+  "repair_log": [
+    {
+      "file": "src/index.ts",
+      "repairs_made": 1,
+      "backup_path": "src/index.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/server.ts",
+      "repairs_made": 105,
+      "backup_path": "src/server.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tests/integration/master-orchestrator-python-expert.test.ts",
+      "repairs_made": 92,
+      "backup_path": "src/tests/integration/master-orchestrator-python-expert.test.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/config/config.ts",
+      "repairs_made": 63,
+      "backup_path": "src/config/config.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/registry.ts",
+      "repairs_made": 47,
+      "backup_path": "src/tools/registry.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/web-scraping/ScrapingStrategies.ts",
+      "repairs_made": 231,
+      "backup_path": "src/tools/web-scraping/ScrapingStrategies.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/web-scraping/WebScraperTool.ts",
+      "repairs_made": 453,
+      "backup_path": "src/tools/web-scraping/WebScraperTool.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/templateLibrary/CustomGeneratorBuilder.ts",
+      "repairs_made": 474,
+      "backup_path": "src/tools/templateLibrary/CustomGeneratorBuilder.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/templateLibrary/YeomanScaffolder.ts",
+      "repairs_made": 668,
+      "backup_path": "src/tools/templateLibrary/YeomanScaffolder.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMarketplace.ts",
+      "repairs_made": 300,
+      "backup_path": "src/tools/templateLibrary/TemplateMarketplace.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/templateLibrary/ComponentLibraryBuilder.ts",
+      "repairs_made": 642,
+      "backup_path": "src/tools/templateLibrary/ComponentLibraryBuilder.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/templateLibrary/PlopfileGenerator.ts",
+      "repairs_made": 603,
+      "backup_path": "src/tools/templateLibrary/PlopfileGenerator.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMigrator.ts",
+      "repairs_made": 814,
+      "backup_path": "src/tools/templateLibrary/TemplateMigrator.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateValidator.ts",
+      "repairs_made": 603,
+      "backup_path": "src/tools/templateLibrary/TemplateValidator.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/templateLibrary/SnippetLibraryManager.ts",
+      "repairs_made": 763,
+      "backup_path": "src/tools/templateLibrary/SnippetLibraryManager.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testing/TestGenerator.ts",
+      "repairs_made": 1143,
+      "backup_path": "src/tools/testing/TestGenerator.ts.backup_1751421600",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testing/examples/TestGenerator.example.ts",
+      "repairs_made": 305,
+      "backup_path": "src/tools/testing/examples/TestGenerator.example.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testing/__tests__/TestGenerator.test.ts",
+      "repairs_made": 675,
+      "backup_path": "src/tools/testing/__tests__/TestGenerator.test.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/documentation/tutorial_builder.ts",
+      "repairs_made": 187,
+      "backup_path": "src/tools/documentation/tutorial_builder.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/documentation/DocAutomationSetup.ts",
+      "repairs_made": 892,
+      "backup_path": "src/tools/documentation/DocAutomationSetup.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/documentation/ApiExtractor.ts",
+      "repairs_made": 578,
+      "backup_path": "src/tools/documentation/ApiExtractor.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/documentation/ChangelogManager.ts",
+      "repairs_made": 1404,
+      "backup_path": "src/tools/documentation/ChangelogManager.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/documentation/ReadmeGenerator.ts",
+      "repairs_made": 1400,
+      "backup_path": "src/tools/documentation/ReadmeGenerator.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/documentation/DiagramGenerator.ts",
+      "repairs_made": 1718,
+      "backup_path": "src/tools/documentation/DiagramGenerator.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/documentation/DocQualityAnalyzer.ts",
+      "repairs_made": 972,
+      "backup_path": "src/tools/documentation/DocQualityAnalyzer.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/documentation/MultiFormatConverter.ts",
+      "repairs_made": 1046,
+      "backup_path": "src/tools/documentation/MultiFormatConverter.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/documentation/__tests__/tutorial_builder.test.ts",
+      "repairs_made": 261,
+      "backup_path": "src/tools/documentation/__tests__/tutorial_builder.test.ts.backup_1751421601",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/TypeHintAnalyzer.ts",
+      "repairs_made": 689,
+      "backup_path": "src/tools/pythonExpert/TypeHintAnalyzer.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/DebuggingAssistant.ts",
+      "repairs_made": 941,
+      "backup_path": "src/tools/pythonExpert/DebuggingAssistant.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts",
+      "repairs_made": 958,
+      "backup_path": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeQualityAnalyzer.ts",
+      "repairs_made": 876,
+      "backup_path": "src/tools/pythonExpert/CodeQualityAnalyzer.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/LibraryRecommender.ts",
+      "repairs_made": 577,
+      "backup_path": "src/tools/pythonExpert/LibraryRecommender.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeOptimizer.ts",
+      "repairs_made": 350,
+      "backup_path": "src/tools/pythonExpert/CodeOptimizer.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+      "repairs_made": 426,
+      "backup_path": "src/tools/pythonExpert/PerformanceProfiler.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts",
+      "repairs_made": 763,
+      "backup_path": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/DocumentationGenerator.ts",
+      "repairs_made": 718,
+      "backup_path": "src/tools/pythonExpert/DocumentationGenerator.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/examples/code-optimizer-example.ts",
+      "repairs_made": 98,
+      "backup_path": "src/tools/pythonExpert/examples/code-optimizer-example.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/pythonExpert/__tests__/CodeOptimizer.test.ts",
+      "repairs_made": 231,
+      "backup_path": "src/tools/pythonExpert/__tests__/CodeOptimizer.test.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/base/BaseTool.ts",
+      "repairs_made": 134,
+      "backup_path": "src/tools/base/BaseTool.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/base/ToolManager.ts",
+      "repairs_made": 250,
+      "backup_path": "src/tools/base/ToolManager.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+      "repairs_made": 703,
+      "backup_path": "src/tools/architecture/ArchitectureDocumentationGenerator.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/architecture/PerformanceBottleneckDetector.ts",
+      "repairs_made": 490,
+      "backup_path": "src/tools/architecture/PerformanceBottleneckDetector.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/architecture/TechnologyStackAdvisor.ts",
+      "repairs_made": 878,
+      "backup_path": "src/tools/architecture/TechnologyStackAdvisor.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/architecture/ScalabilityAnalyzer.ts",
+      "repairs_made": 568,
+      "backup_path": "src/tools/architecture/ScalabilityAnalyzer.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/architecture/SystemDesignAnalyzer.ts",
+      "repairs_made": 715,
+      "backup_path": "src/tools/architecture/SystemDesignAnalyzer.ts.backup_1751421602",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/architecture/SecurityArchitectureReviewer.ts",
+      "repairs_made": 525,
+      "backup_path": "src/tools/architecture/SecurityArchitectureReviewer.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDiagramGenerator.ts",
+      "repairs_made": 540,
+      "backup_path": "src/tools/architecture/ArchitectureDiagramGenerator.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/architecture/ComponentRelationshipMapper.ts",
+      "repairs_made": 545,
+      "backup_path": "src/tools/architecture/ComponentRelationshipMapper.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testingQA/TestAnalyticsReporter.ts",
+      "repairs_made": 566,
+      "backup_path": "src/tools/testingQA/TestAnalyticsReporter.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testingQA/TestFrameworkMigrator.ts",
+      "repairs_made": 882,
+      "backup_path": "src/tools/testingQA/TestFrameworkMigrator.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testingQA/TestSuiteGenerator.ts",
+      "repairs_made": 810,
+      "backup_path": "src/tools/testingQA/TestSuiteGenerator.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+      "repairs_made": 794,
+      "backup_path": "src/tools/testingQA/PerformanceLoadTester.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testingQA/QAWorkflowOrchestrator.ts",
+      "repairs_made": 540,
+      "backup_path": "src/tools/testingQA/QAWorkflowOrchestrator.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testingQA/TestDataManager.ts",
+      "repairs_made": 809,
+      "backup_path": "src/tools/testingQA/TestDataManager.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testingQA/CoverageAnalyzer.ts",
+      "repairs_made": 667,
+      "backup_path": "src/tools/testingQA/CoverageAnalyzer.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/testingQA/QualityGateOptimizer.ts",
+      "repairs_made": 756,
+      "backup_path": "src/tools/testingQA/QualityGateOptimizer.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/codeReview/index.ts",
+      "repairs_made": 1,
+      "backup_path": "src/tools/codeReview/index.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/codeReview/CodeReviewOptimizer.ts",
+      "repairs_made": 762,
+      "backup_path": "src/tools/codeReview/CodeReviewOptimizer.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/codeReview/PullRequestReviewer.ts",
+      "repairs_made": 623,
+      "backup_path": "src/tools/codeReview/PullRequestReviewer.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/codeReview/SecurityVulnerabilityScanner.ts",
+      "repairs_made": 592,
+      "backup_path": "src/tools/codeReview/SecurityVulnerabilityScanner.ts.backup_1751421603",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/codeReview/CICDIntegrator.ts",
+      "repairs_made": 646,
+      "backup_path": "src/tools/codeReview/CICDIntegrator.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/codeReview/ReviewAnalyticsReporter.ts",
+      "repairs_made": 1350,
+      "backup_path": "src/tools/codeReview/ReviewAnalyticsReporter.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/codeReview/CodeStyleEnforcer.ts",
+      "repairs_made": 487,
+      "backup_path": "src/tools/codeReview/CodeStyleEnforcer.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/codeReview/CodeQualityMetricsCalculator.ts",
+      "repairs_made": 674,
+      "backup_path": "src/tools/codeReview/CodeQualityMetricsCalculator.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/codeReview/AutomatedCodeAnalyzer.ts",
+      "repairs_made": 413,
+      "backup_path": "src/tools/codeReview/AutomatedCodeAnalyzer.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/database/QueryOptimizer.ts",
+      "repairs_made": 457,
+      "backup_path": "src/tools/database/QueryOptimizer.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/database/DataIntegrityChecker.ts",
+      "repairs_made": 436,
+      "backup_path": "src/tools/database/DataIntegrityChecker.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/database/MigrationManager.ts",
+      "repairs_made": 684,
+      "backup_path": "src/tools/database/MigrationManager.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/database/SchemaAnalyzer.ts",
+      "repairs_made": 377,
+      "backup_path": "src/tools/database/SchemaAnalyzer.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/WorkflowManager.ts",
+      "repairs_made": 1078,
+      "backup_path": "src/tools/implementations/orchestrator/WorkflowManager.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/index.ts",
+      "repairs_made": 2,
+      "backup_path": "src/tools/implementations/orchestrator/index.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+      "repairs_made": 758,
+      "backup_path": "src/tools/implementations/orchestrator/TaskDistributor.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/ResponseCoordinator.ts",
+      "repairs_made": 737,
+      "backup_path": "src/tools/implementations/orchestrator/ResponseCoordinator.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/CrossAgentCommunicator.ts",
+      "repairs_made": 162,
+      "backup_path": "src/tools/implementations/orchestrator/CrossAgentCommunicator.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/SystemMonitor.ts",
+      "repairs_made": 686,
+      "backup_path": "src/tools/implementations/orchestrator/SystemMonitor.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/examples/TaskDistributor.example.ts",
+      "repairs_made": 235,
+      "backup_path": "src/tools/implementations/orchestrator/examples/TaskDistributor.example.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/WorkflowManager.test.ts",
+      "repairs_made": 310,
+      "backup_path": "src/tools/implementations/orchestrator/__tests__/WorkflowManager.test.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/TaskDistributor.test.ts",
+      "repairs_made": 396,
+      "backup_path": "src/tools/implementations/orchestrator/__tests__/TaskDistributor.test.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/SystemMonitor.test.ts",
+      "repairs_made": 321,
+      "backup_path": "src/tools/implementations/orchestrator/__tests__/SystemMonitor.test.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/ResponseCoordinator.test.ts",
+      "repairs_made": 249,
+      "backup_path": "src/tools/implementations/orchestrator/__tests__/ResponseCoordinator.test.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+      "repairs_made": 936,
+      "backup_path": "src/tools/implementations/python/DebuggingAssistant.ts.backup_1751421604",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/python/CodeQualityAnalyzer.ts",
+      "repairs_made": 1282,
+      "backup_path": "src/tools/implementations/python/CodeQualityAnalyzer.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.simple.test.ts",
+      "repairs_made": 161,
+      "backup_path": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.simple.test.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/TestGenerator.test.ts",
+      "repairs_made": 260,
+      "backup_path": "src/tools/implementations/python/__tests__/TestGenerator.test.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts",
+      "repairs_made": 643,
+      "backup_path": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/vector/ChunkManager.ts",
+      "repairs_made": 338,
+      "backup_path": "src/tools/vector/ChunkManager.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/vector/EmbeddingGenerator.ts",
+      "repairs_made": 295,
+      "backup_path": "src/tools/vector/EmbeddingGenerator.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/vector/VectorIndexManager.ts",
+      "repairs_made": 427,
+      "backup_path": "src/tools/vector/VectorIndexManager.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/vector/RAGSystemManager.ts",
+      "repairs_made": 479,
+      "backup_path": "src/tools/vector/RAGSystemManager.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/vector/SimilaritySearcher.ts",
+      "repairs_made": 364,
+      "backup_path": "src/tools/vector/SimilaritySearcher.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/vector/VectorDatabaseConnector.ts",
+      "repairs_made": 486,
+      "backup_path": "src/tools/vector/VectorDatabaseConnector.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/orchestrator/AgentRouter.ts",
+      "repairs_made": 292,
+      "backup_path": "src/tools/orchestrator/AgentRouter.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/orchestrator/index.ts",
+      "repairs_made": 8,
+      "backup_path": "src/tools/orchestrator/index.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/orchestrator/CrossAgentCommunicator.ts",
+      "repairs_made": 333,
+      "backup_path": "src/tools/orchestrator/CrossAgentCommunicator.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/orchestrator/types.ts",
+      "repairs_made": 63,
+      "backup_path": "src/tools/orchestrator/types.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/tools/orchestrator/EnhancedParser.ts",
+      "repairs_made": 246,
+      "backup_path": "src/tools/orchestrator/EnhancedParser.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/types/agents.ts",
+      "repairs_made": 237,
+      "backup_path": "src/types/agents.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/types/agents.d.ts",
+      "repairs_made": 29,
+      "backup_path": "src/types/agents.d.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/types/integration.ts",
+      "repairs_made": 229,
+      "backup_path": "src/types/integration.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/types/models.d.ts",
+      "repairs_made": 11,
+      "backup_path": "src/types/models.d.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/types/tools.ts",
+      "repairs_made": 181,
+      "backup_path": "src/types/tools.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/types/orchestration.ts",
+      "repairs_made": 378,
+      "backup_path": "src/types/orchestration.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/types/tool.types.ts",
+      "repairs_made": 23,
+      "backup_path": "src/types/tool.types.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/types/infrastructure.ts",
+      "repairs_made": 288,
+      "backup_path": "src/types/infrastructure.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/types/tools.d.ts",
+      "repairs_made": 23,
+      "backup_path": "src/types/tools.d.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/examples/trpc-client-usage.tsx",
+      "repairs_made": 101,
+      "backup_path": "src/examples/trpc-client-usage.tsx.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/pages/_app.tsx",
+      "repairs_made": 4,
+      "backup_path": "src/pages/_app.tsx.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/pages/index.tsx",
+      "repairs_made": 140,
+      "backup_path": "src/pages/index.tsx.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/pages/api/trpc/[trpc].ts",
+      "repairs_made": 17,
+      "backup_path": "src/pages/api/trpc/[trpc].ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/orchestration/router.ts",
+      "repairs_made": 207,
+      "backup_path": "src/orchestration/router.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/orchestration/agent-registry.ts",
+      "repairs_made": 66,
+      "backup_path": "src/orchestration/agent-registry.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/orchestration/ExpertRouter.ts",
+      "repairs_made": 344,
+      "backup_path": "src/orchestration/ExpertRouter.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/orchestration/conversation-state.ts",
+      "repairs_made": 312,
+      "backup_path": "src/orchestration/conversation-state.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/orchestration/response-aggregator.ts",
+      "repairs_made": 333,
+      "backup_path": "src/orchestration/response-aggregator.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/orchestration/coordinator.ts",
+      "repairs_made": 299,
+      "backup_path": "src/orchestration/coordinator.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/orchestration/__tests__/response-aggregator.test.ts",
+      "repairs_made": 220,
+      "backup_path": "src/orchestration/__tests__/response-aggregator.test.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/orchestration/__tests__/conversation-state.test.ts",
+      "repairs_made": 227,
+      "backup_path": "src/orchestration/__tests__/conversation-state.test.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/base/ExpertAgentTemplate.ts",
+      "repairs_made": 379,
+      "backup_path": "src/agents/base/ExpertAgentTemplate.ts.backup_1751421605",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/base/BaseAgent.ts",
+      "repairs_made": 323,
+      "backup_path": "src/agents/base/BaseAgent.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/CodeReviewExpert.ts",
+      "repairs_made": 839,
+      "backup_path": "src/agents/experts/CodeReviewExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/TemplateLibraryExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/TemplateLibraryExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/N8NIntegrationExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/N8NIntegrationExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/GitHubActionsExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/GitHubActionsExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/index.ts",
+      "repairs_made": 32,
+      "backup_path": "src/agents/experts/index.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/APIIntegrationExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/APIIntegrationExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/UIUXDesignExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/UIUXDesignExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/TestingAndQAExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/TestingAndQAExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/ErrorAnalysisExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/ErrorAnalysisExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/SprintManager.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/SprintManager.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/AutomationIntegrationExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/AutomationIntegrationExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/MultiProjectManager.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/MultiProjectManager.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/VectorSearchExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/VectorSearchExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/SecuritySpecialist.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/SecuritySpecialist.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/ProjectOrganizationExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/ProjectOrganizationExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/ArchitectureExpert.ts",
+      "repairs_made": 636,
+      "backup_path": "src/agents/experts/ArchitectureExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/LLMIntegrationExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/LLMIntegrationExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/MCPIntegrationExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/MCPIntegrationExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/DatabaseExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/DatabaseExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/PowerAutomateExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/PowerAutomateExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/MasterOrchestrator.ts",
+      "repairs_made": 1138,
+      "backup_path": "src/agents/experts/MasterOrchestrator.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/PythonExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/PythonExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/PerformanceOptimizationExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/PerformanceOptimizationExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/TestExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/TestExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/VersionControlExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/VersionControlExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/ProjectPlanningExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/ProjectPlanningExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/VSCodeExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/VSCodeExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/DataPipelineExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/DataPipelineExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/GitHubIntegrationExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/GitHubIntegrationExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/RiskManagementExpert.ts",
+      "repairs_made": 25,
+      "backup_path": "src/agents/experts/RiskManagementExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/DocumentationExpert.ts",
+      "repairs_made": 994,
+      "backup_path": "src/agents/experts/DocumentationExpert.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/TestingAndQAExpert.tools.test.ts",
+      "repairs_made": 415,
+      "backup_path": "src/agents/experts/__tests__/TestingAndQAExpert.tools.test.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.integration.test.ts",
+      "repairs_made": 292,
+      "backup_path": "src/agents/experts/__tests__/MasterOrchestrator.integration.test.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/TemplateLibraryExpert.tools.test.ts",
+      "repairs_made": 337,
+      "backup_path": "src/agents/experts/__tests__/TemplateLibraryExpert.tools.test.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/ErrorAnalysisExpert.tools.test.ts",
+      "repairs_made": 698,
+      "backup_path": "src/agents/experts/__tests__/ErrorAnalysisExpert.tools.test.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubIntegrationExpert.tools.test.ts",
+      "repairs_made": 579,
+      "backup_path": "src/agents/experts/__tests__/GitHubIntegrationExpert.tools.test.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectPlanningExpert.tools.test.ts",
+      "repairs_made": 792,
+      "backup_path": "src/agents/experts/__tests__/ProjectPlanningExpert.tools.test.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.integration.test.ts",
+      "repairs_made": 174,
+      "backup_path": "src/agents/experts/__tests__/ProjectOrganizationExpert.integration.test.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/DocumentationExpert.tools.test.ts",
+      "repairs_made": 316,
+      "backup_path": "src/agents/experts/__tests__/DocumentationExpert.tools.test.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubActionsExpert.tools.test.ts",
+      "repairs_made": 621,
+      "backup_path": "src/agents/experts/__tests__/GitHubActionsExpert.tools.test.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.functional.test.ts",
+      "repairs_made": 205,
+      "backup_path": "src/agents/experts/__tests__/ProjectOrganizationExpert.functional.test.ts.backup_1751421606",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.tools.test.ts",
+      "repairs_made": 85,
+      "backup_path": "src/agents/experts/__tests__/MasterOrchestrator.tools.test.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/CodeReviewExpert.tools.test.ts",
+      "repairs_made": 408,
+      "backup_path": "src/agents/experts/__tests__/CodeReviewExpert.tools.test.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.tools.test.ts",
+      "repairs_made": 149,
+      "backup_path": "src/agents/experts/__tests__/ProjectOrganizationExpert.tools.test.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/services/OllamaService.ts",
+      "repairs_made": 611,
+      "backup_path": "src/services/OllamaService.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/services/__tests__/OllamaService.test.ts",
+      "repairs_made": 368,
+      "backup_path": "src/services/__tests__/OllamaService.test.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/services/n8n/N8NWebhookHandler.ts",
+      "repairs_made": 158,
+      "backup_path": "src/services/n8n/N8NWebhookHandler.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/services/n8n/N8NClient.ts",
+      "repairs_made": 260,
+      "backup_path": "src/services/n8n/N8NClient.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/services/n8n/N8NIntegration.ts",
+      "repairs_made": 304,
+      "backup_path": "src/services/n8n/N8NIntegration.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/services/n8n/__tests__/N8NIntegration.test.ts",
+      "repairs_made": 126,
+      "backup_path": "src/services/n8n/__tests__/N8NIntegration.test.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/models/ollama/OllamaProvider.ts",
+      "repairs_made": 266,
+      "backup_path": "src/models/ollama/OllamaProvider.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/utils/logger.ts",
+      "repairs_made": 23,
+      "backup_path": "src/utils/logger.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/utils/trpc.ts",
+      "repairs_made": 29,
+      "backup_path": "src/utils/trpc.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/utils/errorHandler.ts",
+      "repairs_made": 178,
+      "backup_path": "src/utils/errorHandler.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/utils/error.utils.ts",
+      "repairs_made": 32,
+      "backup_path": "src/utils/error.utils.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/server/trpc.ts",
+      "repairs_made": 31,
+      "backup_path": "src/server/trpc.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/server/context.ts",
+      "repairs_made": 39,
+      "backup_path": "src/server/context.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/server/routers/auth.ts",
+      "repairs_made": 63,
+      "backup_path": "src/server/routers/auth.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/server/routers/agents.ts",
+      "repairs_made": 161,
+      "backup_path": "src/server/routers/agents.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/server/routers/tools.ts",
+      "repairs_made": 187,
+      "backup_path": "src/server/routers/tools.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/server/routers/orchestration.ts",
+      "repairs_made": 330,
+      "backup_path": "src/server/routers/orchestration.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/server/routers/_app.ts",
+      "repairs_made": 5,
+      "backup_path": "src/server/routers/_app.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/server/routers/health.ts",
+      "repairs_made": 80,
+      "backup_path": "src/server/routers/health.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/performance/tracker.ts",
+      "repairs_made": 114,
+      "backup_path": "src/infrastructure/performance/tracker.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/rate-limiting/RateLimiter.ts",
+      "repairs_made": 57,
+      "backup_path": "src/infrastructure/rate-limiting/RateLimiter.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/tools/ToolExecutionFramework.ts",
+      "repairs_made": 388,
+      "backup_path": "src/infrastructure/tools/ToolExecutionFramework.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/security/auth.ts",
+      "repairs_made": 220,
+      "backup_path": "src/infrastructure/security/auth.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/security/rateLimiter.ts",
+      "repairs_made": 255,
+      "backup_path": "src/infrastructure/security/rateLimiter.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/security/validator.ts",
+      "repairs_made": 207,
+      "backup_path": "src/infrastructure/security/validator.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/security/sanitizer.ts",
+      "repairs_made": 143,
+      "backup_path": "src/infrastructure/security/sanitizer.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/model-providers/ModelRouter.ts",
+      "repairs_made": 494,
+      "backup_path": "src/infrastructure/model-providers/ModelRouter.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/model-providers/AgentModelAdapter.ts",
+      "repairs_made": 119,
+      "backup_path": "src/infrastructure/model-providers/AgentModelAdapter.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/model-providers/ProviderManager.ts",
+      "repairs_made": 210,
+      "backup_path": "src/infrastructure/model-providers/ProviderManager.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/model-providers/OllamaProvider.ts",
+      "repairs_made": 297,
+      "backup_path": "src/infrastructure/model-providers/OllamaProvider.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/model-providers/types.ts",
+      "repairs_made": 218,
+      "backup_path": "src/infrastructure/model-providers/types.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/model-providers/BaseModelProvider.ts",
+      "repairs_made": 194,
+      "backup_path": "src/infrastructure/model-providers/BaseModelProvider.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ModelRouter.test.ts",
+      "repairs_made": 514,
+      "backup_path": "src/infrastructure/model-providers/__tests__/ModelRouter.test.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ProviderManager.test.ts",
+      "repairs_made": 328,
+      "backup_path": "src/infrastructure/model-providers/__tests__/ProviderManager.test.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts",
+      "repairs_made": 370,
+      "backup_path": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/AgentModelAdapter.test.ts",
+      "repairs_made": 649,
+      "backup_path": "src/infrastructure/model-providers/__tests__/AgentModelAdapter.test.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/cache/manager.ts",
+      "repairs_made": 176,
+      "backup_path": "src/infrastructure/cache/manager.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/error-handling/handler.ts",
+      "repairs_made": 143,
+      "backup_path": "src/infrastructure/error-handling/handler.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/monitoring/MetricsCollector.ts",
+      "repairs_made": 52,
+      "backup_path": "src/infrastructure/monitoring/MetricsCollector.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/monitoring/alerts.ts",
+      "repairs_made": 226,
+      "backup_path": "src/infrastructure/monitoring/alerts.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/monitoring/metrics.ts",
+      "repairs_made": 190,
+      "backup_path": "src/infrastructure/monitoring/metrics.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/monitoring/health.ts",
+      "repairs_made": 149,
+      "backup_path": "src/infrastructure/monitoring/health.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/infrastructure/logging/logger.ts",
+      "repairs_made": 41,
+      "backup_path": "src/infrastructure/logging/logger.ts.backup_1751421607",
+      "repaired": true
+    },
+    {
+      "file": "src/app/api/trpc/[trpc]/route.ts",
+      "repairs_made": 12,
+      "backup_path": "src/app/api/trpc/[trpc]/route.ts.backup_1751421607",
+      "repaired": true
+    }
+  ],
+  "timestamp": 1751421607.9413028,
+  "duration": 7.554231882095337
+}

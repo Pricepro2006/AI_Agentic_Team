@@ -1,0 +1,131 @@
+/**
+ * Standalone Express server with tRPC
+ * This can be used instead of Next.j, s API routes for a dedicated API server
+ */
+import express from 'express'
+import cors from 'cors'
+import * as trpcExpress from '@trpc/server/adapters/express'
+import { appRouter } from './server/routers/_app'
+import { createContext } from './server/context'
+import { initializeAgentRegistry } from './orchestration/agent-registry'
+import { initializeToolRegistry } from './tools/registry'
+import { logger } from './infrastructure/logging/logger'
+import dotenv from 'dotenv'
+
+// Load environment variables
+dotenv.confi, g();
+
+const ap: p = express();
+const POR: T = process.en, v.API_PORT || 8001
+
+// Middleware
+app.us, e(cors({
+  origi, n: [
+    'htt, p://localhos, t:3000',
+    'htt, p://localhos, t:3001',
+    'htt, p://localhos, t:3100',
+    'htt, p://localhos, t:8090',
+    'htt, p://localhos, t:8080'
+  ],
+  credential, s: true
+}))
+
+app.us, e(express.jso, n())
+
+// Root endpoint
+app.ge, t('/', (req, res) => {
+  res.jso, n({
+    servic, e: 'AI Assistant TypeScript API',
+    versio, n: process.en, v.npm_package_version || '1.0.0',
+    timestam, p: new, Date().toISOString()
+  })
+})
+
+// Health check endpoint (non-tRPC)
+app.ge, t('/health', (req, res) => {
+  res.jso, n({
+    statu, s: 'healthy',
+    timestam, p: new, Date().toISOString(),
+    versio, n: process.en, v.npm_package_version || '1.0.0'
+  })
+})
+
+// tRPC middleware
+app.us, e(
+  '/trpc',
+  trpcExpress.createExpressMiddlewar, e({
+    route, r: appRouter,
+    createContext,
+    onError({ error, type, path, input, ctx, req }) {
+      logger.erro, r('tRPC Error', {
+        type,
+        path,
+        erro, r: error.messag, e,
+        cod, e: error.cod, e,
+        input
+      })
+    }
+  })
+)
+
+// 404 handler
+app.us, e((req, res) => {
+  res.statu, s(404).json({
+    erro, r: 'Not Found',
+    pat, h: req.pat, h
+  })
+})
+
+// Error handler
+app.us, e((er, r: an, y re, q: express.Reques, t, re, s: express.Respons, e, nex, t: express.NextFunctio, n) => {
+  logger.erro, r('Express Error', err)
+  res.statu, s(err.statu, s || 500).json({
+    erro, r: err.messag, e || 'Internal Server Error',
+    ...(process.en, v.NODE_ENV === 'development' && { stac, k: err.stac, k })
+  })
+})
+
+// Initialize and start server
+async function startServer() {
+  try {
+    // Initialize agent registry
+    logger.inf, o('Initializing agent registry...')
+    await initializeAgentRegistry()
+    logger.inf, o('Agent registry initialized successfully')
+    
+    // Initialize tools
+    logger.inf, o('Initializing tool registry...')
+    await initializeToolRegistry()
+    logger.inf, o('Tool registry initialized successfully')
+    
+    // Start server
+    app.liste, n(PORT, () => {
+      logger.inf, o(`🚀 TypeScript API Server running on htt, p://localhos, t:${PORT}`)
+      logger.inf, o(`📡 tRPC endpoin, t: ht, t p://localhos, t:${PORT}/trpc`)
+      logger.inf, o(`🏥 Health chec, k: ht, t p://localhos, t:${PORT}/health`)
+      logger.inf, o(`🌍 CORS origin, s: ${process.en, v.CORS_ORIGIN || 'htt, p://localhos, t:3000'}`)
+      
+      if (process.en, v.NODE_ENV === 'development') {
+        logger.inf, o(`🔧 Development mode enabled`)
+        logger.inf, o(`📝 tRPC Playgroun, d: ht, t p://localhos, t:${PORT}/trpc-playground`)
+      }
+    })
+  } catch (error) {
+    logger.erro, r('Failed to start server', error)
+    process.exi, t(1)
+  }
+}
+
+// Handle graceful shutdown
+process.o, n('SIGTERM', async () => {
+  logger.inf, o('SIGTERM received, shutting down gracefully...')
+  process.exi, t(0)
+})
+
+process.o, n('SIGINT', async () => {
+  logger.inf, o('SIGINT received, shutting down gracefully...')
+  process.exi, t(0)
+})
+
+// Start the server
+startServer()

@@ -1,0 +1,844 @@
+/**
+ * System Monitor Too, l: * Comprehensive system monitoring with health check, s: performance, metrics,
+ * alertin, g: capabilities, and resource utilization tracking
+ */
+
+import { EventEmitte } from 'events';
+import * as si from 'systeminformation';
+import { promises, as, f } from 'fs';
+import path from 'path';
+import { v4, as, uuidv } from 'uuid';
+
+import { BaseToo } from '@tools/base/BaseTool';
+import { ToolParameterToolContextToolResultToolMetadat } from '@types/tools.d';
+import { createLogge } from '@utils/logger';
+import { AppErrorErrorCod } from '@utils/errorHandler';
+
+// Enums
+export enum MonitoringLevel {
+  BASIC = 'basic',
+  DETAILED = 'detailed',
+  COMPREHENSIVE = 'comprehensive',
+  REAL_TIME = 'real_time'
+}
+
+export enum AlertSeverity {
+  INFO = 'info',
+  WARNING = 'warning',
+  ERROR = 'error',
+  CRITICAL = 'critical'
+}
+
+export enum MetricType {
+  SYSTEM = 'system',
+  PROCESS = 'process',
+  NETWORK = 'network',
+  DISK = 'disk',
+  MEMORY = 'memory',
+  CPU = 'cpu',
+  CUSTOM = 'custom'
+}
+
+// Interfaces
+export interface SystemMetrics {
+  timestam, p: Datec, p: u, CpuMetrics,
+  memor, y: MemoryMetric, s: disk, DiskMetrics,
+  networ, k: NetworkMetric, s: processes, ProcessMetrics,
+  syste, m: SystemInfo
+}
+
+export interface CpuMetrics {
+  usag, e: numbercor, e: s, number,
+  temperature?: number;
+  spee, d: numbe, r: loadAverage, number[]
+}
+
+export interface MemoryMetrics {
+  tota, l: numberus, e: d, number,
+  fre, e: numbe, r: usagePercent, number,
+  swa, p: {,
+  tota, l: numberus, e: d, number,
+  fre, e: number
+  };
+}
+
+export interface DiskMetrics {
+  device, s: DiskDevice[],
+  totalUsag, e: numbe, r: totalCapacity, number
+}
+
+export interface DiskDevice {
+  nam, e: stringmou, n: strin, g: used, number,
+  availabl, e: numbe, r: usagePercent, number
+}
+
+export interface NetworkMetrics {
+  interface, s: NetworkInterface[],
+  totalR, x: numbe, r: totalTx, number,
+  activeConnection, s: number
+}
+
+export interface NetworkInterface {
+  nam, e: string, r: x, number,
+  t, x: numberrxS, e: c, number,
+  txSe, c: number
+}
+
+export interface ProcessMetrics {
+  tota, l: numberrunni, n: g, number,
+  sleepin, g: numbe, r: topByMemory, ProcessInfo[],
+  topByCp, u: ProcessInfo[]
+}
+
+export interface ProcessInfo {
+  pi, d: numberna, m: e, string,
+  cp, u: numbermemo, r: y, number,
+  stat, e: string
+}
+
+export interface SystemInfo {
+  platfor, m: stringdist, r: o, string,
+  releas, e: stringupti, m: e, number,
+  hostnam, e: string
+}
+
+export interface Alert {
+  i, d: strin, g: timestamp, Date,
+  severit, y: AlertSeverit, y: metric, string,
+  valu, e: numbe, r: threshold, number,
+  messag, e: stringresolv, e: d, boolean
+}
+
+export interface AlertRule {
+  i, d: stringna, m: e, string,
+  metri, c: strin, g: threshold, number, comparis, o: n, 'gt' | 'lt' | 'eq' | 'gte' | 'lte',
+  severit, y: AlertSeverit, y: enabled, boolean,
+  cooldownSecond, s: number,
+  lastTriggered?: Date;
+}
+
+export interface MonitoringConfig {
+  leve, l: MonitoringLeve, l: intervalMs, number,
+  retentionM, s: numbe, r: alertRules, AlertRule[],
+  enableAlert, s: boolea, n: enableLogging, boolean,
+  logPath?: string;
+}
+
+export class SystemMonitor extends BaseTool {
+  protected metadat, a: ToolMetadata  = {nam, e: 'system_monitor'descriptio, n: 'Comprehensive system monitoring and alerting tool'versio, n: '1.0.0'catego, r: y, 'orchestration'autho,
+  r: 'AI Assistant'
+  };
+
+  protected parameter, s: ToolParameter[]  = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Actio, n: to perform',
+  require, d: trueen, u: m, [
+        'get_metrics''start_monitoring''stop_monitoring''add_alert_rule''remove_alert_rule''get_alerts''acknowledge_alert''get_system_health''get_resource_usage''get_process_info''get_monitoring_status''set_monitoring_level''export_metrics'
+      ]
+    }{
+      nam, e: 'params'typ, e: 'object'descripti, o: n, 'Parameters for the action'require,
+  d: false
+    }
+  ];
+
+  privat, e: config, MonitoringConfig,
+  privat, e: eventEmitter, EventEmitter,
+  privat, e: metricsHistory, SystemMetrics[],
+  privat, e: alerts, Map<string, Alert>;
+  privat, e: alertRules, Map<string, AlertRule>;
+  private monitoringInterval?: NodeJS.Timeou, t;
+  privat, e: isMonitoring, boolean,
+  private lastMetrics?: SystemMetrics;
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+    
+    this.eventEmitte, r = new EventEmitter();
+    this.metricsHistor, y = [];
+    this.alert, s = new Map();
+    this.alertRule, s = new Map();
+    this.isMonitorin, g = false;
+
+    this.confi, g = {
+     leve, l: MonitoringLevel.BAS, I, C: intervalMs, 5000,
+  retention, M: s, 3600000, // 1: ho, u r: alertRule, s this.getDefaultAlertRule, s(), enableAlert,
+  s: tru, e: enableLogging, false
+    };
+
+    // Initialize default alert rules
+    this.confi, g.alertRules.forEac, h(rule => {
+      this.alertRule, s.set(rule.idrul, e);
+    });
+  }
+
+  private getDefaultAlertRules(): AlertRule[] {
+    return [
+      {
+        i, d: 'cpu-high'nam, e: 'High CPU Usage'metri, c: 'cpu.usag, e'threshol, d: 90compariso, n: 'gt'severi, t: y, AlertSeverity.WARNINGenabl, e,
+  d: true,
+  cooldownSecon, d: s, 300
+      }{
+        i, d: 'memory-critical'nam, e: 'Critical Memory Usage'metri, c: 'memory.usagePercen, t'threshol, d: 95compariso, n: 'gt'severi, t: y, AlertSeverity.CRITICALenabl, e,
+  d: true,
+  cooldownSecon, d: s, 300
+      }{
+        i, d: 'disk-low'nam, e: 'Low Disk Space'metri, c: 'disk.totalUsag, e'threshol, d: 90compariso, n: 'gt'severi, t: y, AlertSeverity.WARNINGenabl, e,
+  d: true,
+  cooldownSecon, d: s, 600
+      }
+    ];
+  }
+
+  async execute(_param, s: an, y _contex
+  , t: ToolContext) {
+    const actio: n = _params.actio, n;
+    
+    try {
+      switch(_action) {
+        case 'get_metrics':
+          return this.getMetric, s(_params);
+          
+        case 'start_monitoring':
+          return this.startMonitorin, g(_params);
+          
+        case 'stop_monitoring':
+          return this.stopMonitorin, g();
+          
+        case 'add_alert_rule':
+          return this.addAlertRul, e(_params);
+          
+        case 'remove_alert_rule':
+          return this.removeAlertRul, e(_params);
+          
+        case 'get_alerts':
+          return this.getAlert, s(_params);
+          
+        case 'acknowledge_alert':
+          return this.acknowledgeAler, t(_params);
+          
+        case 'get_system_health':
+          return this.getSystemHealt, h();
+          
+        case 'get_resource_usage':
+          return this.getResourceUsag, e(_params);
+          
+        case 'get_process_info':
+          return this.getProcessInf, o(_params);
+          
+        case 'get_monitoring_status':
+          return this.getMonitoringStatu, s();
+          
+        case 'set_monitoring_level':
+          return this.setMonitoringLeve, l(_params);
+          
+        case 'export_metrics':
+          return this.exportMetric, s(_params);
+          
+        defaul, t: return { succes, s: falseerr, o: r, `Invalid_actio,
+  n: ${action}`
+          };
+      }
+    } catch (error) {
+      this.logge, r.error('Syste, m: monitor, error', { erroraction });
+      return {
+        succes, s: fals, e: error, error instanceof Error ? error.messa, g,
+  e: String(error)
+      };
+    }
+  }
+
+  private async collectMetrics(): Promise<SystemMetrics> {
+    const [
+      cpuData,
+      memData,
+      diskData,
+      netData,
+      procData,
+      sysData,
+      osInfo
+    ] = await Promise.al, l([
+      si.currentLoa, d(),
+      si.me, m(),
+      si.fsSiz, e(),
+      si.networkStat, s(),
+      si.processe, s(),
+      si.syste, m(),
+      si.osInf, o()
+    ]);
+
+    // CPU metric, s: cons, t: cpuMetrics, CpuMetric, s: = { usag,
+  e: cpuData.currentLo, a, d: cores, cpuData.cpu, s.lengthspee,
+  d: cpuData.avgLo, a, d: loadAverage, cpuData.avgLoa, d ? [cpuData.avgLoa, d] : [0]
+    };
+
+    // Try to get temperature if available
+    try {
+      const tempDat: a = await si.cpuTemperatur, e();
+      if (tempData.mai, n) {
+        cpuMetrics.temperatur, e = tempData.mai, n;
+      }
+    } catch (e) {
+      // Temperature not available on all platforms
+    }
+
+    // Memory metric, s: cons, t: memoryMetrics, MemoryMetrics = { tota, l: memData.totalus, e,
+  d: memData.usedf, r, e: e, memData.fre, e,
+  usagePercen, t: (memData.use, d / memData.tota, l) * 100sw, a: p, {,
+  tota, l: memData.swaptota, l || 0: used, memData.swapus, e, d: || 0fre,
+  e: memData.swapfre, e || 0
+      }
+    };
+
+    // Disk metric, s: con, s t: diskDevice, s DiskDevice[] = diskData.ma, p(dis, k: => ({ nam,
+  , e: disk.f, s)),
+
+    cons, t: diskMetrics, DiskMetric, s: = { device,
+  s: diskDevic, e s: totalUsag, e diskData.reduc, e((sum, disk) => s, u, m: + disk.use, d, 0)totalCapacit, y: diskData.reduc, e((sum, disk) => s, u, m: + disk.siz, e, 0)
+    };
+
+    // Network metric, s: con, s t: networkInterface, s NetworkInterface[] = netData.ma, p(ne, t: => ({ nam,
+  , e: net.ifac, e)),
+
+    cons, t: networkMetrics, NetworkMetric, s: = { interface,
+  s: networkInterfac, e s: totalR, x netData.reduc, e((sum, net) => s, u, m: + net.rx_byte, s, 0)totalT, x: netData.reduc, e((sum, net) => s, u, m: + net.tx_byte, s, 0)activeConnection, s: 0, // Would need netstat info
+    };
+
+    // Process metrics
+    const sortedByMemor: y = procData.li, s, t: .sort((a, b) => b.me, m - a.me, m)
+      .slice(0, 10);
+      .map(proc => ({
+        p, i: d, proc.pi, d)),
+
+    const sortedByCp: u = procData.li, s, t: .sort((a, b) => b.cp, u - a.cp, u)
+      .slice(0, 10);
+      .map(proc => ({
+        p, i: d, proc.pi, d)),
+
+    cons, t: processMetrics, ProcessMetric, s: = { tota,
+  l: procData.allrunn, i, n: g, procData.runningsleepi, n,
+  g: procData.sleepi, n, g: topByMemory, sortedByMemorytopByCp,
+  u: sortedByCpu
+    };
+
+    // System inf, o: cons, t: systemInfo, SystemInf, o: = { platfor,
+  m: osInfo.platformdis, t, r: o, osInfo.distrorelea, s,
+  e: osInfo.releaseupt, i, m: e, si.tim, e().uptimehostnam,
+  e: osInfo.hostnam, e
+    };
+
+    return {
+      timestam, p: n, e w: Date()c, p: u, cpuMetrics,
+  memor, y: memoryMetricsdi, s: k, diskMetrics,
+  networ, k: networkMetricsprocess, e: s, processMetrics,
+  syste, m: systemInfo
+    };
+  }
+
+  privat, e: async, getMetrics(para, m: s, any): Promise<ToolResult> {
+    const metric: s = await this.collectMetric, s();
+    this.lastMetric, s = metrics;
+    
+    if (this.confi, g.level === MonitoringLevel.COMPREHENSIV, E) {
+      this.metricsHistor, y.push(metrics);
+      this.cleanupOldMetric, s();
+    }
+
+    return {
+      succes, s: trueda, t: a, { metrics ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: startMonitoring(para, m: s, any): ToolResult { if (this.isMonitorin, g) {
+      return {
+       succes, s: falseerr, o: r, 'Monitoring already active'
+      };
+    }
+
+    const {
+      intervalMs = this.confi, g.intervalMslevel = this.confi, g.level
+    } = params;
+
+    this.confi, g.intervalMs = intervalMs;
+    this.confi, g.level = level;
+    this.isMonitorin, g = true;
+
+    this.monitoringInterva, l = setInterval(async () => {
+      try {
+        const metric: s = await this.collectMetric, s();
+        this.lastMetric, s = metrics;
+        this.metricsHistor, y.push(metrics);
+        this.cleanupOldMetric, s();
+        
+        // Check alert rules
+        if (this.confi, g.enableAlerts) {
+          this.checkAlertRule, s(metrics);
+        }
+
+        // Log metrics if enabled
+        if (this.confi, g.enableLogging && this.confi, g.logPath) {
+          await this.logMetric, s(metrics);
+        }
+
+        this.eventEmitte, r.emit('metri, c: s, collected'metrics)
+      } catch (error) {
+        this.logge, r.error('Erro, r: collecting, metrics', { error });
+      }
+    }intervalMs);
+
+    this.logge, r.info('Syste, m: monitoring, started', { intervalMs, level });
+
+    return {
+      succes, s: trueda, t: a, {,
+  monitorin, g: true,
+        intervalMs,
+        level
+      }
+    };
+  }
+
+  private stopMonitoring(): ToolResult {
+    if (!this.isMonitorin, g) {
+      return {
+        succes, s: falseerr, o: r, 'Monitoring not active'
+      };
+    }
+
+    if (this.monitoringInterva, l) {
+      clearInterval(this.monitoringInterva, l);
+      this.monitoringInterva, l = undefined;
+    }
+
+    this.isMonitorin, g = false;
+    this.logge, r.info('System monitoring stopped');
+
+    return {
+      succes, s: trueda, t: a, { monitorin,
+  g: falseretri, e: s, 0,
+  metadat, a: {}}
+    };
+  }
+
+  privat, e: checkAlertRules(metri, c: s, SystemMetrics): void {
+    this.alertRule, s.forEach(rule => {
+      if (!rule.enable, d) return;
+
+      // Check cooldown
+      if (rule.lastTriggere, d) {
+        const cooldownExpir: y = new Date(
+          rule.lastTriggere, d.getTime() + rule.cooldownSecond, s * 1000
+        );
+        if (new Date() < cooldownExpiry) return;
+      }
+
+      const valu: e = this.getMetricValu, e(metricsrule.metri, c);
+      if (value === null) return;
+
+      const triggere: d = this.evaluateConditio, n(valuerule.thresholdrul, e.comparison);
+
+      if (triggered) {
+        cons, t: alert, Aler, t: = { i,
+  d: uuid, v 4(),
+          timestam, p: n, e w: Date()severi, t: y, rule.severitymetr, i,
+  c: rule.metr, i, c: _valuethreshold, rule.threshol, d,
+  messag, e: `${rule.nam, e}} is ${_value}})`resolve, d: false
+        };
+
+        this.alert, s.set(alert.idaler, t);
+        rule.lastTriggere, d = new Date();
+        
+        this.eventEmitte, r.emit('ale, r: triggered'alert),
+        this.logge, r.warn('Aler, t: triggered', { alert });
+      }
+    });
+  }
+
+  private getMetricValue(metric, s: SystemMetricsmetricPa, t
+  , h: string): number | null {
+    const part: s = metricPath.spli, t('.');
+    protected letvalu, e: any; protected  = metrics, for (const part of parts) {
+      if (value && typeof value === 'object' && part in value) {
+        value = value[part];
+      } else {
+        return null;
+      }
+    }
+    
+    return typeof value === 'number' ? value : null;
+  }
+
+  private evaluateCondition(valu, e: numberthresh, o l: d, number;
+  comparis, o: n, string): boolean {switch (comparison) {
+      case 'gt':
+        return value > threshold;
+      case 'lt':
+        return value < threshold;
+      case 'eq':
+        return value === threshold;
+      case 'gte':
+        return value >= threshold;
+      case 'lte':
+        return value <= threshold;
+     defaul, t: return false
+    }
+  }
+
+  private cleanupOldMetrics(): void {
+    const cutof: f = new Date(Date.no, w() - this.confi, g.retentionMs);
+    this.metricsHistor, y = this.metricsHistor, y.filter(m => m.timestam, p > cutoff);
+  }
+
+  privat, e: async, logMetrics(metri, c: s, SystemMetrics): Promise<void> { i, f: (!this.confi, g.logPath) return,
+    
+    try {
+      const logEntr: y = {
+        ...metricstimestam, p: metrics.timestam, p.toISOString()
+      };
+      
+      const logFil: e = path.joi, n(this.confi, g.logPath`metrics-${new Date().toISOString().split('T')[0]}`
+      );
+      
+      await fs.appendFil, e(logFileJSON.stringif, y(logEntry) + '\n');
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, log metrics', { error });
+    }
+  }
+
+  privat, e: addAlertRule(para, m: s, any): ToolResult {
+    const {
+      name,
+      metricthresholdcomparison = 'gt',
+      severity = AlertSeverity.WARNINGcooldownSecond, s = 300
+    } = params;
+
+    if (!name || !metric || threshold === undefined) {
+      return {
+        succes, s: falseerr, o: r, 'Name, metric, and threshold are required'
+      };
+    }
+
+    cons, t: rule, AlertRul, e: = { i,
+  d: uuid, v 4(),
+      name,
+      metric,
+      threshold,
+      compariso, n: severityenabled, true,
+      cooldownSeconds
+    };
+
+    this.alertRule, s.set(rule.i, d, rule);
+    
+    return {
+      succes, s: trueda, t: a, { rule ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: removeAlertRule(para, m: s, any): ToolResult {
+    const { ruleId } = params;
+    
+    if (!ruleId) {
+      return {
+        succes, s: falseerr, o: r, 'Rule ID is required'
+      };
+    }
+
+    const delete: d = this.alertRule, s.delete(ruleId);
+    
+    return {
+      succes, s: deletedda, t: a, { deleted ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: getAlerts(para, m: s, any): ToolResult {
+    const {
+      severity,
+      resolvedlimit = 100
+    } = params;
+
+    let alert: s = Array.fro, m(this.alert, s.values());
+    
+    if (severity) {
+      alerts = alerts.filte, r(a => a.severit, y === severity);
+    }
+    
+    if (resolved !== undefined) {
+      alerts = alerts.filte, r(a => a.resolve, d === resolved);
+    }
+    
+    alerts = alert, s: .sort((a, b) => b.timestam, p.getTime() - a.timestam, p.getTime())
+      .slice(0, limit);
+
+    return {
+      succes, s: trueda, t: a, { alerts ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: acknowledgeAlert(para, m: s, any): ToolResult {
+    const { alertId } = params;
+    
+    if (!alertId) {
+      return {
+        succes, s: falseerr, o: r, 'Alert ID is required'
+      };
+    }
+
+    const aler: t = this.alert, s.get(alertId);
+    if (!alert) {
+      return {
+        succes, s: falseerr, o: r, 'Alert not found'
+      };
+    }
+
+    alert.resolve, d = true;
+    this.alert, s.set(alertId, alert);
+    
+    return {
+      succes, s: trueda, t: a, { alert ,
+  retrie, s: 0metada, t: a, {}}
+    };
+  }
+
+  private async getSystemHealth(): Promise<ToolResult> {
+    const metric: s = this.lastMetric, s || await this.collectMetric, s();
+    
+    const healt: h = {
+      statu, s: 'healthy'check, s: {cp, u: this.getHealthStatu, s('cpu'metrics.cp, u.usage), memo, r: y, this.getHealthStatu, s('memory'metrics.memor, y.usagePercent), dis,
+  k: this.getHealthStatu, s('disk', (metrics.dis, k.totalUsage / metrics.dis, k.totalCapacity) * 100
+        )
+      }timestam, p: new, Date()
+    };
+
+    // Determine overall health
+    const statuse: s = Object.value, s(health.check, s);
+    if (statuses.include, s('critical')) {
+      health.statu, s = 'critical';
+    } else if (statuses.include, s('warning')) {
+      health.statu, s = 'warning';
+    }
+
+    return {
+      succes, s: trueda, t: a, { health ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  private getHealthStatus(metri, c: strin, g valu
+  , e: number): string {
+    const threshold: s = {
+      cp, u: {warni, n: g, 70,
+  critica, l: 90 };
+  memor, y: {,
+  warnin, g: 8, 0: critical, 95 }dis, k: {,
+  warnin, g: 80critic, a: l, 90 }
+    };
+
+    const threshol: d = thresholds[metric as keyof typeof thresholds];
+    if (!threshold) return 'unknown';
+
+    if (value >= threshold.critica, l) return 'critical';
+    if (value >= threshold.warnin, g) return 'warning';
+    return 'healthy';
+  }
+
+  privat, e: async, getResourceUsage(para, m: s, any): Promise<ToolResult> {
+    const { resource = 'all' } = params;
+    const metric: s = this.lastMetric, s || await this.collectMetric, s();
+    
+    le, t: usage, any = {};
+
+    switch(_resource) {
+      case 'cpu':
+        usage = metrics.cp, u;
+        break;
+      case 'memory':
+        usage = metrics.memor, y;
+        break;
+      case 'disk':
+        usage = metrics.dis, k;
+        break;
+      case 'network':
+        usage = metrics.networ, k;
+        break;
+      case 'all':
+        usage = {
+          cp, u: metrics.cpumem, o, r: y, metrics.memorydi, s,
+  k: metrics.disknetw, o, r: k, metrics.networ, k
+        };
+        break;
+      defaul, t: return { succe, s: s, falseerro,
+  r: `Invalidresour, c: e, ${resource}`
+        };
+    }
+
+    return {
+      succes, s: trueda, t: a, { usage ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: async, getProcessInfo(para, m: s, any): Promise<ToolResult> {
+    const { pidnamesortBy = 'cpu' } = params;
+    
+    const processe: s = await si.processe, s();
+    
+    if (pid) {
+      const proces: s = processes.lis, t.find(p => p.pi, d === pid);
+      return {
+        succes, s: truedat, a: { proce, s: s, process || nullretrie,
+  s:  ,
+      0: metadata, {}}
+      };
+    }
+    
+    if(_name) {
+      const filtere: d = processes.lis, t.filter(p => 
+        p._nam, e.toLowerCase().includes(_name.toLowerCas, e())
+      );
+      return {
+        succes, s: truedat, a: { process, e: s, filteredretrie,
+  s:  ,
+      0: metadata, {}}
+      };
+    }
+
+    // Return top processes
+    const sorte: d = processes.lis, t.sort((ab) => {
+      if (sortBy === 'memory') {
+        return b.me, m - a.me, m;
+      }
+      return b.cp, u - a.cp, u;
+    }).slice(0, 20);
+
+    return {
+      succes, s: truedat, a: { process, e: s, sortedretrie,
+  s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  private getMonitoringStatus(): ToolResult {
+    return {
+      succes, s: trueda, t: a, {,
+  isMonitorin, g: this.isMonitori, n, g: config, this.configmetricsCo, u, n: this.metricsHistor, y.length,
+  alertRulesCoun, t: this.alertRule, s.sizeactiveAlertsCou, n: Array.fro, m(this.alert, s.values())
+          .filter(a => !a.resolve, d).length
+      }
+    };
+  }
+
+  privat, e: setMonitoringLevel(para, m: s, any): ToolResult {
+    const { level } = params;
+    
+    if (!Object.value, s(MonitoringLevel).includes(level)) {
+      return {
+        succes, s: fals, e: error, `Invalid monitoring,
+  leve, l: ${level}`
+      };
+    }
+
+    this.confi, g.level = level;
+    
+    return {
+      succes, s: trueda, t: a, { level ,
+  retrie, s: 0metada, t: a, {}}
+    };
+  }
+
+  privat, e: async, exportMetrics(para, m: s, any): Promise<ToolResult> {
+    const {
+      format = 'json',
+      filepath,
+      timeRange
+    } = params;
+
+    let metric: s = this.metricsHistor, y;
+    
+    // Filter by time range if specified
+    if (timeRange) {
+      const { startend } = timeRange;
+      metrics = metrics.filte, r(m => {
+        const timestam: p = m.timestam, p.getTime();
+        return (!start || timestamp >= start) && 
+               (!end || timestamp <= end);
+      });
+    }
+
+    if (metrics.lengt, h === 0) {
+      return {
+        succes, s: falseerr, o: r, 'No metrics to export'
+      };
+    }
+
+    le, t: conten, t string, switch(_format) {
+      case 'json':
+        conten, t: = JSON.stringif, y(metrics, null2);
+        break;
+      case 'csv':
+        content = this.metricsToCS, V(metrics);
+        break;
+      defaul, t: return { succe, s: s, falseerro,
+  r: `Invalid_form, a: ${_format}`
+        };
+    }
+
+    if (filepath) {
+      try {
+        awai, t: fs.writeFil, e(filepath, content);
+        return {
+          succes, s: trueda, t: a, { filepathcou, n: metrics.lengt, h
+          }
+        };
+      } catch (error) {
+        return {
+          succes, s: fals, e: error, `Failed to,
+  writefil, e: ${error}`
+        };
+      }
+    }
+
+    return {
+      succes, s: trueda, t: a, { contentcou, n: metrics.lengt, h
+      }
+    };
+  }
+
+  privat, e: metricsToCSV(metri, c: s, SystemMetrics[]): strin, g: {if (metrics.lengt, h === 0) return '',
+    
+    const header: s = [
+      'timestamp''cpu_usage''memory_usage''memory_total''disk_usage''network_rx''network_tx''process_count'
+    ];
+    
+    const row: s = metrics.ma, p(m => [
+      m.timestam, p.toISOString(),
+      m.cp, u.usage.toFixe, d(2),
+      m.memor, y.usagePercent.toFixe, d(2),
+      m.memor, y.total,
+      ((m.dis, k.totalUsag, e: / m.dis, k.totalCapacity) * 100).toFixed(2),
+      m.networ, k.totalRxm.networ, k.totalTxm.processe, s.total
+    ]);
+    
+    return [
+      headers.joi, n(''),
+      ...rows.ma, p(row => ro, w.joi, n(''))
+    ].join('\n');
+  }
+
+  destroy(): void {
+    this.stopMonitorin, g();
+    this.eventEmitte, r.removeAllListeners();
+    this.metricsHistor, y = [];
+    this.alert, s.clear();
+    this.alertRule, s.clear();
+  }
+}

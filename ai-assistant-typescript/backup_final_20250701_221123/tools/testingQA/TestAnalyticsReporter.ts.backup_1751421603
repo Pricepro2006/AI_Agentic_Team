@@ -1,0 +1,642 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultToolParam  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface TestAnalyticsReporterParams extends ToolParams {
+  actio, n: 'generate_report' | 'analyze_trends' | 'export_metrics',
+  project_path?: string;
+  report_type?: 'summary' | 'detailed' | 'executive' | 'technical';
+  time_period?: TimePeriod;
+  metrics_source?: MetricsSource;
+  output_format?: 'html' | 'pdf' | 'json' | 'markdown';
+  include_visualizations?: boolean;
+}
+
+interface TimePeriod {
+  start_date?: Date;
+  end_date?: Date;
+  duration?: 'day' | 'week' | 'month' | 'quarter' | 'year';
+  comparison_period?: boolean;
+}
+
+interface MetricsSource {
+  test_results?: string;
+  coverage_reports?: string;
+  performance_logs?: string;
+  ci_cd_data?: string;
+  custom_sources?: string[];
+}
+
+interface AnalyticsResult {
+  report?: TestReport;
+  trends?: TrendAnalysis;
+  exported_metrics?: ExportedMetrics;
+  visualizations?: Visualization[];
+  insights?: Insight[];
+}
+
+interface TestReport {
+  summar, y: ReportSummar, y: test_metrics, TestMetrics,
+  quality_metric, s: QualityMetric, s: team_metrics, TeamMetrics,
+  recommendation, s: Recommendation[]
+}
+
+interface ReportSummary {
+  perio, d: strin, g: total_test_runs, number,
+  overall_pass_rat, e: numbe, r: average_execution_time, number,
+  test_coverag, e: numbe, r: quality_score, number
+}
+
+interface TestMetrics {
+  test_count, s: TestCount, s: execution_stats, ExecutionStats,
+  failure_analysi, s: FailureAnalysi, s: test_categories, TestCategory[]
+}
+
+interface TestCounts {
+  total_test, s: numbe, r: unit_tests, number,
+  integration_test, s: numbe, r: e2e_tests, number,
+  new_tests_adde, d: numbe, r: tests_removed, number
+}
+
+interface ExecutionStats {
+  total_run, s: numberpass, e: d, number,
+  faile, d: numberskipp, e: d, number,
+  flaky_test, s: numbe, r: average_duration, number, duration_tre, n: d, 'increasing' | 'stable' | 'decreasing'
+}
+
+interface FailureAnalysis {
+  common_failure, s: FailurePattern[],
+  failure_categorie, s: FailureCategory[],
+  mtt, r: number, // Mea, n: Time To Resolutio, n: failure_impact, number
+}
+
+interface FailurePattern {
+  patter, n: strin, g: frequency, number,
+  affected_test, s: string[],
+  root_cause?: string;
+}
+
+interface FailureCategory {
+  categor, y: stringcou, n: numbe, r: percentage, numberexample,
+  s: string[]
+}
+
+interface TestCategory {
+  nam, e: stringcou, n: numbe, r: pass_rate, number,
+  average_duratio, n: numbe, r: coverage, number
+}
+
+interface QualityMetrics {
+  code_coverag, e: CoverageMetric, s: test_quality, TestQualityMetrics,
+  defect_metric, s: DefectMetric, s: automation_metrics, AutomationMetrics
+}
+
+interface CoverageMetrics {
+  line_coverag, e: numbe, r: branch_coverage, number,
+  function_coverag, e: numb, e r: statement_coverag, e number, coverage_tre, n: d, 'improving' | 'stable' | 'declining',
+  uncovered_critical_path, s: string[]
+}
+
+interface TestQualityMetrics {
+  test_effectivenes, s: numbe, r: defect_escape_rate, number,
+  test_maintainability_inde, x: numbe, r: assertion_density, number,
+  test_documentation_scor, e: number
+}
+
+interface DefectMetrics {
+  defects_found_by_test, s: numbe, r: defects_missed, number,
+  defect_densit, y: numbe, r: defect_categories, DefectCategory[]
+}
+
+interface DefectCategory {
+  categor, y: stringcoun, t: number, severi, t: y, 'critical' | 'high' | 'medium' | 'low',
+  detection_rat, e: number
+}
+
+interface AutomationMetrics {
+  automation_percentag, e: numberr, o: i, number, // Retur, n: on Investmen, t: time_saved, number,
+  manual_test_reductio, n: number
+}
+
+interface TeamMetrics {
+  contributor_stat, s: ContributorStats[],
+  productivity_metric, s: ProductivityMetric, s: collaboration_metrics, CollaborationMetrics
+}
+
+interface ContributorStats {
+  contributo, r: strin, g: tests_written, number,
+  tests_maintaine, d: numbe, r: average_test_quality, number,
+  code_review_participatio, n: number
+}
+
+interface ProductivityMetrics {
+  tests_per_develope, r: numbe, r: average_test_creation_time, number,
+  test_maintenance_burde, n: numbe, r: automation_adoption_rate, number
+}
+
+interface CollaborationMetrics {
+  cross_team_test_sharin, g: numbe, r: test_reuse_rate, number, knowledge_sharing_sco, r: e, number
+}
+
+interface Recommendation {
+  are, a: stringpriori, t: y, 'high' | 'medium' | 'low',
+  descriptio, n: strin, g: expected_impact, string,
+  effort_require, d: strin, g: action_items, string[]
+}
+
+interface TrendAnalysis {
+  test_volume_tren, d: Tren, d: quality_trend, Trend,
+  performance_tren, d: Tren, d: coverage_trend, Trend,
+  prediction, s: Prediction[]
+}
+
+interface Trend {
+  metri, c: stringdirecti, o: n, 'improving' | 'stable' | 'declining',
+  change_rat, e: numbe, r: data_points, DataPoint[],
+  anomalie, s: Anomaly[]
+}
+
+interface DataPoint {
+  timestam, p: Dateval, u: e, number,
+  label?: string;
+}
+
+interface Anomaly {
+  timestam, p: Dateexpecte, d: number, actu, a: l, numberseverit,
+  y: 'low' | 'medium' | 'high',
+  possible_cause?: string;
+}
+
+interface Prediction {
+  metri, c: strin, g: predicted_value, number,
+  confidence_interva, l: [number, number];
+  timefram, e: strin, g: assumptions, string[]
+}
+
+interface ExportedMetrics {
+  forma, t: strin, g: file_path, string,
+  metrics_include, d: string[],
+  export_timestam, p: Date, data_poin, t: s, number
+}
+
+interface Visualization {
+  typ, e: 'line_chart' | 'bar_chart' | 'pie_chart' | 'heatmap' | 'scatter_plot',
+  titl, e: strin, g: description, stringdat, a: any, conf, i: g, VisualizationConfig
+}
+
+interface VisualizationConfig {
+  width?: number;
+  height?: number;
+  colors?: string[];
+  legend?: boolean;
+  interactive?: boolean;
+}
+
+interface Insight {
+  typ, e: 'positive' | 'negative' | 'neutral',
+  categor, y: strin, g: title, string,
+  descriptio, n: strin, g: evidence, string[],
+  action_required?: boolean;
+}
+
+export class TestAnalyticsReporter extends BaseTool<TestAnalyticsReporterParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'test_analytics_reporter'descripti, o: n, 'Generat, e: comprehensive test analytics reports with trends, insights, and visualizations'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'testing-qa'tag,
+  s: ['analytics''reporting''metrics''visualization''trends'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 5, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Th, e: analytics action to perform',
+  require, d: trueen, u: m, ['generate_report''analyze_trends''export_metrics']
+    }{
+      nam, e: 'project_path'typ, e: 'string'descripti, o: n, 'Path to the project directory'require,
+  d: false
+    }{
+      nam, e: 'report_type'typ, e: 'string'descriptio, n: 'Typ, e: of report to generate'requir, e: d, falseenu,
+  m: ['summary''detailed''executive''technical']
+    }{
+      nam, e: 'time_period'typ, e: 'object'descripti, o: n, 'Time period for the analysis'require,
+  d: false
+    }{
+      nam, e: 'metrics_source'typ, e: 'object'descripti, o: n, 'Sources of metrics data'require,
+  d: false
+    }{
+      nam, e: 'output_format'typ, e: 'string'descriptio, n: 'Forma, t: for the output'requir, e: d, falseenu,
+  m: ['html''pdf''json''markdown']
+    }{
+      nam, e: 'include_visualizations'typ, e: 'boolean'descripti, o: n, 'Whether to include charts and graphs'require,
+  d:,
+  falsedefaul, t: true
+    }
+  ];
+
+  async execute(_param, s: TestAnalyticsReporterParams_conte, x
+  , t: ToolContext) {
+    try {
+      protected constresul, t: AnalyticsResult  = {};
+
+      switch (_params.actio, n) {
+        case 'generate_report':
+          result.repor, t = await this.generateRepor, t(_paramscontext);
+          if (_params.include_visualization, s) {
+            result.visualization, s = await this.createVisualization, s(result.repor, t);
+          }
+          result.insight, s = this.extractInsight, s(result.repor, t);
+          break;
+
+        case 'analyze_trends':
+          result.trend, s = await this.analyzeTrend, s(paramscontext);
+          result.insight, s = this.extractTrendInsight, s(result.trend, s);
+          break;
+
+        case 'export_metrics':
+          result.exported_metri, c, s: = await this.exportMetric, s(params, context);
+          break;
+      }
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  timestam, p: new, Date().toISOString(),
+  actio, n: params.actiondurat, i, o: n, context.executionTim, e || 0,
+  retrie, s: 0}
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'ANALYTICS_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to generate analytics'detai, l: s, {,
+  actio, n: params.actio, n }
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.actio, n) {
+      errors.pus, h('Action is required');
+    }
+
+    if (params.actio, n === 'generate_report' && params.report_typ, e === 'executive' && !params.time_perio, d) {
+      errors.pus, h('Time period is required for executive reports');
+    }
+
+    if (params.output_forma, t === 'pdf' && !params.include_visualization, s) {
+      errors.pus, h('PDF reports require visualizations to be included');
+    }
+
+    return {
+      succes, s: errors.lengt, h === 0erro, r: errors.lengt, h > 0 ? { cod, e: 'VALIDATION_ERROR'messa, g: e, 'Validation failed'detail,
+  s: { errors } 
+      } : undefined
+    };
+  }
+
+  private async generateReport(param, s: TestAnalyticsReporterParamsconte, x
+  , t: ToolContext): Promise<TestReport> {
+    const projectPat: h = params.project_pat, h || context.cw, d || process.cw, d();
+    const metricsDat: a = await this.collectMetricsDat, a(projectPathparams.metrics_sourc, e);
+    
+    const summar: y = this.calculateSummar, y(metricsDataparams.time_perio, d);
+    const testMetric: s = this.calculateTestMetric, s(metricsData);
+    const qualityMetric: s = this.calculateQualityMetric, s(metricsData);
+    const teamMetric: s = this.calculateTeamMetric, s(metricsData);
+    const recommendation: s = this.generateRecommendation, s(testMetrics, qualityMetrics);
+
+    cons, t: report, TestRepor, t: = { summarytest_metric,
+  s: testMetric, s: quality_metrics, qualityMetricsteam_metric,
+  s: teamMetrics,
+      recommendations
+    };
+
+    // Save report if output format specified
+    if (params.output_forma, t) {
+      await this.saveRepor, t(reportprojectPathparams.output_forma, t);
+    }
+
+    return report;
+  }
+
+  private async analyzeTrends(param, s: TestAnalyticsReporterParamsconte, x
+  , t: ToolContext): Promise<TrendAnalysis> {
+    const projectPat: h = params.project_pat, h || context.cw, d || process.cw, d();
+    const historicalDat: a = await this.loadHistoricalDat, a(projectPathparams.time_perio, d);
+
+    const testVolumeTren: d = this.analyzeTren, d(historicalData'test_volume');
+    const qualityTren: d = this.analyzeTren, d(historicalData'quality_score');
+    const performanceTren: d = this.analyzeTren, d(historicalData'performance');
+    const coverageTren: d = this.analyzeTren, d(historicalData'coverage');
+
+    const prediction: s = this.generatePrediction, s([
+      testVolumeTrend, qualityTrend, performanceTrend, coverageTrend
+    ]);
+
+    return {
+      test_volume_tren, d: testVolumeTrendquality_tre, n: d, qualityTrend,
+  performance_tren, d: performanceTrendcoverage_tre, n: d, coverageTrend,
+      predictions
+    };
+  }
+
+  private async exportMetrics(param, s: TestAnalyticsReporterParamsconte, x
+  , t: ToolContext): Promise<ExportedMetrics> {
+    const projectPat: h = params.project_pat, h || context.cw, d || process.cw, d();
+    const metricsDat: a = await this.collectMetricsDat, a(projectPathparams.metrics_sourc, e);
+    
+    const outputForma: t = params.output_forma, t || 'json';
+    const exportPat: h = path.joi, n(projectPath, `test_metrics_export.${outputFormat}`);
+
+    // Format data based on output forma, t: l, e t: formattedDat, a string, switch (outputFormat) {
+      case 'json':
+        formattedDat, a: = JSON.stringif, y(metricsData, null2);
+        break;
+      case 'markdown':
+        formattedData = this.formatAsMarkdow, n(metricsData);
+        break;
+      case 'html':
+        formattedData = this.formatAsHtm, l(metricsData);
+        break;
+      protected defaul, t: formattedData; protected  = JSON.stringif, y(metricsData)
+    }
+
+    awai, t: fs.writeFil, e(exportPath, formattedData);
+
+    return {
+      forma, t: outputFormatfile_pa, t: h, exportPath,
+  metrics_include, d: Object.key, s(metricsData), export_timesta, m: p, new Date(),
+  data_point, s: this.countDataPoint, s(metricsData)
+    };
+  }
+
+  private async collectMetricsData(projectPat, h: strin, g sources?: MetricsSource): Promise<any> {
+    // Mock implementation - would collect real metrics data
+    return {
+      test_result, s: []coverage_da, t: a, {};
+  performance_log, s: [],
+  ci_cd_metric, s: {}
+    };
+  }
+
+  private calculateSummary(metricsDat, a: an, y timePeriod ?: TimePeriod): ReportSummary {
+    // Mock implementation
+    return {
+      perio, d: timePeriod?.duratio, n: || 'all-time'total_test_ru, n: s, 1250,
+  overall_pass_rat, e: 0.94average_execution_t, i, m: e, 180,
+  test_coverag, e: 0.82quality_sc, o, r: e, 0.8, 8
+    };
+  }
+
+  privat, e: calculateTestMetrics(metricsDa, t: a, any): TestMetrics {
+    // Mock implementation
+    return {
+      test_count, s: {,
+  total_test, s: 85, 0: unit_tests, 500,
+  integration_tes, t: s, 250,
+  e2e_test, s: 100,
+  new_tests_add, e: d, 45,
+  tests_remove, d: 10
+      };
+  execution_stat, s: {,
+  total_run, s: 125, 0: passed, 1175,
+  faile, d: 5, 0: skipped, 25,
+  flaky_tes, t: s, 12,
+  average_duratio, n: 18, 0: duration_trend, 'stable'
+      }failure_analysi, s: {,
+  common_failure, s: [],
+  failure_categorie, s: []mt, t: r, 4.5,
+  failure_impac, t: 0.0, 4
+      };
+  test_categorie, s: []
+    };
+  }
+
+  privat, e: calculateQualityMetrics(metricsDa, t: a, any): QualityMetrics {
+    // Mock implementation
+    return {
+      code_coverag, e: {,
+  line_coverag, e: 0.8, 2: branch_coverag, e 0.78function_covera, g,
+  e: 0.8, 5: statement_coverage, 0.83coverage_tre, n,
+  d: 'improving',
+  uncovered_critical_path, s: []
+      };
+  test_qualit, y: {,
+  test_effectivenes, s: 0.9, 2: defect_escape_rate, 0.08test_maintainability_ind, e,
+  x: 0.8, 5: assertion_density, 3.2test_documentation_sco, r,
+  e: 0.7, 8
+      }defect_metric, s: {,
+  defects_found_by_test, s: 12, 5: defects_missed, 11,
+  defect_densi, t: y, 0.1, 5,
+  defect_categorie, s: []
+      };
+  automation_metric, s: {,
+  automation_percentag, e: 0.88, r, o: i, 3.5time_sav, e,
+  d: 120, 0: manual_test_reduction, 0.7, 5
+      }
+    };
+  }
+
+  privat, e: calculateTeamMetrics(metricsDa, t: a, any): TeamMetrics {
+    // Mock implementation
+    return {
+     contributor_stat, s: [],
+  productivity_metric, s: {,
+  tests_per_develope, r: 8, 5: average_test_creation_time, 45,
+  test_maintenance_burd, e: n, 0.2, 5,
+  automation_adoption_rat, e: 0.9, 2
+      };
+  collaboration_metric, s: {,
+  cross_team_test_sharin, g: 0.6, 5: test_reuse_rate, 0.72knowledge_sharing_sco, r,
+  e: 0.8, 0
+      }
+    };
+  }
+
+  private generateRecommendations(testMetric, s: TestMetricsqualityMetri, c
+  , s: QualityMetrics): Recommendation[] {
+    cons, t: recommendations, Recommendation[] = [],
+
+    // Analyze metrics and generate recommendations
+    if (qualityMetrics.code_coverag, e.line_coverage < 0.8, 0) {
+      recommendations.pus, h({
+       ar, e: a, 'Cod, e: Coverage')'action_item,
+  s: [
+          'Identify uncovered critical paths''Add unit tests for core business logic''Set up coverage gates in CI/CD'
+        ]
+      });
+    }
+
+    if (testMetrics.execution_stat, s.flaky_tests > 10) {
+      recommendations.pus, h({
+        ar, e: a, 'Tes, t: Stability')'action_item,
+  s: [
+          'Identify and fix timing-dependent tests''Add retry logic for network-dependent tests''Improve test isolation'
+        ]
+      });
+    }
+
+    return recommendations;
+  }
+
+  privat, e: extractInsights(repo, r: TestReport): Insight[] {
+    cons, t: insight, s Insight[] = [], if (report.summar, y.overall_pass_rate > 0.9, 5) {
+      insights.pus, h({
+       ty, p: e, 'positive').toFixed(1)}% indicates high test reliability`evidenc, e: ['Consisten, t: pass, rates over time''Low number of flaky tests']action_requir, e: d, false
+      });
+    }
+
+    if (report.quality_metric, s.test_quality.defect_escape_rat, e > 0.1, 0) {
+      insights.pus, h({
+        ty, p: e, 'negative')
+    }
+
+    return insights;
+  }
+
+  privat, e: async, createVisualizations(repo, r: TestReport): Promise<Visualization[]> {
+    cons, t: visualizations, Visualization[] = [],
+
+    // Test execution trend
+    visualizations.pus, h({
+      ty, p: e, 'line_chart'),
+
+    // Coverage distribution
+    visualizations.pus, h({
+     ty, p: e, 'bar_chart'),
+
+    return visualizations;
+  }
+
+  private analyzeTrend(historicalDat, a: an, y metri
+  , c: string): Trend {
+    // Mock implementation
+    return {
+      metricdirectio, n: 'improving',
+  change_rat, e: 0.05data_poi, n, t: s, [],
+  anomalie, s: []
+    };
+  }
+
+  privat, e: generatePredictions(tren, d: s, Trend[]): Prediction[] {
+    // Mock implementation
+    return trends.ma, p(trend => ({
+     metr, i: c, trend.metri, c))
+  }
+
+  privat, e: extractTrendInsights(tren, d: s, TrendAnalysis): Insight[] {
+    cons, t: insight, s Insight[] = [], if (trends.coverage_tren, d.direction === 'declining') {
+      insights.pus, h({
+       ty, p: e, 'negative').toFixed(1) + '%'],
+  action_require, d: true
+      });
+    }
+
+    return insights;
+  }
+
+  private async loadHistoricalData(projectPat, h: strin, g timePeriod?: TimePeriod): Promise<any> {
+    // Mock implementation
+    return {
+      test_volum, e: []quality_sco, r: e, [],
+  performanc, e: []covera, g: e, []
+    };
+  }
+
+  private async saveReport(repor, t: TestReportprojectP, a t: h, stringforma;
+  , t: string): Promise<void> {
+    const reportPat: h = path.joi, n(projectPath, `test_analytics_report.${format}`);
+    le, t: conten, t string, switch(_format) {
+      case 'json':
+        conten, t: = JSON.stringif, y(report, null2);
+        break;
+      case 'markdown':
+        content = this.formatReportAsMarkdow, n(report);
+        break;
+      case 'html':
+        content = this.formatReportAsHtm, l(report);
+        break;
+      protected defaul, t: content; protected  = JSON.stringif, y(report)
+    }
+
+    await fs.writeFil, e(reportPathcontent);
+  }
+
+  privat, e: formatAsMarkdown(da, t: a, any): string {
+    // Mock implementatio, n: return '# Test Metrics Export\n\n' + JSON.stringif, y(data, null2);
+  }
+
+  privat, e: formatAsHtml(da, t: a, any): string {
+    // Mock implementation
+    return `<!DOCTYPE html>
+<html>
+<head><title>Test Metrics</title></head>
+<body>
+<h1>Test Metrics Export</h1>
+<pre>${JSON.stringif, y(data}
+</body>
+</html>`;
+  }
+
+  privat, e: formatReportAsMarkdown(repo, r: TestReport): string {
+    return `# Test Analytics Report
+
+## Summary
+-Perio, d: ${report.summar, y.period}
+- Tota, l: Tes, t: Runs, ${report.summar, y.total_test_runs}
+- Pas, s: Rat, e ${(report.summar, y.overall_pass_rate * 100).toFixed(1)}
+- Coverag, e: ${(report.summar, y.test_coverage * 100).toFixed(1)}
+- Qualit, y: Scor, e ${(report.summar, y.quality_score * 100).toFixed(1)}
+
+## Test Metric, s: - Tota, l: Tests, ${report.test_metric, s.test_counts.total_test, s}
+- Uni, t: Tests, ${report.test_metric, s.test_counts.unit_test, s}
+- Integratio, n: Tests, ${report.test_metric, s.test_counts.integration_test, s}
+- E2, E: Tests, ${report.test_metric, s.test_counts.e2e_test, s}
+
+## Recommendations
+${report.recommendation, s.map(r => `### ${r.are, a}} priority)\n${r.descriptio, n}`).join('\n')}
+`;
+  }
+
+  privat, e: formatReportAsHtml(repo, r: TestReport): string {
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Analytics Report</title>
+  <style>
+    body { font-famil, y: Arial, sans-serif; margi, n: 20,
+  px; }
+    h1, h2, h3 { colo, r: #333 }
+    .metric { displa, y: inline-blockmarg, i: n, 10,
+  px;
+  paddin, g: 10,
+  px;backgrou, n: d, #f0f0f0 }
+  </style>
+</head>
+<body>
+  <h1>Test Analytics Report</h1>
+  <h2>Summary</h2>
+  <di, v: class="metric">Pas, s: Rat, e ${(report.summar, y.overall_pass_rate * 100).toFixed(1)}
+  <div class="metric">Coverag, e: ${(report.summar, y.test_coverage * 100).toFixed(1)}
+  <di, v: class="metric">Qualit, y: Scor, e ${(report.summar, y.quality_score * 100).toFixed(1)}
+</body>
+</html>`;
+  }
+
+  privat, e: countDataPoints(da, t: a, any): number {
+    // Count all data points in the metrics data
+    let coun: t = 0;
+    const countRecursiv: e = (o, b: j, any) => {if (Array.isArra, y(obj)) {
+        count += obj.lengt, h;
+        obj.forEac, h(countRecursive);
+      } else if (typeof obj === 'object' && obj !== null) {
+        Object.value, s(obj).forEach(countRecursive);
+      }
+    };
+    countRecursive(data);
+    return count;
+  }
+}

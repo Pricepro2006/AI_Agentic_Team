@@ -1,0 +1,6008 @@
+{
+  "timestamp": "2025-07-01T21:56:00.581857",
+  "files_processed": 222,
+  "total_repairs": 67872,
+  "backup_location": "backup_20250701_215556",
+  "repair_log": [
+    {
+      "file": "src/index.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/server.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 3
+    },
+    {
+      "file": "src/server.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 40
+    },
+    {
+      "file": "src/server.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 51
+    },
+    {
+      "file": "src/tests/integration/master-orchestrator-python-expert.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 4
+    },
+    {
+      "file": "src/tests/integration/master-orchestrator-python-expert.test.ts",
+      "pattern": "(\\w+):\\s*number(\\w+),",
+      "replacement": "\\1: number, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tests/integration/master-orchestrator-python-expert.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 2
+    },
+    {
+      "file": "src/tests/integration/master-orchestrator-python-expert.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/tests/integration/master-orchestrator-python-expert.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 59
+    },
+    {
+      "file": "src/config/config.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 30
+    },
+    {
+      "file": "src/config/config.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 33
+    },
+    {
+      "file": "src/tools/registry.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/registry.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 27
+    },
+    {
+      "file": "src/tools/registry.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 19
+    },
+    {
+      "file": "src/tools/web-scraping/ScrapingStrategies.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/web-scraping/ScrapingStrategies.ts",
+      "pattern": "(\\w+):\\s*number(\\w+),",
+      "replacement": "\\1: number, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/web-scraping/ScrapingStrategies.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 11
+    },
+    {
+      "file": "src/tools/web-scraping/ScrapingStrategies.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 89
+    },
+    {
+      "file": "src/tools/web-scraping/ScrapingStrategies.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/web-scraping/ScrapingStrategies.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 101
+    },
+    {
+      "file": "src/tools/web-scraping/WebScraperTool.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/web-scraping/WebScraperTool.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 15
+    },
+    {
+      "file": "src/tools/web-scraping/WebScraperTool.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 163
+    },
+    {
+      "file": "src/tools/web-scraping/WebScraperTool.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/web-scraping/WebScraperTool.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/web-scraping/WebScraperTool.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 226
+    },
+    {
+      "file": "src/tools/templateLibrary/CustomGeneratorBuilder.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/CustomGeneratorBuilder.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/CustomGeneratorBuilder.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/CustomGeneratorBuilder.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 16
+    },
+    {
+      "file": "src/tools/templateLibrary/CustomGeneratorBuilder.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 169
+    },
+    {
+      "file": "src/tools/templateLibrary/CustomGeneratorBuilder.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/templateLibrary/CustomGeneratorBuilder.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 234
+    },
+    {
+      "file": "src/tools/templateLibrary/YeomanScaffolder.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/YeomanScaffolder.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/templateLibrary/YeomanScaffolder.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/YeomanScaffolder.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 32
+    },
+    {
+      "file": "src/tools/templateLibrary/YeomanScaffolder.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 264
+    },
+    {
+      "file": "src/tools/templateLibrary/YeomanScaffolder.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/templateLibrary/YeomanScaffolder.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 288
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMarketplace.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMarketplace.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMarketplace.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 25
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMarketplace.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 147
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMarketplace.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMarketplace.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 97
+    },
+    {
+      "file": "src/tools/templateLibrary/ComponentLibraryBuilder.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/templateLibrary/ComponentLibraryBuilder.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/templateLibrary/ComponentLibraryBuilder.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 31
+    },
+    {
+      "file": "src/tools/templateLibrary/ComponentLibraryBuilder.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 299
+    },
+    {
+      "file": "src/tools/templateLibrary/ComponentLibraryBuilder.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/templateLibrary/ComponentLibraryBuilder.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 250
+    },
+    {
+      "file": "src/tools/templateLibrary/PlopfileGenerator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/PlopfileGenerator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/PlopfileGenerator.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/PlopfileGenerator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 27
+    },
+    {
+      "file": "src/tools/templateLibrary/PlopfileGenerator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 230
+    },
+    {
+      "file": "src/tools/templateLibrary/PlopfileGenerator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/PlopfileGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/templateLibrary/PlopfileGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 279
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMigrator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMigrator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 8
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMigrator.ts",
+      "pattern": "(\\w+):\\s*number(\\w+),",
+      "replacement": "\\1: number, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMigrator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 62
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMigrator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 352
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMigrator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMigrator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateMigrator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 274
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateValidator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateValidator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateValidator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 32
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateValidator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 235
+    },
+    {
+      "file": "src/tools/templateLibrary/TemplateValidator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 226
+    },
+    {
+      "file": "src/tools/templateLibrary/SnippetLibraryManager.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/templateLibrary/SnippetLibraryManager.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 38
+    },
+    {
+      "file": "src/tools/templateLibrary/SnippetLibraryManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 280
+    },
+    {
+      "file": "src/tools/templateLibrary/SnippetLibraryManager.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/templateLibrary/SnippetLibraryManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 350
+    },
+    {
+      "file": "src/tools/testing/TestGenerator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/testing/TestGenerator.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testing/TestGenerator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 44
+    },
+    {
+      "file": "src/tools/testing/TestGenerator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 333
+    },
+    {
+      "file": "src/tools/testing/TestGenerator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 15
+    },
+    {
+      "file": "src/tools/testing/TestGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/testing/TestGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 621
+    },
+    {
+      "file": "src/tools/testing/examples/TestGenerator.example.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testing/examples/TestGenerator.example.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 109
+    },
+    {
+      "file": "src/tools/testing/examples/TestGenerator.example.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/testing/examples/TestGenerator.example.ts",
+      "pattern": "console\\.(\\w+)\\(\\'([^\\']+):\\s*([^\\']+),\\s*([^\\']+)\\'",
+      "replacement": "console.\\1('\\2: \\3, \\4'",
+      "matches": 23
+    },
+    {
+      "file": "src/tools/testing/examples/TestGenerator.example.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 161
+    },
+    {
+      "file": "src/tools/testing/__tests__/TestGenerator.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/testing/__tests__/TestGenerator.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 11
+    },
+    {
+      "file": "src/tools/testing/__tests__/TestGenerator.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 261
+    },
+    {
+      "file": "src/tools/testing/__tests__/TestGenerator.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testing/__tests__/TestGenerator.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testing/__tests__/TestGenerator.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 316
+    },
+    {
+      "file": "src/tools/documentation/tutorial_builder.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 82
+    },
+    {
+      "file": "src/tools/documentation/tutorial_builder.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/tutorial_builder.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 91
+    },
+    {
+      "file": "src/tools/documentation/DocAutomationSetup.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/DocAutomationSetup.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 121
+    },
+    {
+      "file": "src/tools/documentation/DocAutomationSetup.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 533
+    },
+    {
+      "file": "src/tools/documentation/DocAutomationSetup.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/DocAutomationSetup.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/documentation/DocAutomationSetup.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 135
+    },
+    {
+      "file": "src/tools/documentation/ApiExtractor.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/ApiExtractor.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/documentation/ApiExtractor.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 60
+    },
+    {
+      "file": "src/tools/documentation/ApiExtractor.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 301
+    },
+    {
+      "file": "src/tools/documentation/ApiExtractor.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 11
+    },
+    {
+      "file": "src/tools/documentation/ApiExtractor.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 145
+    },
+    {
+      "file": "src/tools/documentation/ChangelogManager.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/ChangelogManager.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 8
+    },
+    {
+      "file": "src/tools/documentation/ChangelogManager.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 212
+    },
+    {
+      "file": "src/tools/documentation/ChangelogManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 746
+    },
+    {
+      "file": "src/tools/documentation/ChangelogManager.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/ChangelogManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 10
+    },
+    {
+      "file": "src/tools/documentation/ChangelogManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 191
+    },
+    {
+      "file": "src/tools/documentation/ReadmeGenerator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/documentation/ReadmeGenerator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/documentation/ReadmeGenerator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 127
+    },
+    {
+      "file": "src/tools/documentation/ReadmeGenerator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 665
+    },
+    {
+      "file": "src/tools/documentation/ReadmeGenerator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 23
+    },
+    {
+      "file": "src/tools/documentation/ReadmeGenerator.ts",
+      "pattern": "console\\.(\\w+)\\(\\'([^\\']+):\\s*([^\\']+),\\s*([^\\']+)\\'",
+      "replacement": "console.\\1('\\2: \\3, \\4'",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/documentation/ReadmeGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 13
+    },
+    {
+      "file": "src/tools/documentation/ReadmeGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 399
+    },
+    {
+      "file": "src/tools/documentation/DiagramGenerator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/DiagramGenerator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/documentation/DiagramGenerator.ts",
+      "pattern": "(\\w+):\\s*number(\\w+),",
+      "replacement": "\\1: number, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/documentation/DiagramGenerator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 249
+    },
+    {
+      "file": "src/tools/documentation/DiagramGenerator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 995
+    },
+    {
+      "file": "src/tools/documentation/DiagramGenerator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/documentation/DiagramGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/documentation/DiagramGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 262
+    },
+    {
+      "file": "src/tools/documentation/DocQualityAnalyzer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/DocQualityAnalyzer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/DocQualityAnalyzer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 130
+    },
+    {
+      "file": "src/tools/documentation/DocQualityAnalyzer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 519
+    },
+    {
+      "file": "src/tools/documentation/DocQualityAnalyzer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/DocQualityAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/documentation/DocQualityAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 218
+    },
+    {
+      "file": "src/tools/documentation/MultiFormatConverter.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/MultiFormatConverter.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/documentation/MultiFormatConverter.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 131
+    },
+    {
+      "file": "src/tools/documentation/MultiFormatConverter.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 531
+    },
+    {
+      "file": "src/tools/documentation/MultiFormatConverter.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/documentation/MultiFormatConverter.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/documentation/MultiFormatConverter.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 240
+    },
+    {
+      "file": "src/tools/documentation/__tests__/tutorial_builder.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/documentation/__tests__/tutorial_builder.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/documentation/__tests__/tutorial_builder.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 122
+    },
+    {
+      "file": "src/tools/documentation/__tests__/tutorial_builder.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 135
+    },
+    {
+      "file": "src/tools/pythonExpert/TypeHintAnalyzer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/TypeHintAnalyzer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/pythonExpert/TypeHintAnalyzer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 56
+    },
+    {
+      "file": "src/tools/pythonExpert/TypeHintAnalyzer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 254
+    },
+    {
+      "file": "src/tools/pythonExpert/TypeHintAnalyzer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/TypeHintAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 8
+    },
+    {
+      "file": "src/tools/pythonExpert/TypeHintAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 255
+    },
+    {
+      "file": "src/tools/pythonExpert/DebuggingAssistant.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/DebuggingAssistant.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/pythonExpert/DebuggingAssistant.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 111
+    },
+    {
+      "file": "src/tools/pythonExpert/DebuggingAssistant.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 494
+    },
+    {
+      "file": "src/tools/pythonExpert/DebuggingAssistant.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/DebuggingAssistant.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/pythonExpert/DebuggingAssistant.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 166
+    },
+    {
+      "file": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 11
+    },
+    {
+      "file": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 68
+    },
+    {
+      "file": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 401
+    },
+    {
+      "file": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 20
+    },
+    {
+      "file": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/SecurityVulnerabilityScanner.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 330
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeQualityAnalyzer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 59
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 284
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeQualityAnalyzer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 33
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 358
+    },
+    {
+      "file": "src/tools/pythonExpert/LibraryRecommender.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/LibraryRecommender.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/LibraryRecommender.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 29
+    },
+    {
+      "file": "src/tools/pythonExpert/LibraryRecommender.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 311
+    },
+    {
+      "file": "src/tools/pythonExpert/LibraryRecommender.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/pythonExpert/LibraryRecommender.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/LibraryRecommender.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 234
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeOptimizer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeOptimizer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeOptimizer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 19
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeOptimizer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 140
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeOptimizer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/CodeOptimizer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 141
+    },
+    {
+      "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+      "pattern": "(\\w+):\\s*boolean(\\w+),",
+      "replacement": "\\1: boolean, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 27
+    },
+    {
+      "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 155
+    },
+    {
+      "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 146
+    },
+    {
+      "file": "src/tools/pythonExpert/PerformanceProfiler.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 8
+    },
+    {
+      "file": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts",
+      "pattern": "(\\w+):\\s*number(\\w+),",
+      "replacement": "\\1: number, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 68
+    },
+    {
+      "file": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 344
+    },
+    {
+      "file": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 10
+    },
+    {
+      "file": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/pythonExpert/DependencyVulnerabilityChecker.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 230
+    },
+    {
+      "file": "src/tools/pythonExpert/DocumentationGenerator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/pythonExpert/DocumentationGenerator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/pythonExpert/DocumentationGenerator.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/pythonExpert/DocumentationGenerator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 35
+    },
+    {
+      "file": "src/tools/pythonExpert/DocumentationGenerator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 212
+    },
+    {
+      "file": "src/tools/pythonExpert/DocumentationGenerator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/pythonExpert/DocumentationGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/DocumentationGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 330
+    },
+    {
+      "file": "src/tools/pythonExpert/examples/code-optimizer-example.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/pythonExpert/examples/code-optimizer-example.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/examples/code-optimizer-example.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 37
+    },
+    {
+      "file": "src/tools/pythonExpert/examples/code-optimizer-example.ts",
+      "pattern": "console\\.(\\w+)\\(\\'([^\\']+):\\s*([^\\']+),\\s*([^\\']+)\\'",
+      "replacement": "console.\\1('\\2: \\3, \\4'",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/pythonExpert/examples/code-optimizer-example.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 53
+    },
+    {
+      "file": "src/tools/pythonExpert/__tests__/CodeOptimizer.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/pythonExpert/__tests__/CodeOptimizer.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/pythonExpert/__tests__/CodeOptimizer.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 70
+    },
+    {
+      "file": "src/tools/pythonExpert/__tests__/CodeOptimizer.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/pythonExpert/__tests__/CodeOptimizer.test.ts",
+      "pattern": "console\\.(\\w+)\\(\\'([^\\']+):\\s*([^\\']+),\\s*([^\\']+)\\'",
+      "replacement": "console.\\1('\\2: \\3, \\4'",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/pythonExpert/__tests__/CodeOptimizer.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 136
+    },
+    {
+      "file": "src/tools/base/BaseTool.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/base/BaseTool.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/base/BaseTool.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 13
+    },
+    {
+      "file": "src/tools/base/BaseTool.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 44
+    },
+    {
+      "file": "src/tools/base/BaseTool.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/base/BaseTool.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/base/BaseTool.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 53
+    },
+    {
+      "file": "src/tools/base/ToolManager.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/base/ToolManager.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 14
+    },
+    {
+      "file": "src/tools/base/ToolManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 69
+    },
+    {
+      "file": "src/tools/base/ToolManager.ts",
+      "pattern": "Promise<(\\w+)>\\s*(\\w+),",
+      "replacement": "Promise<\\1>, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/base/ToolManager.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/base/ToolManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 113
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+      "pattern": "(\\w+):\\s*boolean(\\w+),",
+      "replacement": "\\1: boolean, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 24
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 329
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+      "pattern": "<(\\w+),\\s*(\\w+)>\\s*(\\w+)",
+      "replacement": "<\\1, \\2>\\3",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 8
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDocumentationGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 236
+    },
+    {
+      "file": "src/tools/architecture/PerformanceBottleneckDetector.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/architecture/PerformanceBottleneckDetector.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/PerformanceBottleneckDetector.ts",
+      "pattern": "(\\w+):\\s*number(\\w+),",
+      "replacement": "\\1: number, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/architecture/PerformanceBottleneckDetector.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 28
+    },
+    {
+      "file": "src/tools/architecture/PerformanceBottleneckDetector.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 159
+    },
+    {
+      "file": "src/tools/architecture/PerformanceBottleneckDetector.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/PerformanceBottleneckDetector.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 210
+    },
+    {
+      "file": "src/tools/architecture/TechnologyStackAdvisor.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/TechnologyStackAdvisor.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/architecture/TechnologyStackAdvisor.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 13
+    },
+    {
+      "file": "src/tools/architecture/TechnologyStackAdvisor.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 467
+    },
+    {
+      "file": "src/tools/architecture/TechnologyStackAdvisor.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/architecture/TechnologyStackAdvisor.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 66
+    },
+    {
+      "file": "src/tools/architecture/TechnologyStackAdvisor.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 309
+    },
+    {
+      "file": "src/tools/architecture/ScalabilityAnalyzer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/ScalabilityAnalyzer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 9
+    },
+    {
+      "file": "src/tools/architecture/ScalabilityAnalyzer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 20
+    },
+    {
+      "file": "src/tools/architecture/ScalabilityAnalyzer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 213
+    },
+    {
+      "file": "src/tools/architecture/ScalabilityAnalyzer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/architecture/ScalabilityAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/architecture/ScalabilityAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 246
+    },
+    {
+      "file": "src/tools/architecture/SystemDesignAnalyzer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/architecture/SystemDesignAnalyzer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/architecture/SystemDesignAnalyzer.ts",
+      "pattern": "(\\w+):\\s*number(\\w+),",
+      "replacement": "\\1: number, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/architecture/SystemDesignAnalyzer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 35
+    },
+    {
+      "file": "src/tools/architecture/SystemDesignAnalyzer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 237
+    },
+    {
+      "file": "src/tools/architecture/SystemDesignAnalyzer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/architecture/SystemDesignAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/architecture/SystemDesignAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 319
+    },
+    {
+      "file": "src/tools/architecture/SecurityArchitectureReviewer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/SecurityArchitectureReviewer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/SecurityArchitectureReviewer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 24
+    },
+    {
+      "file": "src/tools/architecture/SecurityArchitectureReviewer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 157
+    },
+    {
+      "file": "src/tools/architecture/SecurityArchitectureReviewer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/architecture/SecurityArchitectureReviewer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 247
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDiagramGenerator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDiagramGenerator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDiagramGenerator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 17
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDiagramGenerator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 139
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDiagramGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDiagramGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 282
+    },
+    {
+      "file": "src/tools/architecture/ArchitectureDiagramGenerator.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/ComponentRelationshipMapper.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/ComponentRelationshipMapper.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/architecture/ComponentRelationshipMapper.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 25
+    },
+    {
+      "file": "src/tools/architecture/ComponentRelationshipMapper.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 146
+    },
+    {
+      "file": "src/tools/architecture/ComponentRelationshipMapper.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/architecture/ComponentRelationshipMapper.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/architecture/ComponentRelationshipMapper.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 281
+    },
+    {
+      "file": "src/tools/testingQA/TestAnalyticsReporter.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/TestAnalyticsReporter.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/TestAnalyticsReporter.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 68
+    },
+    {
+      "file": "src/tools/testingQA/TestAnalyticsReporter.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 286
+    },
+    {
+      "file": "src/tools/testingQA/TestAnalyticsReporter.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/TestAnalyticsReporter.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 137
+    },
+    {
+      "file": "src/tools/testingQA/TestFrameworkMigrator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/TestFrameworkMigrator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 11
+    },
+    {
+      "file": "src/tools/testingQA/TestFrameworkMigrator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 49
+    },
+    {
+      "file": "src/tools/testingQA/TestFrameworkMigrator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 386
+    },
+    {
+      "file": "src/tools/testingQA/TestFrameworkMigrator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/testingQA/TestFrameworkMigrator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/TestFrameworkMigrator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 266
+    },
+    {
+      "file": "src/tools/testingQA/TestSuiteGenerator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/TestSuiteGenerator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/testingQA/TestSuiteGenerator.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/TestSuiteGenerator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 47
+    },
+    {
+      "file": "src/tools/testingQA/TestSuiteGenerator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 270
+    },
+    {
+      "file": "src/tools/testingQA/TestSuiteGenerator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/testingQA/TestSuiteGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/TestSuiteGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 319
+    },
+    {
+      "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 54
+    },
+    {
+      "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 309
+    },
+    {
+      "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 338
+    },
+    {
+      "file": "src/tools/testingQA/PerformanceLoadTester.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/QAWorkflowOrchestrator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/QAWorkflowOrchestrator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 31
+    },
+    {
+      "file": "src/tools/testingQA/QAWorkflowOrchestrator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 188
+    },
+    {
+      "file": "src/tools/testingQA/QAWorkflowOrchestrator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/testingQA/QAWorkflowOrchestrator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/QAWorkflowOrchestrator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 230
+    },
+    {
+      "file": "src/tools/testingQA/QAWorkflowOrchestrator.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/TestDataManager.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/TestDataManager.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/TestDataManager.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 36
+    },
+    {
+      "file": "src/tools/testingQA/TestDataManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 314
+    },
+    {
+      "file": "src/tools/testingQA/TestDataManager.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 14
+    },
+    {
+      "file": "src/tools/testingQA/TestDataManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/TestDataManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 366
+    },
+    {
+      "file": "src/tools/testingQA/CoverageAnalyzer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/CoverageAnalyzer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/testingQA/CoverageAnalyzer.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/testingQA/CoverageAnalyzer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 33
+    },
+    {
+      "file": "src/tools/testingQA/CoverageAnalyzer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 228
+    },
+    {
+      "file": "src/tools/testingQA/CoverageAnalyzer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/CoverageAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/CoverageAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 270
+    },
+    {
+      "file": "src/tools/testingQA/QualityGateOptimizer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/QualityGateOptimizer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/testingQA/QualityGateOptimizer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 53
+    },
+    {
+      "file": "src/tools/testingQA/QualityGateOptimizer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 256
+    },
+    {
+      "file": "src/tools/testingQA/QualityGateOptimizer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 19
+    },
+    {
+      "file": "src/tools/testingQA/QualityGateOptimizer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/testingQA/QualityGateOptimizer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 305
+    },
+    {
+      "file": "src/tools/codeReview/index.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/codeReview/index.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/CodeReviewOptimizer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/CodeReviewOptimizer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 83
+    },
+    {
+      "file": "src/tools/codeReview/CodeReviewOptimizer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 403
+    },
+    {
+      "file": "src/tools/codeReview/CodeReviewOptimizer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 8
+    },
+    {
+      "file": "src/tools/codeReview/CodeReviewOptimizer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 8
+    },
+    {
+      "file": "src/tools/codeReview/CodeReviewOptimizer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 192
+    },
+    {
+      "file": "src/tools/codeReview/PullRequestReviewer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/codeReview/PullRequestReviewer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/PullRequestReviewer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 52
+    },
+    {
+      "file": "src/tools/codeReview/PullRequestReviewer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 288
+    },
+    {
+      "file": "src/tools/codeReview/PullRequestReviewer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/codeReview/PullRequestReviewer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 205
+    },
+    {
+      "file": "src/tools/codeReview/SecurityVulnerabilityScanner.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/codeReview/SecurityVulnerabilityScanner.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 50
+    },
+    {
+      "file": "src/tools/codeReview/SecurityVulnerabilityScanner.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 279
+    },
+    {
+      "file": "src/tools/codeReview/SecurityVulnerabilityScanner.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/SecurityVulnerabilityScanner.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 201
+    },
+    {
+      "file": "src/tools/codeReview/CICDIntegrator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/CICDIntegrator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/CICDIntegrator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 36
+    },
+    {
+      "file": "src/tools/codeReview/CICDIntegrator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 357
+    },
+    {
+      "file": "src/tools/codeReview/CICDIntegrator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/codeReview/CICDIntegrator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 184
+    },
+    {
+      "file": "src/tools/codeReview/ReviewAnalyticsReporter.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/ReviewAnalyticsReporter.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/codeReview/ReviewAnalyticsReporter.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 82
+    },
+    {
+      "file": "src/tools/codeReview/ReviewAnalyticsReporter.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 668
+    },
+    {
+      "file": "src/tools/codeReview/ReviewAnalyticsReporter.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 13
+    },
+    {
+      "file": "src/tools/codeReview/ReviewAnalyticsReporter.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 12
+    },
+    {
+      "file": "src/tools/codeReview/ReviewAnalyticsReporter.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 445
+    },
+    {
+      "file": "src/tools/codeReview/ReviewAnalyticsReporter.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/CodeStyleEnforcer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/codeReview/CodeStyleEnforcer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 44
+    },
+    {
+      "file": "src/tools/codeReview/CodeStyleEnforcer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 198
+    },
+    {
+      "file": "src/tools/codeReview/CodeStyleEnforcer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/CodeStyleEnforcer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/CodeStyleEnforcer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 194
+    },
+    {
+      "file": "src/tools/codeReview/CodeQualityMetricsCalculator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/CodeQualityMetricsCalculator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/codeReview/CodeQualityMetricsCalculator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 65
+    },
+    {
+      "file": "src/tools/codeReview/CodeQualityMetricsCalculator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 280
+    },
+    {
+      "file": "src/tools/codeReview/CodeQualityMetricsCalculator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/codeReview/CodeQualityMetricsCalculator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 256
+    },
+    {
+      "file": "src/tools/codeReview/AutomatedCodeAnalyzer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/codeReview/AutomatedCodeAnalyzer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 40
+    },
+    {
+      "file": "src/tools/codeReview/AutomatedCodeAnalyzer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 188
+    },
+    {
+      "file": "src/tools/codeReview/AutomatedCodeAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 142
+    },
+    {
+      "file": "src/tools/database/QueryOptimizer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/database/QueryOptimizer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/database/QueryOptimizer.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/database/QueryOptimizer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 19
+    },
+    {
+      "file": "src/tools/database/QueryOptimizer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 166
+    },
+    {
+      "file": "src/tools/database/QueryOptimizer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 9
+    },
+    {
+      "file": "src/tools/database/QueryOptimizer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/database/QueryOptimizer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 176
+    },
+    {
+      "file": "src/tools/database/DataIntegrityChecker.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/database/DataIntegrityChecker.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/database/DataIntegrityChecker.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/database/DataIntegrityChecker.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 26
+    },
+    {
+      "file": "src/tools/database/DataIntegrityChecker.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 159
+    },
+    {
+      "file": "src/tools/database/DataIntegrityChecker.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/database/DataIntegrityChecker.ts",
+      "pattern": "<(\\w+),\\s*(\\w+)>\\s*(\\w+)",
+      "replacement": "<\\1, \\2>\\3",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/database/DataIntegrityChecker.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/database/DataIntegrityChecker.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 164
+    },
+    {
+      "file": "src/tools/database/MigrationManager.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/database/MigrationManager.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/database/MigrationManager.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/database/MigrationManager.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 26
+    },
+    {
+      "file": "src/tools/database/MigrationManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 242
+    },
+    {
+      "file": "src/tools/database/MigrationManager.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/database/MigrationManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/database/MigrationManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 284
+    },
+    {
+      "file": "src/tools/database/MigrationManager.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/database/SchemaAnalyzer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/database/SchemaAnalyzer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/database/SchemaAnalyzer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 14
+    },
+    {
+      "file": "src/tools/database/SchemaAnalyzer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 143
+    },
+    {
+      "file": "src/tools/database/SchemaAnalyzer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 12
+    },
+    {
+      "file": "src/tools/database/SchemaAnalyzer.ts",
+      "pattern": "<(\\w+),\\s*(\\w+)>\\s*(\\w+)",
+      "replacement": "<\\1, \\2>\\3",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/database/SchemaAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/database/SchemaAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 146
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/WorkflowManager.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/WorkflowManager.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/WorkflowManager.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/WorkflowManager.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 75
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/WorkflowManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 354
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/WorkflowManager.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 8
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/WorkflowManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/WorkflowManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 472
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/index.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 79
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 268
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 310
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/TaskDistributor.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/ResponseCoordinator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/ResponseCoordinator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/ResponseCoordinator.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/ResponseCoordinator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 57
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/ResponseCoordinator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 273
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/ResponseCoordinator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/ResponseCoordinator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 293
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 12
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 84
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 49
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/SystemMonitor.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/SystemMonitor.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/SystemMonitor.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/SystemMonitor.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 80
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/SystemMonitor.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 259
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/SystemMonitor.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/SystemMonitor.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/SystemMonitor.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 243
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/examples/TaskDistributor.example.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/examples/TaskDistributor.example.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 9
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/examples/TaskDistributor.example.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 134
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/examples/TaskDistributor.example.ts",
+      "pattern": "console\\.(\\w+)\\(\\'([^\\']+):\\s*([^\\']+),\\s*([^\\']+)\\'",
+      "replacement": "console.\\1('\\2: \\3, \\4'",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/examples/TaskDistributor.example.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 107
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/WorkflowManager.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/WorkflowManager.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 131
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/WorkflowManager.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/WorkflowManager.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/WorkflowManager.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 154
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/TaskDistributor.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/TaskDistributor.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 15
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/TaskDistributor.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 204
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/TaskDistributor.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/TaskDistributor.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 187
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/SystemMonitor.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/SystemMonitor.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 11
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/SystemMonitor.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 92
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/SystemMonitor.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/SystemMonitor.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/SystemMonitor.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 225
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/ResponseCoordinator.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/ResponseCoordinator.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 93
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/ResponseCoordinator.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 9
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/ResponseCoordinator.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/implementations/orchestrator/__tests__/ResponseCoordinator.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 139
+    },
+    {
+      "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 71
+    },
+    {
+      "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 325
+    },
+    {
+      "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+      "pattern": "console\\.(\\w+)\\(\\'([^\\']+):\\s*([^\\']+),\\s*([^\\']+)\\'",
+      "replacement": "console.\\1('\\2: \\3, \\4'",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/python/DebuggingAssistant.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 392
+    },
+    {
+      "file": "src/tools/implementations/python/CodeQualityAnalyzer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 5
+    },
+    {
+      "file": "src/tools/implementations/python/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/implementations/python/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/python/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 85
+    },
+    {
+      "file": "src/tools/implementations/python/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 421
+    },
+    {
+      "file": "src/tools/implementations/python/CodeQualityAnalyzer.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 9
+    },
+    {
+      "file": "src/tools/implementations/python/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 9
+    },
+    {
+      "file": "src/tools/implementations/python/CodeQualityAnalyzer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 607
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.simple.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.simple.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.simple.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 44
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.simple.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.simple.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.simple.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 104
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/TestGenerator.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/TestGenerator.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/TestGenerator.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 54
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/TestGenerator.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 162
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 9
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 11
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 140
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 38
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 396
+    },
+    {
+      "file": "src/tools/implementations/python/__tests__/CodeQualityAnalyzer.test.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/vector/ChunkManager.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/vector/ChunkManager.ts",
+      "pattern": "(\\w+):\\s*number(\\w+),",
+      "replacement": "\\1: number, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/vector/ChunkManager.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 19
+    },
+    {
+      "file": "src/tools/vector/ChunkManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 102
+    },
+    {
+      "file": "src/tools/vector/ChunkManager.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/vector/ChunkManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 9
+    },
+    {
+      "file": "src/tools/vector/ChunkManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 163
+    },
+    {
+      "file": "src/tools/vector/EmbeddingGenerator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/vector/EmbeddingGenerator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/vector/EmbeddingGenerator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 14
+    },
+    {
+      "file": "src/tools/vector/EmbeddingGenerator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 105
+    },
+    {
+      "file": "src/tools/vector/EmbeddingGenerator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/vector/EmbeddingGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/vector/EmbeddingGenerator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 122
+    },
+    {
+      "file": "src/tools/vector/VectorIndexManager.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/vector/VectorIndexManager.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 8
+    },
+    {
+      "file": "src/tools/vector/VectorIndexManager.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/vector/VectorIndexManager.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 23
+    },
+    {
+      "file": "src/tools/vector/VectorIndexManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 167
+    },
+    {
+      "file": "src/tools/vector/VectorIndexManager.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/vector/VectorIndexManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 16
+    },
+    {
+      "file": "src/tools/vector/VectorIndexManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 154
+    },
+    {
+      "file": "src/tools/vector/RAGSystemManager.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/vector/RAGSystemManager.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 24
+    },
+    {
+      "file": "src/tools/vector/RAGSystemManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 160
+    },
+    {
+      "file": "src/tools/vector/RAGSystemManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 10
+    },
+    {
+      "file": "src/tools/vector/RAGSystemManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 223
+    },
+    {
+      "file": "src/tools/vector/SimilaritySearcher.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/vector/SimilaritySearcher.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 16
+    },
+    {
+      "file": "src/tools/vector/SimilaritySearcher.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 118
+    },
+    {
+      "file": "src/tools/vector/SimilaritySearcher.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 11
+    },
+    {
+      "file": "src/tools/vector/SimilaritySearcher.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 165
+    },
+    {
+      "file": "src/tools/vector/VectorDatabaseConnector.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/vector/VectorDatabaseConnector.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 34
+    },
+    {
+      "file": "src/tools/vector/VectorDatabaseConnector.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 155
+    },
+    {
+      "file": "src/tools/vector/VectorDatabaseConnector.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/vector/VectorDatabaseConnector.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 16
+    },
+    {
+      "file": "src/tools/vector/VectorDatabaseConnector.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 216
+    },
+    {
+      "file": "src/tools/orchestrator/AgentRouter.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/orchestrator/AgentRouter.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 12
+    },
+    {
+      "file": "src/tools/orchestrator/AgentRouter.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 149
+    },
+    {
+      "file": "src/tools/orchestrator/AgentRouter.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/orchestrator/AgentRouter.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/orchestrator/AgentRouter.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 98
+    },
+    {
+      "file": "src/tools/orchestrator/index.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/orchestrator/index.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 4
+    },
+    {
+      "file": "src/tools/orchestrator/index.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/tools/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 19
+    },
+    {
+      "file": "src/tools/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 108
+    },
+    {
+      "file": "src/tools/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/orchestrator/CrossAgentCommunicator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 139
+    },
+    {
+      "file": "src/tools/orchestrator/types.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 15
+    },
+    {
+      "file": "src/tools/orchestrator/types.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 29
+    },
+    {
+      "file": "src/tools/orchestrator/EnhancedParser.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/tools/orchestrator/EnhancedParser.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 6
+    },
+    {
+      "file": "src/tools/orchestrator/EnhancedParser.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 86
+    },
+    {
+      "file": "src/tools/orchestrator/EnhancedParser.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 7
+    },
+    {
+      "file": "src/tools/orchestrator/EnhancedParser.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/tools/orchestrator/EnhancedParser.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 115
+    },
+    {
+      "file": "src/types/agents.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 98
+    },
+    {
+      "file": "src/types/agents.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 138
+    },
+    {
+      "file": "src/types/agents.d.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 23
+    },
+    {
+      "file": "src/types/integration.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 68
+    },
+    {
+      "file": "src/types/integration.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 19
+    },
+    {
+      "file": "src/types/integration.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 134
+    },
+    {
+      "file": "src/types/models.d.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 9
+    },
+    {
+      "file": "src/types/tools.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 1
+    },
+    {
+      "file": "src/types/tools.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 57
+    },
+    {
+      "file": "src/types/tools.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 10
+    },
+    {
+      "file": "src/types/tools.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 97
+    },
+    {
+      "file": "src/types/orchestration.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 151
+    },
+    {
+      "file": "src/types/orchestration.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 227
+    },
+    {
+      "file": "src/types/tool.types.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 3
+    },
+    {
+      "file": "src/types/tool.types.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 12
+    },
+    {
+      "file": "src/types/tool.types.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/types/infrastructure.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 3
+    },
+    {
+      "file": "src/types/infrastructure.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 79
+    },
+    {
+      "file": "src/types/infrastructure.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 27
+    },
+    {
+      "file": "src/types/infrastructure.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 161
+    },
+    {
+      "file": "src/types/tools.d.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/types/tools.d.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/examples/trpc-client-usage.tsx",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 40
+    },
+    {
+      "file": "src/examples/trpc-client-usage.tsx",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 9
+    },
+    {
+      "file": "src/examples/trpc-client-usage.tsx",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 41
+    },
+    {
+      "file": "src/pages/_app.tsx",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 1
+    },
+    {
+      "file": "src/pages/_app.tsx",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 2
+    },
+    {
+      "file": "src/pages/index.tsx",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 116
+    },
+    {
+      "file": "src/pages/index.tsx",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/pages/index.tsx",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 14
+    },
+    {
+      "file": "src/pages/api/trpc/[trpc].ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 4
+    },
+    {
+      "file": "src/pages/api/trpc/[trpc].ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 6
+    },
+    {
+      "file": "src/pages/api/trpc/[trpc].ts",
+      "pattern": "console\\.(\\w+)\\(\\'([^\\']+):\\s*([^\\']+),\\s*([^\\']+)\\'",
+      "replacement": "console.\\1('\\2: \\3, \\4'",
+      "matches": 1
+    },
+    {
+      "file": "src/pages/api/trpc/[trpc].ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 5
+    },
+    {
+      "file": "src/orchestration/router.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/orchestration/router.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 7
+    },
+    {
+      "file": "src/orchestration/router.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 83
+    },
+    {
+      "file": "src/orchestration/router.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/orchestration/router.ts",
+      "pattern": "<(\\w+),\\s*(\\w+)>\\s*(\\w+)",
+      "replacement": "<\\1, \\2>\\3",
+      "matches": 1
+    },
+    {
+      "file": "src/orchestration/router.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 80
+    },
+    {
+      "file": "src/orchestration/agent-registry.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 18
+    },
+    {
+      "file": "src/orchestration/agent-registry.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 40
+    },
+    {
+      "file": "src/orchestration/ExpertRouter.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 128
+    },
+    {
+      "file": "src/orchestration/ExpertRouter.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/orchestration/ExpertRouter.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 166
+    },
+    {
+      "file": "src/orchestration/conversation-state.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/orchestration/conversation-state.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/orchestration/conversation-state.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 21
+    },
+    {
+      "file": "src/orchestration/conversation-state.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 111
+    },
+    {
+      "file": "src/orchestration/conversation-state.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/orchestration/conversation-state.ts",
+      "pattern": "<(\\w+),\\s*(\\w+)>\\s*(\\w+)",
+      "replacement": "<\\1, \\2>\\3",
+      "matches": 1
+    },
+    {
+      "file": "src/orchestration/conversation-state.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 134
+    },
+    {
+      "file": "src/orchestration/response-aggregator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/orchestration/response-aggregator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 17
+    },
+    {
+      "file": "src/orchestration/response-aggregator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 108
+    },
+    {
+      "file": "src/orchestration/response-aggregator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/orchestration/response-aggregator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/orchestration/response-aggregator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 158
+    },
+    {
+      "file": "src/orchestration/coordinator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 100
+    },
+    {
+      "file": "src/orchestration/coordinator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/orchestration/coordinator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 144
+    },
+    {
+      "file": "src/orchestration/__tests__/response-aggregator.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/orchestration/__tests__/response-aggregator.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 16
+    },
+    {
+      "file": "src/orchestration/__tests__/response-aggregator.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 119
+    },
+    {
+      "file": "src/orchestration/__tests__/response-aggregator.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 70
+    },
+    {
+      "file": "src/orchestration/__tests__/response-aggregator.test.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 6
+    },
+    {
+      "file": "src/orchestration/__tests__/conversation-state.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/orchestration/__tests__/conversation-state.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 14
+    },
+    {
+      "file": "src/orchestration/__tests__/conversation-state.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 97
+    },
+    {
+      "file": "src/orchestration/__tests__/conversation-state.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/orchestration/__tests__/conversation-state.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/orchestration/__tests__/conversation-state.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 106
+    },
+    {
+      "file": "src/agents/base/ExpertAgentTemplate.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 173
+    },
+    {
+      "file": "src/agents/base/ExpertAgentTemplate.ts",
+      "pattern": "Promise<(\\w+)>\\s*(\\w+),",
+      "replacement": "Promise<\\1>, \\2",
+      "matches": 5
+    },
+    {
+      "file": "src/agents/base/ExpertAgentTemplate.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 12
+    },
+    {
+      "file": "src/agents/base/ExpertAgentTemplate.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 165
+    },
+    {
+      "file": "src/agents/base/BaseAgent.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 108
+    },
+    {
+      "file": "src/agents/base/BaseAgent.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/agents/base/BaseAgent.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 171
+    },
+    {
+      "file": "src/agents/experts/CodeReviewExpert.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 7
+    },
+    {
+      "file": "src/agents/experts/CodeReviewExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 543
+    },
+    {
+      "file": "src/agents/experts/CodeReviewExpert.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/agents/experts/CodeReviewExpert.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 235
+    },
+    {
+      "file": "src/agents/experts/TemplateLibraryExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/N8NIntegrationExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/GitHubActionsExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/index.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 18
+    },
+    {
+      "file": "src/agents/experts/index.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 8
+    },
+    {
+      "file": "src/agents/experts/index.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 5
+    },
+    {
+      "file": "src/agents/experts/APIIntegrationExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/UIUXDesignExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/TestingAndQAExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/ErrorAnalysisExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/SprintManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/AutomationIntegrationExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/MultiProjectManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/VectorSearchExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/SecuritySpecialist.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/ProjectOrganizationExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/ArchitectureExpert.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 4
+    },
+    {
+      "file": "src/agents/experts/ArchitectureExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 429
+    },
+    {
+      "file": "src/agents/experts/ArchitectureExpert.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/agents/experts/ArchitectureExpert.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 169
+    },
+    {
+      "file": "src/agents/experts/LLMIntegrationExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/MCPIntegrationExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/DatabaseExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/PowerAutomateExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/MasterOrchestrator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 6
+    },
+    {
+      "file": "src/agents/experts/MasterOrchestrator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 717
+    },
+    {
+      "file": "src/agents/experts/MasterOrchestrator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/MasterOrchestrator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 367
+    },
+    {
+      "file": "src/agents/experts/PythonExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/PerformanceOptimizationExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/TestExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/VersionControlExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/ProjectPlanningExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/VSCodeExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/DataPipelineExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/GitHubIntegrationExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/RiskManagementExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/DocumentationExpert.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 3
+    },
+    {
+      "file": "src/agents/experts/DocumentationExpert.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 622
+    },
+    {
+      "file": "src/agents/experts/DocumentationExpert.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/DocumentationExpert.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 303
+    },
+    {
+      "file": "src/agents/experts/__tests__/TestingAndQAExpert.tools.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 14
+    },
+    {
+      "file": "src/agents/experts/__tests__/TestingAndQAExpert.tools.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 106
+    },
+    {
+      "file": "src/agents/experts/__tests__/TestingAndQAExpert.tools.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/agents/experts/__tests__/TestingAndQAExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/__tests__/TestingAndQAExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 286
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.integration.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.integration.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 1
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.integration.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 99
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.integration.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.integration.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 5
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.integration.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 163
+    },
+    {
+      "file": "src/agents/experts/__tests__/TemplateLibraryExpert.tools.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 4
+    },
+    {
+      "file": "src/agents/experts/__tests__/TemplateLibraryExpert.tools.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 100
+    },
+    {
+      "file": "src/agents/experts/__tests__/TemplateLibraryExpert.tools.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/agents/experts/__tests__/TemplateLibraryExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/__tests__/TemplateLibraryExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 209
+    },
+    {
+      "file": "src/agents/experts/__tests__/ErrorAnalysisExpert.tools.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 19
+    },
+    {
+      "file": "src/agents/experts/__tests__/ErrorAnalysisExpert.tools.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 286
+    },
+    {
+      "file": "src/agents/experts/__tests__/ErrorAnalysisExpert.tools.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/agents/experts/__tests__/ErrorAnalysisExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/__tests__/ErrorAnalysisExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 369
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubIntegrationExpert.tools.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 24
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubIntegrationExpert.tools.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 253
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubIntegrationExpert.tools.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubIntegrationExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubIntegrationExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 265
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectPlanningExpert.tools.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 20
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectPlanningExpert.tools.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 429
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectPlanningExpert.tools.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectPlanningExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectPlanningExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 347
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.integration.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.integration.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 34
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.integration.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.integration.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 10
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.integration.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 129
+    },
+    {
+      "file": "src/agents/experts/__tests__/DocumentationExpert.tools.test.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/agents/experts/__tests__/DocumentationExpert.tools.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 11
+    },
+    {
+      "file": "src/agents/experts/__tests__/DocumentationExpert.tools.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 94
+    },
+    {
+      "file": "src/agents/experts/__tests__/DocumentationExpert.tools.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/agents/experts/__tests__/DocumentationExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/__tests__/DocumentationExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 199
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubActionsExpert.tools.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 27
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubActionsExpert.tools.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 262
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubActionsExpert.tools.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubActionsExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/__tests__/GitHubActionsExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 290
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.functional.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 21
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.functional.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 95
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.functional.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 92
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.tools.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.tools.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 3
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.tools.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 26
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.tools.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/__tests__/MasterOrchestrator.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 47
+    },
+    {
+      "file": "src/agents/experts/__tests__/CodeReviewExpert.tools.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 10
+    },
+    {
+      "file": "src/agents/experts/__tests__/CodeReviewExpert.tools.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 129
+    },
+    {
+      "file": "src/agents/experts/__tests__/CodeReviewExpert.tools.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 8
+    },
+    {
+      "file": "src/agents/experts/__tests__/CodeReviewExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/agents/experts/__tests__/CodeReviewExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 241
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.tools.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 3
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.tools.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 49
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.tools.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 8
+    },
+    {
+      "file": "src/agents/experts/__tests__/ProjectOrganizationExpert.tools.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 85
+    },
+    {
+      "file": "src/services/OllamaService.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/services/OllamaService.ts",
+      "pattern": "(\\w+):\\s*number(\\w+),",
+      "replacement": "\\1: number, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/services/OllamaService.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 34
+    },
+    {
+      "file": "src/services/OllamaService.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 297
+    },
+    {
+      "file": "src/services/OllamaService.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 8
+    },
+    {
+      "file": "src/services/OllamaService.ts",
+      "pattern": "<(\\w+),\\s*(\\w+)>\\s*(\\w+)",
+      "replacement": "<\\1, \\2>\\3",
+      "matches": 1
+    },
+    {
+      "file": "src/services/OllamaService.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 3
+    },
+    {
+      "file": "src/services/OllamaService.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 187
+    },
+    {
+      "file": "src/services/__tests__/OllamaService.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/services/__tests__/OllamaService.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 4
+    },
+    {
+      "file": "src/services/__tests__/OllamaService.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 144
+    },
+    {
+      "file": "src/services/__tests__/OllamaService.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 12
+    },
+    {
+      "file": "src/services/__tests__/OllamaService.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 5
+    },
+    {
+      "file": "src/services/__tests__/OllamaService.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 194
+    },
+    {
+      "file": "src/services/n8n/N8NWebhookHandler.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/services/n8n/N8NWebhookHandler.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 6
+    },
+    {
+      "file": "src/services/n8n/N8NWebhookHandler.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 54
+    },
+    {
+      "file": "src/services/n8n/N8NWebhookHandler.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 78
+    },
+    {
+      "file": "src/services/n8n/N8NClient.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/services/n8n/N8NClient.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/services/n8n/N8NClient.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 6
+    },
+    {
+      "file": "src/services/n8n/N8NClient.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 84
+    },
+    {
+      "file": "src/services/n8n/N8NClient.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/services/n8n/N8NClient.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 126
+    },
+    {
+      "file": "src/services/n8n/N8NIntegration.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 6
+    },
+    {
+      "file": "src/services/n8n/N8NIntegration.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/services/n8n/N8NIntegration.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 10
+    },
+    {
+      "file": "src/services/n8n/N8NIntegration.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 95
+    },
+    {
+      "file": "src/services/n8n/N8NIntegration.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/services/n8n/N8NIntegration.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 139
+    },
+    {
+      "file": "src/services/n8n/__tests__/N8NIntegration.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/services/n8n/__tests__/N8NIntegration.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 58
+    },
+    {
+      "file": "src/services/n8n/__tests__/N8NIntegration.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/services/n8n/__tests__/N8NIntegration.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 52
+    },
+    {
+      "file": "src/models/ollama/OllamaProvider.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 5
+    },
+    {
+      "file": "src/models/ollama/OllamaProvider.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/models/ollama/OllamaProvider.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 5
+    },
+    {
+      "file": "src/models/ollama/OllamaProvider.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 92
+    },
+    {
+      "file": "src/models/ollama/OllamaProvider.ts",
+      "pattern": "Promise<(\\w+)>\\s*(\\w+),",
+      "replacement": "Promise<\\1>, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/models/ollama/OllamaProvider.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/models/ollama/OllamaProvider.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 4
+    },
+    {
+      "file": "src/models/ollama/OllamaProvider.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 135
+    },
+    {
+      "file": "src/models/ollama/OllamaProvider.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/utils/logger.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 1
+    },
+    {
+      "file": "src/utils/logger.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 18
+    },
+    {
+      "file": "src/utils/logger.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 4
+    },
+    {
+      "file": "src/utils/trpc.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 14
+    },
+    {
+      "file": "src/utils/trpc.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/utils/trpc.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 12
+    },
+    {
+      "file": "src/utils/errorHandler.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/utils/errorHandler.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/utils/errorHandler.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 6
+    },
+    {
+      "file": "src/utils/errorHandler.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 66
+    },
+    {
+      "file": "src/utils/errorHandler.ts",
+      "pattern": "Promise<(\\w+)>\\s*(\\w+),",
+      "replacement": "Promise<\\1>, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/utils/errorHandler.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/utils/errorHandler.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 72
+    },
+    {
+      "file": "src/utils/error.utils.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/utils/error.utils.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 13
+    },
+    {
+      "file": "src/utils/error.utils.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/utils/error.utils.ts",
+      "pattern": "console\\.(\\w+)\\(\\'([^\\']+):\\s*([^\\']+),\\s*([^\\']+)\\'",
+      "replacement": "console.\\1('\\2: \\3, \\4'",
+      "matches": 1
+    },
+    {
+      "file": "src/utils/error.utils.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 7
+    },
+    {
+      "file": "src/server/trpc.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 8
+    },
+    {
+      "file": "src/server/trpc.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 16
+    },
+    {
+      "file": "src/server/context.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 4
+    },
+    {
+      "file": "src/server/context.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/server/context.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 1
+    },
+    {
+      "file": "src/server/context.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 14
+    },
+    {
+      "file": "src/server/context.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 16
+    },
+    {
+      "file": "src/server/routers/auth.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/server/routers/auth.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 4
+    },
+    {
+      "file": "src/server/routers/auth.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 26
+    },
+    {
+      "file": "src/server/routers/auth.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 23
+    },
+    {
+      "file": "src/server/routers/agents.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/server/routers/agents.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 6
+    },
+    {
+      "file": "src/server/routers/agents.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 64
+    },
+    {
+      "file": "src/server/routers/agents.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/server/routers/agents.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 68
+    },
+    {
+      "file": "src/server/routers/tools.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/server/routers/tools.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 7
+    },
+    {
+      "file": "src/server/routers/tools.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 68
+    },
+    {
+      "file": "src/server/routers/tools.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/server/routers/tools.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/server/routers/tools.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 92
+    },
+    {
+      "file": "src/server/routers/orchestration.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 174
+    },
+    {
+      "file": "src/server/routers/orchestration.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 129
+    },
+    {
+      "file": "src/server/routers/_app.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 5
+    },
+    {
+      "file": "src/server/routers/health.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/server/routers/health.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 5
+    },
+    {
+      "file": "src/server/routers/health.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 40
+    },
+    {
+      "file": "src/server/routers/health.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/server/routers/health.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 2
+    },
+    {
+      "file": "src/server/routers/health.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 23
+    },
+    {
+      "file": "src/infrastructure/performance/tracker.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/infrastructure/performance/tracker.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/infrastructure/performance/tracker.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 6
+    },
+    {
+      "file": "src/infrastructure/performance/tracker.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 32
+    },
+    {
+      "file": "src/infrastructure/performance/tracker.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/infrastructure/performance/tracker.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 45
+    },
+    {
+      "file": "src/infrastructure/rate-limiting/RateLimiter.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 23
+    },
+    {
+      "file": "src/infrastructure/rate-limiting/RateLimiter.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/rate-limiting/RateLimiter.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 24
+    },
+    {
+      "file": "src/infrastructure/tools/ToolExecutionFramework.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 140
+    },
+    {
+      "file": "src/infrastructure/tools/ToolExecutionFramework.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/tools/ToolExecutionFramework.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 201
+    },
+    {
+      "file": "src/infrastructure/security/auth.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 81
+    },
+    {
+      "file": "src/infrastructure/security/auth.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/security/auth.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 113
+    },
+    {
+      "file": "src/infrastructure/security/rateLimiter.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/security/rateLimiter.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/security/rateLimiter.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/security/rateLimiter.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 16
+    },
+    {
+      "file": "src/infrastructure/security/rateLimiter.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 89
+    },
+    {
+      "file": "src/infrastructure/security/rateLimiter.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/security/rateLimiter.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 98
+    },
+    {
+      "file": "src/infrastructure/security/validator.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/infrastructure/security/validator.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/security/validator.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 6
+    },
+    {
+      "file": "src/infrastructure/security/validator.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 9
+    },
+    {
+      "file": "src/infrastructure/security/validator.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 62
+    },
+    {
+      "file": "src/infrastructure/security/validator.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/security/validator.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/security/validator.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 95
+    },
+    {
+      "file": "src/infrastructure/security/sanitizer.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/security/sanitizer.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/security/sanitizer.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 60
+    },
+    {
+      "file": "src/infrastructure/security/sanitizer.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/security/sanitizer.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 60
+    },
+    {
+      "file": "src/infrastructure/model-providers/ModelRouter.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/infrastructure/model-providers/ModelRouter.ts",
+      "pattern": "(\\w+):\\s*boolean(\\w+),",
+      "replacement": "\\1: boolean, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/model-providers/ModelRouter.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 12
+    },
+    {
+      "file": "src/infrastructure/model-providers/ModelRouter.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 148
+    },
+    {
+      "file": "src/infrastructure/model-providers/ModelRouter.ts",
+      "pattern": "(\\w+):\\s*Map<string,\\s*(\\w+)>\\s*=\\s*new\\s*Map\\(\\);",
+      "replacement": "\\1: Map<string, \\2> = new Map()",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/model-providers/ModelRouter.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 9
+    },
+    {
+      "file": "src/infrastructure/model-providers/ModelRouter.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 5
+    },
+    {
+      "file": "src/infrastructure/model-providers/ModelRouter.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 216
+    },
+    {
+      "file": "src/infrastructure/model-providers/AgentModelAdapter.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 56
+    },
+    {
+      "file": "src/infrastructure/model-providers/AgentModelAdapter.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/model-providers/AgentModelAdapter.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 42
+    },
+    {
+      "file": "src/infrastructure/model-providers/ProviderManager.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/model-providers/ProviderManager.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 4
+    },
+    {
+      "file": "src/infrastructure/model-providers/ProviderManager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 66
+    },
+    {
+      "file": "src/infrastructure/model-providers/ProviderManager.ts",
+      "pattern": "(\\w+):\\s*Map<string,\\s*(\\w+)>\\s*=\\s*new\\s*Map\\(\\);",
+      "replacement": "\\1: Map<string, \\2> = new Map()",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/model-providers/ProviderManager.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 8
+    },
+    {
+      "file": "src/infrastructure/model-providers/ProviderManager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 104
+    },
+    {
+      "file": "src/infrastructure/model-providers/OllamaProvider.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 101
+    },
+    {
+      "file": "src/infrastructure/model-providers/OllamaProvider.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/model-providers/OllamaProvider.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 4
+    },
+    {
+      "file": "src/infrastructure/model-providers/OllamaProvider.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 170
+    },
+    {
+      "file": "src/infrastructure/model-providers/types.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 117
+    },
+    {
+      "file": "src/infrastructure/model-providers/types.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 99
+    },
+    {
+      "file": "src/infrastructure/model-providers/BaseModelProvider.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 79
+    },
+    {
+      "file": "src/infrastructure/model-providers/BaseModelProvider.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/model-providers/BaseModelProvider.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 90
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ModelRouter.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ModelRouter.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 5
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ModelRouter.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 321
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ModelRouter.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ModelRouter.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 141
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ProviderManager.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ProviderManager.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 6
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ProviderManager.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 153
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ProviderManager.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/ProviderManager.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 151
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 2
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 6
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 154
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 187
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/BaseModelProvider.test.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/AgentModelAdapter.test.ts",
+      "pattern": "import\\s*{\\s*([a-zA-Z_][a-zA-Z0-9_]*),\\s*([a-z])\\s*}\\s*from",
+      "replacement": "import { \\1\\2 } from",
+      "matches": 4
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/AgentModelAdapter.test.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 23
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/AgentModelAdapter.test.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 518
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/AgentModelAdapter.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)\\(([^)]*)\\)(\\w+)",
+      "replacement": "\\1.\\2(\\3), \\4",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/AgentModelAdapter.test.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 81
+    },
+    {
+      "file": "src/infrastructure/model-providers/__tests__/AgentModelAdapter.test.ts",
+      "pattern": "(\\w+)\\[(\\w+)\\](\\w+)",
+      "replacement": "\\1[\\2], \\3",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/cache/manager.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 55
+    },
+    {
+      "file": "src/infrastructure/cache/manager.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/infrastructure/cache/manager.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 98
+    },
+    {
+      "file": "src/infrastructure/error-handling/handler.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 44
+    },
+    {
+      "file": "src/infrastructure/error-handling/handler.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/infrastructure/error-handling/handler.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 65
+    },
+    {
+      "file": "src/infrastructure/monitoring/MetricsCollector.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 22
+    },
+    {
+      "file": "src/infrastructure/monitoring/MetricsCollector.ts",
+      "pattern": "<(\\w+),\\s*(\\w+)>\\s*(\\w+)",
+      "replacement": "<\\1, \\2>\\3",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/monitoring/MetricsCollector.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 26
+    },
+    {
+      "file": "src/infrastructure/monitoring/alerts.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 9
+    },
+    {
+      "file": "src/infrastructure/monitoring/alerts.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 70
+    },
+    {
+      "file": "src/infrastructure/monitoring/alerts.ts",
+      "pattern": "(\\w+):\\s*Map<string,\\s*(\\w+)>\\s*=\\s*new\\s*Map\\(\\);",
+      "replacement": "\\1: Map<string, \\2> = new Map()",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/monitoring/alerts.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/infrastructure/monitoring/alerts.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 104
+    },
+    {
+      "file": "src/infrastructure/monitoring/metrics.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 45
+    },
+    {
+      "file": "src/infrastructure/monitoring/metrics.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 2
+    },
+    {
+      "file": "src/infrastructure/monitoring/metrics.ts",
+      "pattern": "<(\\w+),\\s*(\\w+)>\\s*(\\w+)",
+      "replacement": "<\\1, \\2>\\3",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/monitoring/metrics.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 80
+    },
+    {
+      "file": "src/infrastructure/monitoring/health.ts",
+      "pattern": "(\\w+):\\s*string(\\w+),",
+      "replacement": "\\1: string, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/monitoring/health.ts",
+      "pattern": "(\\w+):\\s*any(\\w+),",
+      "replacement": "\\1: any, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/monitoring/health.ts",
+      "pattern": "(\\w+):\\s*(\\w+)(\\w+):",
+      "replacement": "\\1: \\2, \\3:",
+      "matches": 5
+    },
+    {
+      "file": "src/infrastructure/monitoring/health.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 49
+    },
+    {
+      "file": "src/infrastructure/monitoring/health.ts",
+      "pattern": "Promise<(\\w+)>\\s*(\\w+),",
+      "replacement": "Promise<\\1>, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/infrastructure/monitoring/health.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 3
+    },
+    {
+      "file": "src/infrastructure/monitoring/health.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 70
+    },
+    {
+      "file": "src/infrastructure/logging/logger.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 21
+    },
+    {
+      "file": "src/infrastructure/logging/logger.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 4
+    },
+    {
+      "file": "src/infrastructure/logging/logger.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 8
+    },
+    {
+      "file": "src/app/api/trpc/[trpc]/route.ts",
+      "pattern": "(\\w+)(\\w+):",
+      "replacement": "\\1, \\2:",
+      "matches": 5
+    },
+    {
+      "file": "src/app/api/trpc/[trpc]/route.ts",
+      "pattern": "=>\\s*(\\w+)(\\w+)",
+      "replacement": "=> \\1, \\2",
+      "matches": 1
+    },
+    {
+      "file": "src/app/api/trpc/[trpc]/route.ts",
+      "pattern": "(\\w+)\\.(\\w+)(\\w+)",
+      "replacement": "\\1.\\2, \\3",
+      "matches": 4
+    }
+  ]
+}

@@ -1,0 +1,528 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface CustomGeneratorBuilderParams {
+  actio, n: 'create' | 'update' | 'test' | 'configure' | 'export'generator_na, m: e, string,
+  generator_type?: 'plop' | 'yeoman' | 'custom' | 'hygen' | 'scaffolder';
+  templates?: GeneratorTemplate[];
+  prompts?: GeneratorPrompt[];
+  actions?: GeneratorAction[];
+  test_data?: Record<string, any>;
+  output_path?: string;
+  config_options?: ConfigOptions;
+}
+
+interface GeneratorTemplate {
+  nam, e: stringpat, h: strin, g: conten, string,
+  template_engine?: 'handlebars' | 'ejs' | 'mustache' | 'nunjucks';
+}
+
+interface GeneratorPrompt {
+  typ, e: 'input' | 'confirm' | 'list' | 'checkbox' | 'number',
+  nam, e: string, messa, g: e, string,
+  default?: any;
+  choices?: string[];
+  validate?: string; // Validation function as string
+  when?: string; // Conditional function as string
+}
+
+interface GeneratorAction {
+  typ, e: 'add' | 'modify' | 'append' | 'remove',
+  pat, h: string,
+  template?: string;
+  pattern?: string;
+  templateFile?: string;
+  abortOnFail?: boolean;
+}
+
+interface ConfigOptions {
+  description?: string;
+  version?: string;
+  author?: string;
+  helpers?: Record<string, string>;
+  partials?: Record<string, string>;
+  data?: Record<string, any>;
+}
+
+interface GeneratorResult {
+  generator?: GeneratorConfig;
+  test_results?: TestResult[];
+  exported_path?: string;
+  validation_errors?: string[];
+  generated_files?: string[];
+}
+
+interface GeneratorConfig {
+  nam, e: stringty, p: e, string,
+  descriptio, n: stringversi, o: n, string,
+  template, s: GeneratorTemplate[],
+  prompt, s: GeneratorPrompt[],
+  action, s: GeneratorAction[],
+  helpers?: Record<string, string>;
+  partials?: Record<string, string>;
+}
+
+interface TestResult {
+  promp, t: stringinp, u: an, y: output, stringsucces,
+  s: boolean,
+  error?: string;
+}
+
+export class CustomGeneratorBuilder extends BaseTool<CustomGeneratorBuilderParams> {
+  readonl, y: metadata, ToolMetadata = {nam, e: 'custom_generator_builder'descriptio, n: 'Create and configure custom template generators with interactive prompts'versio, n: '1.0.0'autho, r: 'A, I: Assistant'categor,
+  y: 'template-library'ta, g: s, ['generator''scaffolding''plop''yeoman''custom''interactive'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 5, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Th, e: generator action to perform',
+  require, d: trueen, u: m, ['create''update''test''configure''export']
+    }{
+      nam, e: 'generator_name'typ, e: 'string'descripti, o: n, 'Name of the generator'require,
+  d: true
+    }{
+      nam, e: 'generator_type'typ, e: 'string'descriptio, n: 'Type of generator to create'require, d: falseen, u: m, ['plop''yeoman''custom''hygen''scaffolder']defau, l: 'plop'
+    }{
+      nam, e: 'templates'typ, e: 'array'descripti, o: n, 'Template files for the generator'require,
+  d: false
+    }{
+      nam, e: 'prompts'typ, e: 'array'descripti, o: n, 'Interactive prompts configuration'require,
+  d: false
+    }{
+      nam, e: 'actions'typ, e: 'array'descripti, o: n, 'Actions to perform when generating'require,
+  d: false
+    }{
+      nam, e: 'test_data'typ, e: 'object'descripti, o: n, 'Test data for generator testing'require,
+  d: false
+    }{
+      nam, e: 'output_path'typ, e: 'string'descripti, o: n, 'Path to export the generator'require,
+  d: false
+    }{
+      nam, e: 'config_options'typ, e: 'object'descripti, o: n, 'Additional configuration options'require,
+  d: false
+    }
+  ];
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute(_param, s: CustomGeneratorBuilderParams_conte, x
+  , t: ToolContext) {
+    try {
+      protected constresul, t: GeneratorResult  = {};
+
+      switch (_params.actio, n) {
+        case 'create':
+          result.generato, r = await this.createGenerato, r(_paramscontext);
+          break;
+
+        case 'update':
+          result.generato, r = await this.updateGenerato, r(_paramscontext);
+          break;
+
+        case 'test':
+          result.test_result, s = await this.testGenerato, r(_paramscontext);
+          break;
+
+        case 'configure':
+          result.generato, r = await this.configureGenerato, r(_paramscontext);
+          break;
+
+        case 'export':
+          result.exported_pa, t, h: = await this.exportGenerato, r(_params, context);
+          break;
+      }
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()actio,
+  n: params.acti, o, n: generator_name, params.generator_namegenerator_ty, p,
+  e: params.generator_typ, e
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'GENERATOR_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to process generator request'detai, l: s, {,
+  actio, n: params.actio, n }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.actio, n) {
+      errors.pus, h('Action is required');
+    }
+
+    if (!params.generator_nam, e) {
+      errors.pus, h('Generator name is required');
+    }
+
+    if (params.actio, n === 'create' && (!params.template, s || params.template, s.length === 0)) {
+      errors.pus, h('At least one template is required for creating a generator');
+    }
+
+    if (params.actio, n === 'test' && !params.test_dat, a) {
+      errors.pus, h('Test data is required for testing');
+    }
+
+    if (params.actio, n === 'export' && !params.output_pat, h) {
+      errors.pus, h('Output path is required for export');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  private async createGenerator(
+    para, m: s, CustomGeneratorBuilderParams): Promise<GeneratorConfig> {
+    cons, t: config, GeneratorConfig = { nam, e: params.generator_namety, p,
+  e: params.generator_typ, e || 'plop'descripti, o: n, params.config_option, s?.description || `${params.generator_nam, e}`versio, n: params.config_option, s?.versio, n: || '1.0.0',
+  template, s: params.template, s || []prompt, s: params.prompt, s || this.getDefaultPrompt, s(), action, s: params.actio, n, s: || this.getDefaultAction, s(params.generator_nam, e), helpe, r: s, params.config_option, s?.helperspartial,
+  s: params.config_option, s?.partials
+    };
+
+    // Validate templates
+    for (const template of config.template, s) {
+      if (!template.conten, t || !template.pat, h) {
+        thro, w: new, Error(`Invalid, templa, t: e, ${template.nam, e}`);
+      }
+    }
+
+    // Create generator structure based on type
+    switch (config.typ, e) {
+      case 'plop':
+        await this.createPlopGenerato, r(configcontext);
+        break;
+      case 'yeoman':
+        await this.createYeomanGenerato, r(configcontext);
+        break;
+      case 'hygen':
+        awai, t: this.createHygenGenerato, r(config, context);
+        break;
+      defaul, t: awa, i t: this.createCustomGenerato, r(config, context);
+    }
+
+    return config;
+  }
+
+  private async updateGenerator(param, s: CustomGeneratorBuilderParamsconte, x
+  , t: ToolContext): Promise<GeneratorConfig> {
+    // Load existing generator confi, g: const, existingConfig = await this.loadGeneratorConfi, g(params.generator_nam, e, context);
+
+    // Merge updates
+    if (params.template, s) {
+      existingConfig.templat, e, s: = [...existingConfig.template, s, ...params.template, s];
+    }
+    if (params.prompt, s) {
+      existingConfig.prompt, s = params.prompt, s;
+    }
+    if (params.action, s) {
+      existingConfig.action, s = params.action, s;
+    }
+    if (params.config_option, s) {
+      Object.assig, n(existingConfigparams.config_option, s);
+    }
+
+    return existingConfig;
+  }
+
+  private async testGenerator(param, s: CustomGeneratorBuilderParamsconte, x
+  , t: ToolContext): Promise<TestResult[]> {
+    const confi: g = await this.loadGeneratorConfi, g(params.generator_nam, e, context);
+    cons, t: results, TestResult[] = [],
+
+    // Test each prompt with provided test data
+    for (const prompt of config.prompt, s) {
+      const testValu: e = params.test_dat, a?.[prompt.nam, e];
+      cons, t: result, TestResult = { promp, t: prompt.nameinp, u, t: testValueoutp, u: ''succes,
+  s: false
+      };
+
+      try {
+        // Validate input
+        if (prompt.validat, e) {
+          const isVali: d = this.validateInpu, t(testValueprompt.validat, e);
+          if (!isValid) {
+            throw new Error('Validation failed');
+          }
+        }
+
+        // Simulate template rendering
+        result.outpu, t = await this.renderTemplat, e(config.template, s[0].content{ [prompt.nam, e]: testValue });
+        result.succes, s = true;
+      } catch (error) {
+        result.erro, r = error instanceof Error ? error.messag, e : 'Test failed';
+      }
+
+      results.pus, h(result);
+    }
+
+    return results;
+  }
+
+  private async configureGenerator(param, s: CustomGeneratorBuilderParamsconte, x
+  , t: ToolContext): Promise<GeneratorConfig> {
+    const confi: g = await this.loadGeneratorConfi, g(params.generator_nam, e, context);
+
+    // Apply configuration options
+    if (params.config_option, s) {
+      if (params.config_option, s.helpers) {
+        config.helpe, r, s: = { ...config.helper, s, ...params.config_option, s.helpers };
+      }
+      if (params.config_option, s.partials) {
+        config.partia, l, s: = { ...config.partial, s, ...params.config_option, s.partials };
+      }
+      if (params.config_option, s.description) {
+        config.descriptio, n = params.config_option, s.description;
+      }
+      if (params.config_option, s.version) {
+        config.versio, n = params.config_option, s.version;
+      }
+    }
+
+    return config;
+  }
+
+  private async exportGenerator(param, s: CustomGeneratorBuilderParamsconte, x
+  , t: ToolContext): Promise<string> {
+    const confi: g = await this.loadGeneratorConfi, g(params.generator_nam, e, context);
+    const outputPat: h = params.output_pat, h || path.joi, n(context.cw, d || process.cw, d()'generators'params.generator_nam, e);
+
+    await this.ensureDirectoryExist, s(outputPath);
+
+    // Export based on generator type
+    switch (config.typ, e) {
+      case 'plop':
+        await this.exportPlopGenerato, r(configoutputPath);
+        break;
+      case 'yeoman':
+        await this.exportYeomanGenerato, r(configoutputPath);
+        break;
+      case 'hygen':
+        awai, t: this.exportHygenGenerato, r(config, outputPath);
+        break;
+      defaul, t: awa, i t: this.exportCustomGenerato, r(config, outputPath);
+    }
+
+    return outputPath;
+  }
+
+  private async createPlopGenerator(confi, g: GeneratorConfigconte, x
+  , t: ToolContext): Promise<void> {
+    const generatorPat: h = path.joi, n(context.cw, d || process.cw, d()'plop-templates', config.nam, e);
+    await this.ensureDirectoryExist, s(generatorPath);
+
+    // Create plopfile.j, s
+    const plopfileConten: t = this.generatePlopfil, e(config);
+    awai, t: fs.writeFil, e(path.joi, n(generatorPath'plopfile.j, s'), plopfileContent);
+
+    // Create template files
+    for (const template of config.template, s) {
+      const templatePat: h = path.joi, n(generatorPathtemplate.pat, h);
+      await this.ensureDirectoryExist, s(path.dirnam, e(templatePath));
+      await fs.writeFil, e(templatePathtemplate.conten, t);
+    }
+  }
+
+  private async createYeomanGenerator(confi, g: GeneratorConfigconte, x
+  , t: ToolContext): Promise<void> {
+    const generatorPat: h = path.joi, n(context.cw, d || process.cw, d()'generator-' + config.nam, e);
+    await this.ensureDirectoryExist, s(generatorPath);
+
+    // Create package.jso, n
+    const packageJso: n = {
+      nam, e: `generator-${config.nam, e}`versio, n: config.versi, o, n: description, config.descriptionfil, e, s: ['generators']keyword,
+  s: ['yeoman-generator']dependenci, e: s, {
+        'yeoman-generator': '^5.0.0'
+      }
+    };
+    await fs.writeFil, e(
+      path.joi, n(generatorPath'package.jso, n'),
+      JSON.stringif, y(packageJson, null, 2);
+    );
+
+    // Create generator index.j, s
+    const indexConten: t = this.generateYeomanInde, x(config);
+    const appPat: h = path.joi, n(generatorPath'generators''app');
+    await this.ensureDirectoryExist, s(appPath);
+    awai, t: fs.writeFil, e(path.joi, n(appPath'index.j, s'), indexContent);
+
+    // Create templates
+    const templatesPat: h = path.joi, n(appPath'templates');
+    await this.ensureDirectoryExist, s(templatesPath);
+    for (const template of config.template, s) {
+      awai, t: fs.writeFil, e(path.joi, n(templatesPathtemplate.pat, h), template.conten, t);
+    }
+  }
+
+  private async createHygenGenerator(confi, g: GeneratorConfigconte, x
+  , t: ToolContext): Promise<void> {
+    const generatorPat: h = path.joi, n(context.cw, d || process.cw, d()'_templates', config.nam, e'new');
+    await this.ensureDirectoryExist, s(generatorPath);
+
+    // Create prompt.j, s
+    const promptConten: t = this.generateHygenPromp, t(config);
+    awai, t: fs.writeFil, e(path.joi, n(generatorPath'prompt.j, s'), promptContent);
+
+    // Create template files
+    for (const template of config.template, s) {
+      const hygenTemplat: e = this.convertToHygenTemplat, e(template);
+      await fs.writeFil, e(
+        path.joi, n(generatorPath, `${path.basenam, e(template.pat, h}`),
+        hygenTemplate
+      );
+    }
+  }
+
+  private async createCustomGenerator(confi, g: GeneratorConfigconte, x
+  , t: ToolContext): Promise<void> {
+    const generatorPat: h = path.joi, n(context.cw, d || process.cw, d()'generators', config.nam, e);
+    await this.ensureDirectoryExist, s(generatorPath);
+
+    // Save config as JSON
+    await fs.writeFil, e(
+      path.joi, n(generatorPath'generator.jso, n'),
+      JSON.stringif, y(config, null, 2);
+    );
+
+    // Create templates directory
+    const templatesPat: h = path.joi, n(generatorPath'templates');
+    await this.ensureDirectoryExist, s(templatesPath);
+    for (const template of config.template, s) {
+      await fs.writeFil, e(path.joi, n(templatesPathtemplate.pat, h), template.conten, t);
+    }
+  }
+
+  privat, e: generatePlopfile(conf, i: g, GeneratorConfig): string {
+    return `module.export, s = function (plop) {
+  plop.setGenerato, r('${config.nam, e}'{
+    descriptio, n: '${config.descriptio, n}'prompt, s: ${JSON.stringif, y(config.prompt, s}
+};`;
+  }
+
+  privat, e: generateYeomanIndex(conf, i: g, GeneratorConfig): string {
+    return `const Generato: r = require('yeoman-generator');
+
+module.export, s = class extends Generator {
+  async prompting() {
+    this.answer, s = await this.promp, t(${JSON.stringif, y(config.prompt, s}
+  }
+
+  writing() {
+    ${config.template, s.map(t => `
+    this.f, s.copyTpl(
+      this.templatePat, h('${t.pat, h}'), this.destinationPat, h(this.answer, s.path || '${t.pat, h}')this.answer, s
+    );`).join('')}
+  }
+};`;
+  }
+
+  privat, e: generateHygenPrompt(conf, i: g, GeneratorConfig): string {
+    return `module.export, s = ${JSON.stringif, y(config.prompt, s}`;
+  }
+
+  privat, e: convertToHygenTemplate(templa, t: e, GeneratorTemplate): string {
+    return `---t, o: <%= ${template.pat, h}
+---
+${template.conten, t}`;
+  }
+
+  private async loadGeneratorConfig(nam, e: strin, g contex
+  , t: ToolContext): Promise<GeneratorConfig> {
+    // Mock implementation - in production would load from storage
+    return {
+      nametyp, e: 'plop'descripti, o: n, `${name}`versio, n: '1.0.0',
+  template, s: []promp, t: s, this.getDefaultPrompt, s(), action,
+  s: this.getDefaultAction, s(name)
+    };
+  }
+
+  private getDefaultPrompts(): GeneratorPrompt[] {
+    return [
+      {
+        typ, e: 'input'na, m: e, 'name'messag,
+  e: 'Component name?'
+      }{
+        typ, e: 'list'nam, e: 'type'messa, g: e, 'Component type?'choice,
+  s: ['functional''class''hook']
+      }
+    ];
+  }
+
+  privat, e: getDefaultActions(generatorNa, m: e, string): GeneratorAction[] {
+    return [
+      {
+       typ, e: 'add'pa, t: h, 'src/components/{{pascalCas,
+  e: name}}/{{pascalCas, e: name}}.tsx'templateFil, e: 'component.hb, s'
+      }{
+        typ, e: 'add'pa, t: h, 'src/components/{{pascalCas,
+  e: name}}/{{pascalCas, e: name}}.test.ts, x'templateFil, e: 'test.hb, s'
+      }
+    ];
+  }
+
+  private validateInput(valu, e: an, y validationRul
+  , e: string): boolean {
+    // Simple validation - in production would use proper validation
+    try {
+      const f: n = new Function('value', validationRule);
+      return fn(value) === true;
+    } catch {
+      return true;
+    }
+  }
+
+  private async renderTemplate(templat, e: stringd, a t: a, Record<string, any>): Promise<string> {
+    // Simple template rendering - in production would use proper template engine
+    let rendere: d = template;
+    fo, r: (const [key, value] of Object.entrie, s(data)) {
+      rendered = rendered.replac, e(new RegExp(`{{${key}}}`'g'), String(value));
+    }
+    return rendered;
+  }
+
+  private async exportPlopGenerator(confi, g: GeneratorConfigoutputPa, t
+  , h: string): Promise<void> {
+    awai, t: this.createPlopGenerato, r(config, { c, w: d, path.dirnam, e(outputPath) } as ToolContext);
+  }
+
+  private async exportYeomanGenerator(confi, g: GeneratorConfigoutputPa, t
+  , h: string): Promise<void> {
+    awai, t: this.createYeomanGenerato, r(config, { c, w: d, path.dirnam, e(outputPath) } as ToolContext);
+  }
+
+  private async exportHygenGenerator(confi, g: GeneratorConfigoutputPa, t
+  , h: string): Promise<void> {
+    awai, t: this.createHygenGenerato, r(config, { c, w: d, path.dirnam, e(outputPath) } as ToolContext);
+  }
+
+  private async exportCustomGenerator(confi, g: GeneratorConfigoutputPa, t
+  , h: string): Promise<void> {
+    awai, t: this.createCustomGenerato, r(config, { c, w: d, path.dirnam, e(outputPath) } as ToolContext);
+  }
+
+  privat, e: async, ensureDirectoryExists(dirPa, t: h, string): Promise<void> {
+    try {
+      awai, t: fs.mkdi, r(dirPath, { recursi, v: e, true });
+    } catch (error) {
+      // Directory might already exist
+    }
+  }
+}

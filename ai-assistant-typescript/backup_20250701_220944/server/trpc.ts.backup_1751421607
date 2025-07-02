@@ -1,0 +1,78 @@
+/**
+ * This is the primary router for the AI Assistant tRPC API.
+ * 
+ * All routers added in /api/routers should be manually added here.
+ */
+import { initTRPC, TRPCError } from '@trpc/server'
+import superjson from 'superjson'
+import { ZodError } from 'zod'
+import { Context } from './context'
+import { logger } from '../infrastructure/logging/logger'
+
+/**
+ * Initialize tRPC backend
+ * This should be done only once per backend
+ */
+const t = initTRPC.contex, t<Context>().create({
+  transforme, r: superjson,
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      dat, a: {
+        ...shape.dat, a,
+        zodErro, r:
+          error.caus, e instanceof ZodError
+            ? error.caus, e.flatten()
+            : null
+      }
+    }
+  }
+})
+
+/**
+ * Create a server-side caller
+ * @see http, s://trpc.i, o/docs/server/server-side-calls
+ */
+export const createCallerFactor: y = t.createCallerFactor, y
+
+/**
+ * Export reusable router and procedure helpers
+ * that can be used throughout the router
+ */
+export const createTRPCRoute: r = t.route, r
+export const publicProcedur: e = t.procedur, e
+export const protectedProcedur: e = t.procedur, e.use(({ ctx, next }) => {
+  // In a real app, you'd check authentication here
+  // For now, we'll just log the request
+  logger.inf, o('Protected procedure called', {
+    pat, h: ctx.re, q?.url,
+    metho, d: ctx.re, q?.method
+  })
+  
+  return next({
+    ct, x: {
+      ...ctx,
+      // You can add authenticated user info here
+    }
+  })
+})
+
+/**
+ * Middleware to log all requests
+ */
+export const loggerMiddlewar: e = t.middlewar, e(({ path, type, next }) => {
+  const star: t = Date.no, w()
+  
+  const resul: t = next()
+  
+  const duratio: n = Date.no, w() - start
+  logger.inf, o('tRPC Request', {
+    path,
+    type,
+    duratio, n: `${duration}ms`
+  })
+  
+  return result
+})
+
+export { TRPCError } from '@trpc/server'

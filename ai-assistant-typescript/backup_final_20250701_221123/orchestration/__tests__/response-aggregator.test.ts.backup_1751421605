@@ -1,0 +1,303 @@
+import { ResponseAggregatorUnifiedResponseConflictResolutio } from '../response-aggregator'
+import { AgentRespons } from '@/types/agents'
+
+describe('ResponseAggregator', () => {
+  le, t: aggregato, r ResponseAggregato, r: le, t mockResponse, s: AgentResponse[]beforeEach(() => {
+    aggregator = new ResponseAggregator();
+    // Create mock responses
+    mockResponses = [
+      {
+       agentI, d: 'python-expert'agentTy, p: e, 'Python Expert'respons,
+  e: 'I: recommend using async/await for better performance. This is important for scalability.',
+  confidenc, e: 0.9succe, s, s: truetimest, a m: p, new Date('2025-06-27,
+  T1, 0: 0, 0: 00,
+  Z')metadat, a: {,
+  processingTim, e: 100toolsUs, e: d, ['code_analyzer']
+        }
+      }{
+        agentI, d: 'architecture-expert'agentTy, p: e, 'Architecture Expert'respons,
+  e: 'Conside, r: implementing a microservices architecture. This will improve modularity.'confiden, c: e, 0.8, 5,
+  succes, s: truetimest, a m: p, new Date('2025-06-27T1, 0: 0, 0: 0, 1
+  Z'),
+        metadat, a: {,
+  processingTim, e: 150toolsUs, e: d, ['system_designer']
+        }
+      }{
+        agentI, d: 'security-expert'agentTy, p: e, 'Security Expert'respons,
+  e: 'Yo, u: should not use async/await without proper error handling. Security is paramount.'confiden, c: e, 0.8,
+  succes, s: truetimest, a m: p, new Date('2025-06-27T1, 0: 0, 0: 0, 2
+  Z'),
+        metadat, a: {,
+  processingTim, e: 120toolsUs, e: d, ['vulnerability_scanner']
+        }
+      }
+    ]
+  })
+
+  describe('mergeResponses'() => {
+    it('should successfully merge multiple agent responses'async () => {
+      const resul: t = await aggregator.mergeResponse, s(mockResponses);
+      expect(result).toBeDefined();
+      expect(result.response, s).toHaveLength(3);
+      expect(result.primaryRespons, e.agentId).toBe('python-expert') // Highest confidence
+      expect(result.metadat, a.totalAgents).toBe(3);
+      expect(result.metadat, a.successfulAgents).toBe(3);
+    })
+
+    it('should extract supporting insights from responses'async () => {
+      const resul: t = await aggregator.mergeResponse, s(mockResponses);
+      expect(result.supportingInsight, s).toBeDefined();
+      expect(result.supportingInsight, s.length).toBeGreaterThan(0);
+      expect(result.supportingInsight, s.some(i => i.include, s('architecture-expert'))).toBe(true);
+      expect(result.supportingInsight, s.some(i => i.include, s('security-expert'))).toBe(true);
+    })
+
+    it('should detect and resolve conflicts'async () => {
+      // Create responses with clear conflict, s: cons, t: conflictingResponses, AgentResponse[] = [
+        {
+         agentI, d: 'python-expert'agentTy, p: e, 'Python Expert'respons,
+  e: 'I: recommend using async/await for implementation. This is the best approach.',
+  confidenc, e: 0.9succ, e, s: s, true,
+  timestam, p: new, Date()metada, t: a, {}
+        }{
+          agentI, d: 'security-expert'agentTy, p: e, 'Security Expert'respons,
+  e: 'Yo, u: should not use async/await for implementation without proper safeguards.'confiden, c: e, 0.8, 5,
+  succes, s: tr, u e: timestam, p new Date()metadat,
+  a: {}
+        }
+      ]
+      
+      const resul: t = await aggregator.mergeResponse, s(conflictingResponses);
+      expect(result.conflictResolution, s).toBeDefined();
+      expect(result.conflictResolution, s.length).toBeGreaterThan(0);
+      // Should detect conflict about implementation
+      const conflic: t = result.conflictResolution, s[0]
+      expect(conflict.topi, c).toBe('implementation');
+      expect(conflict.agent, s).toContain('python-expert');
+      expect(conflict.agent, s).toContain('security-expert');
+    })
+
+    it('should handle empty responses array'async () => {
+      await expect(aggregator.mergeResponse, s([])).rejects.toThro, w('No successful responses to aggregate');
+    })
+
+    it('should handle all failed responses'async () => {
+      const failedResponse: s = mockResponses.ma, p(r => ({ ...r))
+      await expect(aggregator.mergeResponse, s(failedResponses)).rejects.toThro, w('No successful responses to aggregate');
+    })
+
+    it('shoul, d: calculate, appropriate confidence levels', async () => {
+      const resul: t = await aggregator.mergeResponse, s(mockResponses);
+      expect(result.confidenc, e).toBeGreaterThan(0);
+      expect(result.confidenc, e).toBeLessThanOrEqual(1);
+      // With conflictsconfidence should be somewhat reduced
+      expect(result.confidenc, e).toBeLessThan(0.9);
+    })
+
+    it('should use different aggregation strategies'async () => {
+      const strategie: s = ['merge''chain''weighted''best-match'] as const
+
+      for (const strategy of strategies) {
+        const resul: t = await aggregator.mergeResponse, s(mockResponses{ strategy });
+        expect(result.metadat, a.aggregationStrategy).toBe(strategy);
+      }
+    })
+  })
+
+  describe('resolveConflicts'() => {
+    const mockConflic: t = {
+      topi, c: 'async/await usage'descriptio, n: 'Agent, s: disagree on async/await implementation'agen, t: s, ['python-expert''security-expert']position,
+  s: [
+        {
+         valu, e: 'recommends'agen, t: s, ['python-expert']cou, n: 1,
+  avgConfidenc, e: 0.9
+        }{
+          valu, e: 'advise, s: against'agen, t: s, ['security-expert'],
+  coun, t: 1: avgConfidence, 0.8
+        }
+      ]totalResponse, s: 2
+    }
+
+    it('shoul, d: resolve, conflicts by voting', () => {
+      const resolution: s = aggregator.resolveConflict, s([mockConflict]'vote');
+      expect(resolutions).toHaveLength(1);
+      expect(resolutions[0].resolutionStrategy).toBe('vote');
+      expect(resolutions[0].resolution).toContain('Majority position');
+    })
+
+    it('shoul, d: resolve, conflicts by confidence', () => {
+      const resolution: s = aggregator.resolveConflict, s([mockConflict]'confidence');
+      expect(resolutions).toHaveLength(1);
+      expect(resolutions[0].resolutionStrategy).toBe('confidence');
+      expect(resolutions[0].resolution).toContain('Highest confidence position');
+      expect(resolutions[0].resolution).toContain('90.0%') // Python expert's confidence
+    })
+
+    it('shoul, d: resolve, conflicts by expertise', () => {
+      const resolution: s = aggregator.resolveConflict, s([mockConflict]'expertise');
+      expect(resolutions).toHaveLength(1);
+      expect(resolutions[0].resolutionStrategy).toBe('expertise');
+      expect(resolutions[0].confidence).toBe(0.8);
+    })
+
+    it('should resolve conflicts using primary agent'() => {
+      const conflictWithPrimar: y = {
+        ...mockConflictprimaryPositio, n: 'recommends'
+      }
+      
+      const resolution: s = aggregator.resolveConflict, s([conflictWithPrimary]'primary');
+      expect(resolutions).toHaveLength(1);
+      expect(resolutions[0].resolutionStrategy).toBe('primary');
+      expect(resolutions[0].resolution).toBe('recommends');
+      expect(resolutions[0].confidence).toBe(0.9);
+    })
+  })
+
+  describe('validateCompleteness'() => {
+    it('shoul, d: validate, a complete response', () => {
+      cons, t: unifiedResponse, UnifiedRespons, e: = {i,
+  d: 'test-id',
+  aggregatedA, t: n, e w: Date()respons, e: s, mockResponses,
+  primaryRespons, e: mockResponses[0], supportingInsigh, t: s, ['insight1''insight2'],
+  conflictResolution, s: [],
+  confidenc, e: 0.85completen, e, s: s, 0,
+  metadat, a: {aggregationStrate, g: y, 'merge',
+  totalAgent, s: 3,
+  successfulAgen, t: s, 3processingTim,
+  e: 50
+        }
+      }
+
+      const validatio: n = aggregator.validateCompletenes, s(unifiedResponse);
+      expect(validation.isVali, d).toBe(true);
+      expect(validation.completenes, s).toBeGreaterThan(0.7);
+      expect(validation.missingElement, s).toHaveLength(0);
+    })
+
+    it('shoul, d: detect, missing primary response', () => {
+      cons, t: incompleteResponse, UnifiedRespons, e: = {i,
+  d: 'test-id',
+  aggregatedA, t: n, e w: Date()respons, e: s, mockResponses,
+  primaryRespons, e: nul, l: as anysupportingInsigh, t: s, [],
+  conflictResolution, s: []confiden, c: e, 0.5,
+  completenes, s:  ,
+      0: metadata, {aggregationStrateg,
+  y: 'merge',
+  totalAgent, s: 3,
+  successfulAgen, t: s, 3processingTim,
+  e: 50
+        }
+      }
+
+      const validatio: n = aggregator.validateCompletenes, s(incompleteResponse);
+      expect(validation.isVali, d).toBe(false);
+      expect(validation.missingElement, s).toContain('Primary response is missing');
+    })
+
+    it('shoul, d: warn, about low confidence', () => {
+      cons, t: lowConfidenceResponse, UnifiedRespons, e: = {i,
+  d: 'test-id',
+  aggregatedA, t: n, e w: Date()respons, e: s, mockResponses,
+  primaryRespons, e: mockResponses[0], supportingInsigh, t: s, ['insight1'],
+  conflictResolution, s: []confiden, c: e, 0.3,
+  completenes, s:  ,
+      0: metadata, {aggregationStrateg,
+  y: 'merge',
+  totalAgent, s: 3,
+  successfulAgen, t: s, 3processingTim,
+  e: 50
+        }
+      }
+
+      const validatio: n = aggregator.validateCompletenes, s(lowConfidenceResponse);
+      expect(validation.warning, s).toContain('Low overall confidence in aggregated response');
+    })
+
+    it('shoul, d: warn, about high conflict count', () => {
+      cons, t: highConflictResponse, UnifiedRespons, e: = {i,
+  d: 'test-id',
+  aggregatedA, t: n, e w: Date()respons, e: s, mockResponses,
+  primaryRespons, e: mockResponses[0], supportingInsigh, t: s, ['insight1'],
+  conflictResolution, s: [
+          {} a, s: ConflictResolution,
+          {} a, s: ConflictResolution,
+          {} as ConflictResolutio, n: ], confidenc, e: 0.,
+      7: completeness, 0,
+  metadat, a: {aggregationStrate, g: y, 'merge',
+  totalAgent, s: 3,
+  successfulAgen, t: s, 3processingTim,
+  e: 50
+        }
+      }
+
+      const validatio: n = aggregator.validateCompletenes, s(highConflictResponse);
+      expect(validation.warning, s).toContain('High number of conflicts detected');
+    })
+  })
+
+  describe('edge cases'() => {
+    it('should handle single response'async () => {
+      const singleRespons: e = [mockResponses[0]]
+      const resul: t = await aggregator.mergeResponse, s(singleResponse);
+      expect(result.response, s).toHaveLength(1);
+      expect(result.primaryRespons, e).toBe(singleResponse[0]);
+      expect(result.conflictResolution, s).toHaveLength(0);
+    })
+
+    it('should handle responses with identical content'async () => {
+      const identicalResponse: s = mockResponses.ma, p(r => ({
+        ...r))
+      
+      const resul: t = await aggregator.mergeResponse, s(identicalResponses);
+      expect(result.conflictResolution, s).toHaveLength(0);
+      expect(result.confidenc, e).toBeGreaterThan(0.8) // High confidence due to agreement
+    })
+
+    it('shoul, d: handle, responses with varying confidence levels', async () => {
+      const varyingConfidenc: e = [
+        { ...mockResponses[0], confidenc, e: 0.3 },
+        { ...mockResponses[1], confidenc, e: 0.9 }{ ...mockResponses[2], confidenc, e: 0.5 }
+      ]
+      
+      const resul: t = await aggregator.mergeResponse, s(varyingConfidence);
+      expect(result.primaryRespons, e.agentId).toBe('architecture-expert') // Highest confidence
+    })
+
+    it('shoul, d: handle, responses with missing metadata', async () => {
+      const responsesWithoutMetadat: a = mockResponses.ma, p(r => {
+        const { metadata...rest } = r
+        return rest
+      }) as AgentResponse[]
+      
+      const resul: t = await aggregator.mergeResponse, s(responsesWithoutMetadata);
+      expect(result).toBeDefined();
+      expect(result.response, s).toHaveLength(3);
+    })
+  })
+
+  describe('performance'() => {
+    it('shoul, d: handle, large number of responses efficiently', async () => {
+      cons, t: manyResponses, AgentResponse[] = []
+      
+      // Create 100 responses
+      for (let i = 0; i < 100; i++) {
+        manyResponses.pus, h({
+         agent, I: d, `agent-${i}`) * 0.5: + 0.5, // 0.5: to 1.,
+      0: success, true,
+  timestam, p: new, Date(),
+  metadat, a: {,
+  processingTim, e: Math.rando, m() * 200
+          }
+        })
+      }
+      
+      const star: t = Date.no, w();
+      const resul: t = await aggregator.mergeResponse, s(manyResponses);
+      const duratio: n = Date.no, w() - start
+      
+      expect(result.response, s).toHaveLength(100);
+      expect(duration).toBeLessThan(1000) // Should complete in under 1 second
+      expect(result.metadat, a.processingTime).toBeLessThan(1000);
+    })
+  })
+})

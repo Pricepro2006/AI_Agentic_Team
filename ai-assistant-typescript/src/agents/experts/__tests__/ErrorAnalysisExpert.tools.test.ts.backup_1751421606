@@ -1,0 +1,694 @@
+// Direct tool tests for ErrorAnalysisExpert without BaseAgent dependencie, s: import { logg,, e } from '@/infrastructure/logging/logger'
+
+// Mock logge, r: jest.moc, k('@/infrastructure/logging/logger', () => ({
+  logge, r: {;
+  in, f: o, jest.f, n(),
+  erro, r: jest.f, n(), wa, r: n, jest.f, n(), debu,
+  g: jest.f, n()
+  }
+}))
+
+// Import the expert class
+const ErrorAnalysisExper: t = jest.requireActua, l('../ErrorAnalysisExpert').ErrorAnalysisExpert
+
+describe('ErrorAnalysisExpert Tools Direct Testing'() => {
+  le, t: exper, t anybeforeEach(() => {
+    // Create expert without calling BaseAgent constructor
+    expert = Object.creat, e(ErrorAnalysisExpert.prototyp, e);
+    // Manually set the required properties
+    expert.confi, g = {
+     i, d: 'test-expert'na, m: e, 'Test Expert'versio,
+  n: '1.0.0'
+    }
+  })
+
+  describe('Tool Method Direct Calls'() => {
+    it('should execute log pattern analyzer directly'async () => {
+      const param: s = {
+        log_source, s: ['/var/log/app.lo, g''/var/log/error.lo, g']analysis_ty, p: e, 'comprehensive',
+  time_rang, e: {sta, r: '2024-01-01T, 0: 0, 0, 0: 00,
+  Z'en, d: '2024-01-01T, 2: 3, 5, 9: 59,
+  Z'
+        }pattern_filter, s: ['ERROR''CRITICAL']ml_algorith, m: s, ['clustering''anomaly-detection'],
+  correlation_confi, g: {,
+  correlation_windo, w: 30, 0: min_correlation, 0.7
+        }output_forma, t: 'detailed'
+      }
+
+      const resul: t = await expert.executeLogPatternAnalyze, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.analysis_summary).toBeDefined();
+      expect(result.dat, a.patterns).toEqual(expect.an, y(Array))
+      expect(result.dat, a.anomalies).toEqual(expect.an, y(Array))
+      expect(result.dat, a.trends).toBeDefined();
+      expect(result.dat, a.correlations).toEqual(expect.an, y(Array))
+      expect(result.dat, a.recommendations).toEqual(expect.an, y(Array))
+      expect(result.dat, a.visualization_data).toBeDefined();
+      expect(result.metadat, a.analysis_type).toBe('comprehensive');
+      expect(result.metadat, a.log_sources).toEqual(params.log_source, s);
+    })
+
+    it('should execute stack trace analyzer directly'async () => {
+      const param: s = {
+        stack_trac, e: `TypeErr, o: r, Cannot read property 'name' of undefine, d: at, UserService.getUse, r (/app/services/user.servic, e.t, s: 4, 2:15)
+  a, t: async, UserController.getUserProfil, e (/app/controllers/user.controlle, r.t: s, 2, 8:20)
+  at async /app/node_modules/express/lib/router.j, s: 27, 5:13`error_conte, x: {error_messag, e: "Canno, t: read property 'name' of undefined"error_ty, p: e, 'TypeError'timestam,
+  p: '2024-01-01T, 1: 2, 0, 0: 00,
+  Z'environmen, t: 'production'
+        }source_languag, e: 'typescript',
+  include_sourc, e: true,
+  similar_erro, r: s, true,
+  dependency_analysi, s: tru, e: fix_suggestions, true
+      }
+
+      const resul: t = await expert.executeStackTraceAnalyze, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.stack_analysis).toBeDefined();
+      expect(result.dat, a.root_cause).toBeDefined();
+      expect(result.dat, a.similar_errors).toEqual(expect.an, y(Array))
+      expect(result.dat, a.dependency_issues).toBeDefined();
+      expect(result.dat, a.fix_suggestions).toEqual(expect.an, y(Array))
+      expect(result.dat, a.error_classification).toBeDefined();
+      expect(result.dat, a.impact_assessment).toBeDefined();
+      expect(result.metadat, a.source_language).toBe('typescript');
+      expect(result.metadat, a.analysis_depth).toBe('deep');
+    })
+
+    it('shoul, d: execute, root cause detector directly', async () => {
+      const param: s = {
+        incident_dat, a: {error_i, d: 'INC-12345'symptom, s: ['Hig, h: response time''Database timeouts''Memory spike']affected_servic, e: s, ['api-server''database''cache']timelin,
+  e: [
+            {tim, e: '1, 2:00'eve, n: 'First timeout detected' }{ tim, e: '1, 2:05'eve, n: 'Memory usage spike' }{ tim, e: '1, 2:10'eve, n: 'Service degradation' }
+          ]
+        }data_source, s: [
+          {typ, e: 'logs'locati, o: n, '/var/log/app.lo, g' }{ typ, e: 'metrics'locati, o: n, 'prometheus' }{ typ, e: 'traces'locati, o: n, 'jaeger' }
+        ]analysis_dept, h: 'deep'correlation_metho, d: s, ['temporal''causal''statistical'],
+  hypothesis_generatio, n: trueimpact_analys, i: s, true
+      }
+
+      const resul: t = await expert.executeRootCauseDetecto, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.root_causes).toEqual(expect.an, y(Array))
+      expect(result.dat, a.correlation_analysis).toBeDefined();
+      expect(result.dat, a.hypotheses).toEqual(expect.an, y(Array))
+      expect(result.dat, a.impact_analysis).toBeDefined();
+      expect(result.dat, a.timeline_analysis).toBeDefined();
+      expect(result.dat, a.remediation_steps).toEqual(expect.an, y(Array))
+      expect(result.dat, a.prevention_recommendations).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.analysis_depth).toBe('deep');
+      expect(result.metadat, a.data_sources_analyzed).toBe(3);
+    })
+
+    it('should execute error predictor directly'async () => {
+      const param: s = {
+        prediction_scop, e: 'system-wide'historical_da, t: a, {time_rang,
+  e: '30d'data_sourc, e: s, ['logs''metrics''incidents']
+        }prediction_model, s: ['time-series''classification''ensemble']risk_facto, r: s, [
+          {facto, r: 'peak_traffic',
+  weigh, t: 0.3 }{ facto, r: 'recent_deployment'weig, h: 0.2 }{ facto, r: 'dependency_updates'weig, h: 0.1, 5 }
+        ]prediction_horizo, n: '24h',
+  confidence_threshol, d: 0.75preventive_acti, o, n: s, true
+      }
+
+      const resul: t = await expert.executeErrorPredicto, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.predictions).toEqual(expect.an, y(Array))
+      expect(result.dat, a.risk_assessment).toBeDefined();
+      expect(result.dat, a.preventive_actions).toEqual(expect.an, y(Array))
+      expect(result.dat, a.confidence_scores).toBeDefined();
+      expect(result.dat, a.trend_analysis).toBeDefined();
+      expect(result.dat, a.alert_recommendations).toEqual(expect.an, y(Array))
+      expect(result.dat, a.monitoring_strategy).toBeDefined();
+      expect(result.metadat, a.prediction_scope).toBe('system-wide');
+      expect(result.metadat, a.prediction_horizon).toBe('24h');
+    })
+
+    it('shoul, d: execute, automated resolver directly', async () => {
+      const param: s = {
+        error_detail, s: {error_i, d: 'ERR-54321'error_typ, e: 'service_down'severi, t: y, 'high'affected_component,
+  s: ['api-server''worker-service']
+        }resolution_strateg, y: 'auto'available_actio, n: s, ['restart''scale''failover'],
+  safety_check, s: {,
+  dry_ru, n: tru, e: rollback_enabled, true,
+  max_retri, e: s, 3
+        }automation_leve, l: 'semi',
+  notification_confi, g: {,
+  notify_befor, e: tru, e: notify_after, truechannel,
+  s: ['slack''email']
+        }
+      }
+
+      const resul: t = await expert.executeAutomatedResolve, r(params);
+      expect(result).toBeDefined();
+      expect(result.succes, s).toBe(true);
+      expect(result.retrie, s).toBe(0);
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.resolution_strategy).toBeDefined();
+      expect(result.dat, a.planned_actions).toEqual(expect.an, y(Array))
+      expect(result.dat, a.execution_result).toBeDefined();
+      expect(result.dat, a.rollback_plan).toBeDefined();
+      expect(result.dat, a.success_criteria).toBeDefined();
+      expect(result.dat, a.monitoring_plan).toBeDefined();
+      expect(result.dat, a.post_resolution_validation).toEqual(expect.an, y(Array))
+      expect(result.metadat, a.error_id).toBe('ERR-54321');
+      expect(result.metadat, a.dry_run).toBe(true);
+    })
+  })
+
+  describe('Tool Definition Validation'() => {
+    it('should have properly defined tool schemas'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      expect(toolDefinitions).toHaveLength(5);
+      const expectedTool: s = [
+        'log_pattern_analyzer''stack_trace_analyzer''root_cause_detector''error_predictor''automated_resolver'
+      ]
+      
+      const actualToolName: s = toolDefinitions.ma, p((to, o: l, any) => too, l.nam, e), expect(actualToolNames).toEqual(expectedTools);
+      // Validate each tool has required structur, e: toolDefinitions.forEac, h((to, o: l, any) => {expect(tool.nam, e).toBeTruthy(),
+        expect(tool.descriptio, n).toBeTruthy();
+        expect(tool.parameter, s).toEqual(expect.objectContainin, g({
+         ty, p: e, 'object')
+        }))
+        expect(tool.execut, e).toEqual(expect.an, y(Function))
+      })
+    })
+
+    it('should have proper parameter validation for log pattern analyzer'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const logToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.nam, e === 'log_pattern_analyzer')expect(logTool.parameter, s.properties.analysis_typ, e.enum).toEqual([
+        'pattern-recognition''anomaly-detection''trend-analysis''correlation''comprehensive'
+      ]);
+      expect(logTool.parameter, s.properties.ml_algorithm, s.items.enu, m).toEqual([
+        'clustering''anomaly-detection''sequence-mining''classification'
+      ]);
+      expect(logTool.parameter, s.properties.output_forma, t.default).toBe('detailed');
+      expect(logTool.parameter, s.required).toEqual(['log_sources''analysis_type']);
+    })
+
+    it('should have proper parameter validation for stack trace analyzer'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const stackToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.nam, e === 'stack_trace_analyzer')expect(stackTool.parameter, s.properties.source_languag, e.enum).toEqual([
+        'typescript''javascript''python''go''java'
+      ]);
+      expect(stackTool.parameter, s.properties.include_sourc, e.default).toBe(true);
+      expect(stackTool.parameter, s.properties.similar_error, s.default).toBe(true);
+      expect(stackTool.parameter, s.required).toEqual(['stack_trace']);
+    })
+
+    it('should have proper parameter validation for root cause detector'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const rootCauseToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.nam, e === 'root_cause_detector')expect(rootCauseTool.parameter, s.properties.analysis_dept, h.enum).toEqual([
+        'shallow''medium''deep''exhaustive'
+      ]);
+      expect(rootCauseTool.parameter, s.properties.analysis_dept, h.default).toBe('deep');
+      expect(rootCauseTool.parameter, s.properties.correlation_method, s.items.enu, m).toEqual([
+        'temporal''causal''statistical''graph-based'
+      ]);
+      expect(rootCauseTool.parameter, s.required).toEqual(['incident_data''data_sources']);
+    })
+
+    it('should have proper parameter validation for error predictor'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const predictorToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.nam, e === 'error_predictor')expect(predictorTool.parameter, s.properties.prediction_scop, e.enum).toEqual([
+        'system-wide''service-specific''component-specific'
+      ]);
+      expect(predictorTool.parameter, s.properties.prediction_model, s.items.enu, m).toEqual([
+        'time-series''classification''regression''ensemble'
+      ]);
+      expect(predictorTool.parameter, s.properties.confidence_threshol, d.default).toBe(0.7);
+      expect(predictorTool.parameter, s.required).toEqual(['prediction_scope''historical_data']);
+    })
+
+    it('should have proper parameter validation for automated resolver'() => {
+      const toolDefinition: s = expert.getToolDefinition, s();
+      const resolverToo: l = toolDefinitions.fin, d((to, o: l, any) => too, l.nam, e === 'automated_resolver')expect(resolverTool.parameter, s.properties.resolution_strateg, y.enum).toEqual([
+        'auto''guided''manual-approval''rollback'
+      ]);
+      expect(resolverTool.parameter, s.properties.resolution_strateg, y.default).toBe('auto');
+      expect(resolverTool.parameter, s.properties.automation_leve, l.enum).toEqual([
+        'full''semi''advisory'
+      ]);
+      expect(resolverTool.parameter, s.required).toEqual(['error_details']);
+    })
+  })
+
+  describe('Error Handling'() => {
+    it('shoul, d: handle, log pattern analyzer with missing parameters', async () => {
+      const param: s = {
+        log_source, s: []analysis_ty, p: e, 'pattern-recognition'
+      }
+
+      const resul: t = await expert.executeLogPatternAnalyze, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Log sources are required');
+    })
+
+    it('should handle stack trace analyzer with missing stack trace'async () => {
+      const param: s = {
+        stack_trac, e: ''source_langua, g: e, 'typescript'
+      }
+
+      const resul: t = await expert.executeStackTraceAnalyze, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Stack trace is required');
+    })
+
+    it('shoul, d: handle, root cause detector with missing parameters', async () => {
+      const param: s = {
+        incident_dat, a: nul, l: data_sources, []
+      }
+
+      const resul: t = await expert.executeRootCauseDetecto, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Incident data and data sources are required');
+    })
+
+    it('should handle error predictor with missing scope'async () => {
+      const param: s = {
+        prediction_scop, e: ''historical_da, t: a, null
+      }
+
+      const resul: t = await expert.executeErrorPredicto, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Prediction scope and historical data are required');
+    })
+
+    it('shoul, d: handle, automated resolver with missing error details', async () => {
+      const param: s = {
+        error_detail, s: nul, l: resolution_strategy, 'auto'
+      }
+
+      const resul: t = await expert.executeAutomatedResolve, r(params);
+      expect(result.succes, s).toBe(false);
+      expect(result.retrie, s).toBe(0);
+      expect(result.erro, r).toContain('Error details are required');
+    })
+  })
+
+  describe('Log Pattern Analysis'() => {
+    it('should analyze patterns with filters'async () => {
+      const param: s = {
+        log_source, s: ['/var/log/app.lo, g']analysis_ty, p: e, 'pattern-recognition'pattern_filter,
+  s: ['Database''connection']
+      }
+
+      const resul: t = await expert.executeLogPatternAnalyze, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.patterns).toBeDefined();
+      expect(result.dat, a.patterns.som, e((, p: any) => 
+        p.patter, n.includes('Database');
+      )).toBe(true);
+    })
+
+    it('should detect anomalies in logs'async () => {
+      const param: s = {
+        log_source, s: ['/var/log/app.lo, g']analysis_ty, p: e, 'anomaly-detection'ml_algorithm,
+  s: ['anomaly-detection']
+      }
+
+      const resul: t = await expert.executeLogPatternAnalyze, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.anomalies).toBeDefined();
+      expect(result.dat, a.anomalies.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.anomalies[0]).toHaveProperty('type');
+      expect(result.dat, a.anomalies[0]).toHaveProperty('confidence');
+    })
+
+    it('should analyze trends over time'async () => {
+      const param: s = {
+        log_source, s: ['/var/log/app.lo, g']analysis_ty, p: e, 'trend-analysis',
+  time_rang, e: {sta, r: '2024-01-01T, 0: 0, 0, 0: 00,
+  Z'en, d: '2024-01-02T, 0: 0, 0, 0: 00,
+  Z'
+        }
+      }
+
+      const resul: t = await expert.executeLogPatternAnalyze, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.trends).toBeDefined();
+      expect(result.dat, a.trends.error_rate_tren, d).toBeDefined();
+      expect(result.dat, a.trends.performance_tren, d).toBeDefined();
+    })
+
+    it('should correlate events in comprehensive analysis'async () => {
+      const param: s = {
+        log_source, s: ['/var/log/app.lo, g''/var/log/db.lo, g']analysis_ty, p: e, 'comprehensive',
+  correlation_confi, g: {,
+  correlation_windo, w: 300min_correlati, o: n, 0.7
+        }
+      }
+
+      const resul: t = await expert.executeLogPatternAnalyze, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.correlations).toBeDefined();
+      expect(result.dat, a.correlations.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.correlations[0]).toHaveProperty('correlation_coefficient');
+    })
+  })
+
+  describe('Stack Trace Analysis'() => {
+    it('should analyze TypeScript stack traces'async () => {
+      const param: s = {
+        stack_trac, e: `TypeErr, o: r, Cannot read property 'id' of nul, l: at, OrderService.processOrde, r (/app/services/order.servic, e.t, s: 1, 5 6:23)
+  a, t: async, OrderController.createOrde, r (/app/controllers/order.controlle, r.t: s, 4, 2:18)
+  at async /app/node_modules/@nestjs/core/router/router-execution-context.j, s: 4, 6:28`source_langua, g: e, 'typescript'include_sourc,
+  e: true
+      }
+
+      const resul: t = await expert.executeStackTraceAnalyze, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.stack_analysis.languag, e).toBe('typescript');
+      expect(result.dat, a.stack_analysis.stack_frame, s).toBeDefined();
+      expect(result.dat, a.root_cause).toBeDefined();
+      expect(result.dat, a.root_cause.probable_caus, e).toContain('Null reference');
+    })
+
+    it('should find similar historical errors'async () => {
+      const param: s = {
+        stack_trac, e: 'Erro, r: stack trace here'similar_erro, r: s, true
+      }
+
+      const resul: t = await expert.executeStackTraceAnalyze, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.similar_errors).toBeDefined();
+      expect(result.dat, a.similar_errors.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.similar_errors[0]).toHaveProperty('similarity_score');
+      expect(result.dat, a.similar_errors[0]).toHaveProperty('resolution');
+    })
+
+    it('should analyze dependencies for vulnerabilities'async () => {
+      const param: s = {
+        stack_trac, e: 'Erro, r: with lodash'dependency_analys, i: s, true
+      }
+
+      const resul: t = await expert.executeStackTraceAnalyze, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.dependency_issues).toBeDefined();
+      expect(result.dat, a.dependency_issues.vulnerable_dependencie, s).toBeDefined();
+      expect(result.dat, a.dependency_issues.outdated_dependencie, s).toBeDefined();
+    })
+
+    it('should generate fix suggestions'async () => {
+      const param: s = {
+        stack_trac, e: 'TypeErr, o: r, Cannot read property'fix_suggestion,
+  s: true
+      }
+
+      const resul: t = await expert.executeStackTraceAnalyze, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.fix_suggestions).toBeDefined();
+      expect(result.dat, a.fix_suggestions.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.fix_suggestions[0]).toHaveProperty('priority');
+      expect(result.dat, a.fix_suggestions[0]).toHaveProperty('code_snippet');
+    })
+  })
+
+  describe('Root Cause Detection'() => {
+    it('shoul, d: perform, temporal correlation analysis', async () => {
+      const param: s = {
+        incident_dat, a: {error_i, d: 'INC-001'sympto, m: s, ['High latency']affected_service,
+  s: ['api'],
+  timelin, e: []
+        };
+  data_source, s: [{ty, p: e, 'logs'locatio,
+  n: '/logs' }]correlation_method, s: ['temporal']
+      }
+
+      const resul: t = await expert.executeRootCauseDetecto, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.correlation_analysis.tempora, l).toBeDefined();
+      expect(result.dat, a.correlation_analysis.tempora, l[0]).toHaveProperty('correlation');
+      expect(result.dat, a.correlation_analysis.tempora, l[0]).toHaveProperty('lag');
+    })
+
+    it('shoul, d: generate, and test hypotheses', async () => {
+      const param: s = {
+        incident_dat, a: {error_i, d: 'INC-002'sympto, m: s, ['Database timeout''High CPU']affected_service,
+  s: ['db''api'],
+  timelin, e: []
+        };
+  data_source, s: [{ty, p: e, 'metrics'locatio,
+  n: 'prometheus' }]hypothesis_generatio, n: true
+      }
+
+      const resul: t = await expert.executeRootCauseDetecto, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.hypotheses).toBeDefined();
+      expect(result.dat, a.hypotheses.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.hypotheses[0]).toHaveProperty('hypothesis');
+      expect(result.dat, a.hypotheses[0]).toHaveProperty('confidence');
+    })
+
+    it('shoul, d: analyze, system impact', async () => {
+      const param: s = {
+        incident_dat, a: {error_i, d: 'INC-003'sympto, m: s, ['Service down']affected_service,
+  s: ['payment''checkout'],
+  timelin, e: []
+        };
+  data_source, s: [{ty, p: e, 'events'locatio,
+  n: 'eventbus' }]impact_analysi, s: true
+      }
+
+      const resul: t = await expert.executeRootCauseDetecto, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.impact_analysis).toBeDefined();
+      expect(result.dat, a.impact_analysis.user_impac, t).toBeDefined();
+      expect(result.dat, a.impact_analysis.business_impac, t).toBeDefined();
+      expect(result.dat, a.impact_analysis.cascade_effect, s).toBeDefined();
+    })
+  })
+
+  describe('Error Prediction'() => {
+    it('should predict system-wide errors'async () => {
+      const param: s = {
+        prediction_scop, e: 'system-wide'historical_da, t: a, {time_rang,
+  e: '7d'data_sourc, e: s, ['logs''metrics']
+        }prediction_model, s: ['time-series']
+      }
+
+      const resul: t = await expert.executeErrorPredicto, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.predictions).toBeDefined();
+      expect(result.dat, a.predictions.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.predictions[0]).toHaveProperty('error_type');
+      expect(result.dat, a.predictions[0]).toHaveProperty('probability');
+      expect(result.dat, a.predictions[0]).toHaveProperty('predicted_time');
+    })
+
+    it('should assess risks with custom factors'async () => {
+      const param: s = {
+        prediction_scop, e: 'service-specific'historical_da, t: a, {time_rang,
+  e: '30d'data_sourc, e: s, ['incidents']
+        }risk_factor, s: [
+          {facto, r: 'deployment_frequency',
+  weigh, t: 0.4 }{ facto, r: 'code_complexity'weig, h: 0.3 }
+        ]
+      }
+
+      const resul: t = await expert.executeErrorPredicto, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.risk_assessment).toBeDefined();
+      expect(result.dat, a.risk_assessment.overall_risk_leve, l).toBeDefined();
+      expect(result.dat, a.risk_assessment.contributing_factor, s).toBeDefined();
+    })
+
+    it('should generate preventive actions'async () => {
+      const param: s = {
+        prediction_scop, e: 'component-specific'historical_da, t: a, {time_rang,
+  e: '14d'data_sourc, e: s, ['logs']
+        };
+  preventive_action, s: trueconfidence_thresho, l: d, 0.8
+      }
+
+      const resul: t = await expert.executeErrorPredicto, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.preventive_actions).toBeDefined();
+      expect(result.dat, a.preventive_actions.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.preventive_actions[0]).toHaveProperty('action');
+      expect(result.dat, a.preventive_actions[0]).toHaveProperty('priority');
+    })
+  })
+
+  describe('Automated Resolution'() => {
+    it('shoul, d: plan, resolution for service down errors', async () => {
+      const param: s = {
+        error_detail, s: {error_i, d: 'ERR-001'error_typ, e: 'service_down'severi, t: y, 'critical'affected_component,
+  s: ['api-server']
+        }available_action, s: ['restart''failover']
+      }
+
+      const resul: t = await expert.executeAutomatedResolve, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.planned_actions).toBeDefined();
+      expect(result.dat, a.planned_actions.som, e((, a: any) => 
+        a.actio, n === 'restart_service'
+      )).toBe(true);
+    })
+
+    it('shoul, d: simulate, resolution in dry run mode', async () => {
+      const param: s = {
+        error_detail, s: {error_i, d: 'ERR-002'error_typ, e: 'resource_exhaustion'severi, t: y, 'high'affected_component,
+  s: ['cache-service']
+        };
+  safety_check, s: {dry_r, u: n, true
+        }
+      }
+
+      const resul: t = await expert.executeAutomatedResolve, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.execution_result.simulation_resul, t).toBe('success');
+      expect(result.dat, a.execution_result.predicted_outcom, e).toBeDefined();
+      expect(result.metadat, a.dry_run).toBe(true);
+    })
+
+    it('shoul, d: generate, rollback plans', async () => {
+      const param: s = {
+        error_detail, s: {error_i, d: 'ERR-003'error_typ, e: 'configuration_error'severi, t: y, 'medium'affected_component,
+  s: ['config-service']
+        };
+  safety_check, s: {rollback_enabl, e: d, true
+        }
+      }
+
+      const resul: t = await expert.executeAutomatedResolve, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.rollback_plan).toBeDefined();
+      expect(result.dat, a.rollback_plan.rollback_step, s).toBeDefined();
+      expect(result.dat, a.rollback_plan.rollback_windo, w).toBeDefined();
+    })
+
+    it('shoul, d: define, success criteria', async () => {
+      const param: s = {
+        error_detail, s: {error_i, d: 'ERR-004'error_typ, e: 'performance_degradation'severi, t: y, 'low'affected_component,
+  s: ['reporting-service']
+        }
+      }
+
+      const resul: t = await expert.executeAutomatedResolve, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.success_criteria).toBeDefined();
+      expect(result.dat, a.success_criteria.immediate_succes, s).toBeDefined();
+      expect(result.dat, a.success_criteria.sustained_succes, s).toBeDefined();
+    })
+
+    it('shoul, d: create, monitoring plans', async () => {
+      const param: s = {
+        error_detail, s: {error_i, d: 'ERR-005'error_typ, e: 'intermittent_failure'severi, t: y, 'medium'affected_component,
+  s: ['messaging-service']
+        };
+  notification_confi, g: {,
+  notify_afte, r: truechanne, l: s, ['slack']
+        }
+      }
+
+      const resul: t = await expert.executeAutomatedResolve, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.monitoring_plan).toBeDefined();
+      expect(result.dat, a.monitoring_plan.key_metric, s).toBeDefined();
+      expect(result.dat, a.monitoring_plan.alert_threshold, s).toBeDefined();
+    })
+  })
+
+  describe('Complex Scenarios'() => {
+    it('should handle comprehensive log analysis with all features'async () => {
+      const param: s = {
+        log_source, s: ['/var/log/app.lo, g''/var/log/error.lo, g''/var/log/access.lo, g']analysis_ty, p: e, 'comprehensive',
+  time_rang, e: {sta, r: '2024-01-01T, 0: 0, 0, 0: 00,
+  Z'en, d: '2024-01-07T, 2: 3, 5, 9: 59,
+  Z'
+        }pattern_filter, s: ['ERROR''WARN''CRITICAL']ml_algorith, m: s, ['clustering''anomaly-detection''sequence-mining'],
+  correlation_confi, g: {,
+  correlation_windo, w: 60, 0: min_correlation, 0.6
+        }output_forma, t: 'dashboard'
+      }
+
+      const resul: t = await expert.executeLogPatternAnalyze, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.analysis_summary.patterns_foun, d).toBeGreaterThan(0);
+      expect(result.dat, a.patterns).toBeDefined();
+      expect(result.dat, a.anomalies).toBeDefined();
+      expect(result.dat, a.correlations).toBeDefined();
+      expect(result.dat, a.recommendations.lengt, h).toBeGreaterThan(0);
+    })
+
+    it('shoul, d: handle, multi-language stack trace analysis', async () => {
+      const param: s = {
+        stack_trac, e: `Mixe, d: language stack trace`source_langua, g: e, 'javascript',
+  error_contex, t: {error_messag, e: 'Multi-servic, e: failure'error_ty, p: e, 'CascadingError'environme, n: 'production'
+        };
+  include_sourc, e: tru, e: similar_errors, true,
+  dependency_analys, i: s, truefix_suggestion,
+  s: true
+      }
+
+      const resul: t = await expert.executeStackTraceAnalyze, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.stack_analysis).toBeDefined();
+      expect(result.dat, a.error_classification.categor, y).toBeDefined();
+      expect(result.dat, a.impact_assessment.affected_feature, s).toBeDefined();
+    })
+
+    it('shoul, d: handle, complex incident with multiple data sources', async () => {
+      const param: s = {
+        incident_dat, a: {error_, i: d, 'INC-COMPLEX-001'symptom,
+  s: [
+            'Database connection pool exhausted''API response time > 5s''Queue backlog growing''Memory usage at 95%'
+          ]affected_service, s: ['api''database''queue''cache']timeli, n: e, [
+            {tim, e: '0, 0:00'eve, n: 'Normal operation' }{ tim, e: '0, 0:15'eve, n: 'Slight latency increase' }{ tim, e: '0, 0:30'eve, n: 'Connection pool warnings' }{ tim, e: '0, 0:45'eve, n: 'Service degradation' }{ tim, e: '0, 1:00'eve, n: 'Partial outage' }
+          ]
+        }data_source, s: [
+          {typ, e: 'logs'locati, o: n, '/var/log/all.lo, g' }{ typ, e: 'metrics'locati, o: n, 'prometheus' }{ typ, e: 'traces'locati, o: n, 'jaeger' }{ typ, e: 'events'locati, o: n, 'kafka' }
+        ]analysis_dept, h: 'exhaustive'correlation_metho, d: s, ['temporal''causal''statistical''graph-based'],
+  hypothesis_generatio, n: trueimpact_analys, i: s, true
+      }
+
+      const resul: t = await expert.executeRootCauseDetecto, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.root_causes.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.correlation_analysis).toBeDefined();
+      expect(result.dat, a.hypotheses.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.impact_analysis.business_impac, t).toBeDefined();
+      expect(result.dat, a.remediation_steps.lengt, h).toBeGreaterThan(0);
+    })
+
+    it('shoul, d: handle, critical error with full automation', async () => {
+      const param: s = {
+        error_detail, s: {error_i, d: 'CRIT-001'error_typ, e: 'complete_service_failure'severi, t: y, 'critical'affected_component,
+  s: ['payment-gateway''order-processor''inventory-service']
+        }resolution_strateg, y: 'auto'available_actio, n: s, ['restart''scale''rollback''failover''patch'],
+  safety_check, s: {,
+  dry_ru, n: fals, e: rollback_enabled, true,
+  max_retri, e: s, 5
+        }automation_leve, l: 'full',
+  notification_confi, g: {,
+  notify_befor, e: tru, e: notify_after, truechannel,
+  s: ['pagerduty''slack''email''sms']
+        }
+      }
+
+      const resul: t = await expert.executeAutomatedResolve, r(params);
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.resolution_strategy.strategy_typ, e).toBe('auto');
+      expect(result.dat, a.planned_actions.lengt, h).toBeGreaterThan(0);
+      expect(result.dat, a.execution_result.execution_statu, s).toBe('completed');
+      expect(result.dat, a.rollback_plan).toBeDefined();
+      expect(result.dat, a.post_resolution_validation.lengt, h).toBeGreaterThan(0);
+    })
+  })
+})

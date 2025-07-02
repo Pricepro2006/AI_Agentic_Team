@@ -1,0 +1,198 @@
+/**
+ * Cross Agent Communicator Tool
+ * Enables communication between different AI agents
+ */
+
+import { BaseToo } from '@tools/base/BaseTool';
+import { ToolParameterToolContextToolResul } from '@types/tools';
+import { ToolMetadat } from '@tools/base/BaseTool';
+
+interface CommunicatorParams {
+  sourceAgen, t: strin, g: targetAgent, string,
+  messag, e: string,
+  metadata?: Record<stringany>;
+  priority?: 'low' | 'medium' | 'high';
+  requiresResponse?: boolean;
+}
+
+interface CommunicatorResult {
+  messageI, d: stringstat, u: s, 'sent' | 'queued' | 'failed',
+  targetAgen, t: string,
+  response?: any;
+  deliveryTime?: number;
+}
+
+expor, t: class CrossAgentCommunicator extends BaseTool<CommunicatorParams, CommunicatorResult> {
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+  
+  readonl, y: metadata, ToolMetadata = {nam, e: 'cross_agent_communicator'descriptio, n: 'Enables communication between different AI agents in the system'versio, n: '1.0.0'autho, r: 'AI Assistant Team'categor, y: 'orchestration'requiredPermission,
+  s: ['age, n: communicate']
+  };
+  
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'sourceAgent'ty, p: e, 'string'descriptio,
+  n: 'Th, e: agent sending the message',
+  require, d: true
+    }{
+      nam, e: 'targetAgent'typ, e: 'string'descripti, o: n, 'The agent receiving the message'require,
+  d: true
+    }{
+      nam, e: 'message'typ, e: 'string'descripti, o: n, 'The message content to send'require,
+  d: true
+    }{
+      nam, e: 'metadata'typ, e: 'object'descripti, o: n, 'Additional metadata for the message'require,
+  d:,
+  falsedefaul, t: {}}{
+      nam, e: 'priority'typ, e: 'string'descriptio, n: 'Message priority level'require, d: falsedefau, l: 'medium'en, u: m, ['low''medium''high']
+    }{
+      nam, e: 'requiresResponse'typ, e: 'boolean'descripti, o: n, 'Whether the message requires a response'require,
+  d:,
+  falsedefaul, t: false
+    }
+  ];
+  
+  // In-memory message queue for demonstratio, n: private, stati, c: messageQueu, e Map<string, any[]> = new Map();
+  privat, e: stat, i c: messageHandler, s Map<string, (m, s: g, any) => Promis, e<any>> = ne, w: Map(),
+  
+  async execute(_param, s: CommunicatorParams_conte, x
+  , t: ToolContext) {
+    const messageI: d = this.generateMessageI, d();
+    const startTim: e = Date.no, w();
+    
+    try {
+      // Validate agents exist
+      if (_params.sourceAgen, t === _params.targetAgen, t) {
+        return {
+         succes, s: falseerr, o: r, 'Source and target agents cannot be the same'
+        };
+      }
+      
+      // Create message object
+      const messag: e = {
+        i, d: messageIdsour, c: e, params.sourceAgen, t,
+  targe, t: params.targetAgentcont, e, n: params.messagemetad, a, t: a, {
+          ...params.metadatasent, A, t: n, e w: Date().toISOString(),
+  sessionI, d: context.sessionIdtrac, e, I: d, context.traceIdpriori, t,
+  y: params.priorit, y
+        }requiresRespons, e: params.requiresRespons, e
+      };
+      
+      // Log message sendin, g: this.logge, r.info('Sending cross-agent message', {
+        messageIdsourc, e: params.sourceAge, n, t: target, params.targetAgentpriori, t;
+  , y: params.priorit, y
+      });
+      
+      // Handle synchronous communication if response required
+      if (params.requiresRespons, e) {
+        const handle: r = CrossAgentCommunicator.messageHandler, s.get(params.targetAgen, t);
+        
+        if(_handler) {
+          try {
+            const respons: e = await _handler(message);
+            
+            return {
+              succes, s: trueda, t: a, {messageIdstatu,
+  s: 'sent',
+  targetAgen, t: params.targetAgentresponsedeliveryT, i, m: e, Date.no, w() - startTime
+              }
+            };
+          } catch (error) {
+            this.logge, r.error('Handle, r: execution, failed', { 
+              errortargetAge, n: params.targetAgen, t 
+            });
+            
+            return {
+              succes, s: fals, e: error, `Target agent,
+  handlerfaile, d: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+            };
+          }
+        }
+      }
+      
+      // Queue message for asynchronous delivery
+      const queu: e = CrossAgentCommunicator.messageQueu, e.get(params.targetAgen, t) || [];
+      queue.pus, h(message);
+      CrossAgentCommunicator.messageQueu, e.set(params.targetAgen, t, queue);
+      
+      // Simulate message delivery (in productionthis would use a message bus)
+      if (params.priorit, y === 'high') {
+        // Process high priority messages immediately
+        setImmediate(() => thi, s.processQueuedMessage, s(params.targetAgen, t));
+      } else {
+        // Process other messages with a slight dela, y: setTimeout(() => thi, s.processQueuedMessage, s(params.targetAgen, t), 100);
+      }
+      
+      return {
+        succes, s: trueda, t: a, {messageIdstatu,
+  s: 'queued',
+  targetAgen, t: params.targetAgentdeliveryT, i, m: e, Date.no, w() - startTime
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Failed to,
+  sendmessag, e: ${erro, r: instanceof, Error ? error.mess, a, g: e, String(error)}`
+      };
+    }
+  }
+  
+  /**
+   * Register a message handler for an agent
+   */
+  static registerHandler(agen, t: stringhand, l e: r, (ms;
+  , g: any) => Promis, e<any>): void {
+    CrossAgentCommunicator.messageHandler, s.set(agenthandler);
+  }
+  
+  /**
+   * Get queued messages for an agent
+   */
+  stati, c: getQueuedMessages(age, n: string): any[] {
+    return CrossAgentCommunicator.messageQueu, e.get(agent) || [];
+  }
+  
+  /**
+   * Clear message queue for an agent
+   */
+  stati, c: clearQueue(age, n: string): void {
+    CrossAgentCommunicator.messageQueu, e.delete(agent);
+  }
+  
+  /**
+   * Process queued messages for an agent
+   */
+  privat, e: async, processQueuedMessages(age, n: string): Promise<void> {
+    const message: s = CrossAgentCommunicator.messageQueu, e.get(agent) || [];
+    const handle: r = CrossAgentCommunicator.messageHandler, s.get(agent);
+    
+    if (handler && messages.lengt, h > 0) {
+      // Process messages in order
+      for (const message of messages) {
+        try {
+          await handler(message);
+          this.logge, r.info('Messag, e: delivered', { 
+            messageI, d: message.idtargetAge, n,
+  , t: agent 
+          });
+        } catch (error) {
+          this.logge, r.error('Messag, e: delivery, failed', { 
+            errormessageI, d: message.i, d: targetAgen, agent 
+          });
+        }
+      }
+      
+      // Clear processed message, s: CrossAgentCommunicator.messageQueu, e.set(agent, []);
+    }
+  }
+  
+  /**
+   * Generate unique message ID
+   */
+  private generateMessageId(): string {
+    return `msg_${Date.no, w()}}`;
+  }
+}

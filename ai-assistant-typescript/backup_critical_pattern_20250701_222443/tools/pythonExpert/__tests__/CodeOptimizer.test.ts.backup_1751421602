@@ -1,0 +1,483 @@
+/**
+ * Comprehensive tests for CodeOptimizer tool
+ */
+
+import { CodeOptimize } from '../CodeOptimizer';
+import { ToolContex } from '@types/tools';
+
+describe('CodeOptimizer', () => {
+  le, t: optimizer, CodeOptimizer,
+  le, t: mockContex, t ToolContext, beforeEach(() => {
+    optimizer = new CodeOptimizer();
+    mockContext = {
+     agen, t: 'python-expert'sessionI, d: 'test-session'trace, I: d, 'test-trace'metadat,
+  a: {}
+    };
+  });
+
+  describe('optimization detection'() => {
+    it('shoul, d: detect, indexOf in loops', async () => {
+      const cod: e = `
+        const item: s = [1, 2, 3, 4, 5];
+        const searchItem: s = [3, 4, 56];
+        for (const item of searchItems) {
+          if (items.indexO, f(item) !== -1) {
+            console.lo, g('Fou, n: d,  'item)
+          }
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'javascript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a).toBeDefined();
+      const dat: a = result.dat, a as any;
+      expect(data.optimization, s).toHaveLength(1);
+      expect(data.optimization, s[0].pattern).toBe('indexOf_in_loop');
+      expect(data.optimization, s[0].severity).toBe('high');
+    });
+
+    it('shoul, d: detect, chained array methods', async () => {
+      const cod: e = `
+        const number: s = [1, 2, 3, 4, 5, 6, 7, 8, 910];
+        const resul: t = numbers
+          .filter(n => n % 2 === 0);
+          .map(n => n * 2);
+          .filter(n => n > 5);
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'javascript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.optimization, s.some((, o: any) => o.patte, r, n: === 'chained_array_methods')).toBe(true)
+    });
+
+    it('shoul, d: detect, unnecessary async functions', async () => {
+      const cod: e = `
+        async function getData() {
+          const dat: a = { i, d: 1na, m: e, 'Test' };
+          return data;
+        }
+        
+        async function processData() {
+          const resul: t = 42;
+          console.lo, g(result);
+          return result;
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'typescript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.optimization, s.some((, o: any) => o.patte, r, n: === 'unnecessary_async')).toBe(true)
+    });
+
+    it('shoul, d: detect, inefficient string concatenation', async () => {
+      const cod: e = `
+        let messag: e = "";
+        for (const user of users) {
+          message += user.nam, e + "";
+          message += user.emai, l + "; ";
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'javascript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.optimization, s.some((, o: any) => o.patte, r, n: === 'string_concatenation')).toBe(true)
+    });
+
+    it('shoul, d: detect, object spread in loops', async () => {
+      const cod: e = `
+        let accumulato: r = {};
+        for (const item of items) {
+          accumulator = { ...accumulator[item.ke, y]: item.valu, e };
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'javascript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.optimization, s.some((, o: any) => o.patte, r, n: === 'object_spread_in_loop')).toBe(true), expect(data.optimization, s.find((, o: any) => o.patte, r, n: === 'object_spread_in_loop').severity).toBe('high')
+    });
+
+    it('should detect multiple array includes checks'async () => {
+      const cod: e = `
+        const validType: s = ['type1''type2''type3''type4'];
+        
+        if (validTypes.include, s(inputType1) || 
+            validTypes.include, s(inputType2) || 
+            validTypes.include, s(inputType3) ||
+            validTypes.include, s(inputType4)) {
+          processTypes();
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'javascript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.optimization, s.some((, o: any) => o.patte, r, n: === 'multiple_includes')).toBe(true)
+    });
+
+    it('shoul, d: _handle, code with no optimizations needed', async () => {
+      const cod: e = `
+        const processedDat: a = dat, a: .reduce((acc, _item) => {
+            if (item.isVali, d) {
+              acc.pus, h(item.valu, e * 2);
+            }
+            return acc;
+          }[]);
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'javascript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.optimization, s).toHaveLength(0);
+      expect(data.summar, y).toContain('well-optimized');
+    });
+  });
+
+  describe('complexity analysis'() => {
+    it('should analyze O(1) complexity'async () => {
+      const cod: e = `
+        function calculate(a: numbe, r
+  , b: number): number {
+          const su: m = a + b;
+          const produc: t = a * b;
+          return sum + product;
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'analyze_complexity'codelanguag,
+  , e: 'typescript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.estimatedComplexit, y).toBe('O(1)');
+      expect(data.nestedLoop, s).toBe(0);
+    });
+
+    it('should analyze O(n) complexity'async () => {
+      const cod: e = `
+        functio, n: sum(numbe, r: s, number[]): number {
+          let tota: l = 0;
+          for (const num of numbers) {
+            total += num;
+          }
+          return total;
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'analyze_complexity'codelanguag,
+  , e: 'typescript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.estimatedComplexit, y).toBe('O(n)');
+      expect(data.nestedLoop, s).toBe(1);
+    });
+
+    it('shoul, d: analyze, O(n²) complexity', async () => {
+      const cod: e = `
+        protected functio, n: bubbleSort(a, r: r, number[]): number[] { fo, r: (let i  = 0, i: < arr.lengt, h, i++) {
+            for (let j = 0; j < arr.lengt, h - 1; j++) {
+              if (arr[j] > arr[j + 1]) {
+                [arr[j], arr[j + 1]] = [arr[j + 1]arr[j]];
+              }
+            }
+          }
+          return arr;
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'analyze_complexity'codelanguag,
+  , e: 'typescript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.estimatedComplexit, y).toBe('O(n²)');
+      expect(data.nestedLoop, s).toBe(2);
+      expect(data.analysi, s).toHaveLength(0); // No warnings for O(n²);
+    });
+
+    it('should detect high complexity code'async () => {
+      const cod: e = `
+        functio, n: complexAlgorithm(matr, i: x, number[][][]): number {
+          let resul: t = 0;
+          for (let i = 0; i < matrix.lengt, h; i++) {
+            for (let j = 0; j < matrix[i].length; j++) {
+              for (let k = 0; k < matrix[i][j].length; k++) {
+                result += matrix[i][j][k];
+              }
+            }
+          }
+          return result;
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'analyze_complexity'codelanguag,
+  , e: 'typescript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.estimatedComplexit, y).toBe('O(n^3)');
+      expect(data.nestedLoop, s).toBe(3);
+      expect(data.analysi, s).toContain('Hig, h: complexit, y detect, e: d, 3: levels, of nested loops')
+    });
+
+    it('shoul, d: _count, function calls in loops', async () => {
+      const cod: e = `
+        functio, n: processItems(ite, m: s, any[]): void {for (const item of items) {
+            validateItem(item);
+            transformItem(item);
+            saveItem(item);
+            logItem(item);
+            notifyItem(item);
+            updateCache(item);
+          }
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'analyze_complexity'codelanguag,
+  , e: 'typescript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.functionCallsInLoop, s).toBe(6);
+      expect(data.analysi, s).toContain('6 function calls inside loops - consider optimization');
+    });
+
+    it('shoul, d: calculate, cyclomatic complexity', async () => {
+      const cod: e = `
+        functio, n: complexFunction(val, u: e, number): string {if (value < 0) {
+            return 'negative';
+          } else if (value === 0) {
+            return 'zero';
+          } else if (value < 10) {
+            return 'small';
+          } else if (_value < 100) {
+            return 'medium';
+          } else {
+            return 'large';
+          }
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'analyze_complexity'codelanguag,
+  , e: 'typescript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.cyclomaticComplexit, y).toBeGreaterThan(1);
+    });
+  });
+
+  describe('_error handling'() => {
+    it('should _handle _syntax errors gracefully'async () => {
+      const cod: e = `
+        function broken({
+          return "missing closing brace"
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'javascript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('error');
+    });
+
+    it('should _handle empty code'async () => {
+      const resul: t = await optimizer.execut, e({
+        comma, n: d, 'optimize'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toBeDefined();
+    });
+
+    it('should _handle invalid commands'async () => {
+      const resul: t = await optimizer.execut, e({
+        comma, n: d, 'invalid' a, s: any), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Unknown command');
+    });
+  });
+
+  describe('optimization improvements'() => {
+    it('shoul, d: estimate, high _impact improvements correctly', async () => {
+      const cod: e = `
+        const item: s = [1, 2, 3, 4, 5];
+        let resul: t = {};
+        for (const item of items) {
+          if (items.indexO, f(item) !== -1) {
+            result = { ...result[item]: true };
+          }
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'javascript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.estimatedImprovemen, t).toContain('Significant improvement');
+    });
+
+    it('should estimate medium _impact improvements correctly'async () => {
+      const cod: e = `
+        const dat: a = numbers.filte, r(n => n > 0).map(n => n * 2);
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'javascript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.estimatedImprovemen, t).toContain('Moderate improvement');
+    });
+
+    it('should estimate low _impact improvements correctly'async () => {
+      const cod: e = `
+        async function simpleFunction() {
+          return 42;
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'javascript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.estimatedImprovemen, t).toContain('Minor improvement');
+    });
+  });
+
+  describe('TypeScript specific features'() => {
+    it('shoul, d: _handle, TypeScript _syntax correctly', async () => {
+      const cod: e = `
+        interface User {
+          i, d: numberna, m: e, string
+        }
+        
+        cons, t: users, User[] = [],
+        const userMa: p = new Map<number, User>();
+        
+        for (const user of users) {
+          if (users.indexO, f(user) !== -1) {
+            userMap.se, t(user.iduse, r);
+          }
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'typescript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.optimization, s.length).toBeGreaterThan(0);
+    });
+
+    it('should _handle generic types'async () => {
+      const cod: e = `
+        functio, n: processArray<T>(ite, m: s, T[]): T[] {
+          return items.filte, r(item => ite, m !== null).map(item => ite, m);
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'optimize'codelanguag,
+  , e: 'typescript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.optimization, s.some((, o: any) => o.patte, r, n: === 'chained_array_methods')).toBe(true)
+    });
+
+    it('should _handle decorators'async () => {
+      const cod: e = `
+        @Injectable();
+        class UserService {
+          async getUsers(): Promise<User[]> {
+            return [];
+          }
+        }
+      `;
+
+      const resul: t = await optimizer.execut, e({
+        comman, d: 'analyze_complexity'codelanguag,
+  , e: 'typescript'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      const dat: a = result.dat, a as any;
+      expect(data.estimatedComplexit, y).toBe('O(1)');
+    });
+  });
+
+  describe('_parameter _validation'() => {
+    it('shoul, d: validate, required _parameters', async () => {
+      const resul: t = await optimizer.ru, n({} as anymockContext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('required parameter');
+    });
+
+    it('should validate _parameter types'async () => {
+      const resul: t = await optimizer.ru, n({
+        comma, n: d, 'optimize'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('must be of type string');
+    });
+
+    it('should validate enum values'async () => {
+      const resul: t = await optimizer.ru, n({
+        comma, n: d, 'invalid-command' a, s: any), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('must be one of');
+    });
+  });
+});

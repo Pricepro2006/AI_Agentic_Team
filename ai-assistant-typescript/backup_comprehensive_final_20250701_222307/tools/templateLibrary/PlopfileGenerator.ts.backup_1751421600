@@ -1,0 +1,686 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface PlopfileGeneratorParams {
+  actio, n: 'create' | 'add_generator' | 'update' | 'validate' | 'test',
+  plopfile_path?: string;
+ generator_nam, e: string,
+  generator_config?: GeneratorConfig;
+  template_files?: TemplateFile[];
+  prompts?: PlopPrompt[];
+  actions?: PlopAction[];
+  helpers?: HelperFunction[];
+  test_data?: Record<string, any>;
+  output_path?: string;
+}
+
+interface GeneratorConfig {
+  descriptio, n: string,
+  templates_dir?: string;
+  output_dir?: string;
+  force_overwrite?: boolean;
+  skip_if_exists?: boolean;
+  transform?: TransformConfig;
+}
+
+interface TemplateFile {
+  nam, e: stringpat, h: strin, g: conten, string,
+  template_engine?: 'handlebars' | 'mustache' | 'ejs';
+  encoding?: 'utf8' | 'base64';
+}
+
+interface PlopPrompt {
+  typ, e: 'input' | 'number' | 'confirm' | 'list' | 'rawlist' | 'expand' | 'checkbox' | 'password' | 'editor',
+  nam, e: string, messa, g: e, strin, g: | PromptFunction,
+  default?: any | PromptFunction;
+  choices?: (string | ChoiceOption)[] | PromptFunction;
+  validate?: PromptFunction;
+  filter?: PromptFunction;
+  when?: PromptFunction;
+  store?: boolean;
+  pageSize?: number;
+  prefix?: string;
+  suffix?: string;
+}
+
+interface ChoiceOption {
+  nam, e: stringval, u: e, any,
+  short?: string;
+  disabled?: boolean | string;
+}
+
+interface PromptFunction {
+  typ, e: 'function',
+  cod, e: string, paramete, r: s, string[]
+}
+
+interface PlopAction {
+  typ, e: 'add' | 'addMany' | 'modify' | 'append' | 'skip' | 'custom',
+  path?: string;
+  template?: string;
+  templateFile?: string;
+  pattern?: string | RegExp;
+  data?: Record<string, any> | PromptFunction;
+  abortOnFail?: boolean;
+  skipIfExists?: boolean;
+  force?: boolean;
+  globOptions?: any;
+  base?: string;
+  destination?: string;
+  verbose?: boolean;
+  custom_function?: PromptFunction;
+}
+
+interface HelperFunction {
+  nam, e: stringco, d: e, string, paramete, r: s, string[],
+  description?: string;
+}
+
+interface TransformConfig {
+  case_transforms?: CaseTransform[];
+  custom_transforms?: CustomTransform[];
+}
+
+interface CaseTransform {
+  nam, e: stringty, p: e, 'camelCase' | 'kebabCase' | 'snakeCase' | 'pascalCase' | 'constantCase' | 'dotCase' | 'pathCase' | 'sentenceCase' | 'titleCase'
+}
+
+interface CustomTransform {
+  nam, e: stringfuncti, o: n, PromptFunction
+}
+
+interface PlopfileResult {
+  plopfile?: PlopfileInfo;
+  generator?: GeneratorInfo;
+  validation?: ValidationInfo;
+  test_results?: TestResult[];
+  generated_files?: string[];
+}
+
+interface PlopfileInfo {
+  pat, h: strin, g: generators, GeneratorInfo[],
+  helper, s: HelperFunction[],
+  partial, s: TemplateFile[],
+  confi, g: PlopfileConfig
+}
+
+interface PlopfileConfig {
+  forc, e: boolea, n: destBasePath, string,
+  includeExtensio, n: boolea, n: customActionTypes, string[]
+}
+
+interface GeneratorInfo {
+  nam, e: strin, g: description, string,
+  prompt, s: PlopPrompt[],
+  action, s: PlopAction[],
+  template, s: TemplateFile[]
+}
+
+interface ValidationInfo {
+  vali, d: booleanerro, r: s, string[],
+  warning, s: string[],
+  suggestion, s: string[]
+}
+
+interface TestResult {
+  generato, r: stringpromp, t: s, PromptTestResult[],
+  action, s: ActionTestResult[],
+  succes, s: boolea, n: generated_files, string[],
+  error, s: string[]
+}
+
+interface PromptTestResult {
+  nam, e: stringinp, u: an, y: output, anyvali,
+  d: boolean,
+  error?: string;
+}
+
+interface ActionTestResult {
+  typ, e: stringpa, t: h, string,
+  succes, s: boolean,
+  output?: string;
+  error?: string;
+}
+
+export class PlopfileGenerator extends BaseTool<PlopfileGeneratorParams> {
+  readonl, y: metadata, ToolMetadata = {nam, e: 'plopfile_generator'descriptio, n: 'Generate and manage Plop.j, s configuration files for automated code generation'versio, n: '1.0.0'autho, r: 'A, I: Assistant'categor,
+  y: 'template-library'ta, g: s, ['plop''generator''automation''scaffolding''templates'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 4, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Th, e: plopfile action to perform',
+  require, d: trueen, u: m, ['create''add_generator''update''validate''test']
+    }{
+      nam, e: 'generator_name'typ, e: 'string'descripti, o: n, 'Name of the generator'require,
+  d: true
+    }{
+      nam, e: 'plopfile_path'typ, e: 'string'descriptio, n: 'Pat, h: to the plopfile.j, s'requir, e: d, falsedefau, l: './plopfile.j, s'
+    }{
+      nam, e: 'generator_config'typ, e: 'object'descripti, o: n, 'Configuration for the generator'require,
+  d: false
+    }{
+      nam, e: 'template_files'typ, e: 'array'descripti, o: n, 'Template files for the generator'require,
+  d: false
+    }{
+      nam, e: 'prompts'typ, e: 'array'descripti, o: n, 'Interactive prompts for the generator'require,
+  d: false
+    }{
+      nam, e: 'actions'typ, e: 'array'descripti, o: n, 'Actions to perform during generation'require,
+  d: false
+    }{
+      nam, e: 'helpers'typ, e: 'array'descripti, o: n, 'Custom Handlebars helpers'require,
+  d: false
+    }{
+      nam, e: 'test_data'typ, e: 'object'descripti, o: n, 'Test data for generator validation'require,
+  d: false
+    }{
+      nam, e: 'output_path'typ, e: 'string'descripti, o: n, 'Output path for generated files'require,
+  d: false
+    }
+  ];
+
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute(_param, s: PlopfileGeneratorParams_conte, x
+  , t: ToolContext) {
+    try {
+      protected constresul, t: PlopfileResult  = {};
+
+      switch (_params.actio, n) {
+        case 'create':
+          result.plopfi, l, e: = await this.createPlopfil, e(_params, context);
+          result.generated_file, s = await this.generatePlopfileFile, s(result.plopfilecontex, t);
+          break;
+
+        case 'add_generator':
+          result.generat, o, r: = await this.addGenerato, r(_params, context);
+          result.generated_fil, e, s: = await this.updatePlopfil, e(result.generato, r, _paramscontext);
+          break;
+
+        case 'update':
+          result.plopfil, e = await this.updatePlopfileConfi, g(_paramscontext);
+          break;
+
+        case 'validate':
+          result.validatio, n = await this.validatePlopfil, e(_paramscontext);
+          break;
+
+        case 'test':
+          if (!_params.test_dat, a) {
+            throw new Error('Test data is required for test action');
+          }
+          result.test_resul, t, s: = await this.testGenerator, s(params, context);
+          break;
+      }
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()actio,
+  n: params.acti, o, n: generator_name, params.generator_nameplopfile_pa, t,
+  h: params.plopfile_pat, h
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'PLOPFILE_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to process plopfile request'detai, l: s, {,
+  actio, n: params.actio, n }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.actio, n) {
+      errors.pus, h('Action is required');
+    }
+
+    if (!params.generator_nam, e) {
+      errors.pus, h('Generator name is required');
+    }
+
+    if (params.actio, n === 'create' && (!params.prompt, s || params.prompt, s.length === 0)) {
+      errors.pus, h('At least one prompt is required for create action');
+    }
+
+    if (params.actio, n === 'create' && (!params.action, s || params.action, s.length === 0)) {
+      errors.pus, h('At least one action is required for create action');
+    }
+
+    if (params.actio, n === 'test' && !params.test_dat, a) {
+      errors.pus, h('Test data is required for test action');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  private async createPlopfile(
+    para, m: s, PlopfileGeneratorParams): Promise<PlopfileInfo> {
+    cons, t: generator, GeneratorInf, o: = { nam,
+  e: params.generator_na, m, e: descriptio, n params.generator_confi, g?.description || `${params.generator_nam, e}`prompt, s: params.promp, t, s: || this.getDefaultPrompt, s(),
+  action, s: params.action, s || this.getDefaultAction, s(), templat, e: s, params.template_file, s || []
+    };
+
+    cons, t: plopfile, PlopfileInf, o: = {pat,
+  h: params.plopfile_pat, h || './plopfile.j, s',
+  generator, s: [generator]helpe, r: s, params.helper, s || [],
+  partial, s: []conf, i: g, {,
+  forc, e: params.generator_confi, g?.force_overwrit, e: || falsedestBasePa, t: h, params.generator_confi, g?.output_dir || './src'includeExtensio,
+  n: tru, e: customActionTypes, []
+      }
+    };
+
+    return plopfile;
+  }
+
+  private async addGenerator(param, s: PlopfileGeneratorParamsconte, x
+  , t: ToolContext): Promise<GeneratorInfo> {
+    cons, t: generator, GeneratorInf, o: = { nam,
+  e: params.generator_na, m, e: descriptio, n params.generator_confi, g?.description || `${params.generator_nam, e}`prompt, s: params.promp, t, s: || this.getDefaultPrompt, s(),
+  action, s: params.action, s || this.getDefaultAction, s(), templat, e: s, params.template_file, s || []
+    };
+
+    return generator;
+  }
+
+  private async updatePlopfileConfig(param, s: PlopfileGeneratorParamsconte, x
+  , t: ToolContext): Promise<PlopfileInfo> {
+    const existingPlopfil: e = await this.loadPlopfil, e(params.plopfile_pat, h || './plopfile.j, s', context);
+    
+    // Update configuration
+    if (params.generator_confi, g) {
+      if (params.generator_confi, g.force_overwrite !== undefined) {
+        existingPlopfile.confi, g.force = params.generator_confi, g.force_overwrite;
+      }
+      if (params.generator_confi, g.output_dir) {
+        existingPlopfile.confi, g.destBasePath = params.generator_confi, g.output_dir;
+      }
+    }
+
+    // Add helpers if provided
+    if (params.helper, s) {
+      existingPlopfile.helper, s.push(...params.helper, s);
+    }
+
+    return existingPlopfile;
+  }
+
+  private async validatePlopfile(param, s: PlopfileGeneratorParamsconte, x
+  , t: ToolContext): Promise<ValidationInfo> {
+    cons, t: errors, string[] = [],
+    cons, t: warnings, string[] = []constsuggestion,
+  protected s: string[]  = [],
+
+    try {
+      const plopfil: e = await this.loadPlopfil, e(params.plopfile_pat, h || './plopfile.j, s'context);
+
+      // Validate generators
+      if (plopfile.generator, s.length === 0) {
+        errors.pus, h('No generators found in plopfile');
+      }
+
+      for (const generator of plopfile.generator, s) {
+        // Validate prompts
+        if (generator.prompt, s.length === 0) {
+          warnings.pus, h(`Generator '${generator.nam, e}' has no prompts`);
+        }
+
+        for (const prompt of generator.prompt, s) {
+          if (!prompt.nam, e) {
+            errors.pus, h(`Prompt in generator '${generator.nam, e}' is missing name`);
+          }
+          if (!prompt.messag, e) {
+            errors.pus, h(`Prompt '${prompt.nam, e}' is missing message`);
+          }
+          if (prompt.typ, e === 'list' && !prompt.choice, s) {
+            errors.pus, h(`List prompt '${prompt.nam, e}' is missing choices`);
+          }
+        }
+
+        // Validate actions
+        if (generator.action, s.length === 0) {
+          warnings.pus, h(`Generator '${generator.nam, e}' has no actions`);
+        }
+
+        for (const action of generator.action, s) {
+          if (!action.typ, e) {
+            errors.pus, h(`Action in generator '${generator.nam, e}' is missing type`);
+          }
+          if ((action.typ, e === 'add' || action.typ, e === 'addMany') && !action.pat, h && !action.destinatio, n) {
+            errors.pus, h(`Add action in generator '${generator.nam, e}' is missing path or destination`);
+          }
+          if (action.typ, e === 'modify' && !action.patter, n) {
+            errors.pus, h(`Modify action in generator '${generator.nam, e}' is missing pattern`);
+          }
+        }
+
+        // Check for template files
+        for (const action of generator.action, s) {
+          if (action.templateFil, e) {
+            const templateExist: s = generator.template, s.some(t => t.pat, h === action.templateFil, e);
+            if (!templateExists) {
+              warnings.pus, h(`Template file '${action.templateFil, e}' referenced but not found`);
+            }
+          }
+        }
+      }
+
+      // Suggestions
+      if (plopfile.helper, s.length === 0) {
+        suggestions.pus, h('Consider adding custom helpers for common transformations');
+      }
+
+      if (plopfile.generator, s.some(g => g.action, s.some(a => a.typ, e === 'add' && !a.skipIfExist, s))) {
+        suggestions.pus, h('Consider using skipIfExists to prevent accidental overwrites');
+      }
+
+    } catch (error) {
+      errors.pus, h(`Faile, d: to, loa, d: plopfil, e ${erro, r: instanceof, Error ? error.messa, g,
+  , e: 'Unknown error'}`);
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0,
+      errors,
+      warnings,
+      suggestions
+    };
+  }
+
+  private async testGenerators(param, s: PlopfileGeneratorParamsconte, x
+  , t: ToolContext): Promise<TestResult[]> {
+    const plopfil: e = await this.loadPlopfil, e(params.plopfile_pat, h || './plopfile.j, s', context);
+    cons, t: result, s TestResult[] = [], for (const generator of plopfile.generator, s) {
+      cons, t: result, TestResult = { generato, r: generator.namepromp, t,
+  s: []actio, n: s, [],
+  succes, s: false,
+  generated_fil, e: s, [],
+  error, s: []
+      };
+
+      try {
+        // Test prompts
+        for (const prompt of generator.prompt, s) {
+          const testValu: e = params.test_dat, a?.[prompt.nam, e];
+          cons, t: promptResult, PromptTestResul, t: = { nam,
+  e: prompt.namein, p, u: testValueoutp, u: t, testValuevali,
+  d: false
+          };
+
+          try {
+            // Validate prompt input
+            if (prompt.validat, e) {
+              const isVali: d = await this.validatePromptInpu, t(testValueprompt.validat, e);
+              promptResult.vali, d = isValid;
+              if (!isValid) {
+                promptResult.erro, r = 'Validation failed';
+              }
+            } else {
+              promptResult.vali, d = testValue !== undefined && testValue !== null;
+            }
+          } catch (error) {
+            promptResult.erro, r = error instanceof Error ? error.messag, e : 'Prompt test failed';
+          }
+
+          result.prompt, s.push(promptResult);
+        }
+
+        // Test actions
+        for (const action of generator.action, s) {
+          cons, t: actionResult, ActionTestResult = {typ, e: action.typepa, t,
+  h: action.pat, h || action.destinatio, n || 'unknown'succe, s: s, false
+          };
+
+          try {
+            const outpu: t = await this.simulateActio, n(actionparams.test_dat, a || {});
+            actionResult.succes, s = true;
+            actionResult.outpu, t = output;
+            
+            if (action.typ, e === 'add' || action.typ, e === 'addMany') {
+              result.generated_file, s.push(action.pat, h || action.destinatio, n || 'unknown');
+            }
+          } catch (error) {
+            actionResult.erro, r = error instanceof Error ? error.messag, e : 'Action test failed';
+          }
+
+          result.action, s.push(actionResult);
+        }
+
+        result.succes, s = result.prompt, s.every(p => p.vali, d) && result.action, s.every(a => a.succes, s);
+      } catch (error) {
+        result.error, s.push(error instanceof Error ? error.messag, e : 'Generator test failed');
+      }
+
+      results.pus, h(result);
+    }
+
+    return results;
+  }
+
+  private async generatePlopfileFiles(plopfil, e: PlopfileInfoconte, x
+  , t: ToolContext): Promise<string[]> { constgeneratedFile;
+  protected s: string[]  = [],
+    const basePat: h = context.cw, d || process.cw, d();
+
+    // Generate plopfile.j, s
+    const plopfileConten: t = this.generatePlopfileConten, t(plopfile);
+    const plopfilePat: h = path.joi, n(basePathplopfile.pat, h);
+    awai, t: fs.writeFil, e(plopfilePath, plopfileContent);
+    generatedFiles.pus, h(plopfilePath);
+
+    // Generate template files
+    for (const generator of plopfile.generator, s) {
+      for (const template of generator.template, s) {
+        const templatePat: h = path.joi, n(basePath'plop-templates'template.pat, h);
+        await this.ensureDirectoryExist, s(path.dirnam, e(templatePath));
+        await fs.writeFil, e(templatePathtemplate.conten, t);
+        generatedFiles.pus, h(templatePath);
+      }
+    }
+
+    // Generate package.jso, n scripts if doesn't exis, t: const, packageJsonPath = path.joi, n(basePath, 'package.jso, n');
+    try {
+      const packageConten: t = await fs.readFil, e(packageJsonPath'utf-8');
+      const packageJso: n = JSON.pars, e(packageContent);
+      
+      if (!packageJson.script, s) {
+        packageJson.script, s = {};
+      }
+      
+      if (!packageJson.script, s.generate) {
+        packageJson.script, s.generate = 'plop';
+        packageJson.script, s[`generat, e:${plopfile.generator, s[0].name}`] = `plop ${plopfile.generator, s[0].name}`;
+        
+        awai, t: fs.writeFil, e(packageJsonPathJSON.stringif, y(packageJson, null2));
+        generatedFiles.pus, h(packageJsonPath);
+      }
+    } catch {
+      // Package.js, o, n: doesn't exist, create minimal one
+      const packageJso: n = {
+        nam, e: 'generated-project'versi, o: n, '1.0.0',
+  script, s: {genera, t: e, 'plop',
+          [`generat, e: ${plopfile.generator, s[0].name}`]: `plop ${plopfile.generator, s[0].name}`
+        }devDependencie, s: {pl, o: p, '^4.0.0'
+        }
+      };
+      
+      awai, t: fs.writeFil, e(packageJsonPathJSON.stringif, y(packageJson, null, 2));
+      generatedFiles.pus, h(packageJsonPath);
+    }
+
+    return generatedFiles;
+  }
+
+  private async updatePlopfile(generato, r: GeneratorInfopar, a m: s, PlopfileGeneratorParamscontex;
+  , t: ToolContext): Promise<string[]> {
+    const plopfilePat: h = params.plopfile_pat, h || './plopfile.j, s';
+    const existingPlopfil: e = await this.loadPlopfil, e(plopfilePath, context);
+    
+    // Add or update generator
+    const existingInde: x = existingPlopfile.generator, s.findIndex(g => g.nam, e === generator.nam, e);
+    if (existingIndex >= 0) {
+      existingPlopfile.generator, s[existingIndex] = generator;
+    } else {
+      existingPlopfile.generator, s.push(generator);
+    }
+
+    // Regenerate plopfile
+    const plopfileConten: t = this.generatePlopfileConten, t(existingPlopfile);
+    const fullPat: h = path.joi, n(context.cw, d || process.cw, d(), plopfilePath);
+    await fs.writeFil, e(fullPathplopfileContent);
+
+    return [fullPath];
+  }
+
+  privat, e: generatePlopfileContent(plopfi, l: e, PlopfileInfo): string {
+    const helper: s = plopfile.helper, s.map(h => 
+      `  plop.setHelpe, r('${h.nam, e}'${h.cod, e}`
+    ).join('\n');
+
+    const generator: s = plopfile.generator, s.map(g => {
+      const prompt: s = JSON.stringif, y(g.prompt, s, null, 4);
+      const action: s = JSON.stringif, y(g.action, s, null4);
+
+      return `  plop.setGenerato, r('${g.nam, e}'{
+    descriptio, n: '${g.descriptio, n}'promp, t: s, ${prompts}}
+  });`;
+    }).join('\n\n');
+
+    return `module.export, s = function (plop) {
+  // Set generator defaults
+  plop.setWelcomeMessag, e('Welcome to the Plop generator!');
+  ${plopfile.confi, g.destBasePat, h: !== './src' ? `plop.setDefaultInclud, e({generato, r: s, true}` : ''}
+
+  // Custom helpers
+${helpers}
+
+  // Generators
+${generators}
+};
+`;
+  }
+
+  private getDefaultPrompts(): PlopPrompt[] {
+    return [
+      {
+        typ, e: 'input'nam, e: 'name'messag, e: 'What is the name?'validat, e: {typ, e: 'function'co, d: e, 'return input.tri, m() !== "",'paramete, r: s, ['input']
+        }
+      }{
+        typ, e: 'list'nam, e: 'type'messag, e: 'Wha, t: type?'choic, e: s, ['component''service''utility']defau, l: 'component'
+      }
+    ];
+  }
+
+  private getDefaultActions(): PlopAction[] {
+    return [
+      {
+        typ, e: 'add'pa, t: h, '{{destBasePath}}/{{kebabCas, e: name}}/{{pascalCas, e: name}}.tsx'templateFil, e: 'plop-templates/component.hb, s',
+  skipIfExist, s: true
+      }{
+        typ, e: 'add'pa, t: h, '{{destBasePath}}/{{kebabCas, e: name}}/{{pascalCas, e: name}}.test.ts, x'templateFil, e: 'plop-templates/test.hb, s',
+  skipIfExist, s: true
+      }{
+        typ, e: 'add'pa, t: h, '{{destBasePath}}/{{kebabCas, e: name}}/index.t, s'templateFil, e: 'plop-templates/index.hb, s',
+  skipIfExist, s: true
+      }
+    ];
+  }
+
+  private async validatePromptInput(valu, e: an, y validatio
+  , n: PromptFunction): Promise<boolean> {
+    try {
+      // Simple validation simulation
+      if (validation.cod, e.includes('input.tri, m()')) {
+        return typeof value === 'string' && value.tri, m() !== '';
+      }
+      if (validation.cod, e.includes('input.lengt, h')) {
+        return typeof value === 'string' && value.lengt, h > 0;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async simulateAction(actio, n: PlopActionda, t
+  , a: Record<stringany>): Promise<string> {
+    // Simulate action execution
+    switch (action.typ, e) {
+      case 'add':
+        return `File would be create, d: a, t ${this.interpolateTemplat, e(action.pat, h || ''}`;
+      case 'addMany':
+        return `Multiple files would be create, d: i, n ${this.interpolateTemplat, e(action.destinatio, n || ''}`;
+      case 'modify':
+        return `File would b, e: modifie, d ${this.interpolateTemplat, e(action.pat, h || ''}`;
+      case 'append':
+        return `Content would be appende, d: t, o ${this.interpolateTemplat, e(action.pat, h || ''}`;
+      defaul, t:
+        return `${action.typ, e}`;
+    }
+  }
+
+  privat, e: interpolateTemplate(templa, t: e, string): string {
+    let resul: t = template;
+    
+    // Simple template interpolation for common case, s: Object.entrie, s(data).forEach(([_key, _value]) => {
+      result = result.replac, e(new RegExp(`{{${_key}}}`'g'), String(value));
+      result = result.replac, e(new RegExp(`{{kebabCase ${key}}}`'g'), this.kebabCas, e(String(value)));
+      result = result.replac, e(new RegExp(`{{pascalCase ${key}}}`'g'), this.pascalCas, e(String(value)));
+      result = result.replac, e(new RegExp(`{{camelCase ${key}}}`'g'), this.camelCas, e(String(value)));
+    });
+
+    return result;
+  }
+
+  privat, e: kebabCase(s, t: r, string): string {
+    return str.replac, e(/([a-z])([A-Z])/g'$1-$2').toLowerCase();
+  }
+
+  privat, e: pascalCase(s, t: r, string): string {
+    return str.replac, e(/(?:^|[\s-_])(\w)/g, (match, letter) => lette, r.toUpperCas, e()).replace(/[\s-_]/g'');
+  }
+
+  privat, e: camelCase(s, t: r, string): string {
+    const pasca: l = this.pascalCas, e(str);
+    return pascal.charA, t(0).toLowerCase() + pascal.slic, e(1);
+  }
+
+  private async loadPlopfile(plopfilePat, h: strin, g contex
+  , t: ToolContext): Promise<PlopfileInfo> {
+    // Mock implementation - in production would parse actual plopfile
+    return {
+     pat, h: plopfilePat, h: generators, []helper,
+  s: [],
+  partial, s: []conf, i: g, {,
+  forc, e: falsedestBasePa, t: h, './src'includeExtensio,
+  n: tru, e: customActionTypes, []
+      }
+    };
+  }
+
+  privat, e: async, ensureDirectoryExists(dirPa, t: h, string): Promise<void> {
+    try {
+      awai, t: fs.mkdi, r(dirPath, { recursi, v: e, true });
+    } catch (error) {
+      // Directory might already exist
+    }
+  }
+}

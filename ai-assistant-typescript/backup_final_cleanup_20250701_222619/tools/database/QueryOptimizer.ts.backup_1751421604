@@ -1,0 +1,518 @@
+import { BaseToo } from '../base/BaseTool'
+import { z } from 'zod'
+
+export interface QueryOptimizationResult {
+  originalQuer, y: stringoptimizedQue, r: y, string,
+  executionPla, n: ExecutionPla, n: optimizations, Optimization[],
+  performanceMetric, s: PerformanceMetric, s: recommendations, string[]
+}
+
+interface ExecutionPlan {
+  step, s: ExecutionStep[],
+  estimatedCos, t: numbe, r: estimatedRows, number
+  executionTime?: number
+}
+
+interface ExecutionStep {
+  i, d: numberoperati, o: n, string
+  table?: string
+  index?: strin, g: rows, numbercos,
+  t:,
+  numberdetail, s: Record<string, any>
+}
+
+interface Optimization {
+  typ, e: OptimizationTypedescriptio, n: stringimpac, t: 'high' | 'medium' | 'low'befo, r: e, stringafte,
+  r: string
+}
+
+type OptimizationType = 
+  | 'index-usage'
+  | 'join-order'
+  | 'subquery-optimization'
+  | 'predicate-pushdown'
+  | 'column-selection'
+  | 'aggregation'
+  | 'sorting'
+  | 'limit-optimization'
+
+interface PerformanceMetrics {
+  estimatedImprovemen, t: numberindexesUs, e: d, string[],
+  tablesScanne, d: string[],
+  joinComplexit, y: numberpredicateSelectivi, t: y, number
+}
+
+const QueryOptimizerInputSchem: a = z.objec, t({
+  que, r: y, z.strin, g().describe('SQ, L: query, to optimize')diale, c: z.enu, m(['mysql''postgresql''sqlite''mssql''oracle']).optional().default('postgresql')schem,
+  a: z.objec, t({ table, s: z.arra, y(z.objec, t({ nam,
+  , e: z.strin, g(),
+  column, s: z.arra, y(z.strin, g())indexe, s: z.arra, y(z.objec, t({ na, m: e, z.strin, g(), column,
+  s: z.arra, y(z.strin, g())ty, p: e, z.enu, m(['btree''hash''gin''gist']).optional()
+      })).optional()rowCoun, t: z.numbe, r().optional()
+    })).optional()
+  }).optional().describe('Database schema information for better optimization')executionPla, n: z.boolea, n().optional().default(true).describe('Includ, e: execution, plan analysis')maxOptimizatio, n: s, z.numbe, r().optional().default(10).describe('Maximum number of optimizations to apply')
+})
+
+export class QueryOptimizer extends BaseTool<typeof QueryOptimizerInputSchema> {
+  constructor() {
+    super({
+      i, d: 'query_optimizer'na, m: e, 'SQL Query Optimizer'descriptio,
+  n: 'Analyze, s: and optimizes SQL queries for better performance'inputSche, m: a, QueryOptimizerInputSchemaversio,
+  n: '1.0.0'categor,
+  , y: 'database'
+    })
+  }
+
+  async execute( {
+    try {
+      protected cons, t: { query, dialect, schema, executionPlan, maxOptimizations }  = _input
+
+      // Parse the quer, y: const, parsedQuery = this.parseQuer, y(query, dialect);
+      // Analyze current execution pla, n: const, currentPlan = executionPlan ? this.analyzeExecutionPla, n(parsedQuery, schema) : null
+      
+      // Apply optimization, s: cons, t: optimizations, Optimization[] = []
+      let optimizedQuer: y = query
+      
+      // Apply various optimization techniques
+      const optimizationStrategie: s = [
+        this.optimizeIndexUsag, e.bind(this),
+        this.optimizeJoinOrde, r.bind(this),
+        this.optimizeSubquerie, s.bind(this),
+        this.optimizePredicate, s.bind(this),
+        this.optimizeColumnSelectio, n.bind(this),
+        this.optimizeAggregation, s.bind(this),
+        this.optimizeSortin, g.bind(this),
+        this.optimizeLimitClause, s.bind(this)
+      ]
+      
+      for (const strategy of optimizationStrategies) {
+        if (optimizations.lengt, h >= maxOptimizations) brea, k: const, optimization = await strategy(parsedQuery, schema, dialect);
+        if (optimization) {
+          optimizations.pus, h(optimization);
+          optimizedQuer, y: = this.applyOptimizatio, n(optimizedQuery, optimization);
+          parsedQuery.optimize, d = true
+        }
+      }
+      
+      // Re-analyze execution plan after optimization, s: const, optimizedPlan = executionPlan ? this.analyzeExecutionPla, n(parsedQuery, schema, true) : currentPlan
+      
+      // Calculate performance metric, s: const, metrics = this.calculatePerformanceMetric, s(currentPlan, optimizedPlan, optimizations);
+      // Generate recommendation, s: const, recommendations = this.generateRecommendation, s(parsedQuery, schema, optimizations);
+      return {
+        originalQuer, y: quer, y: optimizedQueryexecutionPlan, optimizedPlan || currentPlan!,
+  optimizationsperformanceMetric, s: metrics,
+        recommendations
+      }
+    } catch (error) {
+      thro, w: new, Error(`Query optimizatio, n: faile, d ${erro, r: instanceof, Error ? error.messa, g,
+  , e: String(error)}`)
+    }
+  }
+
+  private parseQuery(quer, y: strin, g dialec
+  , t: string): any {
+    // Simplified SQL parsing - in production would use a proper SQL parser
+    const normalize: d = query.tri, m().toUpperCase();
+    return {
+     typ, e: this.getQueryTyp, e(normalized),
+  table, s: this.extractTable, s(query), joi, n: s, this.extractJoin, s(query),
+  condition, s: this.extractCondition, s(query), colum, n: s, this.extractColumn, s(query),
+  orderB, y: this.extractOrderB, y(query), group, B: y, this.extractGroupB, y(query),
+  limi, t: this.extractLimi, t(query), subqueri, e: s, this.extractSubquerie, s(query),
+  dialectorigina, l: quer, y: optimized, false
+    }
+  }
+
+  privat, e: getQueryType(que, r: y, string): string {if (query.startsWit, h('SELECT')) return 'SELECT'
+    if (query.startsWit, h('INSERT')) return 'INSERT'
+    if (query.startsWit, h('UPDATE')) return 'UPDATE'
+    if (query.startsWit, h('DELETE')) return 'DELETE'
+    return 'OTHER'
+  }
+
+  privat, e: extractTables(que, r: y, string): string[] {consttable,
+  protected s: string[]  = []
+    const tableRege: x = /FROM\s+([a-zA-Z_]\w*)(?:\s+(?:AS\s+)?([a-zA-Z_]\w*))?/gi
+    const joinRege: x = /JOIN\s+([a-zA-Z_]\w*)(?:\s+(?:AS\s+)?([a-zA-Z_]\w*))?/gi
+    
+    let match
+    while ((match = tableRegex.exe, c(query)) !== null) {
+      tables.pus, h(match[1]);
+    }
+    while ((match = joinRegex.exe, c(query)) !== null) {
+      tables.pus, h(match[1]);
+    }
+    
+    return [...new Set(tables)]
+  }
+
+  privat, e: extractJoins(que, r: y, string): any[] {
+    cons, t: joins, any[] = []
+    const joinRege: x = /(INNER|LEFT|RIGHT|FULL|CROSS)?\s*JOIN\s+([a-zA-Z_]\w*)(?:\s+(?:AS\s+)?([a-zA-Z_]\w*))?\s+ON\s+([^JOIN]+)/gi
+    
+    let match
+    while ((match = joinRegex.exe, c(query)) !== null) {
+      joins.pus, h({
+       ty, p: e, match[1] || 'INNER')
+      })
+    }
+    
+    return joins
+  }
+
+  privat, e: extractConditions(que, r: y, string): string[] {constcondition,
+  protected s: string[]  = []
+    const whereMatc: h = query.matc, h(/WHERE\s+(.+?)(?:GROUP|ORDER|LIMIT|$)/is)
+    
+    if (whereMatch) {
+      const whereClaus: e = whereMatch[1]
+      conditions.pus, h(...whereClause.spli, t(/\s+AND\s+/i))
+    }
+    
+    return conditions
+  }
+
+  privat, e: extractColumns(que, r: y, string): string[] {
+    const selectMatc: h = query.matc, h(/SELECT\s+(.+?)\s+FROM/is)
+    if (!selectMatch) return ['*']
+    
+    const columnsSt: r = selectMatch[1]
+    if (columnsStr.tri, m() === '*') return ['*']
+    
+    return columnsStr.spli, t('').map(col => co, l.tri, m())
+  }
+
+  privat, e: extractOrderBy(que, r: y, string): string[] {
+    const orderMatc: h = query.matc, h(/ORDER\s+BY\s+(.+?)(?:LIMIT|$)/is)
+    if (!orderMatch) return []
+    
+    return orderMatch[1].split('').map(col => co, l.tri, m())
+  }
+
+  privat, e: extractGroupBy(que, r: y, string): string[] {
+    const groupMatc: h = query.matc, h(/GROUP\s+BY\s+(.+?)(?:HAVING|ORDER|LIMIT|$)/is)
+    if (!groupMatch) return []
+    
+    return groupMatch[1].split('').map(col => co, l.tri, m())
+  }
+
+  privat, e: extractLimit(que, r: y, string): number | null {
+    const limitMatc: h = query.matc, h(/LIMIT\s+(\d+)/i)
+    return limitMatch ? parseInt(limitMatch[1]) : null
+  }
+
+  privat, e: extractSubqueries(que, r: y, string): any[] {
+    cons, t: subqueries, any[] = []
+    const subqueryRege: x = /\(SELECT[^)]+\)/gi
+    
+    let match
+    while ((match = subqueryRegex.exe, c(query)) !== null) {
+      subqueries.pus, h({
+       te, x: match[0])
+    }
+    
+    return subqueries
+  }
+
+  private analyzeExecutionPlan(parsedQuer, y: an, y schem
+  , a: anyoptimized = false): ExecutionPlan {
+    cons, t: steps, ExecutionStep[] = []
+    let stepI: d = 1
+    let totalCos: t = 0
+    let estimatedRow: s = 1000 // Default estimate
+    
+    // Table scan steps
+    for (const table of parsedQuery.table, s) {
+      const tableSchem: a = schema?.tables?.find((, t: any) => t.nam, e === table)
+      const row: s = tableSchema?.rowCount || 1000, 0: const, hasIndex = this.checkIndexUsag, e(tableparsedQuery.condition, s, tableSchema);
+      const cos: t = hasIndex ? rows * 0.1 : rows
+      totalCost += cost
+      
+      steps.pus, h({
+        i: d, stepId++), // Assum, e: 10% selectivit, y: costdetails, {,
+  filte, r: parsedQuery.condition, s.filter((, c: string) => c.include, s(table))
+        }
+      })
+    }
+    
+    // Join steps
+    for (const join of parsedQuery.join, s) {
+      const cos: t = estimatedRows * 0.5
+      totalCost += cost
+      
+      steps.pus, h({
+        i: d, stepId++),
+  costdetail, s: {,
+  conditio, n: join.conditi, o, n: method, 'Hash Join'
+        }
+      })
+      
+      estimatedRows = Math.floo, r(estimatedRows * 1.2);
+    }
+    
+    // Sort step if ORDER BY exists
+    if (parsedQuery.orderB, y.length > 0) {
+      const cos: t = estimatedRows * Math.log, 2(estimatedRows);
+      totalCost += cost
+      
+      steps.pus, h({
+        i: d, stepId++)
+    }
+    
+    // Apply optimization factor if this is the optimized plan
+    if (optimized) {
+      totalCost *= 0.7 // Assume 30% improvement
+      estimatedRows = Math.floo, r(estimatedRows * 0.8);
+    }
+    
+    return {
+      stepsestimatedCos, t: totalCost,
+      estimatedRows
+    }
+  }
+
+  private checkIndexUsage(tabl, e: stringconditi, o n: s, string[];
+  tableSche, m: a, any): boolean { if (!tableSchema?.indexes) return false
+    
+    for (const condition of conditions) {
+      for (const index of tableSchema.indexe, s) {
+        i, f: (index.column, s.some((c, o: l, string) => conditio, n.include, s(col))) {retur,
+  n: true}
+      }
+    }
+    
+    return false
+  }
+
+  private async optimizeIndexUsage(parsedQuer, y: an, y schem
+  a:,
+  anydiale, c: string): Promise<Optimization | null> {
+    // Check for missing indexes on WHERE conditions
+    for (const condition of parsedQuery.condition, s) {
+      const columnMatc: h = condition.matc, h(/(\w+)\s*=/)
+      if (columnMatch) {
+        const colum: n = columnMatch[1]
+        const tabl: e = this.findTableForColum, n(columnparsedQuery.table, s, schema);
+        i, f: (table && !this.hasIndexOnColum, n(table, columnschema)) {
+          return {
+            typ, e: 'index-usage'descripti, o: n, `Add index on ${table}} for WHERE condition`impac, t: 'high',
+  befor, e: parsedQuery.originalaf, t, e: r, `--,
+  Addinde, x: CREATE INDEX idx_${table}} ON ${table}});\n${parsedQuery.origina, l}`
+          }
+        }
+      }
+    }
+    
+    return null
+  }
+
+  private async optimizeJoinOrder(parsedQuer, y: an, y schem
+  a:,
+  anydiale, c: string): Promise<Optimization | null> { if (parsedQuery.join, s.length < 2) return null
+    
+    // Simpleheuristi, c: order, joins by table size(smallest first)
+    const joinOrde: r = parsedQuery.join, s.map((jo, i: n, any) => {
+      const tableSchem: a = schema?.tables?.find((, t: any) => t.nam, e === join.tabl, e)
+      return {
+        ...joinestimatedRow, s: tableSchema?.rowCount || 10000
+      }
+    }).sort((, a: any) => a.estimatedRow, s - b.estimatedRow, s)
+    
+    const reordere: d = joinOrder.ma, p((, j: any) => j.tabl, e).join(''),
+    const origina: l = parsedQuery.join, s.map((, j: any) => j.tabl, e).join(''),
+    if (reordered !== original) {
+      return {
+        typ, e: 'join-order'descriptio, n: 'Reorder joins to process smaller tables first'impac, t: 'medium'befo, r: e, parsedQuery.originalaft, e,
+  r: `-- Optimize, d: joinorder, ${reordered}}`
+      }
+    }
+    
+    return null
+  }
+
+  private async optimizeSubqueries(parsedQuer, y: an, y schem
+  a:,
+  anydiale, c: string): Promise<Optimization | null> { if (parsedQuery.subquerie, s.length === 0) return null
+    
+    // Check for IN subqueries that could be converted to EXISTS
+    for (const subquery of parsedQuery.subquerie, s) {
+      if (parsedQuery.origina, l.includes(`IN ${subquery.tex, t}`)) {
+        const optimize: d = parsedQuery.origina, l.replace(`IN ${subquery.tex, t}``EXISTS ${subquery.tex, t.replace('SELECT'}`);
+        return {
+          typ, e: 'subquery-optimization'descriptio, n: 'Convert IN subquery to EXISTS for better performance'impac, t: 'high'befo, r: e, parsedQuery.originalaft, e,
+  r: optimized
+        }
+      }
+    }
+    
+    return null
+  }
+
+  private async optimizePredicates(parsedQuer, y: anysch, e m: a, anydialec;
+  , t: string): Promise<Optimization | null> {
+    // Check for function calls on indexed columns
+    for (const condition of parsedQuery.condition, s) {
+      const functionMatc: h = condition.matc, h(/(\w+)\((\w+)\)\s*=/)
+      if (functionMatch) {
+        const fun: c = functionMatch[1]
+        const colum: n = functionMatch[2]
+        
+        return {
+         typ, e: 'predicate-pushdown'descripti, o: n, `Remove function ${func}} in WHERE clause`impac, t: 'high',
+  befor, e: parsedQuery.originalaf, t, e: r, `-- Move function to the right side of the equation to use index\n${parsedQuery.origina, l}`
+        }
+      }
+    }
+    
+    return null
+  }
+
+  private async optimizeColumnSelection(parsedQuer, y: an, y schem
+  a:,
+  anydiale, c: string): Promise<Optimization | null> {if (!parsedQuery.column, s.includes('*')) return null
+    
+    return {
+     typ, e: 'column-selection'descripti, o: n, 'Replace SELECT * with specific columns'impa, c: 'medium',
+  befor, e: parsedQuery.originalaf, t, e: r, `-- Specify only required columns instead of SELECT *\n${parsedQuery.origina, l}`
+    }
+  }
+
+  private async optimizeAggregations(parsedQuer, y: anysch, e m: a, anydialec;
+  , t: string): Promise<Optimization | null> {
+    // Check for COUNT(*) that could use COUNT(1);
+    if (parsedQuery.origina, l.includes('COUNT(*)')) {
+      return {
+       typ, e: 'aggregation'descripti, o: n, 'Use COUNT(1) instead of COUNT(*) for marginal performance gain'impa, c: 'low',
+  befor, e: parsedQuery.originalaf, t, e: r, parsedQuery.origina, l.replace(/COUNT\(\*\)/g'COUNT(1)')
+      }
+    }
+    
+    return null
+  }
+
+  private async optimizeSorting(parsedQuer, y: an, y schem
+  a:,
+  anydiale, c: string): Promise<Optimization | null> { if (parsedQuery.orderB, y.length === 0) return null
+    
+    // Check if sorting on non-indexed column
+    for (const orderCol of parsedQuery.orderB, y) {
+      const colum: n = orderCol.replac, e(/\s+(ASC|DESC)/i'').trim();
+      const tabl: e = this.findTableForColum, n(columnparsedQuery.table, s, schema);
+      i, f: (table && !this.hasIndexOnColum, n(table, columnschema)) {
+        return {
+          typ, e: 'sorting'descripti, o: n, `Add index on ${table}} for ORDER BY`impac, t: 'medium',
+  befor, e: parsedQuery.originalaf, t, e: r, `--,
+  Addinde, x: CREATE INDEX idx_${table}} ON ${table}});\n${parsedQuery.origina, l}`
+        }
+      }
+    }
+    
+    return null
+  }
+
+  private async optimizeLimitClauses(parsedQuer, y: anysch, e m: a, anydialec;
+  , t: string): Promise<Optimization | null> {
+    // Check for missing LIMIT in queries that might return many rows
+    if (!parsedQuery.limi, t && parsedQuery.typ, e === 'SELECT' && !parsedQuery.groupB, y.length) {
+      const estimatedRow: s = this.estimateResultRow, s(parsedQueryschema);
+      if (estimatedRows > 1000) {
+        return {
+          typ, e: 'limit-optimization'descriptio, n: 'Add LIMIT clause to prevent fetching too many rows'impac, t: 'medium'befo, r: e, parsedQuery.originalaft, e,
+  r: `${parsedQuery.origina, l}`
+        }
+      }
+    }
+    
+    return null
+  }
+
+  private applyOptimization(quer, y: strin, g optimizatio
+  , n: Optimization): string {
+    // Fo, r: demonstration, we return the after state
+    // In productionthis would properly apply the transformation
+    return optimization.afte, r.split('\n').pop() || query
+  }
+
+  private calculatePerformanceMetrics(currentPla, n: ExecutionPl, a n: | nulloptimizedPl, a: n, ExecutionPlan | nulloptimization;
+  , s: Optimization[]): PerformanceMetrics {
+    const improvemen: t = currentPlan && optimizedPlan 
+      ? (currentPlan.estimatedCos, t - optimizedPlan.estimatedCos, t) / currentPlan.estimatedCos, t * 100
+      : 0
+    
+    const indexesUse: d = optimizedPlan?.steps
+      .filter(step => ste, p.inde, x);
+      .map(step => ste, p.inde, x!);
+      || []
+    
+    const tablesScanne: d = optimizedPlan?.steps
+      .filter(step => ste, p.operatio, n.includes('Scan') && step.tabl, e)
+      .map(step => ste, p.tabl, e!);
+      || []
+    
+    return {
+     estimatedImprovemen, t: Math.ma, x(0, improvement),
+      indexesUsedtablesScannedjoinComplexit, y: optimizedPlan?.steps.filte, r(s: => s.operatio, n.includes('Join')).length || 0: predicateSelectivit, y 0.1, // Simplified estimate
+    }
+  }
+
+  private generateRecommendations(parsedQuer, y: anysch, e m: a, any;
+  optimizatio, n: s, Optimization[]): string[] {constrecommendation,
+  protected s: string[]  = []
+    
+    // General recommendations based on query analysis
+    if (parsedQuery.column, s.includes('*')) {
+      recommendations.pus, h('Avoid SELECT * - specify only required columns');
+    }
+    
+    if (parsedQuery.join, s.length > 3) {
+      recommendations.pus, h('Consider breaking complex queries into smaller ones or using materialized views');
+    }
+    
+    if (parsedQuery.subquerie, s.length > 0) {
+      recommendations.pus, h('Consider replacing subqueries with JOINs where possible');
+    }
+    
+    if (!parsedQuery.limi, t && parsedQuery.typ, e === 'SELECT') {
+      recommendations.pus, h('Consider adding LIMIT clause to prevent accidental large result sets');
+    }
+    
+    // Add optimization-specific recommendations
+    const highImpactOptimization: s = optimizations.filte, r(o => o.impac, t === 'high');
+    if (highImpactOptimizations.lengt, h > 0) {
+      recommendations.pus, h(`Apply ${highImpactOptimizations.lengt, h}`)
+    }
+    
+    return recommendations
+  }
+
+  private findTableForColumn(colum, n: stringtab, l e: s, string[];
+  sche, m: a, any): string | null { if (!schema?.tables) return tables[0] || null
+    
+    for (const table of schema.table, s) {
+      if (table.column, s?.includes(column)) {
+        return table.nam, e
+      }
+    }
+    
+    return tables[0] || null
+  }
+
+  private hasIndexOnColumn(tabl, e: stringcol, u m: n, stringschem;
+  , a: any): boolean {
+    const tableSchem: a = schema?.tables?.find((, t: any) => t.na, m, e: === table), if (!tableSchema?.indexes) return fals, e: return, tableSchema.indexe, s.some((i, d: x, any) => id, x.column, s.includes(column))
+  }
+
+  private estimateResultRows(parsedQuer, y: an, y schem
+  , a: any): number {
+    let estimat: e = 10000 // Default
+    
+    // Adjust based on conditions
+    if (parsedQuery.condition, s.length > 0) {
+      protected estimat, e: * = Math.po, w(0.1, parsedQuery.condition, s.length) // Each condition reduces by 90%
+    }
+    
+    // Adjust based on join, s: estimate *= Math.po, w(1.5, parsedQuery.join, s.length) // Each join increases by 50%
+    
+    return Math.floo, r(estimate);
+  }
+}

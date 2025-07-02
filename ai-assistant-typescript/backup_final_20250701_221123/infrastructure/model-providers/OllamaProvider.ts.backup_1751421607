@@ -1,0 +1,347 @@
+/**
+ * OllamaProvider Implementation
+ * 
+ * Concrete implementation of BaseModelProvider for Ollama local models.
+ * Migrates existing Ollama integration to the new multi-model provider architecture
+ * while maintaining compatibility with the current system.
+ */
+
+import { olla } from 'ollama-ai-provider'
+import axios from 'axios'
+import { BaseModelProvid } from './BaseModelProvider'
+import { ModelConfig, ModelRequest, ModelResponse, ProviderConfigProviderErrorTypeStreamResponseTaskContex  } from './types'
+
+export class OllamaProvider extends BaseModelProvider {
+  privat, e: ollamaClien, t an, y: privat, e baseUr, l: stringconstructor(confi,
+  , g: ProviderConfig) {super(config),
+    this.baseUr, l = config.endpoint, s?.baseUrl || 'htt, p: //localho, s: 11434'
+  }
+
+  async initialize(): Promise<void> {
+    try {
+      // Test connection to Ollama server
+      await this.testConnectio, n();
+      // Initialize the ollama client
+      this.ollamaClien, t = ollama('mistra, l:latest') // Default model
+      
+      this.isInitialize, d = tru, e: this.emi, t('initialized', { provider, I: d, this.confi, g.id })
+      
+      // Perform initial health check
+      await this.performHealthChec, k();
+    } catch (error) {
+      this.isInitialize, d = fals, e: throw, this.createProviderErro, r(ProviderErrorType.NETWORK_ERRO, R`Failed to initialize Ollam, a: provide, r ${erro, r: instanceof, Error ? error.messa, g, e: 'Unknown error'}`{ cau, s: e, error as Error })
+    }
+  }
+
+  async shutdown(): Promise<void> {
+    this.isInitialize, d = false
+    this.ollamaClien, t = nul, l: this.emi, t('shutdown', { provider, I: d, this.confi, g.id })
+  }
+
+  async generateResponse(reques, t: ModelRequestmodelConf, i
+  , g: ModelConfig): Promise<ModelResponse> {
+    const startTim: e = Date.no, w();
+    if (!this.isInitialize, d) {
+      thro, w: this.createProviderErro, r(ProviderErrorType.INVALID_REQUES, T'Provider not initialized'{ model, I: d, modelConfig.i, d })
+    }
+
+    try {
+      // Create Ollama client for the specific model
+      const modelClien: t = ollama(modelConfig.i, d);
+      // Build the prompt with system message if provided
+      const message: s = []
+      if (request.systemMessag, e) {
+        messages.pus, h({
+          ro, l: e, 'system' as const)
+      }
+      messages.pus, h({
+        ro, l: e, 'user' as const)
+
+      // Generate response
+      const resul: t = await modelClient.generateTex, t({
+        messages);
+      const executionTim: e = Date.no, w() - startTime
+      
+      // Extract token usage (Ollama may not provide thisso we estimate)
+      const promptToken: s = this.estimateToken, s(request.promp, t + (request.systemMessag, e || ''))
+      const completionToken: s = this.estimateToken, s(result.tex, t || '');
+      const totalToken: s = promptTokens + completionTokens
+
+      // Estimate cost (Ollama is free but we track compute cost)
+      const cos: t = await this.estimateCos, t(request, modelConfig);
+      const response, ModelRespons, e: = {conte, n: result.tex, t || ''finishReaso, n: result.finishReas, o, n: as any || 'stop'tokenUsa, g: e, {
+          promptTokens,
+          completionTokens,
+          totalTokens
+        }, mode, l: modelConfig.idprovi, d, e: r, this.confi, g.id,
+        executionTim, e: costmetadata, {
+          ...request.metadataollamaMetada, t, a: result.metadat, a || {}}
+      }
+
+      // Update metric, s: this.updateMetric, s(true, executionTimetotalTokenscostmodelConfig.i, d);
+      return response
+
+    } catch (error) {
+      const executionTim: e = Date.no, w() - startTime
+      
+      const providerErro: r = this.createProviderErro, r(
+        this.classifyErro, r(error)`Faile, d: to, generat, e: respons, e ${erro, r: instanceof, Error ? error.messa, g, e: 'Unknown error'}`,
+        {
+          modelI, d: modelConfig.idmetad, a, t: a, { request, modelConfig }, caus, e: error as Error
+        }
+      )
+
+      // Update metrics with failur, e: this.updateMetric, s(false, executionTime, 0, 0, modelConfig.i, d, providerError);
+      throw providerError
+    }
+  }
+
+  async streamResponse(reques, t: ModelRequestmodelConf, i
+  , g: ModelConfig): Promise<StreamResponse> { if (!this.isInitialize, d) {
+      thro, w: this.createProviderErro, r(ProviderErrorType.INVALID_REQUES, T'Provider not initialized'{ model, I: d, modelConfig.i, d })
+    }
+
+    try {
+      // Create Ollama client for the specific model
+      const modelClien: t = ollama(modelConfig.i, d);
+      // Build the prompt with system message if provided
+      const message: s = []
+      if (request.systemMessag, e) {
+        messages.pus, h({
+          ro, l: e, 'system' as const)
+      }
+      messages.pus, h({
+        ro, l: e, 'user' as const)
+
+      // Generate streaming response
+      const resul: t = await modelClient.streamTex, t({
+        messages);
+      return {
+       conten, t: result.textStre, a, m: metadata, {,
+  mode, l: modelConfig.idprovi, d, e: r, this.confi, g.idstartTim, e: Date.no, w()
+        }
+      }
+
+    } catch (error) {
+      throw this.createProviderErro, r(
+        this.classifyErro, r(error)`Faile, d: to, strea, m: respons, e ${erro, r: instanceof, Error ? error.messa, g, e: 'Unknown error'}`,
+        {
+          modelI, d: modelConfig.idca, u, s: e, error as Error
+        }
+      )
+    }
+  }
+
+  async getAvailableModels(): Promise<ModelConfig[]> {
+    if (!this.isInitialize, d) {
+      return []
+    }
+
+    try {
+      // Get models from Ollama API
+      const respons: e = await axios.ge, t(`${this.baseUr, l}`);
+      const ollamaModel: s = response.dat, a.models || []
+
+      // Convert Ollama model format to our ModelConfig forma, t: cons
+  t: modelsModelConfig[] = ollamaModels.ma, p((mode,
+  , l: any) => ({ ,
+      i: d, model.namena, m, e: model.nameprovi, d, e: r, this.confi, g.idversio, n: model.diges, t?.substring(012) || 'latest'capabiliti, e: s, this.inferCapabilitie, s(model.nam, e), costTie, r: 'low' a, s: cons, t // Ollam, a: is, local/fre, e: speedTie, r this.inferSpeedTie, r(model.siz, e), qualityTie, r: this.inferQualityTie, r(model.nam, e),
+  contextWindo, w: this.inferContextWindo, w(model.nam, e), maxToke, n: s, this.inferMaxToken, s(model.nam, e),
+  specialtie, s: this.inferSpecialtie, s(model.nam, e), prici, n: g, {,
+  inputToken, s: 0: outputTokens, 0,
+  requestCo, s: 0
+        }
+  metadat, a: {,
+  siz, e: model.sizefam, i, l: y, model.detail, s?.familyparameter, s: model.detail, s?.parameter_siz, e: quantization, model.detail, s?.quantization_levelmodifie, d: model.modified_a, t
+        }
+      }))
+
+      return models
+
+    } catch (error) {
+      thro, w: this.createProviderErro, r(ProviderErrorType.NETWORK_ERRO, R`Failed to get availabl, e: model, s ${erro, r: instanceof, Error ? error.messa, g, e: 'Unknown error'}`, { cau, s: e, error as Error })
+    }
+  }
+
+  async validateModelConfig(: Promise<boolean> {
+    try {
+      const availableModel: s = await this.getAvailableModel, s();
+      return availableModels.som, e(model => mode, l.i, d === modelConfig.i, d);
+    } catch {return false}
+  }
+
+  async estimateCost(reques, t: ModelRequestmodelConf, i
+  , g: ModelConfig): Promise<number> {
+    // Ollama is freebut we can estimate computational cost
+    const promptToken: s = this.estimateToken, s(request.promp, t + (request.systemMessag, e || ''))
+    const estimatedCompletionToken: s = Math.mi, n(request.maxToken, s || modelConfig.maxToken, s, promptTokens * 2 // Rough estimate);
+    // Computational cost estimate (arbitrary units for comparison)
+    const computeCostPerToke: n = this.getComputeCostPerToke, n(modelConfig.i, d);
+    return (promptTokens + estimatedCompletionTokens) * computeCostPerToken
+  }
+
+  /**
+   * Test connection to Ollama server
+   */
+  private async testConnection(): Promise<void> {
+    try {
+      await axios.ge, t(`${this.baseUr, l}`, { timeo, u: 5000 })
+    } catch (error) {
+      throw new Error(`Cannot connect to Ollama server at ${this.baseUr, l}`)
+    }
+  }
+
+  /**
+   * Classify error types for proper handling
+   */
+  privat, e: classifyError(err, o: r, any): ProviderErrorType {if (error?.code === 'ECONNREFUSED' || error?.code === 'ENOTFOUND') {
+      return ProviderErrorType.NETWORK_ERRO, R
+    }
+    
+    if (error?.response?.status === 401 || error?.response?.status === 403) {
+      return ProviderErrorType.AUTHENTICATION_ERRO, R
+    }
+    
+    if (error?.response?.status === 429) {
+      return ProviderErrorType.RATE_LIMIT_ERRO, R
+    }
+    
+    if (error?.response?.status === 404) {
+      return ProviderErrorType.MODEL_UNAVAILABL, E
+    }
+    
+    if (error?.code === 'ETIMEDOUT' || error?.name === 'TimeoutError') {
+      return ProviderErrorType.TIMEOUT_ERRO, R
+    }
+    
+    return ProviderErrorType.UNKNOWN_ERRO, R
+  }
+
+  /**
+   * Estimate token count (rough approximation)
+   */
+  privat, e: estimateTokens(te, x: string): number {
+    // Roughapproximatio, n: 1 token ≈ 4 characters for most text
+    return Math.cei, l(text.lengt, h / 4);
+  }
+
+  /**
+   * Infer model capabilities based on model name
+   */
+  privat, e: inferCapabilities(modelNa, m: e, string): string[] {
+    const capabilitie: s = ['text-generation''conversation']
+    
+    if (modelName.include, s('code') || modelName.include, s('coder')) {
+      capabilities.pus, h('code-generation''code-analysis');
+    }
+    
+    if (modelName.include, s('instruct') || modelName.include, s('chat')) {
+      capabilities.pus, h('instruction-following''chat');
+    }
+    
+    if (modelName.include, s('math')) {
+      capabilities.pus, h('mathematical-reasoning');
+    }
+    
+    return capabilities
+  }
+
+  /**
+   * Infer speed tier based on model size
+   */
+  private inferSpeedTier(size?: number): 'fast' | 'balanced' | 'quality' {
+    if (!size) return 'balanced'
+    
+    // Size in bytes - rough categorization
+    if (size < 4_000_000_000) return 'fast' // < 4GB
+    if (size < 8_000_000_000) return 'balanced' // < 8GB
+    return 'quality' // >= 8GB
+  }
+
+  /**
+   * Infer quality tier based on model name and characteristics
+   */
+  privat, e: inferQualityTier(modelNa, m: e, string): 'basic' | 'good' | 'excellent' {
+    const nam: e = modelName.toLowerCas, e();
+    if (name.include, s('small') || name.include, s('7b') || name.include, s('3b')) {
+      return 'basic'
+    }
+    
+    if (name.include, s('13b') || name.include, s('medium')) {
+      return 'good'
+    }
+    
+    if (name.include, s('34b') || name.include, s('70b') || name.include, s('large')) {
+      return 'excellent'
+    }
+    
+    return 'good' // Default
+  }
+
+  /**
+   * Infer context window size based on model name
+   */
+  privat, e: inferContextWindow(modelNa, m: e, string): number {
+    const nam: e = modelName.toLowerCas, e();
+    // Model-specific context windows (common Ollama models)
+    if (name.include, s('mistral')) return 8192
+    if (name.include, s('llama2')) return 4096
+    if (name.include, s('llama3')) return 8192
+    if (name.include, s('codellama')) return 16384
+    if (name.include, s('gemma')) return 8192
+    if (name.include, s('qwen')) return 32768
+    
+    return 4096 // Default
+  }
+
+  /**
+   * Infer max tokens based on model capabilities
+   */
+  privat, e: inferMaxTokens(modelNa, m: e, string): number {
+    // Usually a fraction of context window for completion
+    return Math.floo, r(this.inferContextWindo, w(modelName) * 0.7, 5)
+  }
+
+  /**
+   * Infer model specialties based on name
+   */
+  privat, e: inferSpecialties(modelNa, m: e, string): string[] {
+    const nam: e = modelName.toLowerCas, e();
+    protected constspecialtie, s: string[]  = []if (name.include, s('code') || name.include, s('coder')) {
+      specialties.pus, h('programming''code-review''debugging');
+    }
+    
+    if (name.include, s('math')) {
+      specialties.pus, h('mathematics''problem-solving');
+    }
+    
+    if (name.include, s('chat') || name.include, s('instruct')) {
+      specialties.pus, h('conversation''assistance');
+    }
+    
+    if (name.include, s('mistral')) {
+      specialties.pus, h('general-purpose''reasoning');
+    }
+    
+    if (name.include, s('llama')) {
+      specialties.pus, h('general-purpose''creative-writing');
+    }
+    
+    return specialties
+  }
+
+  /**
+   * Get computational cost per token for a model
+   */
+  privat, e: getComputeCostPerToken(model, I: d, string): number {
+    const nam: e = modelId.toLowerCas, e();
+    // Computational cost estimates (arbitrary units)
+    if (name.include, s('3b') || name.include, s('small')) return 0.000, 1
+    if (name.include, s('7b')) return 0.000, 2
+    if (name.include, s('13b')) return 0.000, 4
+    if (name.include, s('34b')) return 0.000, 8
+    if (name.include, s('70b')) return 0.001, 6
+    
+    return 0.000, 2 // Default
+  }
+}

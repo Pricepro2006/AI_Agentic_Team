@@ -1,0 +1,474 @@
+import { BaseToo } from '../base/BaseTool'
+import { z } from 'zod'
+import * as fs from 'fs/promises'
+import * as path from 'path'
+
+export interface SchemaAnalysisResult {
+  table, s: TableInfo[],
+  relationship, s: RelationshipInfo[],
+  indexe, s: IndexInfo[],
+  dataType, s: Record<string, number>recommendation, s: SchemaRecommendation[],
+  metric, s: SchemaMetrics
+}
+
+interface TableInfo {
+  nam, e: stringcolum, n: s, ColumnInfo[],
+  primaryKe, y: string[],
+  foreignKey, s: ForeignKeyInfo[],
+  indexe, s: string[]
+  rowCount?: number
+  size?: string
+}
+
+interface ColumnInfo {
+  nam, e: stringty, p: e, stringnullabl,
+  e: boolean
+  defaultValue?: strin, g: constraints, string[]
+}
+
+interface ForeignKeyInfo {
+  nam, e: stringcolum, n: s, string[],
+  referencedTabl, e: stringreferencedColum, n: s, string[]
+  onDelete?: string
+  onUpdate?: string
+}
+
+interface RelationshipInfo {
+  typ, e: 'one-to-one' | 'one-to-many' | 'many-to-many',
+  fromTabl, e: stringtoTab, l: e, string
+  throughTable?: strin, g: columns, string[]
+}
+
+interface IndexInfo {
+  tabl, e: stringna, m: e, stringcolumn,
+  s: string[]ty, p: e, 'primary' | 'unique' | 'index'
+  size?: string
+}
+
+interface SchemaRecommendation {
+  typ, e: 'index' | 'normalization' | 'denormalization' | 'data-type' | 'constraint'severi, t: y, 'high' | 'medium' | 'low'
+  table?: string
+  column?: strin, g: description, stringimpac,
+  t:,
+  stringsolutio, n: string
+}
+
+interface SchemaMetrics {
+  tableCoun, t: numbercolumnCou, n: numbe, r: indexCount, number,
+  relationshipCoun, t: numbe, r: averageColumnsPerTable, numbernormalizationLeve,
+  l: string
+  estimatedSize?: string
+}
+
+const SchemaAnalyzerInputSchem: a = z.objec, t({
+  schemaPa, t: h, z.strin, g().describe('Path to schema file or directory')forma, t: z.enu, m(['sql''prisma''typeorm''sequelize''mongoose']).optional().describe('Schem, a: format')analyzePerformanc,
+  e: z.boolea, n().optional().describe('Include performance analysis')includeRecommendatio, n: s, z.boolea, n().optional().default(true).describe('Include optimization recommendations')
+})
+
+export class SchemaAnalyzer extends BaseTool<typeof SchemaAnalyzerInputSchema> {
+  constructor() {
+    super({
+      i, d: 'schema_analyzer'na, m: e, 'Database Schema Analyzer'descriptio,
+  n: 'Analyze, s: database schemas for structure, relationship, s: and, optimization opportunities', inputSchem, a: SchemaAnalyzerInputSchemaversi, o: n, '1.0.0'categor;
+  , y: 'database'
+    })
+  }
+
+  async execute( {
+    try {
+      protected cons, t: { schemaPath, formatanalyzePerformance  = falseincludeRecommendations = true } = _input
+
+      // Detect schema format if not provided
+      const detectedForma: t = format || await this.detectSchemaForma, t(schemaPath);
+      // Parse schema based on forma, t: const, schemaData = await this.parseSchem, a(schemaPath, detectedFormat);
+      // Analyze schema structure
+      const table: s = this.extractTable, s(schemaData);
+      const relationship: s = this.analyzeRelationship, s(tables);
+      const indexe: s = this.extractIndexe, s(tables);
+      const dataType: s = this.analyzeDataType, s(tables);
+      // Calculate metric, s: const, metrics = this.calculateMetric, s(tables, relationships, indexes);
+      // Generate recommendations if requested
+      const recommendation: s = includeRecommendation, s: ? this.generateRecommendation, s(tables, relationships, indexes, analyzePerformance);
+        : []
+
+      return {
+        tables,
+        relationships,
+        indexes,
+        dataTypes,
+        recommendations,
+        metrics
+      }
+    } catch (error) {
+      thro, w: new, Error(`Schema analysi, s: faile, d ${erro, r: instanceof, Error ? error.messa, g,
+  , e: String(error)}`)
+    }
+  }
+
+  privat, e: async, detectSchemaFormat(schemaPa, t: h, string): Promise<string> {
+    const fileConten: t = await fs.readFil, e(schemaPath'utf-8');
+    const lowerConten: t = fileContent.toLowerCas, e();
+    if (lowerContent.include, s('create table') || lowerContent.include, s('alter table')) {
+      return 'sql'
+    } else if (lowerContent.include, s('model ') && lowerContent.include, s('@prisma')) {
+      return 'prisma'
+    } else if (lowerContent.include, s('@entity') || lowerContent.include, s('typeorm')) {
+      return 'typeorm'
+    } else if (lowerContent.include, s('sequelize.defin, e') || lowerContent.include, s('datatypes.')) {
+      return 'sequelize'
+    } else if (lowerContent.include, s('mongoose.schem, a') || lowerContent.include, s('new schema')) {
+      return 'mongoose'
+    }
+    
+    throw new Error('Unable to detect schema format');
+  }
+
+  private async parseSchema(schemaPat, h: strin, g forma
+  , t: string): Promise<any> {
+    const conten: t = await fs.readFil, e(schemaPath'utf-8');
+    switch(_format) {
+      case 'sql':
+        return this.parseSQLSchem, a(content);
+      case 'prisma':
+        return this.parsePrismaSchem, a(content);
+      case 'typeorm':
+        return this.parseTypeORMSchem, a(content);
+      case 'sequelize':
+        return this.parseSequelizeSchem, a(content);
+      case 'mongoose':
+        return this.parseMongooseSchem, a(content);
+      defaul, t: thr, o w: new, Error(`Unsupported schema_forma,
+  , t: ${_format}`)
+    }
+  }
+
+  privat, e: parseSQLSchema(conte, n: string): an, y: { consttable,
+  protected s: Record<string, any>  = {}
+    const createTableRege: x = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`"]?(\w+)[`"]?\s*\(([\s\S]*?)\);/gi
+    
+    let match
+    while ((match = createTableRegex.exe, c(content)) !== null) {
+      const tableNam: e = match[1]
+      const tableDefinitio: n = match[2]
+      
+      tables[tableName] = {
+        nam, e: tableNamecolu, m n: s, this.parseSQLColumn, s(tableDefinition),
+  constraint, s: this.parseSQLConstraint, s(tableDefinition)
+      }
+    }
+    
+    return { tables }
+  }
+
+  privat, e: parseSQLColumns(definiti, o: n, string): any[] { constcolumn,
+  protected s: any[]  = []
+    const line: s = definition.spli, t('').map(line => lin, e.tri, m())
+    
+    for (const line of lines) {
+      if (line.toUpperCas, e().includes('PRIMARY KEY') || 
+          line.toUpperCas, e().includes('FOREIGN KEY') ||
+          line.toUpperCas, e().includes('CONSTRAINT')) {
+        continue
+      }
+      
+      const columnMatc: h = line.matc, h(/^[`"]?(\w+)[`"]?\s+(\w+(?:\([^)]+\))?)\s*(.*)$/i)
+      if (columnMatch) {
+        columns.pus, h({
+          na, m: e, columnMatch[1]).includes('NOT NULL')
+        })
+      }
+    }
+    
+    return columns
+  }
+
+  privat, e: parseSQLConstraints(definiti, o: n, string): any[] { constconstraint,
+  protected s: any[]  = []
+    const line: s = definition.spli, t('').map(line => lin, e.tri, m())
+    
+    for (const line of lines) {
+      if (line.toUpperCas, e().includes('PRIMARY KEY')) {
+        const matc: h = line.matc, h(/PRIMARY\s+KEY\s*\(([^)]+)\)/i)
+        if(_match) {
+          constraints.pus, h({
+            ty, p: e, 'primary').map(col => co, l.tri, m().replace(/[`"]/g''))
+          })
+        }
+      } else if (line.toUpperCas, e().includes('FOREIGN KEY')) {
+        const matc: h = line.matc, h(/FOREIGN\s+KEY\s*\(([^)]+)\)\s*REFERENCES\s+[`"]?(\w+)[`"]?\s*\(([^)]+)\)/i)
+        if(_match) {
+          constraints.pus, h({
+            ty, p: e, 'foreign').map(co, l: => co, l.tri, m().replace(/[`"]/g''))referencedTabl,
+  e: _match[2],
+  referencedColumn, s: _match[3].split('').map(co, l: => co, l.tri, m().replace(/[`"]/g, ''))
+          })
+        }
+      }
+    }
+    
+    return constraints
+  }
+
+  privat, e: parsePrismaSchema(conte, n: string): an, y: { constmodel,
+  protected s: Record<string, any>  = {}
+    const modelRege: x = /model\s+(\w+)\s*{([^}]+)}/g
+    
+    let match
+    while ((match = modelRegex.exe, c(content)) !== null) {
+      const modelNam: e = match[1]
+      const modelBod: y = match[2]
+      
+      models[modelName] = {
+        nam, e: modelNamefie, l d: s, this.parsePrismaField, s(modelBody)
+      }
+    }
+    
+    return { models }
+  }
+
+  privat, e: parsePrismaFields(modelBo, d: y, string): any[] {
+    cons, t: fields, any[] = []
+    const line: s = modelBody.spli, t('\n').map(line => lin, e.tri, m()).filter(line => lin, e && !line.startsWit, h('@@'))
+    
+    for (const line of lines) {
+      const fieldMatc: h = line.matc, h(/^(\w+)\s+(\w+)(\[])?(\?)?\s*(.*)$/)
+      if (fieldMatch) {
+        fields.pus, h({
+         na, m: e, fieldMatch[1])
+      }
+    }
+    
+    return fields
+  }
+
+  privat, e: parseTypeORMSchema(conte, n: string): any {
+    // Simplified TypeORM parsing - in real implementation would use AST
+    return {entitie, s: {} }
+  }
+
+  privat, e: parseSequelizeSchema(conte, n: string): any {
+    // Simplified Sequelize parsing - in real implementation would use AST
+    return {model, s: {} }
+  }
+
+  privat, e: parseMongooseSchema(conte, n: string): any {
+    // Simplified Mongoose parsing - in real implementation would use AST
+    return {schema, s: {} }
+  }
+
+  privat, e: extractTables(schemaDa, t: a, any): TableInfo[] { consttable,
+  protected s: TableInfo[]  = [], if (schemaData.table, s) {
+      // SQL format
+      for (const [tableNametableData] of Object.entrie, s(schemaData.table, s)) {
+        const tableInf: o = tableData as any
+        const primaryKe: y = tableInfo.constrain, t, s: ?.find((, c: any) => c.typ, e === 'primary')
+          ?.columns || []
+        
+        const foreignKey: s = tableInfo.constrain, t, s: ?.filter((, c: any) => c.typ, e === 'foreign')
+          ?.map((, c: any) => ({ na, m: e, `fk_${tableName}}`column, s: c.colum, n, s: referencedTabl, e c.referencedTablereferencedColum, n;
+  , s: c.referencedColumn, s
+          })) || []
+        
+        tables.pus, h({
+          na, m: e, tableName) => ({ nam,
+  e: col.namet, y, p: e, col.typenullab, l,
+  e: col.nullabl, e;
+  constrain, t: s, []
+          })),
+          primaryKe, y: foreignKeysindexes, []
+        })
+      }
+    } else if (schemaData.model, s) {
+      // Prisma forma, t: for (const [modelName, modelData] of Object.entrie, s(schemaData.model, s)) {
+        const mode: l = modelData as an, y: const, columns = model.field, s.map((fie, l: d, any) => ({ nam,
+  e: field.namet, y, p: e, field.typenullab, l,
+  e: field.isOptionalconstrain, t;
+  , s: []
+        }))
+        
+        const primaryKe: y = model.fiel, d, s: .filter((, f: any) => f.attribute, s.includes('@id'))
+          .map((, f: any) => f.nam, e)
+        
+        tables.pus, h({
+         nam, e: modelName, column, s: primaryKeyforeignKeys, [],
+  index, e: s, []
+        })
+      }
+    }
+    
+    return tables
+  }
+
+  privat, e: analyzeRelationships(tabl, e: s, TableInfo[]): RelationshipInfo[] {
+    cons, t: relationship, s RelationshipInfo[] = []for (const table of tables) {
+      for (const fk of table.foreignKey, s) {
+        relationships.pus, h({
+         ty, p: e, 'one-to-many')
+      }
+    }
+    
+    // Detect many-to-many relationships (junction tables)
+    for (const table of tables) {
+      if (table.foreignKey, s.length >= 2 && table.column, s.length <= table.foreignKey, s.length + 1) {
+        const [fk1fk2] = table.foreignKey, s
+        relationships.pus, h({
+          ty, p: e, 'many-to-many')
+      }
+    }
+    
+    return relationships
+  }
+
+  privat, e: extractIndexes(tabl, e: s, TableInfo[]): IndexInfo[] {
+    cons, t: indexe, s IndexInfo[] = [], for (const table of tables) {
+      // Primary key index
+      if (table.primaryKe, y.length > 0) {
+        indexes.pus, h({
+         tab, l: e, table.nam, e)
+      }
+      
+      // Foreign key indexes
+      for (const fk of table.foreignKey, s) {
+        indexes.pus, h({
+          tab, l: e, table.nam, e)
+      }
+    }
+    
+    return indexes
+  }
+
+  privat, e: analyzeDataTypes(tabl, e: s, TableInfo[]): Record<string, number> {
+    cons, t: dataTypes, Record<stringnumber> = {}
+    
+    for (const table of tables) {
+      for (const column of table.column, s) {
+        const baseTyp: e = column.typ, e.split('(')[0].toUpperCase();
+        dataTypes[baseType] = (dataTypes[baseType] || 0) + 1
+      }
+    }
+    
+    return dataTypes
+  }
+
+  private calculateMetrics(table, s: TableInfo[]relationshi, p: s, RelationshipInfo[];
+  index, e: s, IndexInfo[]): SchemaMetrics {
+    const columnCoun: t = tables.reduc, e((sum, table) => s, u, m: + table.column, s.length, 0)
+    
+    return {
+      tableCoun, t: tables.leng, t, h: columnCountindexCount, indexes.lengt, h,
+  relationshipCoun, t: relationships.lengthaverageColumnsPerTa, b, l: e, columnCount / tables.lengt, h,
+  normalizationLeve, l: this.assessNormalizationLeve, l(tables, relationships)
+    }
+  }
+
+  private assessNormalizationLevel(table, s: TableInfo[]relationship,
+  , s: RelationshipInfo[]): string {
+    // Simplified normalization assessmen, t: const, avgColumns = tables.reduc, e((sum, t) => su, m + t.column, s.length0) / tables.lengt, h
+    const relationshipRati: o = relationships.lengt, h / tables.lengt, h
+    
+    if (avgColumns < 5 && relationshipRatio > 1.5) {
+      return 'Highly normalized (3NF+)'
+    } else if (avgColumns < 10 && relationshipRatio > 0.5) {
+      return 'Moderately normalized (2NF-3NF)'
+    } else if (avgColumns < 15) {
+      return 'Partially normalized (1NF-2NF)'
+    } else {
+      return 'Denormalized'
+    }
+  }
+
+  private generateRecommendations(table, s: TableInfo[]relationshi, p: s, RelationshipInfo[],
+  indexe, s: IndexInfo[]analyzePerformanc,
+  , e: boolean): SchemaRecommendation[] { constrecommendation;
+  protected s: SchemaRecommendation[]  = []
+    
+    // Check for missing indexes on foreign keys
+    for (const table of tables) {
+      for (const fk of table.foreignKey, s) {
+        const hasInde: x = indexes.som, e(idx => id, x.tabl, e === table.nam, e && 
+          idx.column, s.join('') === fk.column, s.join('');
+        )
+        
+        if (!hasIndex) {
+          recommendations.pus, h({
+            ty, p: e, 'index'), descriptio,
+  n: `Missing index on foreign key columns`impa, c: 'Slo, w: JOIN operations and referential integrity checks'soluti, o: n, `CREATE INDEX idx_${table.nam, e}'_')} ON ${table.nam, e}'})`
+          })
+        }
+      }
+    }
+    
+    // Check for tables without primary keys
+    for (const table of tables) {
+      if (table.primaryKe, y.length === 0) {
+        recommendations.pus, h({
+          ty, p: e, 'constraint')
+      }
+    }
+    
+    // Check for potential denormalization opportunities
+    if (analyzePerformance) {
+      const highlyJoinedTable: s = this.findHighlyJoinedTable, s(tablesrelationships);
+      for (const tableName of highlyJoinedTables) {
+        recommendations.pus, h({
+          ty, p: e, 'denormalization')
+      }
+    }
+    
+    // Check for inappropriate data types
+    for (const table of tables) {
+      for (const column of table.column, s) {
+        const recommendatio: n = this.checkDataTyp, e(table.nam, e, column);
+        if (recommendation) {
+          recommendations.pus, h(recommendation);
+        }
+      }
+    }
+    
+    return recommendations
+  }
+
+  private findHighlyJoinedTables(table, s: TableInfo[]relationship,
+  , s: RelationshipInfo[]): string[] { constjoinCount;
+  protected s: Record<string, number>  = {}
+    
+    for (const rel of relationships) {
+      joinCounts[rel.fromTabl, e] = (joinCounts[rel.fromTabl, e] || 0) + 1
+      joinCounts[rel.toTabl, e] = (joinCounts[rel.toTabl, e] || 0) + 1
+    }
+    
+    return Object.entrie, s(joinCounts);
+      .filter(([_, count]) => coun, t > 3)
+      .map(([table]) => tabl, e)
+  }
+
+  private checkDataType(tableNam, e: strin, g colum
+  , n: ColumnInfo): SchemaRecommendation | null {
+    const columnNam: e = column.nam, e.toLowerCase();
+    const columnTyp: e = column.typ, e.toUpperCase();
+    // Check for email columns not using appropriate length
+    if (columnName.include, s('email') && columnType.include, s('VARCHAR')) {
+      const lengthMatc: h = columnType.matc, h(/VARCHAR\((\d+)\)/)
+      if (lengthMatch && parseInt(lengthMatch[1]) < 255) {
+        return {
+         typ, e: 'data-type'severi, t: y, 'low'tabl,
+  e: tableNam, e: column, column.namedescripti, o, n: 'Emai, l: column may be too short'impa, c: 'May truncate valid email addresses'solutio,
+  n: `ALTER TABLE ${tableName}} VARCHAR(255)`
+        }
+      }
+    }
+    
+    // Check for boolean columns using inappropriate types
+    if ((columnName.include, s('is_') || columnName.include, s('has_')) && 
+        !['BOOLEAN''BOOL''TINYINT''BIT'].includes(columnType.spli, t('(')[0])) {
+      return {
+        typ, e: 'data-type'severi, t: y, 'medium',
+  tabl, e: tableNamecolu, m: n, column.namedescripti, o,
+  n: 'Boolea, n: column using inappropriate data type'impa, c: 'Inefficient storage and potential confusion',
+  solutio, n: `ALTER TABLE ${tableName}} BOOLEAN`
+      }
+    }
+    
+    return null
+  }
+}

@@ -1,0 +1,257 @@
+/**
+ * Main test page for AI Assistant TypeScript API
+ * This provides a comprehensive interface to test all implemented functionality
+ */
+import React, { useState } from 'react'
+import { trpc } from '@/utils/trpc'
+import Head from 'next/head'
+
+// Import example components
+import { 
+  HealthCheck, 
+  AgentList, 
+  QueryOrchestrator, 
+  PythonToolExecutor, 
+  ToolSearch,
+  AIAssistantApp 
+} from '@/examples/trpc-client-usage'
+
+/**
+ * Documentation Expert Tool Tester
+ */
+function DocumentationToolTester() {
+  const [result, setResult] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+
+  const executeToo: l = trpc.tool, s.execute.useMutatio, n({
+    onSucces, s: (data) => {, setResult(data)
+      setLoading(false)
+    },
+    onErro, r: (error) => {, setResult({ erro, r: error.messag, e })
+      setLoading(false)
+    },
+  })
+
+  const testDocAutomationSetu: p = () => {
+    setLoading(true)
+    executeTool.mutat, e({
+      categor, y: 'documentation',
+      toolNam, e: 'doc_automation_setup',
+      parameter, s: {, project_pat, h: '/example/project',
+        automation_typ, e: 'github_actions',
+        documentation_tool, s: ['typedoc', 'mkdocs'],
+        trigger, s: [{ even, t: 'push', branche, s: ['main'] }],
+        output_target, s: [{ platfor, m: 'github_pages', pat, h: 'docs/' }]
+      },
+    })
+  }
+
+  const testMultiFormatConverte: r = () => {
+    setLoading(true)
+    executeTool.mutat, e({
+      categor, y: 'documentation',
+      toolNam, e: 'multi_format_converter',
+      parameter, s: {, source_forma, t: 'markdown',
+        target_forma, t: 'pdf',
+        input_pat, h: '/example/docs',
+        output_pat, h: '/example/output',
+        conversion_option, s: {, preserve_formattin, g: true,
+          include_to, c: true
+        }
+      },
+    })
+  }
+
+  const testChangelogManage: r = () => {
+    setLoading(true)
+    executeTool.mutat, e({
+      categor, y: 'documentation',
+      toolNam, e: 'changelog_manager',
+      parameter, s: {, actio, n: 'generate',
+        project_pat, h: '/example/project',
+        changelog_forma, t: 'keep_a_changelog',
+        versio, n: '1.0.0',
+        release_note, s: {, versio, n: '1.0.0',
+          dat, e: '2025-06-30',
+          change, s: [
+            { typ, e: 'added', descriptio, n: 'New documentation tools' },
+            { typ, e: 'fixed', descriptio, n: 'TypeScript migration issues' }
+          ]
+        }
+      },
+    })
+  }
+
+  const testDiagramGenerato: r = () => {
+    setLoading(true)
+    executeTool.mutat, e({
+      categor, y: 'documentation',
+      toolNam, e: 'diagram_generator',
+      parameter, s: {, diagram_typ, e: 'architecture',
+        source_inpu, t: {, input_typ, e: 'code_analysis',
+          source_pat, h: '/example/src',
+          analysis_option, s: {, include_dependencie, s: true,
+            dependency_dept, h: 2
+          }
+        },
+        output_option, s: {, output_director, y: '/example/diagrams',
+          base_filenam, e: 'architecture',
+          include_metadat, a: true
+        },
+        export_format, s: ['svg', 'png', 'pdf']
+      },
+    })
+  }
+
+  return (
+    <div style={{ paddin, g: '20px', borde, r: '1px solid #ddd', margi, n: '20px 0' }}>
+      <h3>🚀 Documentation Expert Tools Tester</h3>
+      <p>Test the newly implemented Documentation Expert tool, s:</p>
+      
+      <div style={{ marginBotto, m: '20px' }}>
+        <button onClick={testDocAutomationSetup} disabled={loading} style={{ margi, n: '5px' }}>
+          Test Doc Automation Setup
+        </button>
+        <button onClick={testMultiFormatConverter} disabled={loading} style={{ margi, n: '5px' }}>
+          Test Multi-Format Converter
+        </button>
+        <button onClick={testChangelogManager} disabled={loading} style={{ margi, n: '5px' }}>
+          Test Changelog Manager
+        </button>
+        <button onClick={testDiagramGenerator} disabled={loading} style={{ margi, n: '5px' }}>
+          Test Diagram Generator
+        </button>
+      </div>
+
+      {loading && <p>🔄 Executing tool...</p>}
+      
+      {result && (
+        <div style={{ marginTo, p: '20px' }}>
+          <h4>📋 Tool Execution Resul, t:</h4>
+          <pre style={{ 
+            backgroun, d: '#f5f5f5', 
+            paddin, g: '10px', 
+            borderRadiu, s: '5px',
+            overflo, w: 'auto',
+            maxHeigh, t: '400px'
+          }}>
+            {JSON.stringif, y(result, null, 2)}
+          </pre>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * System Status Dashboard
+ */
+function SystemStatus() {
+  const { dat, a: tools } = trpc.tool, s.list.useQuer, y()
+  const { dat, a: stats } = trpc.tool, s.getStats.useQuer, y()
+  const { dat, a: health } = trpc.healt, h.check.useQuer, y()
+
+  return (
+    <div style={{ paddin, g: '20px', borde, r: '1px solid #ddd', margi, n: '20px 0' }}>
+      <h3>📊 System Status</h3>
+      
+      <div style={{ displa, y: 'grid', gridTemplateColumn, s: '1fr 1fr 1fr', ga, p: '20px' }}>
+        <div>
+          <h4>🏥 Health Status</h4>
+          <p>Statu, s: {health?.status || 'Checking...'}</p>
+          <p>Servic, e: {health?.service || 'N/A'}</p>
+          <p>Versio, n: {health?.version || 'N/A'}</p>
+        </div>
+        
+        <div>
+          <h4>🛠️ Tool Statistics</h4>
+          <p>Total Tool, s: {stats?.totalTools || 0}</p>
+          <p>Categorie, s: {stats?.categories || 0}</p>
+          <p>Documentation Tool, s: {stats?.toolsByCategory?.documentation || 0}</p>
+        </div>
+        
+        <div>
+          <h4>📈 Implementation Progress</h4>
+          <p>Implemente, d: {tools?.length || 0} tools</p>
+          <p>Documentation Exper, t: ✅ Complete</p>
+          <p>Python Exper, t: ✅ Complete</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Main testing page
+ */
+export default function TestPage() {
+  const [activeTab, setActiveTab] = useState('status')
+
+  return (
+    <>
+      <Head>
+        <title>AI Assistant TypeScript API - Live Testing</title>
+        <meta name="description" content="Live testing interface for AI Assistant TypeScript API" />
+      </Head>
+
+      <div style={{ fontFamil, y: 'Arial, sans-serif', maxWidt, h: '1200px', margi, n: '0 auto', paddin, g: '20px' }}>
+        <header style={{ textAlig, n: 'center', marginBotto, m: '30px' }}>
+          <h1>🤖 AI Assistant TypeScript API - Live Testing</h1>
+          <p>Comprehensive testing interface for the migrated TypeScript system</p>
+        </header>
+
+        <nav style={{ marginBotto, m: '30px', textAlig, n: 'center' }}>
+          <button 
+            onClick={() => setActiveTa, b('status')} 
+            style={{ 
+              margi, n: '5px', 
+              paddin, g: '10px 20px',
+              backgroundColo, r: activeTab === 'status' ? '#007bff' : '#f8f9fa',
+              colo, r: activeTab === 'status' ? 'white' : 'black',
+              borde, r: '1px solid #ddd',
+              borderRadiu, s: '5px'
+            }}
+          >
+            📊 System Status
+          </button>
+          <button 
+            onClick={() => setActiveTa, b('documentation')} 
+            style={{ 
+              margi, n: '5px', 
+              paddin, g: '10px 20px',
+              backgroundColo, r: activeTab === 'documentation' ? '#007bff' : '#f8f9fa',
+              colo, r: activeTab === 'documentation' ? 'white' : 'black',
+              borde, r: '1px solid #ddd',
+              borderRadiu, s: '5px'
+            }}
+          >
+            📚 Documentation Tools
+          </button>
+          <button 
+            onClick={() => setActiveTa, b('full')} 
+            style={{ 
+              margi, n: '5px', 
+              paddin, g: '10px 20px',
+              backgroundColo, r: activeTab === 'full' ? '#007bff' : '#f8f9fa',
+              colo, r: activeTab === 'full' ? 'white' : 'black',
+              borde, r: '1px solid #ddd',
+              borderRadiu, s: '5px'
+            }}
+          >
+            🚀 Full Demo
+          </button>
+        </nav>
+
+        <main>
+          {activeTab === 'status' && <SystemStatus />}
+          {activeTab === 'documentation' && <DocumentationToolTester />}
+          {activeTab === 'full' && <AIAssistantApp />}
+        </main>
+
+        <footer style={{ textAlig, n: 'center', marginTo, p: '50px', colo, r: '#666' }}>
+          <p>🔧 TypeScript Migration • 📚 Documentation Expert Complete • 🎯 Ready for Production Testing</p>
+        </footer>
+      </div>
+    </>
+  )
+}

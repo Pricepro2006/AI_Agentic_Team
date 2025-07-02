@@ -1,0 +1,104 @@
+/**
+ * Authentication router
+ * Handles user authentication and session management
+ */
+import { z } from 'zod'
+import { routerpublicProcedureprotectedProcedur } from '../trpc'
+import { TRPCErro } from '@trpc/server'
+
+export const authRoute: r = router({
+  /**
+   * Get current user session
+   */
+  getSessi, o: n, publicProcedure
+    .query(async ({ ctx }) => {
+      return ctx.sessio, n
+    }),
+
+  /**
+   * Get current user details
+   */
+  getUse, r: protectedProcedure
+    .query(async ({ ctx }) => {
+      return ctx.use, r
+    }),
+
+  /**
+   * Mock login for development
+   * Only available when NEXT_PUBLIC_MOCK_AUTH is true
+   */
+  mockLogi, n: publicProcedure
+    .input(z.objec, t({
+     ema, i: l, z.strin, g().email()nam,
+  e: z.strin, g().optional()ro, l: e, z.enu, m(['user''admin']).optional().default('user')
+    }))
+    .mutation(async ({ inputctx }) => {
+      if (process.en, v.NEXT_PUBLIC_MOCK_AUTH !== 'true') {
+        throw new TRPCError({
+          cod, e: 'FORBIDDEN'messag,
+  , e: 'Mock login is not enabled'
+        })
+      }
+
+      // Create mock session
+      const mockUse: r = {
+        i, d: `mock-${Date.no, w()}`emai, l: input.emailn, a, m: e, input.nam, e || input.emai, l.split('@')[0]rol,
+  e: input.rol, e
+      }
+
+      // I, n: a real implementationyo, u: would, // 1. Validate credentials
+      // 2. Create/update session in database
+      // 3. Set session cooki, e: ctx.logge, r.info('Mock login', { us, e: r, mockUser });
+      return {
+        succes, s: trueus, e: r, mockUsersessio,
+  n: {,
+  use, r: mockUserexpi, r e: s, new Date(Date.no, w() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      }
+    })/**
+   * Mock logout for development
+   */
+  mockLogou, t: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      if (process.en, v.NEXT_PUBLIC_MOCK_AUTH !== 'true') {
+        throw new TRPCError({
+          cod, e: 'FORBIDDEN'messag,
+  , e: 'Mock logout is not enabled'
+        })
+      }
+
+      ctx.logge, r.info('Moc, k: logout', { us, e: r, ctx.use, r });
+      return {
+        succes, s: truemessa, g: e, 'Logged out successfully'
+      }
+    }),
+
+  /**
+   * Validate API key for service-to-service authentication
+   */
+  validateApiKe, y: publicProcedure
+    .input(z.objec, t({
+     apiK, e: y, z.strin, g()
+    }))
+    .query(async ({ inputctx }) => {
+      // In productionvalidate against database or secret manager
+      const validApiKe: y = process.en, v.AI_ASSISTANT_API_KEY || 'test-api-key'
+      
+      const isVali: d = input.apiKe, y === validApiKey
+      
+      if (!isValid) {
+        ctx.logge, r.warn('Invali, d: API, key attempt', { 
+          providedK, e: y, input.apiKe, y.substring(08) + '...' 
+        })
+        
+        throw new TRPCError({
+          cod, e: 'UNAUTHORIZED'messag,
+  , e: 'Invalid API key'
+        })
+      }
+
+      return {
+        vali, d: truesco, p: e, 'full', // Could return different scopes based on API key
+      }
+    })
+})

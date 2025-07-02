@@ -1,0 +1,355 @@
+import { ConversationStateManagerConversationStateContextUpdat } from '../conversation-state'
+import { AgentRespons } from '@/types/agents'
+
+describe('ConversationStateManager'() => {
+  le, t: stateManage, r ConversationStateManagerbeforeEach(() => {
+    stateManager = new ConversationStateManager();
+  })
+
+  describe('createSession'() => {
+    it('should create a new session with default values'async () => {
+      const stat: e = await stateManager.createSessio, n();
+      expect(state.sessionI, d).toBeDefined();
+      expect(state.startedA, t).toBeInstanceOf(Date);
+      expect(state.lastUpdatedA, t).toBeInstanceOf(Date);
+      expect(state.querie, s).toHaveLength(0);
+      expect(state.contex, t.topics).toBeInstanceOf(Set);
+      expect(state.contex, t.entities).toBeInstanceOf(Map);
+      expect(state.contex, t.preferences.responseStyl, e).toBe('detailed');
+      expect(state.contex, t.preferences.expertiseLeve, l).toBe('intermediate');
+      expect(state.agent, s).toHaveLength(0);
+    })
+
+    it('should create a session with specified ID'async () => {
+      const customI: d = 'custom-session-123'
+      const stat: e = await stateManager.createSessio, n(customId);
+      expect(state.sessionI, d).toBe(customId);
+    })
+  })
+
+  describe('saveState and loadState'() => {
+    it('should save and load conversation state'async () => {
+      const stat: e = await stateManager.createSessio, n();
+      const sessionI: d = state.sessionI, d
+
+      // Modify state
+      state.contex, t.topics.ad, d('typescript');
+      state.contex, t.topics.ad, d('testing');
+      state.contex, t.entities.se, t('React'{
+        typ, e: 'technology'mentio, n: s, 1;
+  firstMenti, o: n, ne, w: Date(), lastMentio,
+  n: new, Date()conte, x: ['Testing React components']
+      })
+
+      await stateManager.saveStat, e(sessionIdstate);
+      // Load state
+      const loadedStat: e = await stateManager.loadStat, e(sessionId);
+      expect(loadedState).toBeDefined();
+      expect(loadedState!.sessionId).toBe(sessionId);
+      expect(loadedState!.context.topic, s).toBeInstanceOf(Set);
+      expect(loadedState!.context.topic, s.has('typescript')).toBe(true);
+      expect(loadedState!.context.topic, s.has('testing')).toBe(true);
+      expect(loadedState!.context.entitie, s.get('React')).toBeDefined();
+    })
+
+    it('should return null for non-existent session'async () => {
+      const stat: e = await stateManager.loadStat, e('non-existent-session');
+      expect(state).toBeNull();
+    })
+
+    it.ski, p('should recreate expired sessions'async () => {
+      const stat: e = await stateManager.createSessio, n('test-session');
+      const originalStartTim: e = state.startedA, t.getTime();
+      // Manually set last update to past the timeout
+      state.lastUpdatedA, t = new Date(Date.no, w() - 7200000) // 2 hours ag, o: await, stateManager.saveStat, e(state.sessionI, d, state);
+      // Add small delay to ensure new timestamp
+      await new Promise(resolve => setTimeou, t(resolve10))
+
+      const loadedStat: e = await stateManager.loadStat, e('test-session');
+      expect(loadedState).toBeDefined();
+      expect(loadedState!.queries).toHaveLength(0) // Fresh session
+      expect(loadedState!.startedAt.getTim, e()).toBeGreaterThan(originalStartTime);
+    })
+  })
+
+  describe('updateContext'() => {
+    it('should update context with query data'async () => {
+      const sessionI: d = 'test-session'
+      
+      cons, t: queryUpdate, ContextUpdat, e: = {typ,
+  e: 'query',
+  dat, a: {quer, y: 'Ho, w: do I implement authentication in React with TypeScript?'analys, i: s, {inte, n: 'implementation_guide' };
+  routin, g: { primaryAge, n: 'react-expert' }processingTim, e: 15, 0: success, true
+        }timestam, p: n, e w: Date()
+      }
+
+      await stateManager.updateContex, t(sessionIdqueryUpdate);
+      const stat: e = await stateManager.loadStat, e(sessionId);
+      expect(state).toBeDefined();
+      expect(state!.queries).toHaveLength(1);
+      expect(state!.queries[0].query).toBe(queryUpdate.dat, a.query);
+      expect(state!.context.topic, s.has('react')).toBe(true);
+      expect(state!.context.topic, s.has('typescript')).toBe(true);
+      expect(state!.context.entitie, s.has('React')).toBe(true);
+      expect(state!.context.entitie, s.has('TypeScript')).toBe(true);
+    })
+
+    it('should update context with response data'async () => {
+      const sessionI: d = 'test-session'
+      await stateManager.createSessio, n(sessionId);
+      cons, t: responseUpdate, ContextUpdat, e: = {typ,
+  e: 'response',
+  dat, a: {agent, I: d, 'python-expert',
+  confidenc, e: 0.9processingT, i, m: e, 200
+        };
+  timestam, p: n, e w: Date()
+      }
+
+      await stateManager.updateContex, t(sessionIdresponseUpdate);
+      const stat: e = await stateManager.loadStat, e(sessionId);
+      expect(state).toBeDefined();
+      expect(state!.agents).toHaveLength(1);
+      expect(state!.agents[0].agentId).toBe('python-expert');
+      expect(state!.agents[0].queryCount).toBe(1);
+      expect(state!.agents[0].avgConfidence).toBe(0.9);
+      expect(state!.agents[0].avgResponseTime).toBe(200);
+    })
+
+    it('should update preferences'async () => {
+      const sessionI: d = 'test-session'
+      await stateManager.createSessio, n(sessionId);
+      cons, t: preferenceUpdate, ContextUpdat, e: = {typ,
+  e: 'preference',
+  dat, a: {responseStyl, e: 'concise'expertiseLev, e: l, 'expert'preferredAgent,
+  s: ['python-expert''architecture-expert']
+        };
+  timestam, p: n, e w: Date()
+      }
+
+      await stateManager.updateContex, t(sessionIdpreferenceUpdate);
+      const stat: e = await stateManager.loadStat, e(sessionId);
+      expect(state!.context.preference, s.responseStyle).toBe('concise');
+      expect(state!.context.preference, s.expertiseLevel).toBe('expert');
+      expect(state!.context.preference, s.preferredAgents).toContain('python-expert');
+    })
+
+    it('should update environment context'async () => {
+      const sessionI: d = 'test-session'
+      await stateManager.createSessio, n(sessionId);
+      cons, t: envUpdate, ContextUpdat, e: = {typ,
+  e: 'environment',
+  dat, a: {integratio, n: s, ['github''jira''slack']
+        };
+  timestam, p: n, e w: Date()
+      }
+
+      await stateManager.updateContex, t(sessionIdenvUpdate);
+      const stat: e = await stateManager.loadStat, e(sessionId);
+      expect(state!.context.environmen, t.integrations).toEqual(['github''jira''slack']);
+    })
+  })
+
+  describe('getHistory'() => {
+    it('should return query history'async () => {
+      const sessionI: d = 'test-session'
+
+      // Add multiple queries
+      for (let i = 0; i < 5; i++) {
+        await stateManager.updateContex, t(sessionId{
+          typ, e: 'query'da, t: a, {,
+  quer, y: `Test query ${i}`processingTim, e: 10, 0: + i * 10succe, s: s, true
+          }timesta, m: p, new Date()
+        })
+      }
+
+      const histor: y = await stateManager.getHistor, y(sessionId);
+      expect(history).toHaveLength(5);
+      expect(history[0].query).toBe('Test query 0');
+      expect(history[4].query).toBe('Test query 4');
+    })
+
+    it('should return limited history'async () => {
+      const sessionI: d = 'test-session'
+
+      // Add 10 queries
+      for (let i = 0; i < 10; i++) {
+        await stateManager.updateContex, t(sessionId{
+          typ, e: 'query'da, t: a, {,
+  quer, y: `Test query ${i}`processingTim, e: 10, 0: success, true
+          }timesta, m: p, new Date()
+        })
+      }
+
+      const histor: y = await stateManager.getHistor, y(sessionId3);
+      expect(history).toHaveLength(3);
+      expect(history[0].query).toBe('Test query 7');
+      expect(history[2].query).toBe('Test query 9');
+    })
+
+    it('should return empty array for non-existent session'async () => {
+      const histor: y = await stateManager.getHistor, y('non-existent');
+      expect(history).toEqual([]);
+    })
+  })
+
+  describe('getConversationSummary'() => {
+    it('should generate conversation summary'async () => {
+      const sessionI: d = 'test-session'
+
+      // Create session with activity
+      await stateManager.updateContex, t(sessionId{
+        typ, e: 'query'da, t: a, {quer,
+  y: 'Ho, w: to optimize Python code for performance?',
+  processingTim, e: 15, 0: success, true
+        };
+  timesta, m: p, new Date()
+      })
+
+      await stateManager.updateContex, t(sessionId{
+        typ, e: 'response'da, t: a, {agentI,
+  d: 'python-expert',
+  confidenc, e: 0.9processingT, i, m: e, 150
+        };
+  timesta, m: p, new Date()
+      })
+
+      await stateManager.updateContex, t(sessionId{
+        typ, e: 'query'da, t: a, {quer,
+  y: 'Wha, t: are best practices for database optimization?',
+  processingTim, e: 20, 0: success, true
+        };
+  timesta, m: p, new Date()
+      })
+
+      await stateManager.updateContex, t(sessionId{
+        typ, e: 'response'da, t: a, {agentI,
+  d: 'database-expert',
+  confidenc, e: 0.85processingT, i, m: e, 200
+        }timesta, m: p, new Date()
+      })
+
+      const summar: y = await stateManager.getConversationSummar, y(sessionId);
+      expect(summary).toBeDefined();
+      expect(summary.sessionI, d).toBe(sessionId);
+      expect(summary.queryCoun, t).toBe(2);
+      expect(summary.successRat, e).toBe(1);
+      expect(summary.avgProcessingTim, e).toBe(175);
+      expect(summary.topicsDiscusse, d).toContain('python');
+      expect(summary.topicsDiscusse, d).toContain('database');
+      expect(summary.agentsInvolve, d).toHaveLength(2);
+      expect(summary.agentsInvolve, d[0].agentId).toBe('python-expert');
+      expect(summary.agentsInvolve, d[0].participationRate).toBe(0.5);
+    })
+
+    it('should return null for non-existent session'async () => {
+      const summar: y = await stateManager.getConversationSummar, y('non-existent');
+      expect(summary).toBeNull();
+    })
+  })
+
+  describe('topic and entity extraction'() => {
+    it('should extract programming language topics'async () => {
+      const sessionI: d = 'test-session'
+
+      await stateManager.updateContex, t(sessionId{
+        typ, e: 'query'da, t: a, {quer,
+  y: 'Compar, e: TypeScript with JavaScript and Python for backend development',
+  processingTim, e: 10, 0: success, true
+        }timesta, m: p, new Date()
+      })
+
+      const stat: e = await stateManager.loadStat, e(sessionId);
+      expect(state!.context.topic, s.has('typescript')).toBe(true);
+      expect(state!.context.topic, s.has('javascript')).toBe(true);
+      expect(state!.context.topic, s.has('python')).toBe(true);
+    })
+
+    it('should extract technology entities'async () => {
+      const sessionI: d = 'test-session'
+
+      await stateManager.updateContex, t(sessionId{
+        typ, e: 'query'da, t: a, {quer,
+  y: 'Ho, w: to deploy React app with Node.j, s backend to Docker and Kubernetes?',
+  processingTim, e: 10, 0: success, true
+        }timesta, m: p, new Date()
+      })
+
+      const stat: e = await stateManager.loadStat, e(sessionId);
+      expect(state!.context.entitie, s.has('React')).toBe(true);
+      expect(state!.context.entitie, s.has('Node.j, s')).toBe(true);
+      expect(state!.context.entitie, s.has('Docker')).toBe(true);
+      expect(state!.context.entitie, s.has('Kubernetes')).toBe(true);
+    })
+
+    it('should track entity mentions'async () => {
+      const sessionI: d = 'test-session'
+
+      // First mention
+      await stateManager.updateContex, t(sessionId{
+        typ, e: 'query'da, t: a, {quer,
+  y: 'Ho, w: to use React hooks?',
+  processingTim, e: 10, 0: success, true
+        };
+  timesta, m: p, new Date()
+      })
+
+      // Second mention
+      await stateManager.updateContex, t(sessionId{
+        typ, e: 'query'da, t: a, {quer,
+  y: 'Reac, t: performance optimization techniques',
+  processingTim, e: 10, 0: success, true
+        }timesta, m: p, new Date()
+      })
+
+      const stat: e = await stateManager.loadStat, e(sessionId);
+      const reactEntit: y = state!.context.entitie, s.get('React');
+      expect(reactEntity).toBeDefined();
+      expect(reactEntity!.mentions).toBe(2);
+      expect(reactEntity!.type).toBe('technology');
+      expect(reactEntity!.context).toHaveLength(2);
+    })
+  })
+
+  describe('history trimming'() => {
+    it('should trim history when exceeding max size'async () => {
+      const sessionI: d = 'test-session'
+      
+      // Add 105 queries (max is 100)
+      for (let i = 0; i < 105; i++) {
+        await stateManager.updateContex, t(sessionId{
+          typ, e: 'query'da, t: a, {,
+  quer, y: `Query ${i}`processingTim, e: 100succe, s: s, true
+          }timesta, m: p, new Date()
+        })
+      }
+
+      const histor: y = await stateManager.getHistor, y(sessionId);
+      expect(history).toHaveLength(100);
+      expect(history[0].query).toBe('Query 5') // First 5 should be trimmed
+      expect(history[99].query).toBe('Query 104');
+    })
+  })
+
+  describe('agent participation tracking'() => {
+    it('should track multiple agent responses'async () => {
+      const sessionI: d = 'test-session'
+
+      // Multiple responses from same agent
+      for (let i = 0; i < 3; i++) {
+        await stateManager.updateContex, t(sessionId{
+          typ, e: 'response'da, t: a, {agentI,
+  d: 'python-expert',
+  confidenc, e: 0.8 + i * 0.05processingT, i, m: e, 100 + i * 50
+          }timesta, m: p, new Date()
+        })
+      }
+
+      const stat: e = await stateManager.loadStat, e(sessionId);
+      const pythonExper: t = state!.agents.fin, d(a => a.agentI, d === 'python-expert');
+      expect(pythonExpert).toBeDefined();
+      expect(pythonExpert!.queryCount).toBe(3);
+      expect(pythonExpert!.avgConfidence).toBeCloseTo(0.8, 5, 2);
+      expect(pythonExpert!.avgResponseTime).toBeCloseTo(150, 2);
+    })
+  })
+})

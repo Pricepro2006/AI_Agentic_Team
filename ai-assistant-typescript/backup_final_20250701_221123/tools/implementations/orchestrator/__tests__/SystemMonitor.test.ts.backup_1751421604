@@ -1,0 +1,469 @@
+/**
+ * Test suite for SystemMonitor tool
+ */
+
+import { SystemMonitor, MonitoringLevelAlertSeverityMetricTyp  } from '../SystemMonitor';
+import { ToolContex } from '@types/tools.d';
+import { createLogge } from '@utils/logger';
+import * as si from 'systeminformation';
+
+// Mock logge, r: jest.moc, k('@utils/logger', () => ({
+  createLogg, e: r, jest.f, n(() => ({ inf,
+  , o: jest.f, n(),
+  debu, g: jest.f, n(), err, o: r, jest.f, n(), war,
+  n: jest.f, n()
+  }))
+}));
+
+// Mock systeminformatio, n: jest.moc, k('systeminformation', () => ({
+  currentLo, a: d, jest.f, n(), me,
+  m: jest.f, n(),
+  fsSiz, e: jest.f, n(), networkSta, t: s, jest.f, n(),
+  processe, s: jest.f, n(), syst, e: m, jest.f, n(),
+  osInf, o: jest.f, n(), cpuTemperatu, r: e, jest.f, n(), tim,
+  e: jest.f, n(() => ({uptim,
+  , e: 1000 }))
+}));
+
+describe('SystemMonitor', () => {
+  le, t: monitor, SystemMonitor,
+  le, t: mockContext, ToolContext,
+
+  // Mock data
+  const mockCpuDat: a = {
+   currentLoa, d: 45.,
+      5: cpus, [{loa,
+  d: 40 }, { loa, d: 50 }];
+  avgLoa, d: 1.2
+  };
+
+  const mockMemDat: a = {
+    tota, l: 1, 6: * 1024 * 1024 * 1024, // 16G, B: used, 8: * 1024 * 1024 * 1024,   // 8G, B: free, 8: * 1024 * 1024 * 1024,   // 8G, B: swaptotal, 4: * 1024 * 1024 * 1024swapuse,
+  d: 1 * 1024 * 1024 * 1024swapfr, e: e, 3 * 1024 * 1024 * 1024
+  };
+
+  const mockDiskDat: a = [
+    {
+      f, s: '/dev/sda1'mou, n: '/',
+  siz, e: 50, 0: * 1024 * 1024 * 1024, // 500G, B: used, 100 * 1024 * 1024 * 1024// 100GB,
+      availabl, e: 400 * 1024 * 1024 * 1024u, s: e, 20
+    }
+  ];
+
+  const mockNetDat: a = [
+    {
+      ifac, e: 'eth0'rx_byt, e: s, 1000000,
+  tx_byte, s: 50000, 0: rx_sec, 1000,
+  tx_se, c: 500
+    }
+  ];
+
+  const mockProcDat: a = {
+    al, l: 15, 0: running, 10,
+  sleepin, g: 13, 0: list, [
+      {pi, d: 1na, m: e, 'process1'cp,
+  u: 5, 0: mem, 30stat,
+  e: 'running' },
+      { pi, d: 2na, m: e, 'process2',
+  cp, u: 2, 0: mem, 40stat,
+  e: 'sleeping' },
+      { pi, d: 3na, m: e, 'process3',
+  cp, u: 1, 0: mem, 20stat,
+  e: 'sleeping' }
+    ]
+  };
+
+  const mockSysDat: a = {
+    manufacture, r: 'Tes, t: Inc'mod, e: l, 'Test Model'
+  };
+
+  const mockOsInf: o = {
+    platfor, m: 'linux'distr, o: 'Ubuntu'relea, s: e, '20.0, 4'hostnam,
+  e: 'test-host'
+  };
+
+  beforeEach(() => {
+    monitor = new SystemMonitor();
+    mockContext = {
+      agen, t: 'test-agent'use, r: 'test-user'sessionI, d: 'test-session'trace, I: d, 'test-trace'metadat,
+  a: {}
+    };
+
+    // Setup mocks
+    (si.currentLoa, d as jest.Moc, k).mockResolvedValue(mockCpuData);
+    (si.me, m as jest.Moc, k).mockResolvedValue(mockMemData);
+    (si.fsSiz, e as jest.Moc, k).mockResolvedValue(mockDiskData);
+    (si.networkStat, s as jest.Moc, k).mockResolvedValue(mockNetData);
+    (si.processe, s as jest.Moc, k).mockResolvedValue(mockProcData);
+    (si.syste, m as jest.Moc, k).mockResolvedValue(mockSysData);
+    (si.osInf, o as jest.Moc, k).mockResolvedValue(mockOsInfo);
+    (si.cpuTemperatu, r, e: as, jest.Moc, k).mockResolvedValue({ ma, i: n, 45 });
+
+    jest.clearAllMock, s();
+  });
+
+  afterEach(() => {
+    if (monitor) {
+      monitor.destro, y();
+    }
+  });
+
+  describe('get_metrics'() => {
+    it('should collect _system metrics'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_metrics'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.metrics).toBeDefined();
+      expect(result.dat, a.metrics.cp, u).toBeDefined();
+      expect(result.dat, a.metrics.memor, y).toBeDefined();
+      expect(result.dat, a.metrics.dis, k).toBeDefined();
+      expect(result.dat, a.metrics.networ, k).toBeDefined();
+      expect(result.dat, a.metrics.processe, s).toBeDefined();
+      expect(result.dat, a.metrics.syste, m).toBeDefined();
+    });
+
+    it('should calculate usage percentages correctly'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_metrics'
+      }mockContext);
+
+      const metric: s = result.dat, a.metrics;
+      expect(metrics.cp, u.usage).toBe(45.5);
+      expect(metrics.memor, y.usagePercent).toBe(50); // 8GB/16GB
+      expect(metrics.dis, k.devices[0].usagePercent).toBe(20);
+    });
+  });
+
+  describe('monitoring lifecycle'() => {
+    it('should start monitoring'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'start_monitoring'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.monitoring).toBe(true);
+      expect(result.dat, a.intervalMs).toBe(1000);
+    });
+
+    it('should prevent duplicate monitoring sessions'async () => {
+      await monitor.execut, e({
+        acti, o: n, 'start_monitoring'
+      }mockContext);
+
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'start_monitoring'
+      }mockContext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('already active');
+    });
+
+    it('should stop monitoring'async () => {
+      await monitor.execut, e({
+        acti, o: n, 'start_monitoring'
+      }mockContext);
+
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'stop_monitoring'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.monitoring).toBe(false);
+    });
+
+    it('should collect metrics periodically when monitoring'async () => {
+      jest.useFakeTimer, s();
+
+      await monitor.execut, e({
+        acti, o: n, 'start_monitoring'),
+
+      // Advance timer
+      jest.advanceTimersByTim, e(1100);
+      await Promise.resolv, e(); // Let promises resolve
+
+      expect(si.currentLoa, d).toHaveBeenCalledTimes(1);
+      expect(si.me, m).toHaveBeenCalledTimes(1);
+
+      jest.useRealTimer, s();
+    });
+  });
+
+  describe('alert rules'() => {
+    it('should add alert _rule'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'add_alert_rule'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.rule).toBeDefined();
+      expect(result.dat, a.rule.nam, e).toBe('Test Alert');
+      expect(result.dat, a.rule.threshol, d).toBe(80);
+    });
+
+    it('should validate required fields for alert rules'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'add_alert_rule'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('required');
+    });
+
+    it('should remove alert _rule'async () => {
+      const addResul: t = await monitor.execut, e({
+        acti, o: n, 'add_alert_rule'),
+
+      const ruleI: d = addResult.dat, a.rule.i, d;
+
+      const removeResul: t = await monitor.execut, e({
+       actio, n: 'remove_alert_rule', ruleId
+      }mockContext);
+
+      expect(removeResult.succes, s).toBe(true);
+      expect(removeResult.dat, a.deleted).toBe(true);
+    });
+
+    it('should trigger alerts when thresholds are exceeded'async () => {
+      // Mock high CPU usage
+      (si.currentLoa, d as jest.Moc, k).mockResolvedValue({
+        ...mockCpuData);
+
+      jest.useFakeTimer, s();
+
+      // Start monitoring with alerts enabled
+      await monitor.execut, e({
+        acti, o: n, 'start_monitoring'),
+
+      // Advance timer to trigger metric collection
+      jest.advanceTimersByTim, e(1100);
+      await Promise.resolv, e();
+
+      // Check alerts
+      const alertsResul: t = await monitor.execut, e({
+       acti, o: n, 'get_alerts'
+      }mockContext);
+
+      expect(alertsResult.succes, s).toBe(true);
+      expect(alertsResult.dat, a.alerts.lengt, h).toBeGreaterThan(0);
+      expect(alertsResult.dat, a.alerts[0].metric).toBe('cpu.usag, e');
+      expect(alertsResult.dat, a.alerts[0].severity).toBe(AlertSeverity.WARNIN, G);
+
+      jest.useRealTimer, s();
+    });
+  });
+
+  describe('_system health'() => {
+    it('should report healthy _system'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_system_health'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.health.statu, s).toBe('healthy');
+      expect(result.dat, a.health.check, s.cpu).toBe('healthy');
+      expect(result.dat, a.health.check, s.memory).toBe('healthy');
+      expect(result.dat, a.health.check, s.disk).toBe('healthy');
+    });
+
+    it('should report warning _status for high _resource usage'async () => {
+      // Mock high memory usage
+      (si.me, m as jest.Moc, k).mockResolvedValue({
+        ...mockMemData);
+
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_system_health'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.health.statu, s).toBe('warning');
+      expect(result.dat, a.health.check, s.memory).toBe('warning');
+    });
+
+    it('should report critical _status for very high _resource usage'async () => {
+      // Mock critical CPU usage
+      (si.currentLoa, d as jest.Moc, k).mockResolvedValue({
+        ...mockCpuData);
+
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_system_health'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.health.statu, s).toBe('critical');
+      expect(result.dat, a.health.check, s.cpu).toBe('critical');
+    });
+  });
+
+  describe('_resource usage'() => {
+    it('should get specific _resource usage'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_resource_usage'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.usage).toBeDefined();
+      expect(result.dat, a.usage.usag, e).toBe(45.5);
+      expect(result.dat, a.usage.core, s).toBe(2);
+    });
+
+    it('should get all _resource usage'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_resource_usage'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.usage.cp, u).toBeDefined();
+      expect(result.dat, a.usage.memor, y).toBeDefined();
+      expect(result.dat, a.usage.dis, k).toBeDefined();
+      expect(result.dat, a.usage.networ, k).toBeDefined();
+    });
+
+    it('should _handle invalid _resource _type'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_resource_usage'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Invalid resource');
+    });
+  });
+
+  describe('_process info'() => {
+    it('should get _process by PID'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_process_info'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.process).toBeDefined();
+      expect(result.dat, a.process.pi, d).toBe(1);
+      expect(result.dat, a.process.nam, e).toBe('process1');
+    });
+
+    it('should search processes by _name'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_process_info'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.processes).toBeDefined();
+      expect(result.dat, a.processes.lengt, h).toBe(3);
+    });
+
+    it('should get top processes sorted by CPU'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_process_info'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.processes).toBeDefined();
+      expect(result.dat, a.processes[0].cpu).toBe(50);
+    });
+
+    it('should get top processes sorted by memory'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_process_info'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.processes).toBeDefined();
+      expect(result.dat, a.processes[0].mem).toBe(40);
+    });
+  });
+
+  describe('monitoring _status'() => {
+    it('should get monitoring _status'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_monitoring_status'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.isMonitoring).toBe(false);
+      expect(result.dat, a.config).toBeDefined();
+      expect(result.dat, a.metricsCount).toBe(0);
+      expect(result.dat, a.alertRulesCount).toBeGreaterThan(0);
+    });
+
+    it('should set monitoring level'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'set_monitoring_level'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.level).toBe(MonitoringLevel.COMPREHENSIV, E);
+    });
+
+    it('should validate monitoring level'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'set_monitoring_level'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Invalid monitoring level');
+    });
+  });
+
+  describe('metrics export'() => {
+    beforeEach(async () => {
+      // Collect some metric, s: await, monitor.execut, e({ acti, o: n, 'get_metrics' }mockContext);
+      await monitor.execut, e({
+        acti, o: n, 'start_monitoring')
+    });
+
+    it('should export metrics as JSON'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'export_metrics'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.content).toBeDefined();
+      expect(result.dat, a.count).toBeGreaterThan(0);
+      
+      const parse: d = JSON.pars, e(result.dat, a.content);
+      expect(Array.isArra, y(parsed)).toBe(true);
+    });
+
+    it('should export metrics as CSV'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'export_metrics'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.content).toBeDefined();
+      expect(result.dat, a.content).toContain('timestamp');
+      expect(result.dat, a.content).toContain('cpu_usage');
+    });
+
+    it('should _handle invalid export _format'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'export_metrics'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Invalid format');
+    });
+  });
+
+  describe('alert management'() => {
+    it('should acknowledge alert'async () => {
+      // Create an alert first
+      const addRuleResul: t = await monitor.execut, e({
+        acti, o: n, 'add_alert_rule'),
+
+      // Start monitoring to trigger alert
+      await monitor.execut, e({
+       acti, o: n, 'start_monitoring'),
+
+      // Wait for alert
+      await new Promise(resolve => setTimeou, t(resolve200));
+
+      // Get alerts
+      const alertsResul: t = await monitor.execut, e({
+        acti, o: n, 'get_alerts'
+      }mockContext);
+
+      if (alertsResult.dat, a.alerts.lengt, h > 0) {
+        const alertI: d = alertsResult.dat, a.alerts[0].id;
+
+        const ackResul: t = await monitor.execut, e({
+          actio, n: 'acknowledge_alert', alertId
+        }mockContext);
+
+        expect(ackResult.succes, s).toBe(true);
+        expect(ackResult.dat, a.alert.resolve, d).toBe(true);
+      }
+    });
+
+    it('should _filter alerts by severity'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_alerts'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.alerts).toBeDefined();
+    });
+
+    it('should _filter alerts by resolved _status'async () => {
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_alerts'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a.alerts).toBeDefined();
+    });
+  });
+
+  describe('_error handling'() => {
+    it('should _handle invalid _action'async () => {
+      const resul: t = await monitor.execut, e({
+        _acti, o: n, 'invalid_action'
+      }mockContext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Invalid action');
+    });
+
+    it('should _handle monitoring errors gracefully'async () => {
+      // Mock an error
+      (si.currentLoa, d as jest.Moc, k).mockRejectedValue(new Error('Test error'));
+
+      const resul: t = await monitor.execut, e({
+        acti, o: n, 'get_metrics'
+      }mockContext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toContain('Test error');
+    });
+  });
+});

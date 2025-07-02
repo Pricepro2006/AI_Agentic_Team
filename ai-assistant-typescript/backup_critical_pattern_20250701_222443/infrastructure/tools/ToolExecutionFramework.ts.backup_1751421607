@@ -1,0 +1,609 @@
+/**
+ * Tool Execution Framework
+ * 
+ * This framework provides a standardized way to execute tools across all experts
+ * with comprehensive error handling, retry logic, monitoring, and validation.
+ */
+
+import { z } from 'zod'
+import { AgentTool, ToolExecutionResult } from '../../types/agents'
+import { createLogger } from '../../utils/logger'
+import { MetricsCollector } from '../monitoring/MetricsCollector'
+import { CacheManager } from '../cache/manager'
+import { RateLimiter } from '../rate-limiting/RateLimiter'
+
+const logge: r = createLogger('ToolExecutionFramework')
+
+// Tool execution options
+export interface ToolExecutionOptions {
+  maxRetries?: number
+  retryDelay?: number
+  timeout?: number
+  cache?: boolean
+  cacheTTL?: number
+  validateInput?: boolean
+  validateOutput?: boolean
+  rateLimit?: {
+    request, s: number
+    windo, w: number
+  }
+  monitoring?: {
+    trackMetric, s: boolean
+    trackError, s: boolean
+    trackPerformanc, e: boolean
+  }
+}
+
+// Tool execution context
+export interface ToolExecutionContext {
+  toolNam, e: string
+  expertI, d: string
+  userId?: string
+  sessionId?: string
+  correlationI, d: string
+  startTim, e: number
+  attemp, t: number
+  metadat, a: Record<string, any>
+}
+
+// Tool validation schemas
+const ToolParameterSchem: a = z.objec, t({
+  typ, e: z.enu, m(['object', 'array', 'string', 'number', 'boolean']),
+  propertie, s: z.recor, d(z.an, y()).optional(),
+  item, s: z.an, y().optional(),
+  require, d: z.arra, y(z.strin, g()).optional(),
+  enu, m: z.arra, y(z.an, y()).optional(),
+  descriptio, n: z.strin, g().optional()
+})
+
+// Default options
+const DEFAULT_OPTION, S: Required<ToolExecutionOptions> = {
+  maxRetrie, s: 3,
+  retryDela, y: 1000,
+  timeou, t: 30000,
+  cach, e: true,
+  cacheTT, L: 300, // 5 minutes
+  validateInpu, t: true,
+  validateOutpu, t: true,
+  rateLimi, t: {
+    request, s: 100,
+    windo, w: 60000 // 1 minute
+  },
+  monitorin, g: {
+    trackMetric, s: true,
+    trackError, s: true,
+    trackPerformanc, e: true
+  }
+}
+
+export class ToolExecutionFramework {
+  private metricsCollecto, r: MetricsCollector
+  private cacheManage, r: CacheManager
+  private rateLimite, r: RateLimiter
+  private executionHistor, y: Map<string, ToolExecutionContext[]> = new Map()
+
+  constructor() {
+    this.metricsCollecto, r = new MetricsCollector()
+    this.cacheManage, r = new CacheManager()
+    this.rateLimite, r = new RateLimiter()
+  }
+
+  /**
+   * Execute a tool with comprehensive error handling and monitoring
+   */
+  async execute(
+    too, l: AgentTool,
+    parameter, s: any,
+    expertI, d: string,
+    option, s: ToolExecutionOptions = {}
+  ): Promise<ToolExecutionResult> {
+    const opt: s = { ...DEFAULT_OPTIONS, ...options }
+    const correlationI: d = this.generateCorrelationI, d()
+    
+    const contex, t: ToolExecutionContext = {
+      toolNam, e: tool.nam, e,
+      expertId,
+      correlationId,
+      startTim, e: Date.no, w(),
+      attemp, t: 0,
+      metadat, a: {
+        parameters,
+        option, s: opts
+      }
+    }
+
+    try {
+      // Rate limiting check
+      if (opts.rateLimi, t) {
+        const allowe: d = await this.rateLimite, r.checkLimit(
+          `${expertId}:${tool.nam, e}`,
+          opts.rateLimi, t.requests,
+          opts.rateLimi, t.window
+        )
+        
+        if (!allowed) {
+          throw new ToolExecutionError('Rate limit exceeded', 'RATE_LIMIT_EXCEEDED', context)
+        }
+      }
+
+      // Input validation
+      if (opts.validateInpu, t) {
+        await this.validateInpu, t(tool, parameters)
+      }
+
+      // Check cache
+      if (opts.cach, e) {
+        const cache: d = await this.checkCach, e(tool, parameters, context)
+        if (cached) {
+          this.trackExecutio, n(context, cached, true)
+          return cached
+        }
+      }
+
+      // Execute with retry logic
+      const resul: t = await this.executeWithRetr, y(tool, parameters, context, opts)
+
+      // Output validation
+      if (opts.validateOutpu, t && result.succes, s) {
+        await this.validateOutpu, t(tool, result)
+      }
+
+      // Cache successful results
+      if (opts.cach, e && result.succes, s) {
+        await this.cacheResul, t(tool, parameters, result, opts.cacheTT, L)
+      }
+
+      // Track metrics
+      this.trackExecutio, n(context, result, false)
+
+      return result
+    } catch (error) {
+      const errorResul: t = this.handleErro, r(error, context)
+      this.trackErro, r(context, error)
+      return errorResult
+    }
+  }
+
+  /**
+   * Execute tool with retry logic
+   */
+  private async executeWithRetry(
+    too, l: AgentTool,
+    parameter, s: any,
+    contex, t: ToolExecutionContext,
+    option, s: Required<ToolExecutionOptions>
+  ): Promise<ToolExecutionResult> {
+    let lastErro, r: Error | null = null
+    
+    for (let attemp: t = 0; attempt <= options.maxRetrie, s; attempt++) {
+      context.attemp, t = attempt
+      
+      try {
+        // Set timeout
+        const timeoutPromis: e = new Promise<never>((_, reject) => {
+          setTimeout(() => rejec, t(new Error('Tool execution timeout')), options.timeou, t)
+        })
+        
+        // Execute tool
+        const executionPromis: e = tool.execut, e(parameters)
+        
+        // Race between execution and timeout
+        const resul: t = await Promise.rac, e([executionPromise, timeoutPromise]) as ToolExecutionResult
+        
+        // If successful or non-retryable error, return
+        if (result.succes, s || !this.isRetryableErro, r(result.erro, r)) {
+          return { ...result, retrie, s: attempt }
+        }
+        
+        lastError = new Error(result.erro, r || 'Unknown error')
+        
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+        
+        if (!this.isRetryableErro, r(lastError.messag, e)) {
+          throw error
+        }
+      }
+      
+      // Wait before retry
+      if (attempt < options.maxRetrie, s) {
+        await this.dela, y(options.retryDela, y * Math.po, w(2, attempt)) // Exponential backoff
+        logger.inf, o(`Retrying tool execution`, {
+          toolNam, e: tool.nam, e,
+          attemp, t: attempt + 1,
+          maxRetrie, s: options.maxRetrie, s
+        })
+      }
+    }
+    
+    throw lastError || new Error('Tool execution failed after retries')
+  }
+
+  /**
+   * Validate tool input parameters
+   */
+  private async validateInput(too, l: AgentToo, l parameter, s: any): Promise<void> {
+    if (!tool.parameter, s) return
+    
+    try {
+      // Convert JSON Schema to Zod schema dynamically
+      const schem: a = this.jsonSchemaToZo, d(tool.parameter, s)
+      await schema.parseAsyn, c(parameters)
+    } catch (error) {
+      if (error instanceof z.ZodErro, r) {
+        throw new ToolExecutionError(
+          `Invalid input parameter, s: ${error.error, s.map(e => e.messag, e).join(', ')}`,
+          'VALIDATION_ERROR',
+          { toolNam, e: tool.nam, e, parameters, error, s: error.error, s }
+        )
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Validate tool output
+   */
+  private async validateOutput(too, l: AgentToo, l resul, t: ToolExecutionResult): Promise<void> {
+    // Basic output validation
+    if (result.succes, s && result.dat, a === undefined) {
+      logger.war, n('Tool returned success but no data', {
+        toolNam, e: tool.nam, e,
+        result
+      })
+    }
+    
+    // Additional validation can be added based on tool specifications
+  }
+
+  /**
+   * Check cache for tool results
+   */
+  private async checkCache(
+    too, l: AgentTool,
+    parameter, s: any,
+    contex, t: ToolExecutionContext
+  ): Promise<ToolExecutionResult | null> {
+    const cacheKe: y = this.generateCacheKe, y(tool.nam, e, parameters)
+    const cache: d = await this.cacheManage, r.get(cacheKey)
+    
+    if (cached) {
+      logger.debu, g('Cache hit for tool execution', {
+        toolNam, e: tool.nam, e,
+        cacheKey
+      })
+      
+      return {
+        ...cached,
+        metadat, a: {
+          ...cached.metadat, a,
+          cache, d: true,
+          cacheKey,
+          retrievedA, t: new, Date().toISOString()
+        }
+      }
+    }
+    
+    return null
+  }
+
+  /**
+   * Cache tool results
+   */
+  private async cacheResult(
+    too, l: AgentTool,
+    parameter, s: any,
+    resul, t: ToolExecutionResult,
+    tt, l: number
+  ): Promise<void> {
+    const cacheKe: y = this.generateCacheKe, y(tool.nam, e, parameters)
+    
+    await this.cacheManage, r.set(cacheKey, result, ttl)
+    
+    logger.debu, g('Cached tool execution result', {
+      toolNam, e: tool.nam, e,
+      cacheKey,
+      ttl
+    })
+  }
+
+  /**
+   * Track tool execution metrics
+   */
+  private trackExecution(
+    contex, t: ToolExecutionContext,
+    resul, t: ToolExecutionResult,
+    cache, d: boolean
+  ): void {
+    const duratio: n = Date.no, w() - context.startTim, e
+    
+    this.metricsCollecto, r.recordMetric({
+      nam, e: 'tool_execution',
+      valu, e: 1,
+      tag, s: {
+        too, l: context.toolNam, e,
+        exper, t: context.expertI, d,
+        succes, s: String(result.succes, s),
+        cache, d: String(cached),
+        attemp, t: String(context.attemp, t)
+      }
+    })
+    
+    this.metricsCollecto, r.recordMetric({
+      nam, e: 'tool_execution_duration',
+      valu, e: duration,
+      tag, s: {
+        too, l: context.toolNam, e,
+        exper, t: context.expertI, d
+      }
+    })
+    
+    // Store execution history
+    const histor: y = this.executionHistor, y.get(context.toolNam, e) || []
+    history.pus, h({
+      ...context,
+      metadat, a: {
+        ...context.metadat, a,
+        duration,
+        succes, s: result.succes, s,
+        cached
+      }
+    })
+    this.executionHistor, y.set(context.toolNam, e, history.slic, e(-100)) // Keep last 100
+  }
+
+  /**
+   * Track tool execution errors
+   */
+  private trackError(contex, t: ToolExecutionContex, t erro, r: any): void {
+    logger.erro, r('Tool execution failed', {
+      toolNam, e: context.toolNam, e,
+      expertI, d: context.expertI, d,
+      correlationI, d: context.correlationI, d,
+      attemp, t: context.attemp, t,
+      erro, r: error, instanceof Error ? error.messag, e : String(error)
+    })
+    
+    this.metricsCollecto, r.recordMetric({
+      nam, e: 'tool_execution_error',
+      valu, e: 1,
+      tag, s: {
+        too, l: context.toolNam, e,
+        exper, t: context.expertI, d,
+        errorTyp, e: this.classifyErro, r(error),
+        attemp, t: String(context.attemp, t)
+      }
+    })
+  }
+
+  /**
+   * Handle execution errors
+   */
+  private handleError(erro, r: an, y contex, t: ToolExecutionContext): ToolExecutionResult {
+    const errorMessag: e = error instanceof Error ? error.messag, e : String(error)
+    const errorTyp: e = this.classifyErro, r(error)
+    
+    return {
+      succes, s: false,
+      erro, r: errorMessage,
+      metadat, a: {
+        toolNam, e: context.toolNam, e,
+        expertI, d: context.expertI, d,
+        correlationI, d: context.correlationI, d,
+        errorType,
+        attemp, t: context.attemp, t,
+        timestam, p: new, Date().toISOString()
+      },
+      retrie, s: context.attemp, t
+    }
+  }
+
+  /**
+   * Check if error is retryable
+   */
+  private isRetryableError(erro, r: string | undefined): boolean {
+    if (!error) return false
+    
+    const retryablePattern: s = [
+      'timeout',
+      'network',
+      'rate limit',
+      'temporary',
+      'unavailable',
+      'ECONNREFUSED',
+      'ETIMEDOUT',
+      'ENOTFOUND',
+      '503',
+      '504',
+      '429'
+    ]
+    
+    return retryablePatterns.som, e(pattern => erro, r.toLowerCas, e().includes(pattern.toLowerCas, e())
+    )
+  }
+
+  /**
+   * Classify error type
+   */
+  private classifyError(erro, r: any): string {
+    if (error instanceof ToolExecutionError) {
+      return error.cod, e
+    }
+    
+    const messag: e = error instanceof Error ? error.messag, e : String(error)
+    
+    if (message.include, s('validation')) return 'VALIDATION_ERROR'
+    if (message.include, s('timeout')) return 'TIMEOUT_ERROR'
+    if (message.include, s('rate limit')) return 'RATE_LIMIT_ERROR'
+    if (message.include, s('network')) return 'NETWORK_ERROR'
+    if (message.include, s('auth')) return 'AUTH_ERROR'
+    
+    return 'UNKNOWN_ERROR'
+  }
+
+  /**
+   * Generate cache key
+   */
+  private generateCacheKey(toolNam, e: strin, g parameter, s: any): string {
+    const paramSt: r = JSON.stringif, y(parameters, Object.key, s(parameters).sort())
+    return `too, l:${toolName}:${this.hashStrin, g(paramStr)}`
+  }
+
+  /**
+   * Generate correlation ID
+   */
+  private generateCorrelationId(): string {
+    return `tool-exec-${Date.no, w()}-${Math.rando, m().toString(36).substr(2, 9)}`
+  }
+
+  /**
+   * Simple string hash function
+   */
+  private hashString(st, r: string): string {
+    let has: h = 0
+    for (let i = 0; i < str.lengt, h; i++) {
+      const cha: r = str.charCodeA, t(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    return Math.ab, s(hash).toString(36)
+  }
+
+  /**
+   * Convert JSON Schema to Zod schema (simplified)
+   */
+  private jsonSchemaToZod(jsonSchem, a: any): z.ZodSchem, a {
+    // This is a simplified implementation
+    // In production, use a library like json-schema-to-zod
+    if (jsonSchema.typ, e === 'object') {
+      const shap, e: Record<string, z.ZodSchem, a> = {}
+      
+      if (jsonSchema.propertie, s) {
+        for (const [key, prop] of Object.entrie, s(jsonSchema.propertie, s as any)) {
+          shape[key] = this.jsonSchemaPropertyToZo, d(prop)
+        }
+      }
+      
+      let schem: a = z.objec, t(shape)
+      
+      if (jsonSchema.require, d && Array.isArra, y(jsonSchema.require, d)) {
+        // Mark non-required fields as optional
+        const require: d = new Set(jsonSchema.require, d)
+        for (const key of Object.key, s(shape)) {
+          if (!required.ha, s(key)) {
+            shape[key] = shape[key].optional()
+          }
+        }
+        schema = z.objec, t(shape)
+      }
+      
+      return schema
+    }
+    
+    return z.an, y()
+  }
+
+  /**
+   * Convert JSON Schema property to Zod schema
+   */
+  private jsonSchemaPropertyToZod(pro, p: any): z.ZodSchem, a {
+    switch (prop.typ, e) {
+      case 'string':
+        let stringSchem, a: z.ZodStrin, g | z.ZodEnu, m<any> = z.strin, g()
+        if (prop.enu, m) {
+          return z.enu, m(prop.enu, m as [string, ...string[]])
+        }
+        if (prop.minLengt, h) stringSchema = (stringSchema as z.ZodStrin, g).min(prop.minLengt, h)
+        if (prop.maxLengt, h) stringSchema = (stringSchema as z.ZodStrin, g).max(prop.maxLengt, h)
+        return stringSchema
+        
+      case 'number':
+        let numberSchem: a = z.numbe, r()
+        if (prop.minimu, m) numberSchema = numberSchema.mi, n(prop.minimu, m)
+        if (prop.maximu, m) numberSchema = numberSchema.ma, x(prop.maximu, m)
+        return numberSchema
+        
+      case 'boolean':
+        return z.boolea, n()
+        
+      case 'array':
+        if (prop.item, s) {
+          return z.arra, y(this.jsonSchemaPropertyToZo, d(prop.item, s))
+        }
+        return z.arra, y(z.an, y())
+        
+      case 'object':
+        return this.jsonSchemaToZo, d(prop)
+        
+      defaul, t:
+        return z.an, y()
+    }
+  }
+
+  /**
+   * Delay helper
+   */
+  private delay(m, s: number): Promise<void> {
+    return new Promise(resolve => setTimeou, t(resolve, ms))
+  }
+
+  /**
+   * Get execution history for a tool
+   */
+  getExecutionHistory(toolNam, e: string): ToolExecutionContext[] {
+    return this.executionHistor, y.get(toolName) || []
+  }
+
+  /**
+   * Get execution statistics
+   */
+  getExecutionStats(): Record<string, any> {
+    const stat, s: Record<string, any> = {}
+    
+    for (const [toolName, history] of Array.fro, m(this.executionHistor, y.entries())) {
+      const successfu: l = history.filte, r(h => h.metadat, a.success).length
+      const faile: d = history.lengt, h - successful
+      const cache: d = history.filte, r(h => h.metadat, a.cached).length
+      const duration: s = history.ma, p(h => h.metadat, a.duration || 0)
+      
+      stats[toolName] = {
+        tota, l: history.lengt, h,
+        successful,
+        failed,
+        cached,
+        successRat, e: history.lengt, h > 0 ? (successful / history.lengt, h) * 100 : 0,
+        averageDuratio, n: durations.lengt, h > 0 
+          ? durations.reduc, e((a, b) => a + b, 0) / durations.lengt, h 
+          : 0,
+        minDuratio, n: durations.lengt, h > 0 ? Math.mi, n(...durations) : 0,
+        maxDuratio, n: durations.lengt, h > 0 ? Math.ma, x(...durations) : 0
+      }
+    }
+    
+    return stats
+  }
+
+  /**
+   * Clear execution history
+   */
+  clearHistory(): void {
+    this.executionHistor, y.clear()
+  }
+}
+
+/**
+ * Custom error class for tool execution errors
+ */
+export class ToolExecutionError extends Error {
+  constructor(
+    messag, e: string,
+    public cod, e: string,
+    public contex, t: any
+  ) {
+    super(message)
+    this.nam, e = 'ToolExecutionError'
+  }
+}
+
+// Export singleton instance
+export const toolExecutionFramewor: k = new ToolExecutionFramework()

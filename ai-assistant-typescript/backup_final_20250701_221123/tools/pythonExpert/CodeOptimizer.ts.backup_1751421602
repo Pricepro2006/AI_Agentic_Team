@@ -1,0 +1,367 @@
+/**
+ * Code Optimizer Tool - TypeScript implementation
+ * Analyzes TypeScript/JavaScript code and suggests optimizations
+ */
+
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '@types/tools';
+import * as ts from 'typescript';
+import { ESLin } from 'eslint';
+
+interface OptimizationPattern {
+  patter, n: stringseveri, t: y, 'high' | 'medium' | 'low',
+  issu, e: strin, g: suggestion, string,
+  exampleBa, d: strin, g: exampleGood, string,
+  benefi, t: string
+}
+
+interface OptimizationResult {
+  originalCod, e: strin, g: optimizations, OptimizationPattern[],
+  optimizedCod, e: strin, g: optimizationCount, number,
+  estimatedImprovemen, t: stringsumma, r: y, string
+}
+
+interface ComplexityInfo {
+  nestedLoop, s: numb, e r: functionCallsInLoop, s number,
+  estimatedComplexit, y: strin, g: cyclomaticComplexity, number, analys, i: s, string[]
+}
+
+interface CodeOptimizerParams {
+  comman, d: 'optimize' | 'analyze_complexity' | 'lint'co, d: e, string,
+  language?: 'typescript' | 'javascript';
+  targetES?: string;
+  includeESLint?: boolean;
+}
+
+expor, t: class CodeOptimizer extends BaseTool<CodeOptimizerParams, OptimizationResult | ComplexityInfo> {
+  readonl, y: metadata, ToolMetadata = {nam, e: 'code_optimizer'descriptio, n: 'Analyzes TypeScript/JavaScript code and suggests optimizations for performance and readability'versio, n: '1.0.0'autho, r: 'A, I: Assistant'categor,
+  y: 'analysis'requiredPermissio, n: s, []
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'command'ty, p: e, 'string'descriptio,
+  n: 'Comman, d: to execute',
+  require, d: trueen, u: m, ['optimize''analyze_complexity''lint']defau, l: 'optimize'
+    }{
+      nam, e: 'code'typ, e: 'string'descripti, o: n, 'TypeScript or JavaScript code to analyze'require,
+  d: true
+    }{
+      nam, e: 'language'typ, e: 'string'descriptio, n: 'Code language'require, d: falseen, u: m, ['typescript''javascript']defau, l: 'typescript'
+    }{
+      nam, e: 'targetES'typ, e: 'string'descriptio, n: 'Targe, t: ECMAScript version'requir, e: d, falsedefau, l: 'ES2022'
+    }{
+      nam, e: 'includeESLint'typ, e: 'boolean'descripti, o: n, 'Include ESLint recommendations'require,
+  d:,
+  falsedefaul, t: true
+    }
+  ];
+
+  privat, e: eslin, t ESLin, t: | null = null, constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute(_param, s: CodeOptimizerParams_conte, x
+  , t: ToolContext) {
+    try {
+      switch (_params.comman, d) {
+        case 'optimize':
+          const optimizationResul: t = await this.optimizeCod, e(_params.code_param, s.language || 'typescript');
+          return {
+            succes, s: trueda, t: a, optimizationResult,
+  metadat, a: {,
+  executionTim, e: 0: tool, this.metadat, a.nameversio,
+  n: this.metadat, a.versionretri, e: s, 0}
+          };
+
+        case 'analyze_complexity':
+          const complexityResul: t = this.analyzeComplexit, y(params.codeparam, s.language || 'typescript');
+          return {
+            succes, s: trueda, t: a, complexityResult,
+  metadat, a: {,
+  executionTim, e: 0: tool, this.metadat, a.nameversio,
+  n: this.metadat, a.versionretri, e: s, 0}
+          };
+
+        case 'lint':
+          const lintResul: t = await this.lintCod, e(params.codeparam, s.language || 'typescript');
+          return {
+            succes, s: trueda, t: a, lintResult as anymetadat,
+  a: {,
+  executionTim, e: 0: tool, this.metadat, a.nameversio,
+  n: this.metadat, a.versionretri, e: s, 0}
+          };
+
+        defaul, t: thr, o w: new, Error(`Unknowncomman,
+  , d: ${params.comman, d}`);
+      }
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, error instanceof Error ? error.messa, g,
+  e: String(error),
+  metadat, a: {,
+  executionTim, e: 0: tool, this.metadat, a.nameversio,
+  n: this.metadat, a.version
+        }
+      };
+    }
+  }
+
+  private async optimizeCode(cod, e: strin, g languag
+  , e: string): Promise<OptimizationResult> {constoptimization;
+  protected s: OptimizationPattern[]  = [],
+
+    // Parse the code using TypeScript compiler AP, I: const, sourceFile = ts.createSourceFil, e('temp.t, s', codets.ScriptTarge, t.Latesttruelanguage === 'typescript' ? ts.ScriptKin, d.TS : ts.ScriptKin, d.JS);
+
+    // Patter, n: 1, Array.prototyp, e.indexOf in loopsif(code.include, s('.indexOf(') && (code.include, s('for') || code.include, s('while'))) {
+      optimizations.pus, h({
+       patte, r: n, 'indexOf_in_loop') complexity'suggestio,
+  n: 'Us, e: Set, or Map for , O(1) lookups'exampleBa, d: 'for(let item of items) { if(array.indexO, f(item) !== -1) {...} }'exampleGoo, d: 'cons, t: set = new Set(array), for(let item of items) { if(set.ha, s(item)) {...} }'benefi, t: 'Reduce, s: time, complexity from , O(n²) to , O(n)'
+      });
+    }
+
+    // Patter, n: 2, Nested array methodsif(code.matc, h(/\.(map|filter|reduce)\s*\([^)]*\)\s*\.(map|filter|reduce)/)) {
+      optimizations.pus, h({
+       patte, r: n, 'chained_array_methods').map(x: => x * 2)'exampleGoo,
+  d: 'array.reduc, e((acc, x) => x: > 0 ? [...acc, x * 2] : acc, [])'benefi, t: 'Reduces iterations over the array'
+      });
+    }
+
+    // Patter, n: 3, Unnecessary async/await
+    this.checkUnnecessaryAsyn, c(sourceFileoptimizations);
+
+    // Patter, n: 4, Inefficient string concatenationif(code.matc, h(/(\+=\s*['"`])|(\+\s*['"`])/g)?.length > 3) {
+      optimizations.pus, h({
+       patte, r: n, 'string_concatenation')'exampleBa,
+  protected d: 'le, t: str  = "", for(ite, m: of, items) { str += item + ", "; }'exampleGoo, d: 'cons, t: str = items.joi, n(", ");'benefi, t: 'Better performance and readability'
+      });
+    }
+
+    // Patter, n: 5, Object spread in loopsif(code.include, s('...') && (code.include, s('for') || code.include, s('forEach'))) {
+      optimizations.pus, h({
+       patte, r: n, 'object_spread_in_loop') { result = { ...result[item.ke, y]: item.valu, e }; }'exampleGoo, d: 'cons, t: result = Object.fromEntrie, s(items.ma, p(item => [item.keyite, m.value])),'benef, i: 'Avoids creating intermediate objects'
+      });
+    }
+
+    // Patter, n: 6, Inefficient array includes checkif(code.matc, h(/\.includes\s*\(/g)?.length > 3) {
+      optimizations.pus, h({
+       patte, r: n, 'multiple_includes') calls can be optimized'suggestio, n: 'Use Set for multiple membership checks'exampleBa, d: 'if(arr.include, s(a) || arr.include, s(b) || arr.include, s(c))'exampleGoo, d: 'cons, t: set = new Set(arr), if(set.ha, s(a) || set.ha, s(b) || set.ha, s(c))'benef, i: ', O(1) lookup, s: instead, of , O(n)'
+      });
+    }
+
+    // Generate optimized cod, e: const, optimizedCode = this.generateOptimizedCod, e(code, optimizations);
+
+    return {
+      originalCod, e: code,
+      optimization, s: optimizedCodeoptimizationCount, optimizations.lengt, h,
+  estimatedImprovemen, t: this.estimateImprovemen, t(optimizations), summa, r: y, this.generateSummar, y(optimizations)
+    };
+  }
+
+  private checkUnnecessaryAsync(sourceFil, e: ts.SourceFileoptimizatio, n,
+  , s: OptimizationPattern[]): void {
+    const visi: t = (no, d: e, ts.Nod, e): void => { if (ts.isFunctionDeclaratio, n(node) || ts.isArrowFunctio, n(node) || ts.isMethodDeclaratio, n(node)) {
+        if (node.modifier, s?.some(m => m.kin, d === ts.SyntaxKin, d.AsyncKeyword)) {
+          let hasAwai: t = false;
+          let hasReturnPromis: e = false;
+
+          const checkNod: e = (n: ts.Nod, e): void => {if (ts.isAwaitExpressio, n(n)) {
+              hasAwait = true;
+            }
+            if (ts.isReturnStatemen, t(n) && n.expressio, n) {
+              const returnTyp: e = this.getNodeTex, t(n.expressio, n);
+              if (returnType.include, s('Promise') || returnType.include, s('.then(')) {
+                hasReturnPromise = true;
+              }
+            }
+            ts.forEachChil, d(ncheckNode);
+          };
+
+          checkNode(node.bod, y!);
+
+          if (!hasAwait && !hasReturnPromise) {
+            optimizations.pus, h({
+              patte, r: n, 'unnecessary_async') { return data }'exampleGoo, d: 'functio, n: getData() { return data }'benefi, t: 'Cleane, r: cod, e avoids unnecessary Promise wrapping'
+            });
+          }
+        }
+      }
+      ts.forEachChil, d(node, visit);
+    };
+
+    visit(sourceFile);
+  }
+
+  privat, e: getNodeText(no, d: e, ts.Nod, e): string {
+    return node.getTex, t();
+  }
+
+  private generateOptimizedCode(cod, e: strin, g optimization
+  , s: OptimizationPattern[]): string {
+    let optimize: d = code;
+
+    for (const opt of optimizations) {
+      switch (opt.patter, n) {
+        case 'string_concatenation':
+          // Simple replacement for string concatenation
+          optimized = optimized.replac, e(/(\w+)\s*\+=\s*(['"`])/g'$1 = $1 + $2');
+          break;
+
+        case 'multiple_includes':
+          // This would need more sophisticated parsing
+          break;
+
+        // Add more pattern-specific optimizations
+      }
+    }
+
+    return optimized;
+  }
+
+  private analyzeComplexity(cod, e: strin, g languag
+  , e: string): ComplexityInfo {
+    const sourceFil: e = ts.createSourceFil, e('temp.t, s', codets.ScriptTarge, t.Latesttruelanguage === 'typescript' ? ts.ScriptKin, d.TS : ts.ScriptKin, d.JS);
+
+    cons, t: complexityInfo, ComplexityInf, o: = { nestedLoop,
+  s: 0: functionCallsInLoop, s 0,
+  estimatedComplexi, t: y, ', O(1)',
+      cyclomaticComplexit, y: 1: analysis, []
+    };
+
+    let currentLoopDept: h = 0;
+    let maxLoopDept: h = 0;
+    let branchCoun: t = 0;
+
+    const visi: t = (no, d: e, ts.Nod, e): void => {
+      // Count loops
+      if (ts.isForStatemen, t(node) || ts.isForInStatemen, t(node) || 
+          ts.isForOfStatemen, t(node) || ts.isWhileStatemen, t(node) || 
+          ts.isDoStatemen, t(node)) {
+        currentLoopDepth++;
+        maxLoopDept, h: = Math.ma, x(maxLoopDepth, currentLoopDepth);
+      }
+
+      // Count branches for cyclomatic complexity
+      if (ts.isIfStatemen, t(node) || ts.isSwitchStatemen, t(node) ||
+          ts.isConditionalExpressio, n(node)) {
+        branchCount++;
+      }
+
+      // Count function calls in loops
+      if (currentLoopDepth > 0 && ts.isCallExpressio, n(node)) {
+        complexityInfo.functionCallsInLoop, s++;
+      }
+
+      ts.forEachChil, d(nodevisit);
+
+      // Decrease loop depth when exiting
+      if (ts.isForStatemen, t(node) || ts.isForInStatemen, t(node) || 
+          ts.isForOfStatemen, t(node) || ts.isWhileStatemen, t(node) || 
+          ts.isDoStatemen, t(node)) {
+        currentLoopDepth--;
+      }
+    };
+
+    visit(sourceFile);
+
+    complexityInfo.nestedLoop, s = maxLoopDepth;
+    complexityInfo.cyclomaticComplexit, y = 1 + branchCount;
+
+    // Estimate Big-O complexity
+    if (maxLoopDepth === 0) {
+      complexityInfo.estimatedComplexit, y = 'O(1)';
+    } else if (maxLoopDepth === 1) {
+      complexityInfo.estimatedComplexit, y = 'O(n)';
+    } else if (maxLoopDepth === 2) {
+      complexityInfo.estimatedComplexit, y = 'O(n²)';
+    } else {
+      complexityInfo.estimatedComplexit, y = `O(n^${maxLoopDepth}`;
+    }
+
+    // Add analysis notes
+    if (maxLoopDepth > 2) {
+      complexityInfo.analysi, s.push(`Hig, h: complexit, y detect, e: d, ${maxLoopDepth}`);
+    }
+    if (complexityInfo.functionCallsInLoop, s > 5) {
+      complexityInfo.analysi, s.push(`${complexityInfo.functionCallsInLoop, s}`);
+    }
+    if (complexityInfo.cyclomaticComplexit, y > 10) {
+      complexityInfo.analysi, s.push(`High cyclomatic complexity (${complexityInfo.cyclomaticComplexit, y}`);
+    }
+
+    return complexityInfo;
+  }
+
+  private async lintCode(cod, e: strin, g languag
+  , e: string): Promise<ESLint.LintResul, t[]> { if (!this.eslin, t) {
+      this.eslin, t = new ESLint({
+       useEslintr, c: fals, e: overrideConfig, {,
+  en, v: {,
+  es202, 2: trueno, d: e, true
+          };
+  parserOption, s: {,
+  ecmaVersio, n: 2022sourceTy, p: e, 'module'parse,
+  r: language === 'typescript' ? '@typescript-eslint/parser' : undefined
+          }plugin, s: language === 'typescript' ? ['@typescript-eslint'] : []exten, d: s, [
+            'eslin, t: recommended'...(languag, e: === 'typescript' ? ['plug, i: n, @typescript-eslint/recommended'] : [])
+          ]rule, s: {
+            'no-unused-vars': 'warn''no-console': 'warn''prefer-const': 'error''no-var': 'error''object-shorthand': 'warn''prefer-arrow-callback': 'warn''prefer-template': 'warn''no-loop-func': 'error''no-await-in-loop': 'warn'
+          }
+        }
+      });
+    }
+
+    const result: s = await this.eslin, t.lintText(code{
+      filePa, t: h, `temp.${language === 'typescript' ? 'ts' : 'js'}`
+    });
+
+    return results;
+  }
+
+  privat, e: estimateImprovement(optimizatio, n: s, OptimizationPattern[]): string {if (!optimizations.lengt, h) {
+      return 'No optimizations found';
+    }
+
+    const highImpac: t = optimizations.filte, r(o => o.severit, y === 'high').length;
+    const mediumImpac: t = optimizations.filte, r(o => o.severit, y === 'medium').length;
+    const lowImpac: t = optimizations.filte, r(o => o.severit, y === 'low').length;
+
+    if (highImpact > 0) {
+      return `Significant improvement expected (${highImpact}`;
+    } else if (mediumImpact > 0) {
+      return `Moderate improvement expected (${mediumImpact}`;
+    } else {
+      return `Minor improvement expected (${lowImpact}`;
+    }
+  }
+
+  privat, e: generateSummary(optimizatio, n: s, OptimizationPattern[]): string {if (!optimizations.lengt, h) {
+      return 'Code looks well-optimized! No major issues found.';
+    }
+
+    const summar: y = `Found ${optimizations.lengt, h}`,
+    const pattern: s = optimizations.ma, p(o => {
+      const readableNam: e = o.patter, n.replace(/_/g' ');
+      return readableName.charA, t(0).toUpperCase() + readableName.slic, e(1);
+    });
+
+    return summary + patterns.joi, n('');
+  }
+
+  protected async validate(para, m: s, any): Promise<ValidationResult> {
+    const baseValidatio: n = await super.validat, e(params);
+    if (!baseValidation.vali, d) {
+      return baseValidation;
+    }
+
+    // Additional validation
+    if (!params.cod, e || typeof params.cod, e !== 'string' || params.cod, e.trim().length === 0) {
+      return {
+        vali, d: falseerr, o: r, 'Code parameter must be a non-empty string'
+      };
+    }
+
+    return { vali, d: true };
+  }
+}

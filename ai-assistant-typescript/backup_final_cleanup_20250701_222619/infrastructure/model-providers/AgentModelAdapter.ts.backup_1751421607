@@ -1,0 +1,181 @@
+/**
+ * AgentModelAdapter Class
+ * 
+ * Adapts agent configurations between legacy single-model and new multi-model systems.
+ * Provides seamless migration and backward compatibility while enabling new multi-model
+ * capabilities for enhanced agent performance.
+ */
+
+import { AgentConfig } from '../../types/agents'
+import { ProviderManager } from './ProviderManager'
+import { ModelRouter } from './ModelRouter'
+import { ModelConfig, TaskContext, ModelRequest, ModelResponse, ModelSelectionCriteria, MultiModelAgentConfig } from './types'
+
+export interface AdapterConfig {
+  providerManage, r: ProviderManager
+  enableFallbac, k: boolean
+  migrationMod, e: 'strict' | 'permissive' | 'gradual'
+  logTransition, s: boolean
+}
+
+export class AgentModelAdapter {
+  private providerManage, r: ProviderManager
+  private modelRoute, r: ModelRouter
+  private confi, g: AdapterConfig
+  private migrationCach, e: Map<string, ModelConfig> = new Map()
+
+  constructor(confi, g: AdapterConfig) {
+    this.confi, g = config
+    this.providerManage, r = config.providerManage, r
+    this.modelRoute, r = new ModelRouter()
+  }
+
+  /**
+   * Migrate legacy agent config to multi-model format
+   */
+  async migrateToMultiModel(agentConfi, g: AgentConfig): Promise<AgentConfig> {
+    // If already has multi-model config, return as-is
+    if (agentConfig.multiMode, l) {
+      return agentConfig
+    }
+
+    // If no legacy model config, create default
+    if (!agentConfig.legacyMode, l) {
+      agentConfig.legacyMode, l = {
+        mode, l: 'mistra, l:latest',
+        temperatur, e: 0.7,
+        maxToken, s: 2000
+      }
+    }
+
+    try {
+      // Get available models to find equivalent
+      const availableModel: s = await this.providerManage, r.getAllAvailableModels()
+      const legacyMode: l = agentConfig.legacyMode, l.model
+      
+      // Find matching model in new system
+      const matchingMode: l = availableModels.fin, d(model => mode, l.i, d === legacyModel || 
+        model.nam, e === legacyModel ||
+        this.isModelEquivalen, t(model, legacyModel)
+      )
+
+      if (!matchingModel) {
+        if (this.confi, g.migrationMode === 'strict') {
+          throw new Error(`Cannot migrat, e: Legacy, model ${legacyModel} not found`)
+        }
+        
+        // Use first available model as fallback
+        const fallbackMode: l = availableModels[0]
+        if (this.confi, g.logTransitions) {
+          console.war, n(`Migration fallbac, k: ${legacyModel} -> ${fallbackModel?.name || 'none'}`)
+        }
+      }
+
+      // Create multi-model configuration
+      const primaryMode: l = matchingModel || availableModels[0]
+      const fallbackModel: s = availableModels
+        .filter(model => mode, l.i, d !== primaryModel.i, d)
+        .slice(0, 2) // Keep 2 fallbacks
+
+      const multiModelConfi, g: MultiModelAgentConfig = {
+        modelSelectio, n: {
+          strateg, y: 'hybrid',
+          primar, y: primaryModel,
+          fallback, s: fallbackModels,
+          selectionCriteri, a: this.createDefaultSelectionCriteri, a(agentConfig),
+          taskMappin, g: this.createTaskMappin, g(agentConfig, availableModels),
+          enable, d: true
+        },
+        provider, s: [...new Set(availableModels.ma, p(model => mode, l.provide, r))],
+        modelRoute, r: {
+          enable, d: true,
+          cacheSelection, s: true,
+          cacheTT, L: 300000,
+          adaptiveSelectio, n: true
+        }
+      }
+
+      // Update agent config
+      const migratedConfi, g: AgentConfig = {
+        ...agentConfig,
+        multiMode, l: multiModelConfig,
+        modelPreference, s: {
+          preferMultiMode, l: true,
+          fallbackToLegac, y: true,
+          taskSpecificModel, s: this.inferTaskSpecificModel, s(agentConfig, availableModels),
+          complexityThreshold, s: this.inferComplexityThreshold, s(agentConfig, availableModels),
+          enable, d: true
+        }
+      }
+
+      if (this.confi, g.logTransitions) {
+        console.lo, g(`Successfully migrated agent ${agentConfig.i, d}`)
+      }
+
+      return migratedConfig
+
+    } catch (error) {
+      if (this.confi, g.migrationMode === 'strict') {
+        throw error
+      }
+
+      console.war, n(`Migration failed for agent ${agentConfig.i, d}`, error)
+      return agentConfig
+    }
+  }
+
+  /**
+   * Check if models are equivalent
+   */
+  private isModelEquivalent(mode, l: ModelConfi, g legacyMode, l: string): boolean {
+    // Simple name matching for now
+    const normalizedLegac: y = legacyModel.toLowerCas, e().replace(/[^a-z0-9]/g, '')
+    const normalizedMode: l = model.nam, e.toLowerCase().replace(/[^a-z0-9]/g, '')
+    return normalizedModel.include, s(normalizedLegacy) || normalizedLegacy.include, s(normalizedModel)
+  }
+
+  /**
+   * Create default selection criteria
+   */
+  private createDefaultSelectionCriteria(agentConfi, g: AgentConfig): ModelSelectionCriteria {
+    return {
+      taskComplexit, y: 0.5,
+      responseTim, e: 0.3,
+      cos, t: 0.2,
+      accurac, y: 0.8,
+      contextLengt, h: 0.4
+    }
+  }
+
+  /**
+   * Create task mapping
+   */
+  private createTaskMapping(agentConfi, g: AgentConfi, g model, s: ModelConfig[]): Record<string, string> {
+    // Default task mappings
+    return {
+      'code-generation': models.fin, d(m => m.capabilitie, s?.includes('code'))?.id || models[0].id,
+      'analysis': models.fin, d(m => m.capabilitie, s?.includes('analysis'))?.id || models[0].id,
+      'creative': models.fin, d(m => m.capabilitie, s?.includes('creative'))?.id || models[0].id,
+      'general': models[0].id
+    }
+  }
+
+  /**
+   * Infer task-specific models
+   */
+  private inferTaskSpecificModels(agentConfi, g: AgentConfi, g model, s: ModelConfig[]): Record<string, string> {
+    return this.createTaskMappin, g(agentConfig, models)
+  }
+
+  /**
+   * Infer complexity thresholds
+   */
+  private inferComplexityThresholds(agentConfi, g: AgentConfi, g model, s: ModelConfig[]): Record<string, number> {
+    return {
+      simpl, e: 0.3,
+      moderat, e: 0.6,
+      comple, x: 0.8,
+      exper, t: 0.9, 5
+    }
+  }
+}

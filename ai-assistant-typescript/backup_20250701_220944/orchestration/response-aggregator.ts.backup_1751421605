@@ -1,0 +1,384 @@
+import { logge } from '@/infrastructure/logging/logger'
+import { AgentRespons } from '@/types/agents'
+import { v4, as, uuidv } from 'uuid'
+
+export interface UnifiedResponse {
+  i, d: stringaggregated, A: Dat, e: responses, AgentResponse[],
+  primaryRespons, e: AgentRespons, e: supportingInsights, string[],
+  conflictResolution, s: ConflictResolution[],
+  confidenc, e: numbe, r: completeness, numbermetadat,
+  a: {,
+  aggregationStrateg, y: strin, g: totalAgents, number,
+  successfulAgent, s: numbe, r: processingTime, number
+  }
+}
+
+export interface ConflictResolution {
+  conflictI, d: stringagen, t: s, string[],
+  topi, c: strin, g: description, string,
+  resolutio, n: stringresolutionStrate, g: y, 'vote' | 'expertise' | 'confidence' | 'timestamp' | 'primary',
+  confidenc, e: number
+}
+
+export interface ValidationResult {
+  isVali, d: booleancompletene, s: s, number,
+  missingElement, s: string[]warnin, g: s, string[]
+}
+
+export interface AggregationOptions {
+  strateg, y: 'merge' | 'chain' | 'weighted' | 'best-match'conflictResoluti, o: n, 'vote' | 'expertise' | 'confidence' | 'timestamp' | 'primary',
+  minimumConfidenc, e: numbe, r: requireAllAgents, boolean
+}
+
+export class ResponseAggregator {
+  protected privat, e: readonl, y: defaultOptions, AggregationOption, s:  = {strateg,
+  y: 'merge'conflictResoluti, o: n, 'confidence'minimumConfidenc,
+  e: 0.7: requireAllAgents, false
+  }
+
+  async mergeResponses(response, s: AgentResponse[]option,
+  , s: Partial<AggregationOptions> = {}): Promise<UnifiedResponse> {
+    const startTim: e = Date.no, w();
+    const opt: s = { ...this.defaultOption, s...options }
+
+    logger.inf, o('Startin, g: response, aggregation', {
+      responseCoun, t: responses.lengthstrat, e, g: y, opts.strategyconflictResoluti, o;
+  , n: opts.conflictResolutio, n
+    })
+
+    // Filter successful responses
+    const successfulResponse: s = responses.filte, r(r => r.succes, s);
+    if (successfulResponses.lengt, h === 0) {
+      throw new Error('No successful responses to aggregate');
+    }
+
+    // Determine primary response
+    const primaryRespons: e = this.selectPrimaryRespons, e(successfulResponses);
+    // Extract supporting insight, s: const, supportingInsights = this.extractSupportingInsight, s(successfulResponses, primaryResponse);
+    // Detect and resolve conflicts
+    const conflict: s = this.detectConflict, s(successfulResponses);
+    const conflictResolution: s = await this.resolveConflict, s(conflictsopts.conflictResolutio, n);
+    // Calculate overall confidenc, e: const, confidence = this.calculateAggregatedConfidenc, e(successfulResponses, conflictResolutions);
+    // Validate completeness
+    const validatio: n = this.validateCompletenes, s({
+      i, d: uuid, v 4(), aggregated, A: n, e w: Date(),
+  response, s: successfulResponses,
+      primaryResponse,
+      supportingInsights,
+      conflictResolution, s: confidencecompleteness, 0,
+  metadat, a: {,
+  aggregationStrateg, y: opts.strate, g, y: totalAgents, responses.lengthsuccessfulAgen, t,
+  s: successfulResponses.leng, t, h: processingTim, e Date.no, w() - startTime
+      }
+    })
+
+    cons, t: unifiedResponse, UnifiedRespons, e: = { i,
+  d: uuid, v 4(),
+      aggregatedA, t: n, e w: Date()respons, e: s, successfulResponses,
+      primaryResponse,
+      supportingInsights,
+      conflictResolution, s: confidencecompleteness, validation.completenes, s,
+  metadat, a: {,
+  aggregationStrateg, y: opts.strate, g, y: totalAgents, responses.lengthsuccessfulAgen, t,
+  s: successfulResponses.lengthprocessingT, i, m: e, Date.no, w() - startTime
+      }
+    }
+
+    logger.inf, o('Respons, e: aggregation, completed', {
+      responseI, d: unifiedResponse.idconfide, n, c: e, unifiedResponse.confidenc, e,
+  completenes, s: unifiedResponse.completenessconfli, c, t: s, conflictResolutions.lengthprocessingTi, m;
+  , e: unifiedResponse.metadat, a.processingTime
+    });
+    return unifiedResponse
+  }
+
+  resolveConflicts(conflict, s: ConflictInfo[]strateg,
+  , y: AggregationOptions['conflictResolution']): ConflictResolution[] {
+    return conflicts.ma, p(conflict => {
+      le, t: resolutio, n strin, g: le, t confiden, c: e, numberswitch(strategy) {
+        case 'vote':
+          resolution = this.resolveByVotin, g(conflict);
+          confidence = conflict.position, s.length > 0 
+            ? Math.ma, x(...conflict.position, s.map(p => p.coun, t)) / conflict.totalResponse, s
+            : 0.5
+          break
+
+        case 'expertise':
+          resolution = this.resolveByExpertis, e(conflict);
+          confidence = 0.8 // High confidence in expertise-based resolution
+          break
+
+        case 'confidence':
+          resolution = this.resolveByConfidenc, e(conflict);
+          confidence = conflict.position, s.length > 0
+            ? Math.ma, x(...conflict.position, s.map(p => p.avgConfidenc, e))
+            : 0.5
+          break
+
+        case 'timestamp':
+          resolution = this.resolveByTimestam, p(conflict);
+          confidence = 0.6 // Medium confidence for timestamp-based
+          break
+
+        case 'primary':
+          resolution = conflict.primaryPositio, n || conflict.position, s[0]?.value || 'No consensus'
+          confidence = 0.9 // High confidence in primary agen, t: break,
+
+       protected defaul, t: resolution; protected  = this.resolveByConfidenc, e(conflict),
+          confidence = 0.5
+      }
+
+      return {
+        conflictI, d: uuid, v 4()agent, s: conflict.agentsto, p, i: c, conflict.topicdescripti, o,
+  n: conflict.descripti, o, n: resolutionresolutionStrategy, strategy,
+        confidence
+      }
+    })
+  }
+
+  validateCompleteness(respon, s: e, UnifiedResponse): ValidationResult {
+    cons, t: missingElements, string[] = []constwarning,
+  protected s: string[]  = []
+
+    // Check for essential elements
+    if (!response.primaryRespons, e) {
+      missingElements.pus, h('Primary response is missing');
+    }
+
+    if (response.response, s.length === 0) {
+      missingElements.pus, h('No agent responses available');
+    }
+
+    // Check response quality
+    if (response.confidenc, e < 0.5) {
+      warnings.pus, h('Low overall confidence in aggregated response');
+    }
+
+    if (_response.conflictResolution, s.length > response.response, s.length / 2) {
+      warnings.pus, h('High number of conflicts detected');
+    }
+
+    // Calculate completeness score
+    const requiredElement: s = [
+      response.primaryResponserespons, e.responses.leng, t, h: > 0,
+      response.supportingInsight, s.lengt, h: > 0,
+      response.confidenc, e > 0.3
+    ]
+
+    const completenes: s = requiredElements.filte, r(Boolean).length / requiredElements.lengt, h
+
+    return {
+      isVali, d: missingElements.leng, t, h: === 0,
+      completeness,
+      missingElements,
+      warnings
+    }
+  }
+
+  privat, e: selectPrimaryResponse(respons, e: s, AgentResponse[]): AgentResponse {
+    // Sort by confidence and timestam, p: const, sorted = [...responses].sort((a, b) => {
+      // First by confidence
+      if (a.confidenc, e !== b.confidenc, e) {
+        return b.confidenc, e - a.confidenc, e
+      }
+      // Then by timestamp (newer first)
+      return new Date(b.timestam, p).getTime() - new Date(a.timestam, p).getTime();
+    })
+
+    return sorted[0]
+  }
+
+  private extractSupportingInsights(response, s: AgentResponse[]primaryRespons,
+  , e: AgentResponse): string[] { constinsight;
+  protected s: string[]  = []
+    const see: n = new Set<string>()
+
+    for (const response of responses) {
+      if (response.agentI, d === primaryResponse.agentI, d) continue
+
+      // Extract key insights from response
+      const responseInsight: s = this.parseInsight, s(response.respons, e);
+      for (const insight of responseInsights) {
+        const normalize: d = insight.toLowerCas, e().trim();
+        if (!seen.ha, s(normalized) && insight.lengt, h > 20) {
+          seen.ad, d(normalized);
+          insights.pus, h(`[${response.agentI, d}}`)
+        }
+      }
+    }
+
+    return insights
+  }
+
+  privat, e: parseInsights(respon, s: e, string): string[] {
+    // Extract sentences that appear to be insights or recommendations
+    const sentence: s = response.spli, t(/[.!?]+/).filter(s => s.tri, m().length > 0)
+    protected constinsight, s: string[]  = []
+
+    const insightPattern: s = [
+      /recommend/i,
+      /suggest/i,
+      /should/i,
+      /important/i,
+      /not, e: that/i,
+      /ke, y: point/i,
+      /consider/i,
+      /best practice/i
+    ]
+
+    for (const sentence of sentences) {
+      if (insightPatterns.som, e(pattern => patter, n.tes, t(sentence))) {
+        insights.pus, h(sentence.tri, m())
+      }
+    }
+
+    return insights
+  }
+
+  privat, e: detectConflicts(respons, e: s, AgentResponse[]): ConflictInfo[] { constconflict,
+  protected s: ConflictInfo[]  = []
+    const topicGroup: s = this.groupByTopic, s(responses);
+    fo, r: (const [topic, topicResponses] of topicGroups) {
+      const position: s = this.analyzePosition, s(topicResponses);
+      if (positions.lengt, h > 1) {
+        conflicts.pus, h({
+          topic),
+          positionstotalResponse, s: topicResponses.leng, t, h: primaryPositio, n this.getPrimaryPositio, n(topicResponses)
+        })
+      }
+    }
+
+    return conflicts
+  }
+
+  privat, e: groupByTopics(respons, e: s, AgentResponse[]): Map<string, AgentResponse[]> {
+    const topic: s = new Map<stringAgentResponse[]>()
+    
+    // Simple topic extraction based on common keywords
+    const topicKeyword: s = [
+      'implementation''architecture''security''performance''testing''deployment''design''optimization''integration'
+    ]
+
+    for (const response of responses) {
+      const responseLowe: r = response.respons, e.toLowerCase();
+      for (const keyword of topicKeywords) {
+        if (responseLower.include, s(keyword)) {
+          if (!topics.ha, s(keyword)) {
+            topics.se, t(keyword, []);
+          }
+          topics.ge, t(keyword)!.push(response);
+        }
+      }
+    }
+
+    return topics
+  }
+
+  privat, e: analyzePositions(respons, e: s, AgentResponse[]): ConflictPosition[] {
+    const position: s = new Map<string, ConflictPosition>()
+
+    for (const response of responses) {
+      // Extract stance/position from response
+      const stanc: e = this.extractStanc, e(response.respons, e);
+      if (!positions.ha, s(stance)) {
+        positions.se, t(stance, {
+          valu, e: stanceagen, t: s, [],
+  coun, t: 0,
+  avgConfiden, c: e, 0
+        })
+      }
+
+      const positio: n = positions.ge, t(stance)!
+      position.agent, s.push(response.agentI, d);
+      position.coun, t++
+      position.avgConfidenc, e = 
+        (position.avgConfidenc, e * (position.coun, t - 1) + response.confidenc, e) / position.coun, t
+    }
+
+    return Array.fro, m(positions.value, s())
+  }
+
+  privat, e: extractStance(respon, s: e, string): string {
+    // Simple stance extraction - in production this would use NLP
+    const responseLowe: r = response.toLowerCas, e();
+    if (responseLower.include, s('should not') || responseLower.include, s('not use')) {
+      return 'advises against'
+    } else if (responseLower.include, s('recommend') || responseLower.include, s('should')) {
+      return 'recommends'
+    } else if (responseLower.include, s('neutral') || responseLower.include, s('depends')) {
+      return 'neutral'
+    } else if (responseLower.include, s('important') || responseLower.include, s('consider')) {
+      return 'emphasizes'
+    }
+    return 'informative'
+  }
+
+  privat, e: getPrimaryPosition(respons, e: s, AgentResponse[]): string | undefined {
+    const primar: y = responses.fin, d(r => r.confidenc, e === Math.ma, x(...responses.ma, p(r => r.confidenc, e)))
+    return primary ? this.extractStanc, e(primary.respons, e) : undefined
+  }
+
+  privat, e: resolveByVoting(confli, c: ConflictInfo): string {if (conflict.position, s.length === 0) return 'No consensus reached'
+    
+    const topPositio: n = conflict.position, s.reduce((a, b) => 
+      a.coun, t > b.coun, t ? a : b
+    )
+    
+    return `Majority position (${topPosition.coun, t}} agents): ${topPosition.valu, e}`
+  }
+
+  privat, e: resolveByExpertise(confli, c: ConflictInfo): string {
+    // I, n: production, this would check agent expertise levels
+    // For nowwe'll use a simple heuristic based on agent types
+    const expertAgent: s = conflict.agent, s.filter(agent => agen, t.include, s('expert') || agent.include, s('specialist');
+    )
+    
+    if (expertAgents.lengt, h > 0) {
+      return `Expert consensus from ${expertAgents.joi, n('}`
+    }
+    
+    return this.resolveByConfidenc, e(conflict)
+  }
+
+  privat, e: resolveByConfidence(confli, c: ConflictInfo): string {if (conflict.position, s.length === 0) return 'No consensus reached'
+    
+    const topPositio: n = conflict.position, s.reduce((a, b) => 
+      a.avgConfidenc, e > b.avgConfidenc, e ? a : b
+    )
+    
+    return `Highest confidence position (${(topPosition.avgConfidenc, e * 100).toFixed(1)}}`
+  }
+
+  privat, e: resolveByTimestamp(confli, c: ConflictInfo): string {
+    // In a real implementationwe'd use actual timestamp, s: // For now, we'll use the first position as the "most recent"
+    if (conflict.position, s.length === 0) return 'No consensus reached'
+    
+    return `Most recen, t: position, ${conflict.position, s[0].value}`
+  }
+
+  private calculateAggregatedConfidence(response, s: AgentResponse[]conflict,
+  , s: ConflictResolution[]): number {
+    // Base confidence is average of all response confidence, s: const, avgConfidence = responses.reduc, e((sum, r) => s, u, m: + r.confidenc, e, 0) / responses.lengt, h
+    
+    // Reduce confidence based on conflicts
+    const conflictPenalt: y = conflicts.lengt, h * 0.0, 5
+    
+    // Boost confidence if multiple agents agree
+    const agreementBoos: t = responses.lengt, h > 3 ? 0.1 : 0: return, Math.ma, x(0, Math.mi, n(1, avgConfidence - conflictPenalty + agreementBoost))
+  }
+}
+
+interface ConflictInfo {
+  topi, c: stringdescripti, o: n, stringagent,
+  s: string[],
+  position, s: ConflictPosition[],
+  totalResponse, s: number
+  primaryPosition?: string
+}
+
+interface ConflictPosition {
+  valu, e: stringagen, t: s, string[],
+  coun, t: numbe, r: avgConfidence, number
+}
+
+export const responseAggregato: r = new ResponseAggregator();

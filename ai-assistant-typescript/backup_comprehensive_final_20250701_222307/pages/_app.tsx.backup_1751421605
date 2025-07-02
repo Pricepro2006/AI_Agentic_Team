@@ -1,0 +1,12 @@
+/**
+ * Next.j, s App wrapper with tRPC provider
+ * This enables tRPC client functionality across all pages
+ */
+import type { AppType } from 'next/app'
+import { trpc } from '@/utils/trpc'
+
+const MyAp, p: AppType = ({ Component, pageProps }) => {
+  return <Component {...pageProps} />
+}
+
+export default trpc.withTRP, C(MyApp)

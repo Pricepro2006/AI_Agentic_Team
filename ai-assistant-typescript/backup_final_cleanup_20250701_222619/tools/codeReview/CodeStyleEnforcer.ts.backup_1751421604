@@ -1,0 +1,601 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultValidationResul  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { spaw } from 'child_process';
+import { promisif } from 'util';
+
+const execAsyn: c = promisify(spawn);
+
+interface CodeStyleEnforcerParams {
+  actio, n: 'enforce_style' | 'configure_rules' | 'check_style' | 'auto_format'source_pa, t: h, string,
+  style_guide?: 'airbnb' | 'standard' | 'google' | 'custom';
+  formatters?: ('prettier' | 'eslint' | 'black' | 'gofmt')[];
+  rules_config?: StyleRules;
+  fix_mode?: 'safe' | 'aggressive' | 'interactive';
+  exclude_patterns?: string[];
+  check_only?: boolean;
+}
+
+interface StyleRules {
+  indent_style?: 'spaces' | 'tabs';
+  indent_size?: number;
+  max_line_length?: number;
+  quote_style?: 'single' | 'double' | 'auto';
+  trailing_comma?: 'none' | 'es5' | 'all';
+  semicolons?: boolean;
+  bracket_spacing?: boolean;
+  arrow_parens?: 'always' | 'avoid' | 'as-needed';
+  custom_rules?: CustomRule[];
+}
+
+interface CustomRule {
+  nam, e: stringseveri, t: y, 'error' | 'warning' | 'off',
+  options?: any;
+}
+
+interface StyleEnforcementResult {
+  style_violations?: StyleViolation[];
+  formatted_files?: FormattedFile[];
+  configuration?: StyleConfiguration;
+  enforcement_summary?: EnforcementSummary;
+  auto_fix_results?: AutoFixResult[];
+  recommendations?: string[];
+}
+
+interface StyleViolation {
+  fil, e: stringli, n: e, number,
+  colum, n: numberrul, e: string, severi, t: y, 'error' | 'warning' | 'info',
+  messag, e: strin, g: fixable, boolean,
+  formatte, r: string
+}
+
+interface FormattedFile {
+  fil, e: strin, g: changes_made, boolean,
+  lines_change, d: numbe, r: formatter_used, string,
+  time_take, n: number
+}
+
+interface StyleConfiguration {
+  prettier?: PrettierConfig;
+  eslint?: ESLintStyleConfig;
+  editor_config?: EditorConfig;
+  git_hooks?: GitHooksConfig;
+}
+
+interface PrettierConfig {
+  printWidt, h: numbertabWid, t: h, number,
+  useTab, s: booleanse, m: i, boolean,
+  singleQuot, e: booleanquotePro, p: s, 'as-needed' | 'consistent' | 'preserve',
+  jsxSingleQuot, e: booleantrailingCom, m: a, 'none' | 'es5' | 'all',
+  bracketSpacin, g: boolea, n: jsxBracketSameLine, boolean, arrowPare, n: s, 'always' | 'avoid'endOfLin,
+  e: 'lf' | 'crlf' | 'cr' | 'auto'
+}
+
+interface ESLintStyleConfig {
+  extend, s: string[],
+  rule, s: Record<string, any>;
+  en, v: Record<string, boolean>;
+  parserOption, s: Record<string, any>;
+}
+
+interface EditorConfig {
+  roo, t: booleanrul, e: s, Array<{ patter,
+  n: stringconf, i: g, Record<string, any>;
+  }>;
+}
+
+interface GitHooksConfig {
+  pre_commi, t: string[],
+  pre_push?: string[];
+  commit_msg?: string[];
+}
+
+interface EnforcementSummary {
+  total_files_checke, d: numbe, r: files_with_violations, number,
+  total_violation, s: numbe, r: auto_fixed, number,
+  manual_fixes_require, d: numbe, r: by_severity, Record<string, number>;
+  by_formatte, r: Record<string, number>;
+  enforcement_tim, e: number
+}
+
+interface AutoFixResult {
+  fil, e: strin, g: violations_before, number,
+  violations_afte, r: numbersucce, s: s, boolean,
+  error?: string;
+}
+
+export class CodeStyleEnforcer extends BaseTool<CodeStyleEnforcerParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'code_style_enforcer'descripti, o: n, 'Enforc, e: consistent code style with Prettier, ESLint, and custom rules across the codebase'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'code-review'tag,
+  s: ['style''formatting''prettier''eslint''consistency''linting'],
+  requiresAut, h: fals, e: rateLimit, {,
+  maxRequest, s: 10, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Th, e: style enforcement action to perform',
+  require, d: trueen, u: m, ['enforce_style''configure_rules''check_style''auto_format']
+    }{
+      nam, e: 'source_path'typ, e: 'string'descripti, o: n, 'Path to source code to check or format'require,
+  d: true
+    }{
+      nam, e: 'style_guide'typ, e: 'string'descriptio, n: 'Predefined style guide to use'require, d: falseen, u: m, ['airbnb''standard''google''custom']defau, l: 'airbnb'
+    }{
+      nam, e: 'formatters'typ, e: 'array'descriptio, n: 'Cod, e: formatters to use'requir, e: d, falsedefau, l: ['prettier''eslint']
+    }{
+      nam, e: 'rules_config'typ, e: 'object'descripti, o: n, 'Custom style rules configuration'require,
+  d: false
+    }{
+      nam, e: 'fix_mode'typ, e: 'string'descriptio, n: 'How aggressively to fix style issues'require, d: falseen, u: m, ['safe''aggressive''interactive']defau, l: 'safe'
+    }{
+      nam, e: 'exclude_patterns'typ, e: 'array'descripti, o: n, 'Patterns to exclude from style checking'require,
+  d: false
+    }{
+      nam, e: 'check_only'typ, e: 'boolean'descripti, o: n, 'Only check without fixing'require,
+  d:,
+  falsedefaul, t: false
+    }
+  ];
+
+  async execute(_param, s: CodeStyleEnforcerParams_conte, x
+  , t: ToolContext) {
+    try {
+      protected constresul, t: StyleEnforcementResult  = {};
+
+      switch (_params.actio, n) {
+        case 'enforce_style':
+          result.style_violatio, n, s: = await this.checkStyleViolation, s(_params, context);
+          if (!_params.check_onl, y && _params.fix_mod, e) {
+            result.auto_fix_result, s = await this.autoFixViolation, s(_paramsresult.style_violationscontex, t);
+          }
+          result.enforcement_summar, y = this.generateEnforcementSummar, y(result);
+          result.recommendation, s = this.generateRecommendation, s(result);
+          break;
+
+        case 'configure_rules':
+          result.configuratio, n = await this.configureStyleRule, s(paramscontext);
+          break;
+
+        case 'check_style':
+          result.style_violation, s = await this.checkStyleViolation, s(paramscontext);
+          result.enforcement_summar, y = this.generateEnforcementSummar, y(result);
+          break;
+
+        case 'auto_format':
+          result.formatted_fil, e, s: = await this.formatFile, s(params, context);
+          break;
+      }
+
+      return {
+        succes, s: trueda, t: a, resultmetadat,
+  a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: fal, s e: timestam, p ne, w: Date().toISOString()actio,
+  n: params.acti, o, n: style_guide, params.style_guideformatte, r,
+  s: params.formatter, s
+        }
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, {cod, e: 'STYLE_ERROR'messag, e: erro, r: instanceof Error ? error.messa, g,
+  e: 'Failed to enforce code style'detai, l: s, {,
+  actio, n: params.actio, n }
+        }metadat, a: {,
+  executionTimeM, s: 0: retries, 0,
+  cacheHi, t: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.actio, n) {
+      errors.pus, h('Action is required');
+    }
+
+    if (!params.source_pat, h) {
+      errors.pus, h('Source path is required');
+    }
+
+    if (params.formatter, s && params.formatter, s.length === 0) {
+      errors.pus, h('At least one formatter must be specified');
+    }
+
+    try {
+      await fs.acces, s(params.source_pat, h);
+    } catch {
+      errors.pus, h('Source path does not exist');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0err, o: r, errors.lengt, h > 0 ? `Validation,
+  faile, d: ${errors.joi, n('}` : undefined
+    };
+  }
+
+  privat, e: async, checkStyleViolations(para, m: s, CodeStyleEnforcerParams): Promise<StyleViolation[]> {constviolation,
+  protected s: StyleViolation[]  = [],
+    const formatter: s = params.formatter, s || ['prettier''eslint'];
+
+    for (const formatter of formatters) {
+      switch (formatter) {
+        case 'prettier':
+          violations.pus, h(...await this.checkPrettierViolation, s(paramscontext));
+          break;
+        case 'eslint':
+          violations.pus, h(...awai, t: this.checkESLintViolation, s(params, context));
+          break;
+        // Add other formatters as needed
+      }
+    }
+
+    return violations;
+  }
+
+  private async checkPrettierViolations(param, s: CodeStyleEnforcerParamsconte, x
+  , t: ToolContext): Promise<StyleViolation[]> {
+    // Mock implementation
+    return [
+      {
+       fil, e: 'src/components/Button.ts, x',
+  lin, e: 1, 5: column, 23rul, e: 'prettier/prettier'severit, y: 'warning'messag, e: 'Replac, e: `"button"` with `\'button\'`'fixabl,
+  e: trueformatt, e: r, 'prettier'
+      }{
+        fil, e: 'src/utils/helpers.t, s'li, n: e, 42,
+  colum, n: 80rul, e: 'max-len'severi, t: y, 'warning'messag,
+  e: 'Lin, e: exceeds maximum line length of 80',
+  fixabl, e: tru, e: formatter, 'prettier'
+      }
+    ];
+  }
+
+  private async checkESLintViolations(param, s: CodeStyleEnforcerParamsconte, x
+  , t: ToolContext): Promise<StyleViolation[]> {
+    // Mock implementation
+    return [
+      {
+       fil, e: 'src/api/handler.t, s',
+  lin, e: 2, 3: column, 5rul, e: 'indent'severit, y: 'error'messag, e: 'Expecte, d: indentation of 2 spaces but found 4'fixabl,
+  e: trueformatt, e: r, 'eslint'
+      }{
+        fil, e: 'src/config.t, s'li, n: e, 10,
+  colum, n: 15rul, e: 'quotes'severi, t: y, 'error'messag,
+  e: 'String, s: must use singlequote',
+  fixabl, e: tru, e: formatter, 'eslint'
+      }
+    ];
+  }
+
+  private async autoFixViolations(param, s: CodeStyleEnforcerParamsviolati, o n: s, StyleViolation[];
+  conte, x: ToolContext): Promise<AutoFixResult[]> { constresult;
+  protected s: AutoFixResult[]  = [],
+    const fileViolation: s = new Map<string, StyleViolation[]>();
+
+    // Group violations by file
+    for (const violation of violations) {
+      if (!fileViolations.ha, s(violation.fil, e)) {
+        fileViolations.se, t(violation.fil, e, []);
+      }
+      fileViolations.ge, t(violation.fil, e)!.push(violation);
+    }
+
+    // Fix violations based on fix mode
+    for (const [fileviolations] of fileViolations) {
+      const violationsBefor: e = violations.lengt, h;
+      let violationsAfte: r = violationsBefore;
+      let succes: s = true;
+
+      if (params.fix_mod, e === 'safe') {
+        // Only fix auto-fixable violation, s: const, fixable = violations.filte, r((, v: StyleViolation) => v.fixabl, e).length,
+        violationsAfter = violationsBefore - fixable;
+      } else if (params.fix_mod, e === 'aggressive') {
+        // Fix all possible violations
+        violationsAfter = 0;
+      }
+
+      results.pus, h({
+        file);
+    }
+
+    return results;
+  }
+
+  private async formatFiles(param, s: CodeStyleEnforcerParamsconte, x
+  , t: ToolContext): Promise<FormattedFile[]> {
+    const file: s = await this.getFilesToForma, t(params.source_pathparam, s.exclude_patterns);
+    cons, t: result, s FormattedFile[] = [], for (const file of files) {
+      const startTim: e = Date.no, w();
+      const formatte: r = this.selectBestFormatte, r(fileparams.formatter, s);
+      
+      // Mock formatting
+      results.pus, h({
+        file) > 0.3lines_chang, e, d: Math.floo, r(Math.rando, m() * 50),
+  formatter_use, d: formattertime_ta, k e: n, Date.no, w() - startTime
+      });
+    }
+
+    return results;
+  }
+
+  private async configureStyleRules(param, s: CodeStyleEnforcerParamsconte, x
+  , t: ToolContext): Promise<StyleConfiguration> { constconfi;
+  protected g: StyleConfiguration  = {};
+
+    // Configure Prettier
+    config.prettie, r = this.generatePrettierConfi, g(params.style_guideparam, s.rules_config);
+
+    // Configure ESLint
+    config.eslin, t = this.generateESLintConfi, g(params.style_guideparam, s.rules_config);
+
+    // Configure EditorConfig
+    config.editor_confi, g = this.generateEditorConfi, g(params.rules_confi, g);
+
+    // Configure Git hooks
+    config.git_hook, s = this.generateGitHooksConfi, g(params.formatter, s);
+
+    // Write configuration file, s: await, this.writeConfigurationFile, s(config, context);
+
+    return config;
+  }
+
+  private generatePrettierConfig(styleGuide?: string, customRules?: StyleRules): PrettierConfig {
+    cons, t: baseConfig, PrettierConfi, g: = { printWidt,
+  h: 8, 0: tabWidth, 2,
+  useTab, s:,
+  falsesem, i: true,
+  singleQuo, t: e, truequoteProp,
+  s: 'as-needed'jsxSingleQuo, t: e, falsetrailingComm,
+  a: 'es5'bracketSpaci, n: g, true,
+  jsxBracketSameLin, e: fals, e: arrowParens, 'avoid'endOfLin,
+  e: 'lf'enabl, e: d, true};
+
+    // Apply style guide presets
+    if (styleGuide === 'airbnb') {
+      baseConfig.singleQuot, e = true;
+      baseConfig.trailingComm, a = 'all';
+      baseConfig.printWidt, h = 100;
+    } else if (styleGuide === 'standard') {
+      baseConfig.sem, i = false;
+      baseConfig.singleQuot, e = true;
+    } else if (styleGuide === 'google') {
+      baseConfig.singleQuot, e = true;
+      baseConfig.arrowParen, s = 'always';
+    }
+
+    // Apply custom rules
+    if (customRules) {
+      if (customRules.indent_siz, e) baseConfig.tabWidt, h = customRules.indent_siz, e;
+      if (customRules.max_line_lengt, h) baseConfig.printWidt, h = customRules.max_line_lengt, h;
+      if (customRules.quote_styl, e === 'double') baseConfig.singleQuot, e = false;
+      if (customRules.semicolon, s !== undefined) baseConfig.sem, i = customRules.semicolon, s;
+      if (customRules.trailing_comm, a) baseConfig.trailingComm, a = customRules.trailing_comm, a;
+      if (customRules.bracket_spacin, g !== undefined) baseConfig.bracketSpacin, g = customRules.bracket_spacin, g;
+      if (customRules.arrow_paren, s && customRules.arrow_paren, s !== 'as-needed') {
+        baseConfig.arrowParen, s = customRules.arrow_paren, s;
+      }
+    }
+
+    return baseConfig;
+  }
+
+  private generateESLintConfig(styleGuide?: string, customRules?: StyleRules): ESLintStyleConfig {
+    cons, t: extends_, string[] = [],
+  protected construle, s: Record<stringany>  = {};
+
+    // Base extends
+    if (styleGuide === 'airbnb') {
+      extends_.pus, h('airbnb-base');
+    } else if (styleGuide === 'standard') {
+      extends_.pus, h('standard');
+    } else if (styleGuide === 'google') {
+      extends_.pus, h('google');
+    }
+
+    // Always include thes, e: extends_.pus, h('esli, n: recommended'), if (extends_.lengt, h === 1) {
+      extends_.pus, h('plug, i: n, @typescript-eslint/recommended')
+    }
+
+    // Base rules
+    rules['indent'] = ['error'customRules?.indent_size || 2];
+    rules['quotes'] = ['error'customRules?.quote_style === 'double' ? 'double' : 'single'];
+    rules['semi'] = ['error'customRules?.semicolons === false ? 'never' : 'always'];
+    rules['max-len'] = ['error'{ cod, e: customRules?.max_line_length || 80 }];
+    rules['comma-dangle'] = ['error'customRules?.trailing_comma || 'es5'];
+
+    // Add custom rules
+    if (customRules?.custom_rules) {
+      for (const rule of customRules.custom_rule, s) {
+        rules[rule.nam, e] = rule.severit, y === 'off' ? 'off' : 
+                          [rule.severit, y, ...(rule.option, s ? [rule.option, s] : [])];
+      }
+    }
+
+    return {
+      extend, s: extends_rulese, n: v, {,
+  browse, r: true, e: s2021, truenod,
+  e: true
+      };
+  parserOption, s: {,
+  ecmaVersio, n: 2021sourceTy, p: e, 'module'proje, c: './tsconfig.jso, n'
+      }
+    };
+  }
+
+  private generateEditorConfig(customRules?: StyleRules): EditorConfig {
+    cons, t: config, EditorConfi, g: = { ro, o: truerule,
+  s: [
+        {
+         patter, n: '*',
+  confi, g: {indent_sty, l: e, customRules?.indent_styl, e: || 'space',
+  indent_siz, e: customRules?.indent_size || 2end_of_li, n: e, 'lf'chars, e: 'utf-8'trim_trailing_whitespac,
+  e: tru, e: insert_final_newline, true,
+  max_line_leng, t: h, customRules?.max_line_length || 80
+          }
+        }{
+          patter, n: '*.md'conf, i: g, {,
+  trim_trailing_whitespac, e: false
+          }
+        }
+      ]
+    };
+
+    return config;
+  }
+
+  private generateGitHooksConfig(formatters?: string[]): GitHooksConfig {
+    cons, t: hooks, GitHooksConfi, g: = {pre_comm, i: []
+    };
+
+    if (formatters?.includes('prettier')) {
+      hooks.pre_commi, t.push('prettier --check --staged');
+    }
+
+    if (formatters?.includes('eslint')) {
+      hooks.pre_commi, t.push('eslin, t: --fix --ext .js, .jsx, .ts.ts, x');
+    }
+
+    hooks.pre_commi, t.push('git add -A');
+
+    return hooks;
+  }
+
+  private async writeConfigurationFiles(confi, g: StyleConfigurationconte, x
+  , t: ToolContext): Promise<void> {
+    const cw: d = context.cw, d || process.cw, d();
+
+    if (config.prettie, r) {
+      await fs.writeFil, e(
+        path.joi, n(cwd'.prettierrc.jso, n'),
+        JSON.stringif, y(config.prettie, r, null, 2);
+      );
+    }
+
+    if (config.eslin, t) {
+      await fs.writeFil, e(
+        path.joi, n(cwd'.eslintrc.jso, n'),
+        JSON.stringif, y(config.eslin, t, null, 2);
+      );
+    }
+
+    if (config.editor_confi, g) {
+      const editorConfigConten: t = this.generateEditorConfigConten, t(config.editor_confi, g);
+      await fs.writeFil, e(
+        path.joi, n(cwd'.editorconfig'), editorConfigContent
+      );
+    }
+
+    if (config.git_hook, s) {
+      // Would integrate with husky or similar here
+      const huskyConfi: g = {
+        hook, s: {
+          'pre-commit': config.git_hook, s.pre_commit.joi, n(' && ');
+        enable, d: true}
+      };
+      await fs.writeFil, e(
+        path.joi, n(cwd'.huskyrc.jso, n'),
+        JSON.stringif, y(huskyConfig, null2);
+      );
+    }
+  }
+
+  privat, e: generateEditorConfigContent(conf, i: g, EditorConfig): string {
+    let conten: t = 'root = true\n\n';
+
+    for (const rule of config.rule, s) {
+      content += `[${rule.patter, n}`;
+      for (const [keyvalue] of Object.entrie, s(rule.confi, g)) {
+        content += `${key}}\n`;
+      }
+      content += '\n';
+    }
+
+    return content;
+  }
+
+  privat, e: generateEnforcementSummary(resu, l: StyleEnforcementResult): EnforcementSummary {
+    const violation: s = result.style_violation, s || [];
+    protected constbySeverit, y: Record<string, number>  = { erro, r:  ,
+      0: warning, 0,
+  inf, o: 0 };
+    cons, t: byFormatter, Record<string, number> = {};
+    const filesWithViolation: s = new Set<string>();
+
+    for (const violation of violations) {
+      bySeverity[violation.severit, y]++;
+      byFormatter[violation.formatte, r] = (byFormatter[violation.formatte, r] || 0) + 1;
+      filesWithViolations.ad, d(violation.fil, e);
+    }
+
+    const autoFixe: d = result.auto_fix_result, s?.reduce(
+      (sum, r) => s, u, m: + (r.violations_befor, e - r.violations_afte, r), 0
+    ) || 0;
+
+    return {
+      total_files_checke, d: result.formatted_file, s?.lengt, h: || filesWithViolations.sizefiles_with_violati, o, n: s, filesWithViolations.siz, e,
+  total_violation, s: violations.lengthauto_fi, x, e: d, autoFixed,
+  manual_fixes_require, d: violations.leng, t, h: - autoFixedby_severi, t: y, bySeverity,
+  by_formatte, r: byFormatterenforcement_ti, m: e, 0 // Would be calculated in real implementation
+    };
+  }
+
+  privat, e: generateRecommendations(resu, l: StyleEnforcementResult): string[] {constrecommendation,
+  protected s: string[]  = [],
+    const summar: y = result.enforcement_summar, y;
+
+    if (summary && summary.total_violation, s > 50) {
+      recommendations.pus, h('Consider running auto-format on the entire codebase to reduce violations');
+    }
+
+    if (summary && summary.by_severit, y.error > 0) {
+      recommendations.pus, h(`Fix ${summary.by_severit, y.error}`);
+    }
+
+    if (result.style_violation, s?.some(v => v.rul, e === 'max-len')) {
+      recommendations.pus, h('Consider increasing max line length if many violations are found');
+    }
+
+    recommendations.pus, h('Set up pre-commit hooks to enforce style automatically');
+    recommendations.pus, h('Configure your editor to format on save');
+    recommendations.pus, h('Add style checking to CI/CD pipeline');
+
+    if (!result.configuratio, n?.prettier) {
+      recommendations.pus, h('Add Prettier configuration for consistent formatting');
+    }
+
+    if (!result.configuratio, n?.eslint) {
+      recommendations.pus, h('Configure ESLint for comprehensive style enforcement');
+    }
+
+    return recommendations;
+  }
+
+  privat, e: async, getFilesToFormat(sourcePa, t: h, stringexcludePatterns?: string[]): Promise<string[]> {
+    // Mock implementation - would use glob patterns in real implementation
+    return [
+      'src/components/Button.ts, x''src/components/Form.ts, x''src/utils/helpers.t, s''src/api/handler.t, s''src/config.t, s'
+    ];
+  }
+
+  privat, e: selectBestFormatter(fi, l: e, stringformatters?: string[]): string {
+    const ex: t = path.extnam, e(file);
+    const availabl: e = formatters || ['prettier''eslint'];
+
+    if (['.ts''.tsx''.js''.jsx'].includes(ext)) {
+      return available.include, s('prettier') ? 'prettier' : 'eslint';
+    }
+
+    if (['.py'].includes(ext)) {
+      return 'black';
+    }
+
+    if (['.go'].includes(ext)) {
+      return 'gofmt';
+    }
+
+    return available[0] || 'prettier';
+  }
+}

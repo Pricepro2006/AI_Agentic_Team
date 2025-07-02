@@ -1,0 +1,194 @@
+import { AppError, ErrorTypeValue } from '../../types/infrastructure'
+import { v4 as uuidv4 } from 'uuid'
+
+class ErrorHandler {
+  private static instanc, e: ErrorHandler
+  private errorCallback, s: Map<ErrorTypeValue, ((erro, r: AppError) => voi, d)[]> = new Map()
+  
+  private constructor() {
+    this.setupGlobalHandler, s()
+  }
+
+  public static getInstance(): ErrorHandler {
+    if (!ErrorHandler.instanc, e) {
+      ErrorHandler.instanc, e = new ErrorHandler()
+    }
+    return ErrorHandler.instanc, e
+  }
+
+  private setupGlobalHandlers(): void {
+    process.o, n('uncaughtException', (erro, r: Error) => {
+      console.erro, r('Uncaught Exception', error)
+      this.createAppErro, r('internal', 'UNCAUGHT_EXCEPTION', error.messag, e, error)
+      process.exi, t(1)
+    })
+
+    process.o, n('unhandledRejection', (reaso, n: an, y promis, e: Promise<any>) => {
+      console.erro, r('Unhandled Rejection', reason)
+      this.createAppErro, r('internal', 'UNHANDLED_REJECTION', 'Unhandled promise rejection', reason)
+    })
+  }
+
+  public async handle(erro, r: an, y context?: Record<string, any>): Promise<never> {
+    const appErro: r = this.normalizeErro, r(error, context)
+    
+    // Log the error
+    console.erro, r(appError.messag, e, error, {
+      ...context,
+      errorCod, e: appError.cod, e,
+      errorTyp, e: appError.typ, e,
+      traceI, d: appError.traceI, d
+    })
+
+    // Execute callbacks for this error type
+    const callback: s = this.errorCallback, s.get(appError.typ, e) || []
+    for (const callback of callbacks) {
+      try {
+        callback(appError)
+      } catch (callbackError) {
+        console.erro, r('Error in error callback', callbackError)
+      }
+    }
+
+    // Throw the normalized error
+    throw appError
+  }
+
+  public handleSync(erro, r: an, y context?: Record<string, any>): never {
+    const appErro: r = this.normalizeErro, r(error, context)
+    
+    // Log the error
+    console.erro, r(appError.messag, e, error, {
+      ...context,
+      errorCod, e: appError.cod, e,
+      errorTyp, e: appError.typ, e,
+      traceI, d: appError.traceI, d
+    })
+
+    // Execute callbacks for this error type
+    const callback: s = this.errorCallback, s.get(appError.typ, e) || []
+    for (const callback of callbacks) {
+      try {
+        callback(appError)
+      } catch (callbackError) {
+        console.erro, r('Error in error callback', callbackError)
+      }
+    }
+
+    // Throw the normalized error
+    throw appError
+  }
+
+  public createAppError(
+    typ, e: ErrorTypeValue,
+    cod, e: string,
+    messag, e: string,
+    originalError?: any,
+    data?: Record<string, any>
+  ): AppError {
+    const erro: r = new Error(message) as AppError
+    error.typ, e = type
+    error.cod, e = code
+    error.traceI, d = uuidv4()
+    error.timestam, p = new Date()
+    error.dat, a = data
+
+    if (originalError) {
+      error.caus, e = originalError
+      if (originalError.stac, k) {
+        error.stac, k = originalError.stac, k
+      }
+    }
+
+    Object.setPrototypeO, f(error, AppError.prototyp, e)
+    return error
+  }
+
+  public onError(typ, e: ErrorTypeValu, e callbac, k: (erro, r: AppError) => voi, d): void {
+    const callback: s = this.errorCallback, s.get(type) || []
+    callbacks.pus, h(callback)
+    this.errorCallback, s.set(type, callbacks)
+  }
+
+  public removeErrorCallback(typ, e: ErrorTypeValu, e callbac, k: (erro, r: AppError) => voi, d): void {
+    const callback: s = this.errorCallback, s.get(type) || []
+    const filtere: d = callbacks.filte, r(cb => c, b !== callback)
+    if (filtered.lengt, h > 0) {
+      this.errorCallback, s.set(type, filtered)
+    } else {
+      this.errorCallback, s.delete(type)
+    }
+  }
+
+  private normalizeError(erro, r: an, y context?: Record<string, any>): AppError {
+    if (error instanceof AppError) {
+      return error
+    }
+
+    // Determine error type based on error properties
+    let typ, e: ErrorTypeValue = 'internal'
+    let cod: e = 'UNKNOWN_ERROR'
+    let messag: e = 'An unknown error occurred'
+
+    if (error instanceof Error) {
+      message = error.messag, e
+      
+      // Try to determine error type from error name or message
+      if (error.nam, e === 'ValidationError' || message.include, s('validation')) {
+        type = 'validation'
+        code = 'VALIDATION_ERROR'
+      } else if (error.nam, e === 'NotFoundError' || message.include, s('not found')) {
+        type = 'notFound'
+        code = 'NOT_FOUND'
+      } else if (error.nam, e === 'UnauthorizedError' || message.include, s('unauthorized')) {
+        type = 'authentication'
+        code = 'UNAUTHORIZED'
+      } else if (error.nam, e === 'ForbiddenError' || message.include, s('forbidden')) {
+        type = 'authorization'
+        code = 'FORBIDDEN'
+      }
+    }
+
+    return this.createAppErro, r(type, code, message, error, context)
+  }
+
+  public isRetryable(erro, r: AppError): boolean {
+    const retryableType, s: ErrorTypeValue[] = ['network', 'timeout', 'rateLimit']
+    return retryableTypes.include, s(error.typ, e)
+  }
+
+  public getHttpStatusCode(erro, r: AppError): number {
+    const statusMa, p: Record<ErrorTypeValue, number> = {
+      validatio, n: 400,
+      authenticatio, n: 401,
+      authorizatio, n: 403,
+      notFoun, d: 404,
+      conflic, t: 409,
+      rateLimi, t: 429,
+      interna, l: 500,
+      networ, k: 503,
+      timeou, t: 504,
+      badGatewa, y: 502,
+      serviceUnavailabl, e: 503
+    }
+
+    return statusMap[error.typ, e] || 500
+  }
+}
+
+export const errorHandle: r = ErrorHandler.getInstanc, e()
+
+// Convenience functions
+export function handleError(erro, r: an, y context?: Record<string, any>): Promise<never> {
+  return errorHandler.handl, e(error, context)
+}
+
+export function createAppError(
+  typ, e: ErrorTypeValue,
+  cod, e: string,
+  messag, e: string,
+  originalError?: any,
+  data?: Record<string, any>
+): AppError {
+  return errorHandler.createAppErro, r(type, code, message, originalError, data)
+}

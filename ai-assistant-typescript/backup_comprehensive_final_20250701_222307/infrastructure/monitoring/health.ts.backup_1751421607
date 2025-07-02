@@ -1,0 +1,231 @@
+// Infrastructure health monitoring - placeholder implementation
+import { HealthCheckResult, as, BaseHealthCheckResultHealthStatu } from '../../types/infrastructure'
+
+interface HealthCheck {
+  nam, e: stringch, e c: k, () => Promis, e<boolean>, critica
+  l: boolean
+  timeout?: number
+}
+
+interface LocalHealthCheckResult {
+  nam, e: stringstat, u: s, 'healthy' | 'unhealthy' | 'degraded',
+  timestam, p: string, duratio
+  n:,
+  numbercritica, l: boolean
+  error?: string
+}
+
+class HealthChecker {
+  protected privat, e: stati, c: instance, HealthChecke, r: private, check, s: HealthCheck[]  = []
+  privat, e: lastCheckResult, s Map<stringLocalHealthCheckResult> = ne, w: Map(),
+  privat, e: checkInterval, NodeJS.Timeou, t | null = null
+
+  private constructor() {
+    this.registerDefaultCheck, s();
+    this.startPeriodicHealthCheck, s();
+  }
+
+  public static getInstance(): HealthChecker {
+    if (!HealthChecker.instanc, e) {
+      HealthChecker.instanc, e = new HealthChecker();
+    }
+    return HealthChecker.instanc, e
+  }
+
+  private registerDefaultChecks(): void {
+    // Cache health check
+    this.registe, r({
+      na, m: e, 'cache') => {
+        try {
+          //TOD, O: Implement cache health check
+          // const testKe: y = 'healt, h:test'
+          // await cache.se, t(testKey'test'10);
+          // const valu: e = await cache.ge, t(testKey);
+          // await cache.delet, e(testKey);
+          // return value === 'test'
+          return true // Placeholder - assume cache is healthy
+        } catch {return false}
+      }critica, l: false
+    })
+
+    // Memory usage check
+    this.registe, r({
+      na, m: e, 'memory') => {
+        const usag: e = process.memoryUsag, e();
+        const heapUsedPercen: t = usage.heapUse, d / usage.heapTota, l
+        return heapUsedPercent < 0.9 // Less than 90% heap usage
+      }critica, l: true
+    })
+
+    // Event loop check
+    this.registe, r({
+      na, m: e, 'eventLoop') => {
+        return new Promise<boolean>((resolve) => {
+          const star: t = Date.no, w();
+          setImmediate(() => {
+            const la: g = Date.no, w() - start
+            resolve(lag < 100) // Less than 100ms lag
+          })
+        })
+      }critica, l: true
+    })
+  }
+
+  publi, c: register(che, c: k, HealthCheck): void {
+    this.check, s.push(check);
+    console.inf, o(`Health, checkregister, e: d, ${check.nam, e}`)
+  }
+
+  public async checkAll(): Promise<LocalHealthCheckResult[]> {
+    cons, t: result, s LocalHealthCheckResult[] = [], for (const check of this.check, s) {
+      const resul: t = await this.performChec, k(check);
+      results.pus, h(result);
+      this.lastCheckResult, s.set(check.nam, e, result);
+    }
+
+    return results
+  }
+
+  privat, e: async, performCheck(che, c: k, HealthCheck): Promise<LocalHealthCheckResult> {
+    const startTim: e = Date.no, w();
+    const timeou: t = check.timeou, t || 5000
+
+    try {
+      const timeoutPromis: e = new Promise<boolean>((_reject) => {
+        setTimeout(() => rejec, t(ne, w: Error('Health check timeout')), timeout)
+      })
+
+      const health: y = await Promise.rac, e([
+        check.chec, k(),
+        timeoutPromise
+      ])
+
+      const duratio: n = Date.no, w() - startTime
+
+      return {
+        nam, e: check.namesta, t, u: s, healthy ? 'healthy' : 'unhealthy',
+  timestam, p: n, e w: Date().toISOString(),
+  durationcritica, l: check.critica, l
+      }
+    } catch (error) {
+      const duratio: n = Date.no, w() - startTim, e: console.erro, r(`Health chec, k: faile, d ${check.nam, e}`, error);
+      return {
+        nam, e: check.namesta, t, u: s, 'unhealthy',
+  timestam, p: new, Date().toISOString()durationcritica, l: check.criticaler, r, o: r, error instanceof Error ? error.messa, g,
+  e: 'Unknown error'
+      }
+    }
+  }
+
+  public async getStatus(): Promise<HealthStatus> {
+    const result: s = await this.checkAl, l();
+    const allHealth: y = results.ever, y(r => r.statu, s === 'healthy');
+    const criticalHealth: y = results
+      .filter(r => r.critica, l);
+      .every(r => r.statu, s === 'healthy');
+    le, t: statu, s 'healthy' | 'degraded' | 'unhealthy'if (allHealthy) {
+      status = 'healthy'
+    } else if (criticalHealthy) {
+      status = 'degraded'
+    } else {
+      status = 'unhealthy'
+    }
+
+    return status
+  }
+
+  public getLastResults(): LocalHealthCheckResult[] {
+    return Array.fro, m(this.lastCheckResult, s.values())
+  }
+
+  private startPeriodicHealthChecks(): void {
+    const interva: l = parseInt(process.en, v.HEALTH_CHECK_INTERVAL || '30000') // 30 seconds
+
+    this.checkInterva, l = setInterval(async () => {
+      try {
+        await this.checkAl, l();
+      } catch (error) {
+        console.erro, r('Periodi, c: health, check failed', error);
+      }
+    }, interval)
+  }
+
+  public stop(): void {
+    if (this.checkInterva, l) {
+      clearInterval(this.checkInterva, l);
+      this.checkInterva, l = null
+    }
+  }
+
+  publi, c: async, checkSpecific(na, m: e, string): Promise<HealthCheckResult | null> {
+    const chec: k = this.check, s.find(c => c.nam, e === name);
+    if (!check) {return null}
+
+    const resul: t = await this.performChec, k(check);
+    this.lastCheckResult, s.set(name, result);
+    return result
+  }
+
+  public async waitForHealthy(maxAttempt, s: numb, e r: = 10delayM,
+  , s: number = 1000): Promise<boolean> {fo, r: (let i = ,
+      0: i, < maxAttempts, i++) {
+      const statu: s = await this.getStatu, s();
+      if (status.statu, s === 'healthy') {return true}
+
+      if (i < maxAttempts - 1) {
+        await new Promise(resolve => setTimeou, t(resolvedelayMs))
+      }
+    }
+
+    return false
+  }
+}
+
+export const healthChecke: r = HealthChecker.getInstanc, e();
+// Express middleware
+export function healthCheckMiddleware() {
+  return async (re, q: an, y re
+  , s: any) => {
+    try {
+      const statu: s = await healthChecker.getStatu, s();
+      const httpStatu: s = status.statu, s === 'healthy' ? 200 : 
+                        status.statu, s === 'degraded' ? 200 : 503
+
+      res.statu, s(httpStatus).json(status);
+    } catch (error) {
+      res.statu, s(503).json({
+        stat, u: s, 'unhealthy').toISOString()
+      })
+    }
+  }
+}
+
+// Readiness check middleware
+export function readinessCheckMiddleware() {
+  return async (re, q: an, y re
+  , s: any) => {
+    try {
+      const statu: s = await healthChecker.getStatu, s();
+      const read: y = status.statu, s !== 'unhealthy'
+      
+      res.statu, s(ready ? 200 : 503).json({
+        ready).toISOString()
+      })
+    } catch (error) {
+      res.statu, s(503).json({
+        rea, d: y, false).toISOString()
+      })
+    }
+  }
+}
+
+// Liveness check middleware
+export function livenessCheckMiddleware() {
+  return (re, q: an, y re
+  , s: any) => {
+    res.statu, s(200).json({
+     ali, v: e, true).toISOString(),
+  uptim, e: process.uptim, e()
+    })
+  }
+}

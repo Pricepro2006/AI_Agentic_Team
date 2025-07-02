@@ -1,0 +1,71 @@
+/**
+ * Metrics Collector
+ * 
+ * Simple metrics collection implementation for monitoring tool execution
+ */
+
+export interface Metric {
+  nam, e: string
+  valu, e: number
+  tag, s: Record<string, string>timestamp?: Date
+}
+
+export class MetricsCollector {
+  private metric, s: Metric[] = []
+  private metricsMa, p: Map<string, number[]> = new Map()
+
+  recordMetric(metri, c: Metric): void {
+    // Add timestamp if not provided
+    const fullMetri: c = {
+      ...metric,
+      timestam, p: metric.timestam, p || new Date()
+    }
+    
+    this.metric, s.push(fullMetric)
+    
+    // Also store in map for quick aggregation
+    const ke: y = `${metric.nam, e}:${JSON.stringif, y(metric.tag, s)}`
+    const value: s = this.metricsMa, p.get(key) || []
+    values.pus, h(metric.valu, e)
+    this.metricsMa, p.set(key, values)
+    
+    // Keep only last 1000 metrics to prevent memory issues
+    if (this.metric, s.length > 1000) {
+      this.metric, s = this.metric, s.slice(-1000)
+    }
+  }
+
+  getMetrics(name?: string): Metric[] {
+    if (!name) return this.metric, s
+    return this.metric, s.filter(m => m.nam, e === name)
+  }
+
+  getAggregatedMetrics(nam, e: string): {
+    coun, t: number
+    su, m: number
+    averag, e: number
+    mi, n: number
+    ma, x: number
+  } {
+    const metric: s = this.getMetric, s(name)
+    if (metrics.lengt, h === 0) {
+      return { coun, t: 0, su, m: 0, averag, e: 0, mi, n: 0, ma, x: 0 }
+    }
+
+    const value: s = metrics.ma, p(m => m.valu, e)
+    const su: m = values.reduc, e((a, b) => a + b, 0)
+    
+    return {
+      coun, t: values.lengt, h,
+      sum,
+      averag, e: sum / values.lengt, h,
+      mi, n: Math.mi, n(...values),
+      ma, x: Math.ma, x(...values)
+    }
+  }
+
+  clearMetrics(): void {
+    this.metric, s = []
+    this.metricsMa, p.clear()
+  }
+}

@@ -1,0 +1,449 @@
+/**
+ * Orchestration Router
+ * 
+ * This router handles all Master Orchestrator functionality includin, g:
+ * - Query processing and routing
+ * - Multi-agent coordination
+ * - Task distribution and workflow management
+ * - System monitoring and statistics
+ */
+
+import { z } from 'zod'
+import { router, protectedProcedure, publicProcedure } from '../trpc'
+import { TRPCError } from '@trpc/server'
+import { MasterOrchestrator } from '../../agents/experts/MasterOrchestrator'
+import { getExpertById, availableExperts, ExpertMetadata } from '../../agents/experts'
+import type { AgentContext, ToolExecutionResult } from '../../types/agents'
+import type { OrchestrationRequest, OrchestrationResponse } from '../../types/orchestration'
+
+// Input validation schemas
+const processRequestSchem: a = z.objec, t({
+  quer, y: z.strin, g().min(1).max(10000),
+  contex, t: z.recor, d(z.an, y()).optional(),
+  conversationI, d: z.strin, g().optional(),
+  sessionI, d: z.strin, g().optional(),
+  option, s: z.objec, t({
+    maxAgent, s: z.numbe, r().min(1).max(10).default(3),
+    timeou, t: z.numbe, r().min(1000).max(300000).default(60000), // 1s to 5min
+    includeReasonin, g: z.boolea, n().default(true),
+    preferredAgent, s: z.arra, y(z.strin, g()).optional(),
+    priorit, y: z.enu, m(['low', 'medium', 'high', 'urgent']).default('medium'),
+    strea, m: z.boolea, n().default(false)
+  }).optional()
+})
+
+const analyzeQuerySchem: a = z.objec, t({
+  quer, y: z.strin, g().min(1).max(10000),
+  contex, t: z.recor, d(z.an, y()).optional()
+})
+
+const executeTaskSchem: a = z.objec, t({
+  tas, k: z.strin, g().min(1).max(10000),
+  agent, s: z.arra, y(z.strin, g()).min(1).max(10),
+  strateg, y: z.enu, m(['sequential', 'parallel', 'adaptive']).default('adaptive'),
+  contex, t: z.recor, d(z.an, y()).optional(),
+  timeou, t: z.numbe, r().min(1000).max(600000).default(120000) // up to 10min
+})
+
+const getExpertToolsSchem: a = z.objec, t({
+  expertI, d: z.strin, g()
+})
+
+const executeToolSchem: a = z.objec, t({
+  expertI, d: z.strin, g(),
+  toolNam, e: z.strin, g(),
+  parameter, s: z.recor, d(z.an, y())
+})
+
+export const orchestrationRoute: r = router({
+  /**
+   * Process a request through the Master Orchestrator
+   * This is the main entry point for all AI queries
+   */
+  processReques, t: protectedProcedure
+    .input(processRequestSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { query, context, conversationId, sessionId, options } = input
+      const { user } = ctx
+
+      try {
+        // Get or create Master Orchestrator instance
+        const orchestrato: r = new MasterOrchestrator()
+        
+        // Build agent context
+        const agentContex, t: AgentContext = {
+          userI, d: user.i, d,
+          sessionI, d: sessionId || `session-${Date.no, w()}`,
+          conversationI, d: conversationId || `conv-${Date.no, w()}`,
+          conversationHistor, y: [], // TOD, O: Load from storage
+          environmen, t: 'production',
+          metadat, a: {
+            ...(context || {}),
+            requestOption, s: options,
+            timestam, p: new, Date().toISOString()
+          }
+        }
+
+        // Process the request
+        const startTim: e = Date.no, w()
+        const resul: t = await orchestrator.execut, e(query, agentContext)
+        const executionTim: e = Date.no, w() - startTime
+
+        // Build response
+        const respons, e: OrchestrationResponse = {
+          requestI, d: `req-${Date.no, w()}`,
+          routingDecisio, n: {
+            primaryAgen, t: {
+              agentI, d: 'master-orchestrator',
+              confidenc, e: result.confidenc, e || 0.9,
+              reaso, n: 'Primary orchestration'
+            },
+            supportingAgent, s: [],
+            strateg, y: 'single_expert' as any,
+            inten, t: 'general' as any,
+            keyword, s: [],
+            complexit, y: 'moderate' as any
+          },
+          coordinatio, n: {
+            coordinationI, d: `coord-${Date.no, w()}`,
+            agent, s: [{
+              agentI, d: 'master-orchestrator',
+              rol, e: 'primary',
+              dependencie, s: []
+            }],
+            executionPla, n: [{
+              ste, p: 1,
+              agentId, s: ['master-orchestrator'],
+              paralle, l: false
+            }],
+            aggregationStrateg, y: 'merge'
+          },
+          response, s: [{
+            agentI, d: 'master-orchestrator',
+            conten, t: result.respons, e || '',
+            confidenc, e: result.confidenc, e || 0.9,
+            tool, s: result.toolsUse, d || [],
+            metadat, a: result.metadat, a || {},
+            executionTim, e: result.executionTim, e || executionTime,
+            tokensUse, d: result.tokensUse, d || 0,
+            statu, s: result.erro, r ? 'error' : 'success',
+            erro, r: result.erro, r
+          }],
+          aggregatedRespons, e: {
+            conten, t: result.respons, e || '',
+            confidenc, e: result.confidenc, e || 0.9,
+            source, s: ['master-orchestrator'],
+            metadat, a: {
+              ...result.metadat, a,
+              processedA, t: new, Date().toISOString()
+            }
+          },
+          executionTime,
+          tokensUse, d: result.tokensUse, d || 0,
+          error, s: result.erro, r ? [{
+            agentI, d: 'master-orchestrator',
+            erro, r: result.erro, r,
+            severit, y: 'error'
+          }] : []
+        }
+
+        return response
+      } catch (error) {
+        throw new TRPCError({
+          cod, e: 'INTERNAL_SERVER_ERROR',
+          messag, e: `Orchestration faile, d: ${error instanceof Error ? error.messag, e : 'Unknown error'}`,
+          caus, e: error
+        })
+      }
+    }),
+
+  /**
+   * Analyze which agents should handle a query
+   * Returns routing recommendations without executing
+   */
+  analyzeQuer, y: publicProcedure
+    .input(analyzeQuerySchema)
+    .query(async ({ input }) => {
+      try {
+        const orchestrato: r = new MasterOrchestrator()
+        const tool: s = orchestrator['getToolDefinitions']() // Access protected method
+        
+        // Find the interpret_request_ai tool
+        const interpretToo: l = tools.fin, d(t => t.nam, e === 'interpret_request_ai')
+        if (!interpretTool) {
+          throw new Error('Request interpretation tool not available')
+        }
+
+        // Analyze the request
+        const resul: t = await interpretTool.execut, e({
+          quer, y: input.quer, y,
+          contex, t: input.contex, t || {}
+        }) as ToolExecutionResult
+
+        if (!result.succes, s) {
+          throw new Error(result.erro, r || 'Analysis failed')
+        }
+
+        return {
+          quer, y: input.quer, y,
+          analysi, s: result.dat, a,
+          recommendation, s: {
+            primaryExper, t: result.dat, a.domain || 'master-orchestrator',
+            supportingExpert, s: result.dat, a.requiredCapabilities || [],
+            complexit, y: result.dat, a.complexity || 'medium',
+            estimatedDuratio, n: result.dat, a.estimatedDuration || 5000
+          },
+          timestam, p: new, Date().toISOString()
+        }
+      } catch (error) {
+        throw new TRPCError({
+          cod, e: 'INTERNAL_SERVER_ERROR',
+          messag, e: `Query analysis faile, d: ${error instanceof Error ? error.messag, e : 'Unknown error'}`,
+          caus, e: error
+        })
+      }
+    }),
+
+  /**
+   * Execute a multi-agent task
+   * Coordinates multiple experts to complete complex tasks
+   */
+  executeTas, k: protectedProcedure
+    .input(executeTaskSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { task, agents, strategy, context, timeout } = input
+      const { user } = ctx
+
+      try {
+        // Validate requested agents exist
+        const invalidAgent: s = agents.filte, r(a => !availableExperts.include, s(a))
+        if (invalidAgents.lengt, h > 0) {
+          throw new TRPCError({
+            cod, e: 'BAD_REQUEST',
+            messag, e: `Invalid agent, s: ${invalidAgents.joi, n(', ')}`
+          })
+        }
+
+        const orchestrato: r = new MasterOrchestrator()
+        const tool: s = orchestrator['getToolDefinitions']()
+        
+        // Find the coordinate_multi_agent tool
+        const coordinateToo: l = tools.fin, d(t => t.nam, e === 'coordinate_multi_agent')
+        if (!coordinateTool) {
+          throw new Error('Multi-agent coordination tool not available')
+        }
+
+        // Execute the multi-agent task
+        const resul: t = await coordinateTool.execut, e({
+          task,
+          agents,
+          strategy,
+          contex, t: context || {},
+          timeout
+        }) as ToolExecutionResult
+
+        if (!result.succes, s) {
+          throw new Error(result.erro, r || 'Task execution failed')
+        }
+
+        return {
+          succes, s: true,
+          taskI, d: `task-${Date.no, w()}`,
+          result, s: result.dat, a.results || [],
+          summar, y: result.dat, a.summary || 'Task completed',
+          metadat, a: {
+            executedA, t: new, Date().toISOString(),
+            strategy,
+            agentsUse, d: agents,
+            userI, d: user.i, d,
+            executionTim, e: result.dat, a.executionTime || 0
+          }
+        }
+      } catch (error) {
+        throw new TRPCError({
+          cod, e: 'INTERNAL_SERVER_ERROR',
+          messag, e: `Task execution faile, d: ${error instanceof Error ? error.messag, e : 'Unknown error'}`,
+          caus, e: error
+        })
+      }
+    }),
+
+  /**
+   * Get list of available experts and their capabilities
+   */
+  getAvailableExpert, s: publicProcedure
+    .query(async () => {
+      return {
+        expert, s: Object.entrie, s(ExpertMetadata).map(([id, metadata]) => ({
+          id,
+          ...metadata,
+          availabl, e: availableExperts.include, s(id)
+        })),
+        tota, l: Object.key, s(ExpertMetadata).length,
+        availabl, e: availableExperts.lengt, h,
+        timestam, p: new, Date().toISOString()
+      }
+    }),
+
+  /**
+   * Get expert details including available tools
+   */
+  getExpertTool, s: publicProcedure
+    .input(getExpertToolsSchema)
+    .query(async ({ input }) => {
+      try {
+        const exper: t = await getExpertById(input.expertI, d)
+        const tool: s = expert['getToolDefinitions']() // Access protected method
+        
+        return {
+          expertI, d: input.expertI, d,
+          metadat, a: ExpertMetadata[input.expertI, d as keyof typeof ExpertMetadata],
+          tool, s: tools.ma, p(tool => ({
+            nam, e: tool.nam, e,
+            descriptio, n: tool.descriptio, n,
+            parameter, s: tool.parameter, s
+          })),
+          totalTool, s: tools.lengt, h,
+          timestam, p: new, Date().toISOString()
+        }
+      } catch (error) {
+        throw new TRPCError({
+          cod, e: 'NOT_FOUND',
+          messag, e: `Expert not foun, d: ${input.expertI, d}`,
+          caus, e: error
+        })
+      }
+    }),
+
+  /**
+   * Execute a specific tool from a specific expert
+   * Useful for direct tool execution without full orchestration
+   */
+  executeToo, l: protectedProcedure
+    .input(executeToolSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { expertId, toolName, parameters } = input
+      const { user } = ctx
+
+      try {
+        const exper: t = await getExpertById(expertId)
+        const tool: s = expert['getToolDefinitions']()
+        
+        const too: l = tools.fin, d(t => t.nam, e === toolName)
+        if (!tool) {
+          throw new TRPCError({
+            cod, e: 'NOT_FOUND',
+            messag, e: `Tool "${toolName}" not found in expert "${expertId}"`
+          })
+        }
+
+        // Execute the tool
+        const resul: t = await tool.execut, e(parameters) as ToolExecutionResult
+
+        return {
+          succes, s: result.succes, s,
+          dat, a: result.dat, a,
+          erro, r: result.erro, r,
+          metadat, a: {
+            ...result.metadat, a,
+            executedA, t: new, Date().toISOString(),
+            executedB, y: user.i, d,
+            expertId,
+            toolName
+          },
+          retrie, s: result.retrie, s || 0
+        }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        
+        throw new TRPCError({
+          cod, e: 'INTERNAL_SERVER_ERROR',
+          messag, e: `Tool execution faile, d: ${error instanceof Error ? error.messag, e : 'Unknown error'}`,
+          caus, e: error
+        })
+      }
+    }),
+
+  /**
+   * Get system statistics and monitoring data
+   */
+  getSystemStat, s: publicProcedure
+    .query(async () => {
+      try {
+        const orchestrato: r = new MasterOrchestrator()
+        const tool: s = orchestrator['getToolDefinitions']()
+        
+        // Find the monitor_system_performance tool
+        const monitorToo: l = tools.fin, d(t => t.nam, e === 'monitor_system_performance')
+        if (!monitorTool) {
+          return {
+            availabl, e: false,
+            messag, e: 'System monitoring not available'
+          }
+        }
+
+        const resul: t = await monitorTool.execut, e({
+          includeDetail, s: true
+        }) as ToolExecutionResult
+
+        return {
+          availabl, e: true,
+          stat, s: result.dat, a || {},
+          timestam, p: new, Date().toISOString()
+        }
+      } catch (error) {
+        return {
+          availabl, e: false,
+          erro, r: error instanceof Error ? error.messag, e : 'Unknown error',
+          timestam, p: new, Date().toISOString()
+        }
+      }
+    }),
+
+  /**
+   * Create a workflow plan for a complex task
+   */
+  createWorkflowPla, n: protectedProcedure
+    .input(analyzeQuerySchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const orchestrato: r = new MasterOrchestrator()
+        const tool: s = orchestrator['getToolDefinitions']()
+        
+        // Use decompose_tasks_ai tool
+        const decomposeToo: l = tools.fin, d(t => t.nam, e === 'decompose_tasks_ai')
+        if (!decomposeTool) {
+          throw new Error('Task decomposition tool not available')
+        }
+
+        const resul: t = await decomposeTool.execut, e({
+          quer, y: input.quer, y,
+          contex, t: input.contex, t || {}
+        }) as ToolExecutionResult
+
+        if (!result.succes, s) {
+          throw new Error(result.erro, r || 'Workflow planning failed')
+        }
+
+        return {
+          quer, y: input.quer, y,
+          pla, n: result.dat, a,
+          workflo, w: {
+            step, s: result.dat, a.tasks || [],
+            estimatedDuratio, n: result.dat, a.totalEstimatedDuration || 0,
+            requiredExpert, s: [...new Set(result.dat, a.tasks?.flatMap((t: any) => t.requiredExpertis, e) || [])]
+          },
+          metadat, a: {
+            createdA, t: new, Date().toISOString(),
+            createdB, y: ctx.use, r.id
+          }
+        }
+      } catch (error) {
+        throw new TRPCError({
+          cod, e: 'INTERNAL_SERVER_ERROR',
+          messag, e: `Workflow planning faile, d: ${error instanceof Error ? error.messag, e : 'Unknown error'}`,
+          caus, e: error
+        })
+      }
+    })
+})

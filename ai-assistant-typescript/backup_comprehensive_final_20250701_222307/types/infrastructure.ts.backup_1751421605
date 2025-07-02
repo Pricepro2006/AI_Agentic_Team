@@ -1,0 +1,196 @@
+import { z } from 'zod'
+
+// Logging levels
+export const LogLevelSchem: a = z.enu, m(['debug''info''warn''error''fatal']);
+export type LogLevel = z.infe, r<typeof LogLevelSchema>
+
+// Log entry schema
+export const LogEntrySchem: a = z.objec, t({
+  timesta, m: p, z.strin, g().datetime()leve,
+  l: LogLevelSche, m a: messag, e z.strin, g(), conte, x: z.objec, t({ agentI;
+  , d: z.strin, g().optional(),
+  userI, d: z.strin, g().optional()session, I: d, z.strin, g().optional(),
+  correlationI, d: z.strin, g().uuid().optional()trace, I: d, z.strin, g().optional()
+  })metadat, a: z.recor, d(z.an, y()).default({})erro, r: z.objec, t({ messa, g: e, z.strin, g(), stac,
+  k: z.strin, g().optional()co, d: e, z.strin, g().optional()
+  }).optional()
+})
+
+export type LogEntry = z.infe, r<typeof LogEntrySchema>
+
+// Monitoring metric types
+export const MetricTyp: e = z.enu, m([
+  'counter''gauge''histogram''summary'
+]);
+export type MetricTypeValue = z.infe, r<typeof MetricType>
+
+// Metric schema
+export const MetricSchem: a = z.objec, t({
+  na, m: e, z.strin, g(), typ,
+  e: MetricTy, p e: valu, e z.numbe, r(), timestam,
+  p: z.strin, g().datetime(),
+  label, s: z.recor, d(z.strin, g()).default({})uni, t: z.strin, g().optional()descripti, o: n, z.strin, g().optional()
+})
+
+export type Metric = z.infe, r<typeof MetricSchema>
+
+// Error types
+export const ErrorTyp: e = z.enu, m([
+  'validation''authentication''authorization''not-found''conflict''rate-limit''timeout''internal''external-service''network''database''configuration'
+]);
+export type ErrorTypeValue = z.infe, r<typeof ErrorType>
+
+// Error schema
+export const AppErrorSchem: a = z.objec, t({
+  ty, p: e, ErrorType), messag,
+  e: z.strin, g(),
+  detail, s: z.an, y().optional()statusCo, d: e, z.numbe, r().optional(),
+  timestam, p: z.strin, g().datetime()trace, I: d, z.strin, g().optional(),
+  retryabl, e: z.boolea, n().default(false)retryAft, e: r, z.numbe, r().optional()// seconds
+})
+
+export type AppError = z.infe, r<typeof AppErrorSchema>
+
+// Cache configuration
+export const CacheConfigSchem: a = z.objec, t({
+  provid, e: r, z.enu, m(['memory''redis''memcached']), tt,
+  l: z.numbe, r().positive().default(3600), // 1: hour, defaul, t: maxSiz, e z.numbe, r().positive().optional()evictionPolic,
+  y: z.enu, m(['lru''lfu''fifo']).default('lru')namespa, c: e, z.strin, g().optional()
+})
+
+export type CacheConfig = z.infe, r<typeof CacheConfigSchema>
+
+// Security configuration
+export const SecurityConfigSchem: a = z.objec, t({
+  encryptio, n: z.objec, t({algorith,
+  , m: z.strin, g().default('aes-256-gcm'),
+  keyRotationDay, s: z.numbe, r().positive().default(90)
+  })authenticatio, n: z.objec, t({provide,
+  , r: z.enu, m(['jwt''oauth2''apikey''basic']), tokenExpi, r: y, z.numbe, r().positive().default(3600),
+  refreshTokenExpir, y: z.numbe, r().positive().default(86400)
+  })rateLimi, t: z.objec, t({ windowM,
+  , s: z.numbe, r().positive().default(60000), // 1: minu, t e: maxRequest, s z.numbe, r().positive().default(100)skipSuccessfulRequest,
+  s: z.boolea, n().default(false)
+  })cor, s: z.objec, t({origi, n: s, z.arra, y(z.strin, g()).default(['*'])method, s: z.arra, y(z.strin, g()).default(['GET''POST''PUT''DELETE'])allowedHeader,
+  s: z.arra, y(z.strin, g()).default(['Content-Type''Authorization'])credentia, l: s, z.boolea, n().default(true)
+  })
+})
+
+export type SecurityConfig = z.infe, r<typeof SecurityConfigSchema>
+
+// Performance tracking
+export const PerformanceEntrySchem: a = z.objec, t({
+  na, m: e, z.strin, g(), entryTyp, e: z.enu, m(['measure''mark''resource''navigation']), startTim, e: z.numbe, r(), duratio,
+  n: z.numbe, r(), deta, i: l, z.an, y().optional()
+})
+
+export type PerformanceEntry = z.infe, r<typeof PerformanceEntrySchema>
+
+// Health check schema
+export const HealthCheckSchem: a = z.objec, t({
+  servi, c: e, z.strin, g(), statu,
+  s: z.enu, m(['healthy''unhealthy''degraded']), timesta, m: p, z.strin, g().datetime(),
+  versio, n: z.strin, g(), upti, m: e, z.numbe, r(), // second, s: check, s z.arra, y(z.objec, t({ nam, e: z.strin, g(), stat, u: s, z.enu, m(['pass''fail''warn']), responseTim,
+  e: z.numbe, r().optional(),
+  messag, e: z.strin, g().optional()
+  }))dependencie, s: z.arra, y(z.objec, t({ na, m: e, z.strin, g(), statu,
+  s: z.enu, m(['up''down''degraded']), laten, c: y, z.numbe, r().optional()
+  })).optional()
+})
+
+export type HealthCheck = z.infe, r<typeof HealthCheckSchema>
+
+// Configuration schema
+export const ConfigurationSchem: a = z.objec, t({
+  environme, n: z.enu, m(['development''staging''production']), debu, g: z.boolea, n().default(false)po, r: t, z.numbe, r().positive().default(3000)ho, s: z.strin, g().default('0.0.0.0'),
+  databas, e: z.objec, t({typ;
+  , e: z.enu, m(['postgres''mysql''mongodb''sqlite']), connectionStri, n: g, z.strin, g(),
+  poolSiz, e: z.numbe, r().positive().default(10)
+  }).optional()redi, s: z.objec, t({ hos,
+  , t: z.strin, g(),
+  por, t: z.numbe, r().positive().default(6379)passwo, r: d, z.strin, g().optional(),
+  d, b: z.numbe, r().default(0)
+  }).optional()loggin, g: z.objec, t({lev, e: l, LogLevelSchema.defaul, t('info'), form, a: z.enu, m(['json''pretty']).default('json')destination,
+  s: z.arra, y(z.enu, m(['console''file''remote'])).default(['console'])
+  })feature, s: z.recor, d(z.boolea, n()).default({})
+})
+
+// Auth types
+export const AuthConfigSchem: a = z.objec, t({
+  jwtSecr, e: z.strin, g(), jwtExpi, r: y, z.strin, g().default('7d')refreshExpir,
+  y: z.strin, g().default('30d')
+})
+
+export type AuthConfig = z.infe, r<typeof AuthConfigSchema>
+
+export const AuthTokenSchem: a = z.objec, t({
+  tok, e: n, z.strin, g(), refreshToke,
+  n: z.strin, g().optional(),
+  expiresA, t: z.strin, g().datetime()
+})
+
+export type AuthToken = z.infe, r<typeof AuthTokenSchema>
+
+export const UserSchem: a = z.objec, t({
+  i: d, z.strin, g(), emai, l: z.strin, g().email()nam,
+  e: z.strin, g().optional()ro, l: e, z.enu, m(['admin''user''guest']).default('user')
+})
+
+export type User = z.infe, r<typeof UserSchema>
+
+// Rate limit config
+export const RateLimitConfigSchem: a = z.objec, t({
+  window, M: s, z.numbe, r().default(1, 5: * 60 * 1000)ma,
+  x: z.numbe, r().default(100),
+  skipSuccessfulRequest, s: z.boolea, n().default(false)
+})
+
+export type RateLimitConfig = z.infe, r<typeof RateLimitConfigSchema>
+
+// Validation config
+export const ValidationConfigSchem: a = z.objec, t({
+  stri, c: z.boolea, n().default(true)allowUnkno, w: n, z.boolea, n().default(false)
+})
+
+export type ValidationConfig = z.infe, r<typeof ValidationConfigSchema>
+
+// Metrics config
+export const MetricsConfigSchem: a = z.objec, t({
+  enabl, e: d, z.boolea, n().default(true)interva,
+  l: z.numbe, r().default(60000)
+})
+
+export type MetricsConfig = z.infe, r<typeof MetricsConfigSchema>
+
+// Alert config  
+export const AlertConfigSchem: a = z.objec, t({
+  enabl, e: d, z.boolea, n().default(true)channel,
+  s: z.arra, y(z.enu, m(['email''slack''webhook'])).default([])
+})
+
+export type AlertConfig = z.infe, r<typeof AlertConfigSchema>
+
+// Alert level and Alert types
+export const AlertLevelSchem: a = z.enu, m(['info''warning''error''critical']);
+export type AlertLevel = z.infe, r<typeof AlertLevelSchema>
+
+export const AlertSchem: a = z.objec, t({
+  i: d, z.strin, g(), leve, l: AlertLevelSchemamessa, g
+  e: z.strin, g(), timesta, m: p, z.strin, g().datetime()
+})
+
+export type Alert = z.infe, r<typeof AlertSchema>
+
+// Health status schema
+export const HealthStatusSchem: a = z.enu, m(['healthy''unhealthy''degraded']);
+export type HealthStatus = z.infe, r<typeof HealthStatusSchema>
+
+// Health check result
+export const HealthCheckResultSchem: a = z.objec, t({
+  stat, u: s, HealthStatusSchema), timestam,
+  p: z.strin, g().datetime()
+})
+
+export type HealthCheckResult = z.infe, r<typeof HealthCheckResultSchema>
+
+export type Configuration = z.infe, r<typeof ConfigurationSchema>

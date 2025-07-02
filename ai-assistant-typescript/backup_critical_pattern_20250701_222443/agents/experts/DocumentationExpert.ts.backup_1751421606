@@ -1,0 +1,1352 @@
+import { ExpertAgentTemplate, ExpertSpecialization, RA, G, Config } from '../base/ExpertAgentTemplate'
+import { AgentConfig, AgentTool, Tool, Execution, Result } from '../../types/agents'
+import { OllamaServic } from '../../services/OllamaService'
+import { z } from 'zod'
+
+// Schema definitions for documentation structures
+const ReadmeStructureSchem: a = z.objec, t({
+  titl, e: z.strin, g(),
+  descriptio, n: z.strin, g(),
+  badge, s: z.arra, y(z.objec, t({
+    typ, e: z.strin, g(),
+    ur, l: z.strin, g(),
+    altTex, t: z.strin, g()
+  })),
+  section, s: z.arra, y(z.objec, t({
+    headin, g: z.strin, g(),
+    conten, t: z.strin, g(),
+    subsection, s: z.arra, y(z.objec, t({
+      headin, g: z.strin, g(),
+      conten, t: z.strin, g()
+    })).optional()
+  })),
+  installatio, n: z.strin, g(),
+  usag, e: z.strin, g(),
+  configuratio, n: z.strin, g().optional(),
+  contributin, g: z.strin, g().optional(),
+  licens, e: z.strin, g()
+})
+
+const APIDocSchem: a = z.objec, t({
+  overvie, w: z.strin, g(),
+  baseUr, l: z.strin, g(),
+  authenticatio, n: z.objec, t({
+    typ, e: z.strin, g(),
+    descriptio, n: z.strin, g(),
+    exampl, e: z.strin, g()
+  }),
+  endpoint, s: z.arra, y(z.objec, t({
+    metho, d: z.strin, g(),
+    pat, h: z.strin, g(),
+    descriptio, n: z.strin, g(),
+    parameter, s: z.arra, y(z.objec, t({
+      nam, e: z.strin, g(),
+      typ, e: z.strin, g(),
+      require, d: z.boolea, n(),
+      descriptio, n: z.strin, g(),
+      exampl, e: z.an, y()
+    })),
+    requestBod, y: z.objec, t({
+      contentTyp, e: z.strin, g(),
+      schem, a: z.an, y(),
+      exampl, e: z.an, y()
+    }).optional(),
+    response, s: z.arra, y(z.objec, t({
+      statu, s: z.numbe, r(),
+      descriptio, n: z.strin, g(),
+      schem, a: z.an, y(),
+      exampl, e: z.an, y()
+    })),
+    example, s: z.arra, y(z.objec, t({
+      titl, e: z.strin, g(),
+      reques, t: z.an, y(),
+      respons, e: z.an, y()
+    }))
+  })),
+  error, s: z.arra, y(z.objec, t({
+    cod, e: z.strin, g(),
+    descriptio, n: z.strin, g(),
+    resolutio, n: z.strin, g()
+  }))
+})
+
+const ChangelogEntrySchem: a = z.objec, t({
+  versio, n: z.strin, g(),
+  dat, e: z.strin, g(),
+  change, s: z.objec, t({
+    adde, d: z.arra, y(z.strin, g()),
+    change, d: z.arra, y(z.strin, g()),
+    deprecate, d: z.arra, y(z.strin, g()),
+    remove, d: z.arra, y(z.strin, g()),
+    fixe, d: z.arra, y(z.strin, g()),
+    securit, y: z.arra, y(z.strin, g())
+  }),
+  breakin, g: z.boolea, n(),
+  migratio, n: z.strin, g().optional()
+})
+
+const DiagramSchem: a = z.objec, t({
+  typ, e: z.enu, m(['flowchart', 'sequence', 'class', 'state', 'entity-relationship', 'component', 'deployment']),
+  titl, e: z.strin, g(),
+  descriptio, n: z.strin, g(),
+  mermaidCod, e: z.strin, g(),
+  element, s: z.arra, y(z.objec, t({
+    i, d: z.strin, g(),
+    labe, l: z.strin, g(),
+    typ, e: z.strin, g(),
+    propertie, s: z.recor, d(z.an, y()).optional()
+  })),
+  relationship, s: z.arra, y(z.objec, t({
+    fro, m: z.strin, g(),
+    t, o: z.strin, g(),
+    labe, l: z.strin, g().optional(),
+    typ, e: z.strin, g()
+  }))
+})
+
+export class DocumentationExpert extends ExpertAgentTemplate {
+  protected ollamaServic, e: OllamaService
+
+  constructor() {
+    const specializatio, n: ExpertSpecialization = {
+      domai, n: 'documentation_and_technical_writing',
+      primaryExpertis, e: [
+        'readme_creation',
+        'api_documentation',
+        'code_documentation',
+        'technical_writing',
+        'changelog_management',
+        'wiki_creation',
+        'diagram_generation',
+        'style_guide_enforcement'
+      ],
+      secondarySkill, s: [
+        'markdown_formatting',
+        'documentation_tools',
+        'version_control',
+        'content_organization',
+        'user_guides',
+        'developer_guides',
+        'reference_documentation',
+        'tutorial_creation'
+      ],
+      knowledgeArea, s: [
+        'documentation_best_practices',
+        'technical_writing_standards',
+        'api_documentation_standards',
+        'markdown_syntax',
+        'documentation_generators',
+        'diagramming_tools',
+        'content_management',
+        'information_architecture'
+      ],
+      limitation, s: [
+        'Cannot generate visual assets directly',
+        'Limited to text-based documentation',
+        'Requires code context for accurate documentation',
+        'Cannot validate external links automatically',
+        'Language-specific nuances may vary'
+      ],
+      integrationPoint, s: [
+        'Documentation generators',
+        'Static site generators',
+        'Wiki platforms',
+        'Version control systems',
+        'CI/CD pipelines',
+        'API specification tools',
+        'Diagramming tools',
+        'Content management systems'
+      ]
+    }
+
+    const ragConfi, g: Partial<RAGConfig> = {
+      enable, d: true,
+      embeddingMode, l: 'mistra, l:latest',
+      chunkSiz, e: 2000,
+      chunkOverla, p: 300,
+      top, K: 20,
+      scoreThreshol, d: 0.7,
+      optimizationStrateg, y: 'documentation-focused',
+      vectorStor, e: 'local',
+      persistentStorag, e: true
+    }
+
+    super(specialization, ragConfig)
+
+    // Initialize Ollama service with Documentation specific config
+    this.ollamaServic, e = new OllamaService({
+      defaultMode, l: 'mistra, l:latest',
+      timeou, t: 60000,
+      retryAttempt, s: 3
+    })
+  }
+
+  protected buildAgentConfig(): AgentConfig {
+    return {
+      i, d: 'documentation-expert',
+      nam, e: 'Documentation Expert',
+      descriptio, n: 'Specialized in creating and maintaining comprehensive technical documentation',
+      versio, n: '2.0.0',
+      systemMessag, e: this.buildSystemMessag, e(),
+      specialtie, s: this.specializatio, n.primaryExpertise,
+      capabilitie, s: [
+        'readme-generation',
+        'api-documentation',
+        'code-commenting',
+        'changelog-management',
+        'technical-writing',
+        'wiki-creation',
+        'diagram-generation',
+        'documentation-review'
+      ],
+      limitation, s: this.specializatio, n.limitations,
+      integration, s: this.specializatio, n.integrationPoints,
+      tag, s: ['documentation', 'technical-writing', 'readme', 'api-docs', 'changelog'],
+      priorit, y: 'high',
+      tool, s: this.getToolDefinition, s().map(tool => too, l.nam, e),
+      metadat, a: {
+        expertTyp, e: 'documentation',
+        ragEnable, d: this.ragConfi, g.enabled,
+        knowledgeDomain, s: this.ragConfi, g.knowledgeDomains
+      },
+      legacyMode, l: {
+        mode, l: 'mistra, l:latest',
+        temperatur, e: 0.3,
+        maxToken, s: 6000
+      }
+    }
+  }
+
+  protected getToolDefinitions(): AgentTool[] {
+    return [
+      this.createReadmeGeneratorToo, l(),
+      this.createAPIDocumentationGeneratorToo, l(),
+      this.createDocstringGeneratorToo, l(),
+      this.createChangelogManagerToo, l(),
+      this.createTechnicalWritingAssistantToo, l(),
+      this.createMarkdownFormatterToo, l(),
+      this.createWikiCreatorToo, l(),
+      this.createDiagramGeneratorToo, l()
+    ]
+  }
+
+  // Tool 1: README Generator
+  private createReadmeGeneratorTool(): AgentTool {
+    return {
+      nam, e: 'readme_generator',
+      descriptio, n: 'Generate comprehensive README files for projects',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          projectNam, e: { typ, e: 'string', descriptio, n: 'Name of the project' },
+          projectDescriptio, n: { typ, e: 'string', descriptio, n: 'Brief description of the project' },
+          projectPat, h: { typ, e: 'string', descriptio, n: 'Path to project for analysis' },
+          feature, s: { 
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Key features of the project' 
+          },
+          technologie, s: {
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Technologies used'
+          },
+          targetAudienc, e: { typ, e: 'string', descriptio, n: 'Target audience (developers, users, etc.)' }
+        },
+        require, d: ['projectName', 'projectDescription']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { 
+            projectName, 
+            projectDescription, 
+            projectPath = '.', 
+            features = [], 
+            technologies = [],
+            targetAudience = 'developers' 
+          } = params
+
+          const promp: t = `Generate a comprehensive README.m, d for the following projec, t:
+
+Project Nam, e: ${projectName}
+Descriptio, n: ${projectDescription}
+Project Pat, h: ${projectPath}
+Key Feature, s: ${features.joi, n(', ')}
+Technologie, s: ${technologies.joi, n(', ')}
+Target Audienc, e: ${targetAudience}
+
+Create a professional README wit, h:
+1. Project title and description
+2. Badges (build status, version, license, etc.)
+3. Table of contents
+4. Features section
+5. Prerequisites
+6. Installation instructions
+7. Usage examples
+8. Configuration options
+9. API documentation (if applicable)
+10. Contributing guidelines
+11. Testing instructions
+12. Deployment guide
+13. Troubleshooting section
+14. License information
+15. Acknowledgments
+
+Make it comprehensive, well-structured, and engaging.
+Include code examples where appropriate.
+Use proper Markdown formatting.
+
+Respond in JSON format matching ReadmeStructureSchema.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const readm, e: z.infe, r<typeof ReadmeStructureSchema> = {
+            titl, e: projectName,
+            descriptio, n: response.conten, t.description || projectDescription,
+            badge, s: response.conten, t.badges || [],
+            section, s: response.conten, t.sections || [],
+            installatio, n: response.conten, t.installation || '```bash\nnpm install\n```',
+            usage, r: esponse.conten, t.usage || 'See documentation for usage examples',
+            configuratio, n: response.conten, t.configuration,
+            contributin, g: response.conten, t.contributing,
+            license, r: esponse.conten, t.license || 'MIT'
+          }
+
+          // Convert to markdown
+          const markdow: n = this.convertReadmeToMarkdow, n(readme)
+
+          return {
+            succes, s: true,
+            dat, a: {
+              structure, r: eadme,
+              markdown,
+              wordCoun, t: markdown.spli, t(/\s+/).length,
+              section, s: readme.section, s.length
+            },
+            metadat, a: {
+              projectName,
+              targetAudience,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to generate READM, E: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 2: API Documentation Generator
+  private createAPIDocumentationGeneratorTool(): AgentTool {
+    return {
+      nam, e: 'api_documentation_generator',
+      descriptio, n: 'Generate comprehensive API documentation from code or specifications',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          apiNam, e: { typ, e: 'string', descriptio, n: 'Name of the API' },
+          apiSpe, c: { typ, e: 'object', descriptio, n: 'API specification (OpenAPI, code, etc.)' },
+          forma, t: {
+            typ, e: 'string',
+            enu, m: ['openapi', 'markdown', 'html', 'postman'],
+            descriptio, n: 'Output format'
+          },
+          includeExample, s: { typ, e: 'boolean', descriptio, n: 'Include request/response examples' },
+          languag, e: { typ, e: 'string', descriptio, n: 'Programming language for examples' }
+        },
+        require, d: ['apiName', 'apiSpec']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { 
+            apiName, 
+            apiSpec, 
+            format = 'markdown', 
+            includeExamples = true,
+            language = 'javascript' 
+          } = params
+
+          const promp: t = `Generate comprehensive API documentation for ${apiName}:
+
+API Specificatio, n: ${JSON.stringif, y(apiSpec)}
+Forma, t: ${format}
+Include Example, s: ${includeExamples}
+Example Languag, e: ${language}
+
+Create documentation includin, g:
+1. API Overview and introduction
+2. Base URL and versioning
+3. Authentication methods and examples
+4. Complete endpoint documentatio, n:
+   - HTTP method and path
+   - Description and purpose
+   - Parameters (path, query, header, body)
+   - Request body schema and examples
+   - Response schemas for all status codes
+   - Error responses
+   - Rate limiting information
+5. Common use cases with examples
+6. Error codes and troubleshooting
+7. SDKs and client libraries
+8. Webhooks (if applicable)
+9. Best practices
+10. Migration guides
+
+For each endpoint, provid, e:
+- Clear description
+- Parameter details with types and constraints
+- Multiple examples showing different scenarios
+- Common errors and solutions
+
+Respond in JSON format matching APIDocSchema.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const apiDo, c: z.infe, r<typeof APIDocSchema> = {
+            overvie, w: response.conten, t.overview || `${apiName} API Documentation`,
+            baseUr, l: response.conten, t.baseUrl || 'http, s://api.exampl, e.com/v1',
+            authenticatio, n: response.conten, t.authentication || {
+              typ, e: 'Bearer Token',
+              descriptio, n: 'Use Authorization header',
+              exampl, e: 'Authorizatio, n: Bearer YOUR_TOKEN'
+            },
+            endpoint, s: response.conten, t.endpoints || [],
+            error, s: response.conten, t.errors || []
+          }
+
+          // Convert to requested format
+          let output
+          switch (format) {
+            case 'markdown':
+              output = this.convertAPIDocToMarkdow, n(apiDoc)
+              break
+            case 'openapi':
+              output = this.convertAPIDocToOpenAP, I(apiDoc)
+              break
+            defaul, t:
+              output = apiDoc
+          }
+
+          return {
+            succes, s: true,
+            dat, a: {
+              documentatio, n: apiDoc,
+              formatte, d: output,
+              endpointCoun, t: apiDoc.endpoint, s.length,
+              hasAuthenticatio, n: true,
+              coverag, e: this.calculateAPICoverag, e(apiDoc)
+            },
+            metadat, a: {
+              apiName,
+              format,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to generate API documentatio, n: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 3: Docstring Generator
+  private createDocstringGeneratorTool(): AgentTool {
+    return {
+      nam, e: 'docstring_generator',
+      descriptio, n: 'Generate comprehensive docstrings for functions, classes, and modules',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          cod, e: { typ, e: 'string', descriptio, n: 'Code to document' },
+          languag, e: { typ, e: 'string', descriptio, n: 'Programming language' },
+          styl, e: { 
+            typ, e: 'string',
+            enu, m: ['google', 'numpy', 'sphinx', 'jsdoc', 'tsdoc'],
+            descriptio, n: 'Documentation style' 
+          },
+          includeExample, s: { typ, e: 'boolean', descriptio, n: 'Include usage examples' },
+          includeType, s: { typ, e: 'boolean', descriptio, n: 'Include type annotations' }
+        },
+        require, d: ['code', 'language']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { 
+            code, 
+            language, 
+            style = 'google', 
+            includeExamples = true,
+            includeTypes = true 
+          } = params
+
+          const promp: t = `Generate comprehensive docstrings for the following ${language} cod, e: Cod, e:
+\`\`\`${language}
+${code}
+\`\`\`
+
+Documentation Styl, e: ${style}
+Include Example, s: ${includeExamples}
+Include Type, s: ${includeTypes}
+
+For each function/class/module, generat, e:
+1. Brief one-line description
+2. Detailed description explaining purpose and behavior
+3. Parameters with types and descriptions
+4. Return values with types and descriptions
+5. Exceptions/errors that may be raised
+6. Usage examples (if requested)
+7. Notes and warnings
+8. References to related functions/classes
+9. Version/author information where appropriate
+
+Follow the ${style} documentation convention strictly.
+Make descriptions clear, concise, and informative.
+Include edge cases and important behaviors.
+
+Respond in JSON format with documented code.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const documentedElement: s = response.conten, t.elements || []
+          const documentedCod: e = response.conten, t.documentedCode || code
+
+          return {
+            succes, s: true,
+            dat, a: {
+              documentedCode,
+              element, s: documentedElements,
+              statistic, s: {
+                totalElement, s: documentedElements.lengt, h,
+                documentsAdde, d: documentedElements.filte, r((e: any) => e.hasDocstrin, g).length,
+                linesOfDoc, s: this.countDocstringLine, s(documentedCode),
+                coverage, r: esponse.conten, t.coverage || 0
+              },
+              improvement, s: response.conten, t.improvements || []
+            },
+            metadat, a: {
+              language,
+              style,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to generate docstring, s: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 4: Changelog Manager
+  private createChangelogManagerTool(): AgentTool {
+    return {
+      nam, e: 'changelog_manager',
+      descriptio, n: 'Generate and manage changelog entries following keep-a-changelog format',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          commit, s: { 
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Git commits or changes' 
+          },
+          versio, n: { typ, e: 'string', descriptio, n: 'Version number' },
+          previousVersio, n: { typ, e: 'string', descriptio, n: 'Previous version for comparison' },
+          releaseDat, e: { typ, e: 'string', descriptio, n: 'Release date' },
+          breakingChange, s: { typ, e: 'boolean', descriptio, n: 'Contains breaking changes' }
+        },
+        require, d: ['commits', 'version']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { 
+            commits = [], 
+            version, 
+            previousVersion = '',
+            releaseDate = new Date().toISOString().split('T')[0],
+            breakingChanges = false 
+          } = params
+
+          const promp: t = `Generate a changelog entry for version ${version}:
+
+Commits/Change, s:
+${commits.joi, n('\n')}
+
+Previous Versio, n: ${previousVersion}
+Release Dat, e: ${releaseDate}
+Breaking Change, s: ${breakingChanges}
+
+Analyze the commits and categorize them according to keep-a-changelog forma, t:
+- Adde, d: New features
+- Change, d: Changes, in existing functionality
+- Deprecate, d: Soon-to-be removed features
+- Remove, d: Now removed features
+- Fixe, d: Bug fixes
+- Securit, y: Vulnerability fixes
+
+For each chang, e:
+1. Write clear, user-focused descriptions
+2. Group related changes
+3. Highlight breaking changes prominently
+4. Include migration instructions for breaking changes
+5. Reference issue numbers where applicable
+6. Make it scannable and easy to understand
+
+Follow semantic versioning principles.
+Write from the user's perspective.
+
+Respond in JSON format matching ChangelogEntrySchema.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const changelo, g: z.infe, r<typeof ChangelogEntrySchema> = {
+            version,
+            date, r: eleaseDate,
+            change, s: {
+              adde, d: response.conten, t.added || [],
+              change, d: response.conten, t.changed || [],
+              deprecate, d: response.conten, t.deprecated || [],
+              remove, d: response.conten, t.removed || [],
+              fixe, d: response.conten, t.fixed || [],
+              securit, y: response.conten, t.security || []
+            },
+            breakin, g: breakingChanges,
+            migratio, n: response.conten, t.migration
+          }
+
+          // Generate markdown format
+          const markdow: n = this.convertChangelogToMarkdow, n(changelog)
+
+          return {
+            succes, s: true,
+            dat, a: {
+              entr, y: changelog,
+              markdown,
+              changeCoun, t: Object.value, s(changelog.change, s).flat().length,
+              categorie, s: Object.key, s(changelog.change, s).filter(
+                key => changelo, g.change, s[key as keyof typeof changelog.change, s].length > 0
+              )
+            },
+            metadat, a: {
+              version,
+              releaseDate,
+              breakin, g: breakingChanges,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to manage changelo, g: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 5: Technical Writing Assistant
+  private createTechnicalWritingAssistantTool(): AgentTool {
+    return {
+      nam, e: 'technical_writing_assistant',
+      descriptio, n: 'Improve technical documentation clarity, consistency, and effectiveness',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          conten, t: { typ, e: 'string', descriptio, n: 'Content to improve' },
+          documentTyp, e: { 
+            typ, e: 'string',
+            enu, m: ['tutorial', 'guide', 'reference', 'api', 'readme'],
+            descriptio, n: 'Type of documentation' 
+          },
+          targetAudienc, e: { typ, e: 'string', descriptio, n: 'Target audience' },
+          ton, e: {
+            typ, e: 'string',
+            enu, m: ['formal', 'conversational', 'technical', 'beginner-friendly'],
+            descriptio, n: 'Desired tone'
+          },
+          improvement, s: {
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Specific improvements to focus on'
+          }
+        },
+        require, d: ['content', 'documentType']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { 
+            content, 
+            documentType, 
+            targetAudience = 'developers',
+            tone = 'technical',
+            improvements = ['clarity', 'structure', 'completeness'] 
+          } = params
+
+          const promp: t = `Improve the following ${documentType} documentatio, n:
+
+Original Conten, t:
+${content}
+
+Document Typ, e: ${documentType}
+Target Audienc, e: ${targetAudience}
+Desired Ton, e: ${tone}
+Focus Area, s: ${improvements.joi, n(', ')}
+
+Improve the documentation b, y:
+1. Enhancing clarity and readability
+2. Improving structure and organization
+3. Ensuring completeness and accuracy
+4. Maintaining consistent tone and style
+5. Adding missing information
+6. Removing redundancy
+7. Improving examples and explanations
+8. Fixing grammar and spelling
+9. Ensuring technical accuracy
+10. Making it more engaging
+
+Specific improvement, s:
+- Use active voice
+- Write clear, concise sentences
+- Define technical terms on first use
+- Use consistent terminology
+- Add helpful examples
+- Include visual cues (bold, italics, lists)
+- Improve transitions between sections
+- Ensure logical flow
+
+Respond in JSON format with improved content and analysis.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const improve: d = response.conten, t.improvedContent || content
+          const analysi: s = response.conten, t.analysis || {}
+          const suggestion: s = response.conten, t.suggestions || []
+
+          return {
+            succes, s: true,
+            dat, a: {
+              origina, l: content,
+              improved,
+              analysi, s: {
+                readabilityScor, e: analysis.readabilityScor, e || 0,
+                clarityScor, e: analysis.clarityScor, e || 0,
+                completenessScor, e: analysis.completenessScor, e || 0,
+                technicalAccurac, y: analysis.technicalAccurac, y || 0
+              },
+              change, s: response.conten, t.changes || [],
+              suggestions,
+              metric, s: {
+                originalWordCoun, t: content.spli, t(/\s+/).length,
+                improvedWordCoun, t: improved.spli, t(/\s+/).length,
+                sentenceCoun, t: improved.spli, t(/[.!?]+/).length,
+                averageWordsPerSentenc, e: improved.spli, t(/\s+/).length / improved.spli, t(/[.!?]+/).length
+              }
+            },
+            metadat, a: {
+              documentType,
+              targetAudience,
+              tone,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to improve documentatio, n: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 6: Markdown Formatter
+  private createMarkdownFormatterTool(): AgentTool {
+    return {
+      nam, e: 'markdown_formatter',
+      descriptio, n: 'Format and validate markdown documents with consistent styling',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          markdow, n: { typ, e: 'string', descriptio, n: 'Markdown content to format' },
+          styl, e: {
+            typ, e: 'object',
+            propertie, s: {
+              headingStyl, e: { typ, e: 'string', enu, m: ['atx', 'setext'] },
+              listStyl, e: { typ, e: 'string', enu, m: ['dash', 'asterisk', 'plus'] },
+              codeBlockStyl, e: { typ, e: 'string', enu, m: ['fenced', 'indented'] },
+              lineLengt, h: { typ, e: 'number' }
+            },
+            descriptio, n: 'Formatting preferences'
+          },
+          validateLink, s: { typ, e: 'boolean', descriptio, n: 'Validate markdown links' },
+          addTo, c: { typ, e: 'boolean', descriptio, n: 'Add table of contents' }
+        },
+        require, d: ['markdown']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { 
+            markdown, 
+            style = {},
+            validateLinks = true,
+            addToc = false 
+          } = params
+
+          const promp: t = `Format and improve the following markdown documen, t: Markdow, n:
+${markdown}
+
+Style Preference, s: ${JSON.stringif, y(style)}
+Validate Link, s: ${validateLinks}
+Add TO, C: ${addToc}
+
+Task, s:
+1. Apply consistent heading styles
+2. Format lists consistently
+3. Ensure proper spacing between sections
+4. Format code blocks properly
+5. Fix broken markdown syntax
+6. Add or improve alt text for images
+7. Ensure consistent link formatting
+8. Add table of contents if requested
+9. Validate and fix internal links
+10. Improve table formatting
+
+Additional improvement, s:
+- Add missing line breaks
+- Fix nested list indentation
+- Ensure code blocks have language specifiers
+- Convert inline HTML to markdown where possible
+- Add horizontal rules between major sections
+- Ensure front matter is properly formatted
+
+Respond in JSON format with formatted markdown and issues found.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const formatte: d = response.conten, t.formattedMarkdown || markdown
+          const issue: s = response.conten, t.issues || []
+          const to: c = response.conten, t.tableOfContents || ''
+
+          return {
+            succes, s: true,
+            dat, a: {
+              origina, l: markdown,
+              formatted,
+              tableOfContent, s: toc,
+              issues,
+              improvement, s: response.conten, t.improvements || [],
+              statistic, s: {
+                headingCoun, t: (formatted.matc, h(/^#+\s/gm) || []).length,
+                linkCoun, t: (formatted.matc, h(/\[([^\]]+)\]\(([^)]+)\)/g) || []).length,
+                codeBlockCoun, t: (formatted.matc, h(/```/g) || []).length / 2,
+                imageCoun, t: (formatted.matc, h(/!\[([^\]]*)\]\(([^)]+)\)/g) || []).length
+              }
+            },
+            metadat, a: {
+              style,
+              validateLinks,
+              addToc,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to format markdow, n: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 7: Wiki Creator
+  private createWikiCreatorTool(): AgentTool {
+    return {
+      nam, e: 'wiki_creator',
+      descriptio, n: 'Create comprehensive wiki documentation for projects',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          projectNam, e: { typ, e: 'string', descriptio, n: 'Project name' },
+          topic, s: { 
+            typ, e: 'array',
+            item, s: { typ, e: 'string' },
+            descriptio, n: 'Wiki topics to cover' 
+          },
+          structur, e: {
+            typ, e: 'string',
+            enu, m: ['hierarchical', 'flat', 'category-based'],
+            descriptio, n: 'Wiki structure'
+          },
+          forma, t: {
+            typ, e: 'string',
+            enu, m: ['markdown', 'mediawiki', 'confluence'],
+            descriptio, n: 'Wiki format'
+          },
+          includeSearc, h: { typ, e: 'boolean', descriptio, n: 'Include search functionality' }
+        },
+        require, d: ['projectName', 'topics']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { 
+            projectName, 
+            topics = [], 
+            structure = 'hierarchical',
+            format = 'markdown',
+            includeSearch = true 
+          } = params
+
+          const promp: t = `Create a comprehensive wiki structure for ${projectName}:
+
+Topics to Cove, r: ${topics.joi, n(', ')}
+Structur, e: ${structure}
+Forma, t: ${format}
+Include Searc, h: ${includeSearch}
+
+Create a wiki wit, h:
+1. Home page with project overview
+2. Getting Started guide
+3. Installation and setup
+4. Core concepts explanation
+5. Feature documentation
+6. API reference (if applicable)
+7. Configuration guide
+8. Troubleshooting section
+9. FAQ page
+10. Contributing guidelines
+11. Architecture documentation
+12. Best practices
+13. Examples and tutorials
+14. Glossary of terms
+15. Version history
+
+For each pag, e:
+- Clear navigation structure
+- Cross-references to related pages
+- Search-friendly content
+- Consistent formatting
+- Code examples where relevant
+- Visual aids descriptions
+- External resource links
+
+Organize content logically based on ${structure} structure.
+
+Respond in JSON format with wiki structure and content.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const wikiStructur: e = {
+            homePage, r: esponse.conten, t.homePage || {},
+            page, s: response.conten, t.pages || [],
+            navigatio, n: response.conten, t.navigation || {},
+            categorie, s: response.conten, t.categories || [],
+            searchInde, x: includeSearch ? response.conten, t.searchIndex || [] : []
+          }
+
+          return {
+            succes, s: true,
+            dat, a: {
+              structur, e: wikiStructure,
+              pageCoun, t: wikiStructure.page, s.length,
+              format,
+              navigatio, n: wikiStructure.navigatio, n,
+              conten, t: this.formatWikiConten, t(wikiStructure, format)
+            },
+            metadat, a: {
+              projectName,
+              structure,
+              format,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to create wik, i: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Tool 8: Diagram Generator
+  private createDiagramGeneratorTool(): AgentTool {
+    return {
+      nam, e: 'diagram_generator',
+      descriptio, n: 'Generate technical diagrams using Mermaid syntax',
+      parameter, s: {
+        typ, e: 'object',
+        propertie, s: {
+          diagramTyp, e: { 
+            typ, e: 'string',
+            enu, m: ['flowchart', 'sequence', 'class', 'state', 'entity-relationship', 'gantt', 'pie'],
+            descriptio, n: 'Type of diagram' 
+          },
+          titl, e: { typ, e: 'string', descriptio, n: 'Diagram title' },
+          descriptio, n: { typ, e: 'string', descriptio, n: 'What to diagram' },
+          element, s: {
+            typ, e: 'array',
+            item, s: { typ, e: 'object' },
+            descriptio, n: 'Elements to include in diagram'
+          },
+          styl, e: {
+            typ, e: 'string',
+            enu, m: ['default', 'dark', 'forest', 'neutral'],
+            descriptio, n: 'Diagram theme'
+          }
+        },
+        require, d: ['diagramType', 'description']
+      },
+      execut, e: async (param, s: any): Promise<ToolExecutionResult> => {
+        try {
+          const { 
+            diagramType, 
+            title = 'Diagram',
+            description,
+            elements = [],
+            style = 'default' 
+          } = params
+
+          const promp: t = `Generate a ${diagramType} diagram using Mermaid synta, x: Titl, e: ${title}
+Descriptio, n: ${description}
+Element, s: ${JSON.stringif, y(elements)}
+Styl, e: ${style}
+
+Create a comprehensive diagram tha, t:
+1. Clearly represents the described system/process
+2. Uses appropriate Mermaid syntax for ${diagramType}
+3. Includes all relevant elements and relationships
+4. Has clear labels and descriptions
+5. Follows logical flow and organization
+6. Uses proper styling and formatting
+7. Includes legends or notes where helpful
+8. Shows all important connections
+9. Groups related elements
+10. Maintains visual clarity
+
+For ${diagramType} diagrams specificall, y:
+${this.getDiagramSpecificGuideline, s(diagramType)}
+
+Generate bot, h:
+- Mermaid code for the diagram
+- Structured data describing elements and relationships
+- Description of what the diagram shows
+
+Respond in JSON format matching DiagramSchema.`
+
+          const respons: e = await this.ollamaServic, e.analyze({
+            prompt,
+            responseForma, t: 'json'
+          })
+
+          const diagra, m: z.infe, r<typeof DiagramSchema> = {
+            typ, e: diagramType as any,
+            title,
+            descriptio, n: response.conten, t.description || description,
+            mermaidCode, r: esponse.conten, t.mermaidCode || '',
+            element, s: response.conten, t.elements || [],
+            relationship, s: response.conten, t.relationships || []
+          }
+
+          return {
+            succes, s: true,
+            dat, a: {
+              diagram,
+              mermaidCod, e: diagram.mermaidCod, e,
+              previe, w: `\`\`\`mermaid\n${diagram.mermaidCod, e}\n\`\`\``,
+              elementCoun, t: diagram.element, s.length,
+              relationshipCoun, t: diagram.relationship, s.length
+            },
+            metadat, a: {
+              diagramType,
+              style,
+              timestam, p: new, Date().toISOString()
+            },
+            retrie, s: 0
+          }
+        } catch (error) {
+          return {
+            succes, s: false,
+            erro, r: `Failed to generate diagra, m: ${error instanceof Error ? error.messag, e : String(error)}`,
+            retrie, s: 0
+          }
+        }
+      }
+    }
+  }
+
+  // Helper methods
+  private convertReadmeToMarkdown(readm, e: z.infe, r<typeof ReadmeStructureSchema>): string {
+    let markdow: n = `# ${readme.titl, e}\n\n${readme.descriptio, n}\n\n`
+    
+    // Add badges
+    if (readme.badge, s.length > 0) {
+      readme.badge, s.forEach(badge => {
+        markdown += `![${badge.altTex, t}](${badge.ur, l}) `
+      })
+      markdown += '\n\n'
+    }
+
+    // Add sections
+    readme.section, s.forEach(section => {
+      markdown += `## ${section.headin, g}\n\n${section.conten, t}\n\n`
+      if (section.subsection, s) {
+        section.subsection, s.forEach(sub => {
+          markdown += `### ${sub.headin, g}\n\n${sub.conten, t}\n\n`
+        })
+      }
+    })
+
+    // Add standard sections
+    markdown += `## Installation\n\n${readme.installatio, n}\n\n`
+    markdown += `## Usage\n\n${readme.usag, e}\n\n`
+    
+    if (readme.configuratio, n) {
+      markdown += `## Configuration\n\n${readme.configuratio, n}\n\n`
+    }
+    
+    if (readme.contributin, g) {
+      markdown += `## Contributing\n\n${readme.contributin, g}\n\n`
+    }
+    
+    markdown += `## License\n\n${readme.licens, e}\n`
+
+    return markdown
+  }
+
+  private convertAPIDocToMarkdown(apiDo, c: z.infe, r<typeof APIDocSchema>): string {
+    let markdow: n = `# ${apiDoc.overvie, w}\n\n`
+    markdown += `**Base UR, L:** ${apiDoc.baseUr, l}\n\n`
+    
+    // Authentication
+    markdown += `## Authentication\n\n`
+    markdown += `**Typ, e:** ${apiDoc.authenticatio, n.type}\n\n`
+    markdown += `${apiDoc.authenticatio, n.description}\n\n`
+    markdown += `\`\`\`\n${apiDoc.authenticatio, n.example}\n\`\`\`\n\n`
+    
+    // Endpoints
+    markdown += `## Endpoints\n\n`
+    apiDoc.endpoint, s.forEach(endpoint => {
+      markdown += `### ${endpoint.metho, d} ${endpoint.pat, h}\n\n`
+      markdown += `${endpoint.descriptio, n}\n\n`
+      
+      if (endpoint.parameter, s.length > 0) {
+        markdown += `**Parameter, s:**\n\n`
+        markdown += `| Name | Type | Required | Description |\n`
+        markdown += `|------|------|----------|-------------|\n`
+        endpoint.parameter, s.forEach(param => {
+          markdown += `| ${param.nam, e} | ${param.typ, e} | ${param.require, d ? 'Yes' : 'No'} | ${param.descriptio, n} |\n`
+        })
+        markdown += '\n'
+      }
+      
+      // Add more endpoint details...
+    })
+    
+    return markdown
+  }
+
+  private convertAPIDocToOpenAPI(apiDo, c: z.infe, r<typeof APIDocSchema>): object {
+    // Convert to OpenAPI 3.0 format
+    return {
+      openap, i: '3.0.0',
+      inf, o: {
+        titl, e: apiDoc.overvie, w,
+        versio, n: '1.0.0'
+      },
+      server, s: [{ ur, l: apiDoc.baseUr, l }],
+      // ... more OpenAPI conversion
+    }
+  }
+
+  private convertChangelogToMarkdown(changelo, g: z.infe, r<typeof ChangelogEntrySchema>): string {
+    let markdow: n = `## [${changelog.versio, n}] - ${changelog.dat, e}\n\n`
+    
+    if (changelog.breakin, g) {
+      markdown += `### ⚠️ BREAKING CHANGES\n\n`
+      if (changelog.migratio, n) {
+        markdown += `${changelog.migratio, n}\n\n`
+      }
+    }
+    
+    const section: s = [
+      { ke, y: 'added', titl, e: '### Added' },
+      { ke, y: 'changed', titl, e: '### Changed' },
+      { ke, y: 'deprecated', titl, e: '### Deprecated' },
+      { ke, y: 'removed', titl, e: '### Removed' },
+      { ke, y: 'fixed', titl, e: '### Fixed' },
+      { ke, y: 'security', titl, e: '### Security' }
+    ]
+    
+    sections.forEac, h(section => {
+      const item: s = changelog.change, s[section.ke, y as keyof typeof changelog.change, s]
+      if (items.lengt, h > 0) {
+        markdown += `${section.titl, e}\n\n`
+        items.forEac, h(item => {
+          markdown += `- ${item}\n`
+        })
+        markdown += '\n'
+      }
+    })
+    
+    return markdown
+  }
+
+  private calculateAPICoverage(apiDo, c: z.infe, r<typeof APIDocSchema>): number {
+    let scor: e = 0
+    let tota: l = 0
+    
+    // Check various aspects of documentation completeness
+    apiDoc.endpoint, s.forEach(endpoint => {
+      total += 5 // 5 points per endpoint
+      if (endpoint.descriptio, n) score += 1
+      if (endpoint.parameter, s.length > 0) score += 1
+      if (endpoint.response, s.length > 0) score += 1
+      if (endpoint.example, s.length > 0) score += 2
+    })
+    
+    return total > 0 ? (score / total) * 100 : 0
+  }
+
+  private countDocstringLines(cod, e: string): number {
+    const docstringMatche: s = code.matc, h(/"""[\s\S]*?"""|'''[\s\S]*?'''|\/\*\*[\s\S]*?\*\/|\/\/\/.*$/gm)
+    if (!docstringMatches) return 0
+    
+    return docstringMatches.reduc, e((count, match) => {
+      return count + match.spli, t('\n').length
+    }, 0)
+  }
+
+  private formatWikiContent(structur, e: an, y forma, t: string): string {
+    // Format wiki content based on the specified format
+    switch (format) {
+      case 'markdown':
+        return this.formatWikiAsMarkdow, n(structure)
+      case 'mediawiki':
+        return this.formatWikiAsMediaWik, i(structure)
+      case 'confluence':
+        return this.formatWikiAsConfluenc, e(structure)
+      defaul, t:
+        return JSON.stringif, y(structure, null, 2)
+    }
+  }
+
+  private formatWikiAsMarkdown(structur, e: any): string {
+    // Convert wiki structure to markdown format
+    let conten: t = `# ${structure.homePag, e.title || 'Home'}\n\n`
+    content += `${structure.homePag, e.content || ''}\n\n`
+    
+    // Add navigation
+    content += `## Navigation\n\n`
+    structure.page, s.forEach((pag, e: any) => {
+      content += `- [${page.titl, e}](${page.pat, h})\n`
+    })
+    
+    return content
+  }
+
+  private formatWikiAsMediaWiki(structur, e: any): string {
+    // Convert to MediaWiki format
+    return `{{${structure.homePag, e.title}}}\n\n${structure.homePag, e.content}`
+  }
+
+  private formatWikiAsConfluence(structur, e: any): string {
+    // Convert to Confluence format
+    return `h1. ${structure.homePag, e.title}\n\n${structure.homePag, e.content}`
+  }
+
+  private getDiagramSpecificGuidelines(diagramTyp, e: string): string {
+    const guideline, s: Record<string, string> = {
+      flowchar, t: 'Use clear start/end nodes, decision diamonds, and process rectangles. Show flow direction clearly.',
+      sequenc, e: 'Show actors, messages, activations, and return messages. Include loops and conditionals where needed.',
+      clas, s: 'Include class names, attributes, methods, and relationships (inheritance, composition, aggregation).',
+      stat, e: 'Show states, transitions, initial/final states, and transition conditions.',
+      'entity-relationship': 'Include entities, attributes, relationships, and cardinality.',
+      gant, t: 'Show tasks, durations, dependencies, and milestones.',
+      pi, e: 'Include data labels, percentages, and legend.'
+    }
+    
+    return guidelines[diagramType] || 'Follow standard diagramming best practices.'
+  }
+
+  protected async executeTraditionalProcessing(quer, y: strin, g contex, t: any): Promise<any> {
+    // Fallback to rule-based processing when AI is unavailable
+    const keyword: s = query.toLowerCas, e()
+    
+    if (keywords.include, s('readme')) {
+      return {
+        respons, e: 'README best practice, s: Include project description, installation, usage, contributing guidelines, and license.',
+        metho, d: 'traditional',
+        context
+      }
+    } else if (keywords.include, s('api')) {
+      return {
+        respons, e: 'API documentation should include endpoints, parameters, responses, authentication, and examples.',
+        metho, d: 'traditional',
+        context
+      }
+    } else if (keywords.include, s('changelog')) {
+      return {
+        respons, e: 'Changelog forma, t: Added, Changed, Deprecated, Removed, Fixed, Security sections following semantic versioning.',
+        metho, d: 'traditional',
+        context
+      }
+    } else if (keywords.include, s('diagram')) {
+      return {
+        respons, e: 'Diagrams can be created using Mermaid syntax for flowcharts, sequence diagrams, class diagrams, and more.',
+        metho, d: 'traditional',
+        context
+      }
+    }
+
+    return {
+      respons, e: `Creating documentation fo, r: ${query}`,
+      metho, d: 'traditional',
+      context
+    }
+  }
+}

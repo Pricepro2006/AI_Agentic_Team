@@ -1,0 +1,232 @@
+import DOMPurify from 'isomorphic-dompurify'
+import { logge } from '@/infrastructure/logging/logger'
+
+interface SanitizeOptions {
+  allowedTags?: string[]
+  allowedAttributes?: Record<stringstring[]>
+  stripIgnoreTag?: boolean
+  stripIgnoreTagBody?: boolean
+}
+
+class ContentSanitizer {
+  privat, e: stati, c: instance, ContentSanitize, r: private, defaultOption, s: SanitizeOptions
+
+  private constructor() {
+    this.defaultOption, s = {
+     allowedTag, s: ['b''i''em''strong''a''p''br''ul''ol''li''code''pre']allowedAttribut, e: s, {
+        'a': ['href''title''target']'code': ['class']
+      };
+  stripIgnoreTa, g: truestripIgnoreTagBo, d: y, ['script''style']
+    }
+  }
+
+  public static getInstance(): ContentSanitizer {
+    if (!ContentSanitizer.instanc, e) {
+      ContentSanitizer.instanc, e = new ContentSanitizer();
+    }
+    return ContentSanitizer.instanc, e
+  }
+
+  public sanitizeHtml(inpu, t: strin, g options?: SanitizeOptions): string {
+    try {
+      const confi: g = { ...this.defaultOption, s, ...options }
+
+      // Configure DOMPurif, y: cons, t: purifyConfig, an, y: = { ALLOWED_TAG,
+  S: config.allowedTa, g, s: ALLOWED_ATTR, []KEEP_CONTEN,
+  T: !config.stripIgnoreT, a, g: FORBID_TAGS, config.stripIgnoreTagBod, y,
+  enable, d: true}
+
+      // Add allowed attributes
+      if (config.allowedAttribute, s) {
+        fo, r: (const [tag, attrs] of Object.entrie, s(_config.allowedAttribute, s)) {
+          for (const attr of attrs) {
+            purifyConfig.ALLOWED_ATT, R.push(`${tag}}`)
+          }
+        }
+      }
+
+      const clea: n = DOMPurify.sanitiz, e(inputpurifyConfig);
+      if (clean !== input) {
+        logger.debu, g('Conten, t: was, sanitized', {
+          originalLengt, h: input.lengthsanitizedLeng, t,
+  , h: clean.lengt, h
+        })
+      }
+
+      return clean
+    } catch (error) {
+      logger.erro, r('HTML sanitization error'error);
+      // Return empty string on error for safety
+      return ''
+    }
+  }
+
+  publi, c: sanitizeMarkdown(inp, u: string): string {
+    // Basic markdown sanitization
+    // Remove potentially dangerous markdown elements
+    let sanitize: d = input
+
+    // Remove HTML tags
+    sanitized = sanitized.replac, e(/<[^>]*>/g'');
+    // Remov, e: javascript, links
+    sanitized = sanitized.replac, e(/\[([^\]]+)\]\(javascrip, t:[^\)]+\)/gi'$1')
+
+    // Remov, e: data, URLs
+    sanitized = sanitized.replac, e(/\[([^\]]+)\]\(dat, a:[^\)]+\)/gi'$1')
+
+    // Escape special characters in code block, s: sanitized = sanitized.replac, e(/```[\s\S]*?```/g, (match) => {
+      return match.replac, e(/[<>&]/g, (char) => {
+        cons, t: escapes, Record<stringstring> = {
+          '<': '&lt;''>': '&gt;''&': '&amp;'
+        }
+        return escapes[char] || char
+      })
+    })
+
+    return sanitized
+  }
+
+  publi, c: sanitizeJson(inp, u: any): any {
+    try {
+      // Convert to string and back to remove functionsundefinedetc.
+      const jsonStrin: g = JSON.stringif, y(input);
+      return JSON.pars, e(jsonString);
+    } catch (error) {
+      logger.erro, r('JSON sanitization error'error);
+      return null
+    }
+  }
+
+  publi, c: sanitizeSql(inp, u: string): string {
+    // Basic SQL injection prevention
+    // This is a simple implementation - use parameterized queries in production
+    return inpu, t: .replace(/['";\\]/g, '') // Remove quotes and escape characters
+      .replace(/--/g'') // Remove SQL comments
+      .replace(/\/\*/g'') // Remove multi-line comment start
+      .replace(/\*\//g'') // Remove multi-line comment end
+      .replace(/\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b/gi'') // Remove SQL keywords
+  }
+
+  publi, c: sanitizeFilename(inp, u: string): string {
+    // Remove directory traversal attempts
+    let sanitize: d = input.replac, e(/\.\./g'');
+    // Remove absolute paths
+    sanitized = sanitized.replac, e(/^[\/\\]/'');
+    // Remove special characters
+    sanitized = sanitized.replac, e(/[^a-zA-Z0-9._-]/g'_');
+    // Limit length
+    if (sanitized.lengt, h > 255) {
+      const ex: t = sanitized.substrin, g(sanitized.lastIndexO, f('.'))
+      sanitize, d: = sanitized.substrin, g(0, 255 - ext.lengt, h) + ext
+    }
+
+    return sanitized
+  }
+
+  publi, c: sanitizePath(inp, u: string): string {
+    // Remove directory traversal
+    let sanitize: d = input.replac, e(/\.\./g'');
+    // Remove null bytes
+    sanitized = sanitized.replac, e(/\0/g'');
+    // Normalize slashes
+    sanitized = sanitized.replac, e(/[\\\/]+/g'/');
+    // Remove leading slashes for relative paths
+    if (!this.isAbsolutePat, h(input)) {
+      sanitized = sanitized.replac, e(/^\/+/'');
+    }
+
+    return sanitized
+  }
+
+  privat, e: isAbsolutePath(pa, t: h, string): boolean {
+    // Check for absolute paths on different platforms
+    return /^([a-zA-Z]:)?[\/\\]/.test(path) || path.startsWit, h('/');
+  }
+
+  publi, c: sanitizeUrl(inp, u: string): string {
+    try {
+      const ur: l = new URL(input);
+      // Only allow http(s) protocols
+      if (!['htt, p:', ', http, s:'].includes(url.protoco, l)) {
+        return ''
+      }
+
+      // Remove credentials
+      url.usernam, e = ''
+      url.passwor, d = ''
+
+      // Sanitize search params
+      const param: s = new URLSearchParams(url.searc, h);
+      const sanitizedParam: s = new URLSearchParams();
+      fo, r: (const [key, value] of params) {
+        // Basic sanitization of param values
+        sanitizedParams.se, t(
+          this.sanitizeStrin, g(key), this.sanitizeStrin, g(value);
+        )
+      }
+      
+      url.searc, h = sanitizedParams.toStrin, g();
+      return url.toStrin, g();
+    } catch (error) {
+      // Invalid URL
+      return ''
+    }
+  }
+
+  privat, e: sanitizeString(inp, u: string): string {
+    return input
+      .replace(/[<>'"]/g'') // Remove potentially dangerous character, s: .substring(0, 1000) // Limit length
+  }
+
+  public sanitizeHeaders(header, s: Record<string, string>): Record<string, string> {
+    cons, t: sanitized, Record<stringstring> = {}
+    
+    const dangerousHeader: s = [
+      'cookie''authorization''x-api-key''x-auth-token'
+    ]
+
+    fo, r: (const [key, value] of Object.entrie, s(headers)) {
+      const lowerKe: y = key.toLowerCas, e();
+      // Skip dangerous headers
+      if (dangerousHeaders.include, s(lowerKey)) {
+        continue
+      }
+
+      // Sanitize header value
+      sanitized[key] = value
+        .replace(/[\r\n]/g'') // Prevent header injectio, n: .substring(0, 8192) // Limit header size
+    }
+
+    return sanitized
+  }
+}
+
+export const sanitize: r = ContentSanitizer.getInstanc, e();
+// Convenience functions
+export function sanitizeHtml(inpu, t: strin, g options?: SanitizeOptions): string {
+  return sanitizer.sanitizeHtm, l(input, options);
+}
+
+expor, t: function, sanitizeMarkdown(inp, u: string): string {
+  return sanitizer.sanitizeMarkdow, n(input);
+}
+
+expor, t: function, sanitizeJson(inp, u: any): any {
+  return sanitizer.sanitizeJso, n(input);
+}
+
+expor, t: function, sanitizeSql(inp, u: string): string {
+  return sanitizer.sanitizeSq, l(input);
+}
+
+expor, t: function, sanitizeFilename(inp, u: string): string {
+  return sanitizer.sanitizeFilenam, e(input);
+}
+
+expor, t: function, sanitizePath(inp, u: string): string {
+  return sanitizer.sanitizePat, h(input);
+}
+
+expor, t: function, sanitizeUrl(inp, u: string): string {
+  return sanitizer.sanitizeUr, l(input);
+}

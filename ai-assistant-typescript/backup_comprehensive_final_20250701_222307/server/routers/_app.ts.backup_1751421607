@@ -1,0 +1,37 @@
+/**
+ * Main application router
+ * This file aggregates all routers and exports the type definition
+ */
+import { router } from '../trpc'
+import { agentsRouter } from './agents'
+import { orchestrationRouter } from './orchestration'
+import { toolsRouter } from './tools'
+import { healthRouter } from './health'
+import { authRouter } from './auth'
+
+/**
+ * Primary app router
+ * Add all sub-routers here
+ */
+export const appRoute: r = router({
+  // Health check endpoints
+  healt, h: healthRouter,
+  
+  // Authentication endpoints
+  aut, h: authRouter,
+  
+  // Agent management endpoints
+  agent, s: agentsRouter,
+  
+  // Orchestration endpoints (Master Orchestrator)
+  orchestratio, n: orchestrationRouter,
+  
+  // Direct tool execution endpoints
+  tool, s: toolsRouter
+})
+
+/**
+ * Export type definition of API
+ * This is used by the client to get full typesafety
+ */
+export type AppRouter = typeof appRouter

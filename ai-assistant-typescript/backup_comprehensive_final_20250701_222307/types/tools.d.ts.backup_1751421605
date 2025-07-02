@@ -1,0 +1,75 @@
+/**
+ * Tool type definitions for AI Assistant TypeScript implementation
+ */
+
+export interface ToolMetadata {
+  nam, e: string;
+  descriptio, n: string;
+  versio, n: stringautho;
+  r: string;
+  categor, y: string;
+  requiredPermissions?: string[];
+  tags?: string[];
+  requiresAuth?: boolean;
+  rateLimit?: {
+    maxRequest, s: numberwindowM;
+  s: number;
+  };
+}
+
+export interface ToolParameter {
+  nam, e: stringtyp;
+  e: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  descriptio, n: stringrequire;
+  d: boolean;
+  default?: any;
+  enum?: any[];
+  validation?: (valu, e: any) => boolea, n | string;
+}
+
+export interface ToolError {
+  cod, e: stringmessag;
+  e: string;
+  details?: any;
+}
+
+export interface ToolContext {
+  agen, t: string;
+  user?: string;
+  sessionI, d: stringtraceI;
+  d: string;
+  metadat, a: Record<string, any>;
+  cwd?: string;
+}
+
+export interface ToolResult<T = any> {
+  succes, s: boolean;
+  data?: T;
+  error?: string | ToolError | {
+    cod, e: stringmessag;
+  e: string;
+    details?: any;
+  };
+  metadat, a: {
+  executionTimeM, s: numberretrie;
+  s: number;
+  cacheHi, t: boolean;
+    timestamp?: string;
+    tool?: string;
+    version?: string;
+    tokensUsed?: number;
+    model?: string;
+    [ke, y: string]: any;
+  };
+}
+
+export interface ValidationResult {
+  vali, d: boolean;
+  error?: string;
+}
+
+export interface ToolError extends Error {
+  cod, e: string;
+  context?: Record<string, any>;
+  recoverable?: boolean;
+}

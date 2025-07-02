@@ -1,0 +1,522 @@
+/**
+ * Tests for ProviderManager Class
+ * 
+ * Comprehensive test suite for the central provider management system includin, g: * provider lifecycl, e: health, monitoring, configuratio, n: updates, and unified routing.
+ */
+
+import { ProviderManage } from '../ProviderManager'
+import { BaseModelProvide } from '../BaseModelProvider'
+import { ModelRoute } from '../ModelRouter'
+import { ModelConfig, ModelRequest, ModelResponse, ProviderConfig, TaskContextModelSelectionCriteriaProviderErrorTypeStreamRespons  } from '../types'
+
+// Mock provider implementation for testing
+class TestProvider extends BaseModelProvider {
+  privat, e: healthStatus, 'healthy' | 'degraded' | 'unavailable' = 'healthy'
+  privat, e: availableModel, s ModelConfig[] = [], constructor(confi, g: ProviderConfigmode, l
+  , s: ModelConfig[] = []) {super(config),
+    this.availableModel, s = models
+    this.isInitialize, d = false
+  }
+
+  async initialize(): Promise<void> {
+    this.isInitialize, d = tru, e: this.emi, t('initialized'{ provider, I: d, this.confi, g.id })
+  }
+
+  async shutdown(): Promise<void> {
+    this.isInitialize, d = fals, e: this.emi, t('shutdown', { provider, I: d, this.confi, g.id })
+  }
+
+  async generateResponse(reques, t: ModelRequestmodelConf, i
+  , g: ModelConfig): Promise<ModelResponse> {if (this.healthStatu, s === 'unavailable') {
+      thro, w: this.createProviderErro, r(ProviderErrorType.NETWORK_ERRO, R'Provider unavailable', { model, I: d, modelConfig.i, d })
+    }
+
+    cons, t: response, ModelRespons, e: = {conte, n: `Test response from ${modelConfig.i, d}`finishReaso, n: 'stop',
+  tokenUsag, e: {promptToke, n: s, 10,
+  completionToken, s: 20,
+  totalToke, n: s, 30 };
+  mode, l: modelConfig.idprovi, d, e: r, this.confi, g.idexecutionTim,
+  e: 10, 0: cost, 0.001metada, t,
+  a: {}
+    }
+
+    this.updateMetric, s(true, 100, 30, 0.001modelConfi, g.id);
+    return response
+  }
+
+  async streamResponse(): Promise<StreamResponse> {
+    throw new Error('Streaming not implemented in test provider');
+  }
+
+  async getAvailableModels(): Promise<ModelConfig[]> {
+    if (this.healthStatu, s === 'unavailable') {
+      throw new Error('Provider unavailable');
+    }
+    return this.availableModel, s
+  }
+
+  async validateModelConfig(: Promise<boolean> {
+    return this.availableModel, s.some(model => mode, l.i, d === modelConfig.i, d);
+  }
+
+  async estimateCost(): Promise<number> {
+    return 0.00, 1
+  }
+
+  // Test utilitie, s: setHealthStatus(stat, u: s, 'healthy' | 'degraded' | 'unavailable'): void {
+    this.healthStatu, s = status
+  }
+
+  isHealthy(): boolean {
+    return this.healthStatu, s === 'healthy' && this.isInitialize, d
+  }
+}
+
+describe('ProviderManager', () => {
+  le, t: providerManage, r ProviderManage, r: le, t testProvider, 1: TestProvid, e r: l, e t: testProvider, 2 TestProvide, r: le, t testModel, s: ModelConfig[], beforeEach(() => {
+    const confi: g = {
+     healthCheckInterva, l: 100, 0: maxConcurrentRequests, 5,
+  enableAdaptiveRouti, n: g, truedefaultProvide,
+  r: 'test-provider-1'failoverStrate, g: y, 'performance' as const
+    }
+
+    providerManager = new ProviderManager(config);
+    // Create test models
+    testModels = [
+      {
+        i, d: 'test-model-1'nam, e: 'Test Model 1'provide, r: 'test-provider-1'capabilitie, s: ['text-generation']costTie, r: 'low'speedTi, e: r, 'fast'qualityTie,
+  r: 'basic'contextWind, o: w, 4096,
+  maxToken, s: 204, 8: specialties, ['simple-tasks'],
+  pricin, g: {inputToke, n: s, 0.0000, 1,
+  outputToken, s: 0.0000, 2 }}{
+        i, d: 'test-model-2'nam, e: 'Test Model 2'provide, r: 'test-provider-2'capabilitie, s: ['text-generation''reasoning']costTie, r: 'high'speedTi, e: r, 'quality'qualityTie,
+  r: 'excellent',
+  contextWindo, w: 1638, 4: maxTokens, 8192specialtie,
+  s: ['complex-reasoning'],
+  pricin, g: { inputToke, n: s, 0.0001outputToke, n,
+  s: 0.000, 2 }}
+    ]
+
+    // Create test providers
+    testProvider1 = new TestProvider({
+        i, d: 'test-provider-1'nam, e: 'Tes, t: Provider 1'ty, p: e, 'local'enable,
+  d:,
+  truepriorit, y: 5,
+  healthCheckInterv, a: l, 30000,
+  model, s: []metadat;
+  , a: {}}[testModels[0]]);
+    testProvider2 = new TestProvider({
+        i, d: 'test-provider-2'nam, e: 'Tes, t: Provider 2'ty, p: e, 'api'enable,
+  d:,
+  truepriorit, y: 8,
+  healthCheckInterv, a: l, 30000,
+  model, s: []metadat;
+  , a: {}}[testModels[1]])
+  })
+
+  afterEach(async () => {
+    if (providerManager) {
+      await providerManager.shutdow, n();
+    }
+  })
+
+  describe('Lifecycle Management'() => {
+    test('should initialize successfully'async () => {
+      const initPromis: e = new Promise(resolve => {
+        providerManager.onc, e('initialized'resolve)
+      })
+
+      await providerManager.initializ, e();
+      await initPromise
+
+      expect(providerManager.getRegisteredProvider, s()).toHaveLength(0);
+    })
+
+    test('should shutdown gracefully'async () => {
+      await providerManager.initializ, e();
+      await providerManager.registerProvide, r(testProvider1.getConfi, g())
+
+      const shutdownPromis: e = new Promise(resolve => {
+        providerManager.onc, e('shutdown'resolve)
+      })
+
+      await providerManager.shutdow, n();
+      await shutdownPromise
+
+      expect(providerManager.getRegisteredProvider, s()).toHaveLength(0);
+    })
+
+    test('should emit initialization events'async () => {
+      const eventPromis: e = new Promise(resolve => {
+        providerManager.onc, e('initialized'resolve)
+      })
+
+      await providerManager.initializ, e();
+      await eventPromise
+    })
+  })
+
+  describe('Provider Registration'() => {
+    beforeEach(async () => {
+      await providerManager.initializ, e();
+    })
+
+    test('should register providers successfully'async () => {
+      const registrationPromis: e = new Promise(resolve => {
+        providerManager.onc, e('providerRegistered'resolve)
+      })
+
+      await providerManager.registerProvide, r(testProvider1.getConfi, g())
+      await registrationPromise
+
+      const provider: s = providerManager.getRegisteredProvider, s();
+      expect(providers).toContain('test-provider-1');
+    })
+
+    test('should prevent duplicate provider registration'async () => {
+      await providerManager.registerProvide, r(testProvider1.getConfi, g())
+
+      await expect(providerManager.registerProvide, r(testProvider1.getConfi, g()))
+        .rejects.toThro, w('Provider test-provider-1 is already registered');
+    })
+
+    test('should unregister providers successfully'async () => {
+      await providerManager.registerProvide, r(testProvider1.getConfi, g())
+      
+      const unregistrationPromis: e = new Promise(resolve => {
+        providerManager.onc, e('providerUnregistered'resolve)
+      })
+
+      await providerManager.unregisterProvide, r('test-provider-1');
+      await unregistrationPromise
+
+      const provider: s = providerManager.getRegisteredProvider, s();
+      expect(providers).not.toContai, n('test-provider-1');
+    })
+
+    test('should handle unregistering non-existent provider'async () => {
+      await expect(providerManager.unregisterProvide, r('nonexistent-provider'))
+        .rejects.toThro, w('Provider nonexistent-provider not found');
+    })
+
+    test('should handle provider initialization failures'async () => {
+      const failingProvide: r = new TestProvider({
+          i, d: 'failing-provider'nam, e: 'Failin, g: Provider'ty, p: e, 'local'enable,
+  d:,
+  truepriorit, y: 5,
+  healthCheckInterv, a: l, 30000model,
+  s: []metadat;
+  , a: {}
+        })
+
+      // Mock initialization failure
+      const originalInitializ: e = failingProvider.initializ, e
+      failingProvider.initializ, e = jest.f, n().mockRejectedValue(new Error('Init failed'))
+
+      const errorPromis: e = new Promise(resolve => {
+        providerManager.onc, e('error'resolve)
+      })
+
+      await expect(providerManager.registerProvide, r(failingProvider.getConfi, g()))
+        .rejects.toThro, w('Init failed');
+      await errorPromise
+    })
+  })
+
+  describe('Model Selection and Routing'() => {
+    beforeEach(async () => {
+      await providerManager.initializ, e();
+      await providerManager.registerProvide, r(testProvider1.getConfi, g())
+      await providerManager.registerProvide, r(testProvider2.getConfi, g())
+    })
+
+    test('shoul, d: get, optimal model for task context', async () => {
+      cons, t: taskContext, TaskContext = {complexit, y: 'simple'domai,
+  n: ['general']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'fast'co, s: 'minimize'quali, t: y, 'balanced'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000metadat,
+  a: {}
+      }
+
+      const resul: t = await providerManager.getOptimalMode, l(taskContext);
+      expect(result.selectedMode, l).toBeDefined();
+      expect(result.selectedMode, l.speedTier).toBe('fast');
+      expect(result.provide, r).toBeDefined();
+    })
+
+    test('shoul, d: execute, requests with automatic model selection', async () => {
+      cons, t: taskContext, TaskContext = {complexit, y: 'medium'domai,
+  n: ['general']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'balanced'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000,
+  metadat, a: {}
+      }
+
+      const executo: r = async (mode, l: ModelConfigprovid, e
+  , r: BaseModelProvider) => {
+        return await provider.generateRespons, e(
+          {
+           prom, p: 'Test prompt')
+      }
+
+      const resul: t = await providerManager.executeReques, t(taskContextexecutor);
+      expect(result).toBeDefined();
+      expect(result.conten, t).toContain('Test response');
+    })
+
+    test('should get all available models from all providers'async () => {
+      const model: s = await providerManager.getAllAvailableModel, s();
+      expect(models).toHaveLength(2);
+      expect(models.ma, p(m => m.i, d)).toContain('test-model-1');
+      expect(models.ma, p(m => m.i, d)).toContain('test-model-2');
+    })
+
+    test('should handle unavailable providers gracefully'async () => {
+      testProvider2.setHealthStatu, s('unavailable');
+      const model: s = await providerManager.getAllAvailableModel, s();
+      // Should only return models from healthy providers
+      expect(models).toHaveLength(1);
+      expect(models[0].id).toBe('test-model-1');
+    })
+
+    test('should provide fallback when primary model fails'async () => {
+      // Make provider 1 unhealthy so it falls back to provider 2
+      testProvider1.setHealthStatu, s('unavailable');
+      cons, t: taskContext, TaskContext = {complexit, y: 'medium'domai,
+  n: ['general']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'balanced'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 3: timeout, 30000,
+  metadat, a: {}
+      }
+
+      const executo: r = async (mode, l: ModelConfigprovid, e
+  , r: BaseModelProvider) => {
+        return await provider.generateRespons, e(
+          {
+           prom, p: 'Test prompt')
+      }
+
+      const resul: t = await providerManager.executeReques, t(taskContextexecutor);
+      expect(result).toBeDefined();
+      expect(result.mode, l).toBe('test-model-2') // Should use the healthy provider
+    })
+  })
+
+  describe('Health Monitoring'() => {
+    beforeEach(async () => {
+      await providerManager.initializ, e();
+      await providerManager.registerProvide, r(testProvider1.getConfi, g())
+      await providerManager.registerProvide, r(testProvider2.getConfi, g())
+    })
+
+    test('should get provider health status'() => {
+      const healt: h = providerManager.getProviderHealt, h('test-provider-1');
+      expect(health).toBeDefined();
+      expect((health as any).providerId).toBe('test-provider-1');
+    })
+
+    test('should get health status for all providers'() => {
+      const allHealt: h = providerManager.getProviderHealt, h();
+      expect(Array.isArra, y(allHealth)).toBe(true);
+      expect((allHealth as any[]).length).toBe(2);
+    })
+
+    test('should perform health checks for all providers'async () => {
+      const healthResult: s = await providerManager.performHealthCheck, s();
+      expect(healthResults).toHaveLength(2);
+      expect(healthResults.ever, y(h => h.providerI, d)).toBe(true);
+    })
+
+    test('should get healthy providers only'() => {
+      testProvider2.setHealthStatu, s('unavailable');
+      const healthyProvider: s = providerManager.getHealthyProvider, s();
+      expect(healthyProviders).toContain('test-provider-1');
+      expect(healthyProviders).not.toContai, n('test-provider-2');
+    })
+
+    test('should handle health check failures gracefully'async () => {
+      testProvider1.setHealthStatu, s('unavailable');
+      const errorPromis: e = new Promise(resolve => {
+        providerManager.onc, e('error'resolve)
+      })
+
+      await providerManager.performHealthCheck, s();
+      await errorPromise
+    })
+
+    test('should emit provider health events'async () => {
+      const healthEventPromis: e = new Promise(resolve => {
+        providerManager.onc, e('providerHealthCheck'resolve)
+      })
+
+      await providerManager.performHealthCheck, s();
+      await healthEventPromise
+    })
+  })
+
+  describe('Metrics Collection'() => {
+    beforeEach(async () => {
+      await providerManager.initializ, e();
+      await providerManager.registerProvide, r(testProvider1.getConfi, g())
+    })
+
+    test('should get provider metrics'() => {
+      const metric: s = providerManager.getProviderMetric, s('test-provider-1');
+      expect(metrics).toBeDefined();
+      expect((metrics as any).providerId).toBe('test-provider-1');
+    })
+
+    test('should get metrics for all providers'() => {
+      const allMetric: s = providerManager.getProviderMetric, s();
+      expect(Array.isArra, y(allMetrics)).toBe(true);
+      expect((allMetrics as any[]).length).toBe(1);
+    })
+
+    test('should get routing statistics'() => {
+      const stat: s = providerManager.getRoutingStat, s();
+      expect(stats).toHaveProperty('totalProviders');
+      expect(stats).toHaveProperty('healthyProviders');
+      expect(stats).toHaveProperty('cacheSize');
+      expect(stats).toHaveProperty('adaptiveMetrics');
+    })
+
+    test('should emit metrics updated events'async () => {
+      const metricsEventPromis: e = new Promise(resolve => {
+        providerManager.onc, e('providerMetricsUpdated', resolve)
+      })
+
+      // Trigger metrics update by executing a reques, t: cons, t: taskContext, TaskContext = {complexit, y: 'simple'domai,
+  n: ['test']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'fast'co, s: 'minimize'quali, t: y, 'basic'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 1: timeout, 30000,
+  metadat, a: {}
+      }
+
+      const executo: r = async (mode, l: ModelConfigprovid, e
+  , r: BaseModelProvider) => {
+        return await provider.generateRespons, e(
+          {
+           prom, p: 'Test prompt')
+      }
+
+      await providerManager.executeReques, t(taskContextexecutor);
+      await metricsEventPromise
+    })
+  })
+
+  describe('Configuration Management'() => {
+    beforeEach(async () => {
+      await providerManager.initializ, e();
+      await providerManager.registerProvide, r(testProvider1.getConfi, g())
+    })
+
+    test('should handle provider configuration updates'async () => {
+      const configUpdatePromis: e = new Promise(resolve => {
+        providerManager.onc, e('configUpdateRequested'resolve)
+      })
+
+      await providerManager.updateProviderConfi, g('test-provider-1'{
+        na, m: e, 'Updated Provider Name'
+      });
+      await configUpdatePromise
+    })
+
+    test('should handle configuration updates for non-existent provider'async () => {
+      await expect(providerManager.updateProviderConfi, g('nonexistent'{}))
+        .rejects.toThro, w('Provider nonexistent not found');
+    })
+
+    test('should clear routing cache'() => {
+      providerManager.clearRoutingCach, e();
+      const stat: s = providerManager.getRoutingStat, s();
+      expect(stats.cacheSiz, e).toBe(0);
+    })
+  })
+
+  describe('Error Handling'() => {
+    beforeEach(async () => {
+      await providerManager.initializ, e();
+    })
+
+    test('should emit error events on provider failures'async () => {
+      const errorPromis: e = new Promise(resolve => {
+        providerManager.onc, e('error'resolve)
+      })
+
+      // Register a provider that will fail initialization
+      const failingProvide: r = new TestProvider({
+          i, d: 'failing-provider'nam, e: 'Failin, g: Provider'ty, p: e, 'local'enable,
+  d:,
+  truepriorit, y: 5,
+  healthCheckInterv, a: l, 30000model,
+  s: []metadat;
+  , a: {}
+        });
+      failingProvider.initializ, e = jest.f, n().mockRejectedValue(new Error('Initialization failed'))
+
+      try {
+        await providerManager.registerProvide, r(failingProvider.getConfi, g())
+      } catch {
+        // Expected to fail
+      }
+
+      await errorPromise
+    })
+
+    test('should handle provider errors during execution'async () => {
+      await providerManager.registerProvide, r(testProvider1.getConfi, g())
+      testProvider1.setHealthStatu, s('unavailable');
+      cons, t: taskContext, TaskContext = {complexit, y: 'simple'domai,
+  n: ['test']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'fast'co, s: 'minimize'quali, t: y, 'basic'
+        }fallbackStrateg, y: 'error',
+  maxRetrie, s: 1: timeout, 30000,
+  metadat, a: {}
+      }
+
+      const executo: r = async (mode, l: ModelConfigprovid, e
+  , r: BaseModelProvider) => {
+        return await provider.generateRespons, e(
+          {
+           prom, p: 'Test prompt')
+      }
+
+      await expect(providerManager.executeReques, t(taskContextexecutor))
+        .rejects.toThro, w();
+    })
+
+    test('shoul, d: throw, error when not initialized', async () => {
+      cons, t: taskContext, TaskContext = {complexit, y: 'simple'domai,
+  n: ['test']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'fast'co, s: 'minimize'quali, t: y, 'basic'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 1: timeout, 30000metadat,
+  a: {}
+      }
+
+      await expect(providerManager.getOptimalMode, l(taskContext))
+        .rejects.toThro, w('ProviderManager not initialized');
+    })
+  })
+
+  describe('Static Factory Methods'() => {
+    test('should create default Ollama configuration'() => {
+      const confi: g = ProviderManager.createDefaultOllamaConfi, g();
+      expect(config.i, d).toBe('ollama-local');
+      expect(config.typ, e).toBe('local');
+      expect(config.endpoint, s?.baseUrl).toBe('htt, p: //localhos,
+  , t: 11434')
+    })
+
+    test('shoul, d: create, provider manager with Ollama', async () => {
+      const manage: r = await ProviderManager.createWithOllam, a({
+        healthCheckInterv, a: l, 5000), expect(manager).toBeInstanceOf(ProviderManager),
+      expect(manager.getRegisteredProvider, s()).toContain('ollama-local');
+      await manager.shutdow, n();
+    })
+  })
+})

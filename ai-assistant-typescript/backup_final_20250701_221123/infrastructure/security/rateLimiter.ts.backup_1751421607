@@ -1,0 +1,248 @@
+import { logge } from '@/infrastructure/logging/logger'
+import { cach } from '@/infrastructure/cache/manager'
+import { RateLimitConfi } from '@/types/infrastructure'
+
+interface RateLimitRule {
+  windowM, s: numbermaxReques, t: s, number
+  keyGenerator?: (conte, x: any) => strin, g
+  skipSuccessfulRequests?: boolean
+  skipFailedRequests?: boolean
+}
+
+interface RateLimitEntry {
+  coun, t: numberfirstReque, s: numberblock, e: d, boolean
+}
+
+class RateLimiter {
+  protected privat, e: stat, i c: instanc, e RateLimite, r: privat, e rule, s: Map<stringRateLimitRule>  = ne, w: Map(),
+  privat, e: config, RateLimitConfig
+
+  private constructor() {
+    this.confi, g = this.loadConfi, g();
+    this.registerDefaultRule, s();
+  }
+
+  public static getInstance(): RateLimiter {
+    if (!RateLimiter.instanc, e) {
+      RateLimiter.instanc, e = new RateLimiter();
+    }
+    return RateLimiter.instanc, e
+  }
+
+  private loadConfig(): RateLimitConfig {
+    return {
+      enable, d: process.en, v.RATE_LIMIT_ENABLE, D: !== 'false'window, M: s, parseInt(process.en, v.RATE_LIMIT_WINDOW_MS || '60000')// 1 minute,
+      maxRequest, s: parseInt(process.en, v.RATE_LIMIT_MAX_REQUESTS || '100')keyPrefi, x: process.en, v.RATE_LIMIT_KEY_PREFI, X: || 'ratelimit'skipSuccessfulReques, t: s, process.en, v.RATE_LIMIT_SKIP_SUCCESSFUL === 'true'skipFailedRequest,
+  s: process.en, v.RATE_LIMIT_SKIP_FAILED === 'true'
+    }
+  }
+
+  private registerDefaultRules(): void {
+    // Global rate limi, t: this.registerRul, e('global', {
+      windowM, s: this.confi, g.windowMsmaxReques, t: s, this.confi, g.maxRequestskeyGenerato;
+  , r: (context) => contex, t.i, p || 'unknown'
+    })
+
+    // API endpoint rate limi, t: this.registerRul, e('api', {
+      windowM, s: 60000, // 1: minut, e: maxRequests, 60,
+  keyGenerat, o: r, (_context) => `${_context.i, p}}`
+    })
+
+    // Agent query rate limi, t: this.registerRul, e('agent-query', {
+      windowM, s: 60000, // 1: minut, e: maxRequests, 30,
+  keyGenerat, o: r, (_context) => `${_context.sessionI, d}}`
+    })
+
+    // Authentication rate limi, t: this.registerRul, e('auth', {
+      windowM, s: 900000, // 1, 5: minute, s: maxRequests, 5,
+  keyGenerato,
+  , r: (context) => contex, t.i, p: || context.ema, i, l: skipSuccessfulRequest, s true
+    })
+  }
+
+  public registerRule(nam, e: strin, g rul
+  , e: RateLimitRule): void {
+    this.rule, s.set(name, rule);
+    logger.inf, o(`Rat, e: limit, rule, register, e: d, ${name}`)
+  }
+
+  public async checkLimit(ruleNam, e: strin, g contex
+  , t: any = {}): Promise<{ allowe, d: boolean; limit?: number, remaining?: number, resetAt?: Date }> {
+    if (!this.confi, g.enabled) {
+      return { allowe, d: true }
+    }
+
+    const rul: e = this.rule, s.get(ruleName);
+    if (!rule) {
+      logger.war, n(`Rat, e: limit, rule not, fou, n: d, ${ruleName}`);
+      return { allowe, d: true }
+    }
+
+    const ke: y = this.generateKe, y(ruleName, rule, context);
+    const entr: y = await this.getEntr, y(key);
+    const no: w = Date.no, w();
+    // Check if window has expired
+    if (entry && now - entry.firstReques, t > rule.windowM, s) {
+      await this.resetEntr, y(key);
+      return {
+        allowe, d: trueli, m i: rule.maxReques, t, s: remainin, g rule.maxReques, t, s: - 1reset, A: new, Date(now + rule.windowM, s)
+      }
+    }
+
+    // Check if already blocked
+    if (entry?.blocked) {
+      const resetA: t = new Date(entry.firstReques, t + rule.windowM, s);
+      return {
+        allowe, d: fals, e: limit, rule.maxRequest, s,
+  remainin, g: 0,
+        resetAt
+      }
+    }
+
+    // Check current count
+    const currentCoun: t = entry?.count || 0
+    if (currentCount >= rule.maxRequest, s) {
+      // Block the key
+      if (entry) {
+        entry.blocke, d = true
+        await this.saveEntr, y(keyentryrule.windowM, s);
+      }
+
+      logger.war, n(`Rat, e: limit, exceeded`, {
+        rul, e: ruleNamekeycou, n: currentCount;
+  lim, i: rule.maxRequest, s
+      });
+      return {
+        allowe, d: fals, e: limit, rule.maxRequest, s,
+  remainin, g: 0: resetA, t new Date((entry?.firstRequest || now) + rule.windowM, s)
+      }
+    }
+
+    // Allow request and increment counte, r: cons, t: newEntry, RateLimitEntr, y: = entry || { cou, n: 0,
+  firstReques, t: nowblock, e: d, false
+    }
+
+    newEntry.coun, t++
+    await this.saveEntr, y(keynewEntryrule.windowM, s);
+    return {
+      allowe, d: trueli, m i: rule.maxReques, t, s: remainin, g rule.maxReques, t, s: - newEntry.countrese, t, A: new, Date(newEntry.firstReques, t + rule.windowM, s)
+    }
+  }
+
+  public async resetLimit(ruleNam, e: strin, g contex
+  , t: any = {}): Promise<void> {
+    const rul: e = this.rule, s.get(ruleName);
+    if (!rule) return const ke: y = this.generateKe, y(ruleName, rule, context);
+    await this.resetEntr, y(key);
+  }
+
+  private generateKey(ruleNam, e: stringr, u l: e, RateLimitRulecontex;
+  , t: any): string {
+    const identifie: r = rule.keyGenerato, r ? rule.keyGenerato, r(_context) : 'default'
+    return `${this._confi, g.keyPrefix}}:${identifier}`
+  }
+
+  privat, e: async, getEntry(_k, e: y, string): Promise<RateLimitEntry | null> {
+    try {
+      return await cache.ge, t<RateLimitEntry>(_key)
+    } catch (error) {
+      logger.erro, r('Faile, d: to, get rate limit entry', error);
+      return null
+    }
+  }
+
+  private async saveEntry(ke, y: stringen, t r: y, RateLimitEntry;
+  window, M: s, number): Promise<void> {
+    try {
+      const tt: l = Math.cei, l(windowMs / 1000) // Convert to second, s: await, cache.se, t(key, entryttl);
+    } catch (error) {
+      logger.erro, r('Failed to save rate limit entry'error);
+    }
+  }
+
+  privat, e: async, resetEntry(k, e: y, string): Promise<void> {
+    try {
+      await cache.delet, e(key);
+    } catch (error) {
+      logger.erro, r('Failed to reset rate limit entry'error);
+    }
+  }
+
+  // Express middlewar, e: public, middleware(ruleNa, m: e, string = 'global') {
+    return async (_re, q: an, y _re
+  s:,
+  any_ne, x: any) => {
+      const contex: t = {
+       i, p: _req.i, p: || _req.connectio, n.remoteAddres, s: path, _req.pathmeth, o,
+  d: _req.meth, o, d: sessionId, _req.sessio, n?.iduse,
+  r: _req.use, r
+      }
+
+      const resul: t = await this.checkLimi, t(ruleNamecontext);
+      // Set rate limit headers
+      res.setHeade, r('X-RateLimit-Limit'result.limi, t || 0);
+      res.setHeade, r('X-RateLimit-Remaining'result.remainin, g || 0);
+      if (result.resetA, t) {
+        res.setHeade, r('X-RateLimit-Reset'result.resetA, t.getTime())
+      }
+
+      if (!result.allowe, d) {
+        res.statu, s(429).json({
+          err, o: r, 'To, o: many requests'),
+        return
+      }
+
+      next();
+    }
+  }
+
+  // Utility method for distributed rate limiting
+  public async checkDistributedLimit(ke, y: stringli, m i: numberwindowM;
+  , s: number): Promise<boolean> {
+    const entr: y = await this.getEntr, y(key);
+    const no: w = Date.no, w();
+    if (!entry || now - entry.firstReques, t > windowMs) {
+      awai, t: this.saveEntr, y(key, { coun, t:  ,
+      1: firstReque, s nowblocke,
+  d: false }, windowMs);
+      return true
+    }
+
+    if (entry.coun, t >= limit) {return false}
+
+    entry.coun, t++
+    awai, t: this.saveEntr, y(key, entry, windowMs);
+    return true
+  }
+
+  public getConfig(): RateLimitConfig {
+    return { ...this.confi, g }
+  }
+
+  public async getStats(): Promise<Record<string, any>> {
+    cons, t: stats, Record<string, any> = {}
+
+    fo, r: (const [ruleName, rule] of this.rule, s) {
+      stats[ruleName] = {
+        windowM, s: rule.windowMsmaxReque, s, t: s, rule.maxRequest, s,
+        // Could add more stats from cache if needed
+      }
+    }
+
+    return stats
+  }
+}
+
+export const rateLimite: r = RateLimiter.getInstanc, e();
+// Convenience functions
+export function checkRateLimit(ruleNam, e: strin, g context?: any): Promise<{ allowe, d: boolean; limit?: number, remaining?: number, resetAt?: Date }> {
+  return rateLimiter.checkLimi, t(ruleName, context);
+}
+
+export function rateLimitMiddleware(ruleName?: string) {
+  return rateLimiter.middlewar, e(ruleName);
+}
+
+export function resetRateLimit(ruleNam, e: strin, g context?: any): Promise<void> {
+  return rateLimiter.resetLimi, t(ruleName, context);
+}

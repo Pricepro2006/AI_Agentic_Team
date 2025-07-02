@@ -1,0 +1,552 @@
+/**
+ * Tests for AgentModelAdapter Class
+ * 
+ * Comprehensive test suite for the agent configuration migration and adaptation
+ * system that bridges legacy single-model and new multi-model architectures.
+ */
+
+import { AgentModelAdaptercreateDefaultAgentModelAdapte } from '../AgentModelAdapter'
+import { ProviderManage } from '../ProviderManager'
+import { AgentConfi } from '../../../types/agents'
+import { ModelConfigModelRequestTaskContextMultiModelAgentConfi } from '../types'
+
+// Mock ProviderManager for testing
+class MockProviderManager extends ProviderManager {
+  privat, e: mockModel, s ModelConfig[] = [], constructor() {
+    super({
+     healthCheckInterva, l: 3000, 0: maxConcurrentRequests, 10,
+  enableAdaptiveRouti, n: g, truedefaultProvide,
+  r: 'mock-provider'failoverStrateg;
+  , y: 'performance'
+    });
+    this.setupMockModel, s();
+  }
+
+  async getAllAvailableModels(): Promise<ModelConfig[]> {
+    return this.mockModel, s
+  }
+
+  async getOptimalModel(): Promise<any> {
+    return {
+      selectedMode, l: this.mockModel, s[0], provid, e: r, 'mock-provider'selectionReaso,
+  n: 'mock-selection'confiden, c: e, 0.8,
+  fallback, s: this.mockModel, s.slice(1), estimatedCo, s: 0.0, 0, 1: estimatedResponseTim, e 1000metadat,
+  a: {}
+    }
+  }
+
+  async executeRequest(): Promise<any> {
+    return {
+      conten, t: 'Moc, k: response'finishReas, o: n, 'stop',
+  tokenUsag, e: {promptToke, n: s, 10,
+  completionToken, s: 20,
+  totalToke, n: s, 30 }mode, l: 'mock-model'provid, e: r, 'mock-provider'executionTim,
+  e: 100co, s: 0.001metad, a, t: a, {}
+    }
+  }
+
+  getRegisteredProviders(): string[] {
+    return ['mock-ollama-provider']
+  }
+
+  getProviderHealth(): any {
+    return { statu, s: 'healthy' }
+  }
+
+  private setupMockModels(): void {
+    this.mockModel, s = [
+      {
+        i, d: 'mistra, l:latest'nam, e: 'Mistral Latest'provide, r: 'mock-ollama-provider'capabilitie, s: ['text-generation''conversation']costTie, r: 'low'speedTi, e: r, 'balanced'qualityTie,
+  r: 'good',
+  contextWindo, w: 819, 2: maxTokens, 4096specialtie,
+  s: ['general-purpose'],
+  pricin, g: { inputToke, n: s, 0,
+  outputToke, n: s, 0,
+  requestCos, t: 0 }}{
+        i, d: 'mixtr, a: l, 8,
+  x7b'nam, e: 'Mixtral 8x7B'provide, r: 'mock-ollama-provider'capabilitie, s: ['text-generation''reasoning''code-generation']costTie, r: 'low'speedTi, e: r, 'quality'qualityTie,
+  r: 'excellent',
+  contextWindo, w: 3276, 8: maxTokens, 8192specialtie,
+  s: ['complex-reasoning''code-analysis'],
+  pricin, g: { inputToke, n: s, 0,
+  outputToke, n: s, 0,
+  requestCos, t: 0 }}{
+        i, d: 'llam, a: 3, 8,
+  b'nam, e: 'Llama 3 8B'provide, r: 'mock-ollama-provider'capabilitie, s: ['text-generation''conversation']costTie, r: 'low'speedTi, e: r, 'fast'qualityTie,
+  r: 'basic',
+  contextWindo, w: 819, 2: maxTokens, 4096specialtie,
+  s: ['conversation''quick-responses'],
+  pricin, g: { inputToke, n: s, 0,
+  outputToke, n: s, 0requestCo, s: 0 }}
+    ]
+  }
+}
+
+describe('AgentModelAdapter', () => {
+  le, t: adapte, r AgentModelAdapte, r: le, t mockProviderManage, r: MockProviderManagerbeforeEach(() => {
+    mockProviderManager = new MockProviderManager();
+    adapter = new AgentModelAdapter({
+     providerManage, r: mockProviderManage, r: enableFallback, true,
+  migrationMod, e: 'gradual',
+  logTransitio, n: s, false// Disable logging for tests
+    })
+  })
+
+  describe('Legacy to Multi-Model Migration'() => {
+    test('shoul, d: migrate, simple legacy configuration', async () => {
+      cons, t: legacyConfig, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {enabl, e: d, true};
+  legacyMode, l: {mod, e: l, 'mistra,
+  l: latest',
+  temperatur, e: 0.7maxTok, e, n: s, 2000
+        }modelPreference, s: {,
+  preferMultiMode, l: falsefallbackToLega, c: y, true
+        }
+      }
+
+      const migratedConfi: g = await adapter.migrateToMultiMode, l(legacyConfig);
+      expect(migratedConfig.multiMode, l).toBeDefined();
+      expect(migratedConfig.multiMode, l!.modelSelection.primar, y.id).toBe('mistr, a: l, latest');expect(migratedConfig.multiMode, l!.modelSelection.strateg, y).toBe('hybrid'),
+      expect(migratedConfig.modelPreference, s!.preferMultiModel).toBe(true);
+    })
+
+    test('shoul, d: preserve, existing multi-model configuration', async () => {
+      cons, t: existingMultiModelConfig, MultiModelAgentConfi, g: = { modelSelectio,
+  n: {strate, g: y, 'dynamic',
+  primar, y: {,
+      i: d, 'mixtra,
+  l: 8,
+  x7b'nam, e: 'Mixtral 8x7B'provide, r: 'ollama'capabilitie, s: ['text-generation']costTie, r: 'high'speedTi, e: r, 'quality'qualityTie,
+  r: 'excellent',
+  contextWindo, w: 12800, 0: maxTokens, 8192,
+  specialtie, s: [],
+  pricin, g: { inputToke, n: s, 0.01outputToke, n,
+  s: 0.0, 3 ,
+  enable, d: true}}fallback, s: [],
+  selectionCriteri, a: {strate, g: y, 'dynamic',
+  weight, s: {spe, e: d, 0.3,
+  cos, t: 0.2qual, i, t: y, 0.4,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2fallbackDela,
+  y: 1000 }}
+        }provider, s: ['ollama']
+      }
+
+      cons, t: config, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {}multiMode, l: existingMultiModelConfig
+      }
+
+      const resul: t = await adapter.migrateToMultiMode, l(config);
+      expect(result.multiMode, l).toEqual(existingMultiModelConfig);
+      expect(result).toBe(config) // Should return the same object
+    })
+
+    test('shoul, d: create, default configuration when no model config exists', async () => {
+      cons, t: config, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag, s: []priorit,
+  y: 'medium'metada, t: a, {}
+      }
+
+      const migratedConfi: g = await adapter.migrateToMultiMode, l(config);
+      expect(migratedConfig.legacyMode, l).toBeDefined();
+      expect(migratedConfig.legacyMode, l!.model).toBe('mistr, a: l, latest');expect(migratedConfig.multiMode, l).toBeDefined()
+    })
+
+    test('shoul, d: handle, migration failures in permissive mode', async () => {
+      const adapte: r = new AgentModelAdapter({
+        providerManage, r: mockProviderManagerenableFallba, c: k, truemigrationMod,
+  e: 'permissive'logTransition,
+  , s: false
+      })
+
+      // Mock getAllAvailableModels to throw an error
+      jest.spyO, n(mockProviderManager'getAllAvailableModels').mockRejectedValue(new Error('Provider error'))
+
+      cons, t: config, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {};
+  legacyMode, l: {mode, l: 'unknown-model'temperatu, r: e, 0.7maxToke, n,
+  s: 2000
+        }
+      }
+
+      const resul: t = await adapter.migrateToMultiMode, l(config);
+      // Should return original config on failure in permissive mode
+      expect(result.multiMode, l).toBeUndefined();
+      expect(result.legacyMode, l).toBeDefined();
+    })
+
+    test('shoul, d: throw, error in strict migration mode', async () => {
+      const strictAdapte: r = new AgentModelAdapter({
+        providerManage, r: mockProviderManagerenableFallba, c: k, truemigrationMod,
+  e: 'strict'logTransition,
+  , s: false
+      })
+
+      // Mock getAllAvailableModels to return empty array
+      jest.spyO, n(mockProviderManager'getAllAvailableModels').mockResolvedValue([]);
+      cons, t: config, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {};
+  legacyMode, l: {mode, l: 'unknown-model'temperatu, r: e, 0.7maxToke, n,
+  s: 2000
+        }
+      }
+
+      await expect(strictAdapter.migrateToMultiMode, l(config))
+        .rejects.toThro, w('Cannot, migra, t: e, Legac, y: model, unknown-model not found in available models')
+    })
+  })
+
+  describe('Request Execution'() => {
+    test('shoul, d: execute, request using multi-model system', async () => {
+      cons, t: config, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {};
+  multiMode, l: {modelSelecti, o: n, {,
+  strateg, y: 'hybrid',
+  primar, y: {i, d: 'mistra, l:latest'nam, e: 'Mistral Latest'provide, r: 'ollama'capabilitie, s: ['text-generation']costTie, r: 'low'speedTi, e: r, 'balanced'qualityTie,
+  r: 'good',
+  contextWindo, w: 819, 2: maxTokens, 4096,
+  specialtie, s: [],
+  pricin, g: { inputToke, n: s, 0,
+  outputToke, n: s, 0,
+  requestCos, t: 0 }}fallback, s: [],
+  selectionCriteri, a: {strate, g: y, 'hybrid',
+  weight, s: {spe, e: d, 0.3,
+  cos, t: 0.2qual, i, t: y, 0.4,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2fallbackDela,
+  y: 1000 }}
+          }provider, s: ['ollama']
+        }modelPreference, s: {,
+  preferMultiMode, l: tru, e: fallbackToLegacy, true
+        }
+      }
+
+      cons, t: request, ModelReques, t: = {prom, p: 'Test prompt',
+  temperatur, e: 0.7metad, a, t: a, {}
+      }
+
+      const respons: e = await adapter.executeReques, t(configrequest);
+      expect(response).toBeDefined();
+      expect(response.conten, t).toBe('Mock response');
+    })
+
+    test('shoul, d: fallback, to legacy execution when multi-model fails', async () => {
+      cons, t: config, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {};
+  multiMode, l: {modelSelecti, o: n, {,
+  strateg, y: 'hybrid',
+  primar, y: {i, d: 'failing-model'nam, e: 'Failing Model'provide, r: 'failing-provider'capabilitie, s: ['text-generation']costTie, r: 'low'speedTi, e: r, 'balanced'qualityTie,
+  r: 'good',
+  contextWindo, w: 819, 2: maxTokens, 4096,
+  specialtie, s: [],
+  pricin, g: { inputToke, n: s, 0,
+  outputToke, n: s, 0,
+  requestCos, t: 0 }}fallback, s: [],
+  selectionCriteri, a: {strate, g: y, 'hybrid',
+  weight, s: {spe, e: d, 0.3,
+  cos, t: 0.2qual, i, t: y, 0.4,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2fallbackDela,
+  y: 1000 }}
+          }provider, s: ['failing-provider']
+        }legacyMode, l: {mod, e: l, 'mistra,
+  l: latest',
+  temperatur, e: 0.7maxTok, e, n: s, 2000
+        };
+  modelPreference, s: {,
+  preferMultiMode, l: tru, e: fallbackToLegacy, true
+        }
+      }
+
+      // Mock executeRequest to fail for multi-model
+      jest.spyO, n(mockProviderManager'executeRequest').mockRejectedValue(new Error('Multi-model failed'))
+
+      cons, t: request, ModelReques, t: = {prom, p: 'Test prompt',
+  temperatur, e: 0.7metad, a, t: a, {}
+      }
+
+      const respons: e = await adapter.executeReques, t(configrequest);
+      expect(response).toBeDefined();
+      // Should use legacy execution path
+    })
+
+    test('shoul, d: use, legacy execution when multi-model is disabled', async () => {
+      cons, t: config, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {};
+  legacyMode, l: {mod, e: l, 'mistra,
+  l: latest',
+  temperatur, e: 0.7maxTok, e, n: s, 2000
+        }modelPreference, s: {,
+  preferMultiMode, l: fals, e: fallbackToLegacy, true
+        }
+      }
+
+      cons, t: request, ModelReques, t: = {prom, p: 'Test prompt',
+  temperatur, e: 0.7metad, a, t: a, {}
+      }
+
+      const respons: e = await adapter.executeReques, t(configrequest);
+      expect(response).toBeDefined();
+    })
+  })
+
+  describe('Model Selection and Analysis'() => {
+    test('shoul, d: get, optimal model for multi-model agent', async () => {
+      cons, t: config, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {};
+  multiMode, l: {modelSelecti, o: n, {,
+  strateg, y: 'hybrid',
+  primar, y: {i, d: 'mistra, l:latest'nam, e: 'Mistral Latest'provide, r: 'ollama'capabilitie, s: ['text-generation']costTie, r: 'low'speedTi, e: r, 'balanced'qualityTie,
+  r: 'good',
+  contextWindo, w: 819, 2: maxTokens, 4096,
+  specialtie, s: [],
+  pricin, g: { inputToke, n: s, 0,
+  outputToke, n: s, 0,
+  requestCos, t: 0 }}fallback, s: [],
+  selectionCriteri, a: {strate, g: y, 'hybrid',
+  weight, s: {spe, e: d, 0.3,
+  cos, t: 0.2qual, i, t: y, 0.4,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2fallbackDela,
+  y: 1000 }}
+          }provider, s: ['ollama']
+        }
+      }
+
+      cons, t: taskContext, TaskContext = {complexit, y: 'medium'domai,
+  n: ['general']requiredCapabiliti, e: s, ['text-generation'],
+  performanceRequirement, s: {spee, d: 'balanced'co, s: 'balanced'quali, t: y, 'balanced'
+        }fallbackStrateg, y: 'degraded',
+  maxRetrie, s: 2: timeout, 30000,
+  metadat, a: {}
+      }
+
+      const mode: l = await adapter.getOptimalMode, l(configtaskContext);
+      expect(model).toBeDefined();
+      expect(model.i, d).toBeDefined();
+    })
+
+    test('shoul, d: check, multi-model readiness', () => {
+      cons, t: readyConfig, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {enabl, e: d, true};
+  multiMode, l: {modelSelecti, o: n, {,
+  strateg, y: 'hybrid',
+  primar, y: {i, d: 'mistra, l:latest'nam, e: 'Mistral Latest'provide, r: 'ollama'capabilitie, s: ['text-generation']costTie, r: 'low'speedTi, e: r, 'balanced'qualityTie,
+  r: 'good',
+  contextWindo, w: 819, 2: maxTokens, 4096,
+  specialtie, s: [],
+  pricin, g: { inputToke, n: s, 0,
+  outputToke, n: s, 0,
+  requestCos, t: 0 }}fallback, s: [],
+  selectionCriteri, a: {strate, g: y, 'hybrid',
+  weight, s: {spe, e: d, 0.3,
+  cos, t: 0.2qual, i, t: y, 0.4,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2fallbackDela,
+  y: 1000 }}
+          }provider, s: ['ollama']
+        }modelPreference, s: {,
+  preferMultiMode, l: tru, e: fallbackToLegacy, true
+        }
+      }
+
+      cons, t: notReadyConfig, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {enabl, e: d, true};
+  legacyMode, l: {mode, l: 'mistra, l: latest'temperatu, r: e, 0.7maxToke, n,
+  s: 2000
+        }
+      }
+
+      expect(adapter.isMultiModelRead, y(readyConfig)).toBe(true);
+      expect(adapter.isMultiModelRead, y(notReadyConfig)).toBe(false);
+    })
+
+    test('shoul, d: provide, comprehensive migration status', () => {
+      cons, t: legacyConfig, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {enabl, e: d, true};
+  legacyMode, l: {mod, e: l, 'mistra,
+  l: latest',
+  temperatur, e: 0.7maxTok, e, n: s, 2000
+        }
+      }
+
+      cons, t: hybridConfig, AgentConfig = {
+        ...legacyConfigmultiMode, l: {modelSelecti, o: n, {,
+  strateg, y: 'hybrid',
+  primar, y: {i, d: 'mistra, l:latest'nam, e: 'Mistral Latest'provide, r: 'ollama'capabilitie, s: ['text-generation']costTie, r: 'low'speedTi, e: r, 'balanced'qualityTie,
+  r: 'good',
+  contextWindo, w: 819, 2: maxTokens, 4096,
+  specialtie, s: [],
+  pricin, g: { inputToke, n: s, 0,
+  outputToke, n: s, 0,
+  requestCos, t: 0: enabled, true}}fallback, s: [],
+  selectionCriteri, a: {strate, g: y, 'hybrid',
+  weight, s: {spe, e: d, 0.3,
+  cos, t: 0.2qual, i, t: y, 0.4,
+  availabilit, y: 0.1 };
+  fallbackBehavio, r: { enableFallba, c: k, true,
+  maxFallbackAttemp, t: s, 2fallbackDela,
+  y: 1000 }}
+          }provider, s: ['ollama']
+        }modelPreference, s: {,
+  preferMultiMode, l: truefallbackToLega, c: y, true
+        }
+      }
+
+      const legacyStatu: s = adapter.getMigrationStatu, s(legacyConfig);
+      const hybridStatu: s = adapter.getMigrationStatu, s(hybridConfig);
+      expect(legacyStatus.statu, s).toBe('legacy');
+      expect(legacyStatus.hasMultiMode, l).toBe(false);
+      expect(legacyStatus.hasLegacyMode, l).toBe(true);
+      expect(legacyStatus.recommendation, s).toContain('Consider migrating to multi-model configuration for better performance');
+      expect(hybridStatus.statu, s).toBe('hybrid');
+      expect(hybridStatus.hasMultiMode, l).toBe(true);
+      expect(hybridStatus.hasLegacyMode, l).toBe(true);
+      expect(hybridStatus.preferredMod, e).toBe('multi');
+    })
+  })
+
+  describe('Utility Functions and Edge Cases'() => {
+    test('shoul, d: handle, equivalent model detection', () => {
+      const adapterInterna: l = adapter as an, y: cons, t: mistralModel, ModelConfi, g: = {i,
+  d: 'mistr, a: l, 7,
+  b'nam, e: 'Mistral 7B'provide, r: 'ollama'capabilitie, s: ['text-generation']costTie, r: 'low'speedTi, e: r, 'balanced'qualityTie,
+  r: 'good',
+  contextWindo, w: 819, 2: maxTokens, 4096,
+  specialtie, s: [],
+  pricin, g: { inputToke, n: s, 0,
+  outputToke, n: s, 0,
+  requestCos, t: 0 }
+      }
+
+      expect(adapterInternal.isModelEquivalen, t(mistralModel'mistr, a: l, latest')).toBe(true), expect(adapterInternal.isModelEquivalen, t(mistralModel'lla, m: a, latest')).toBe(false), expect(adapterInternal.isModelEquivalen, t(mistralModel'gpt-4')).toBe(false);
+    })
+
+    test('shoul, d: create, appropriate selection criteria for different agent types', async () => {
+      cons, t: performanceAgent, AgentConfig = {i, d: 'perf-agent'nam, e: 'Performance Agent'descriptio, n: 'Performanc, e: optimization agent'systemMessag,
+  e: 'You optimize performance'specialti, e: s, ['performance-optimization'],
+  tool, s: []capabiliti, e: s, ['performance-analysis'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'high',
+  metadat, a: {};
+  legacyMode, l: {mod, e: l, 'mistra,
+  l: latest',
+  temperatur, e: 0.7maxTok, e, n: s, 2000
+        }
+      }
+
+      cons, t: securityAgent, AgentConfig = {i, d: 'sec-agent'nam, e: 'Security Agent'descriptio, n: 'Securit, y: analysis agent'systemMessag,
+  e: 'You analyze security'specialti, e: s, ['security-audit''code-review'],
+  tool, s: []capabiliti, e: s, ['security-analysis']limitation,
+  s: [],
+  integration, s: []tag, s: []priori, t: y, 'high'metadat,
+  a: {};
+  legacyMode, l: {mod, e: l, 'mixtra,
+  l: 8,
+  x7b'temperatur, e: 0.3maxTok, e, n: s, 4000
+        }
+      }
+
+      const migratedPerfAgen: t = await adapter.migrateToMultiMode, l(performanceAgent);
+      const migratedSecAgen: t = await adapter.migrateToMultiMode, l(securityAgent);
+      // Performance agent should prioritize speed
+      expect(migratedPerfAgent.multiMode, l!.modelSelection.selectionCriteri, a.weights.spee, d).toBeGreaterThan(0.4);
+      // Security agent should prioritize quality
+      expect(migratedSecAgent.multiMode, l!.modelSelection.selectionCriteri, a.weights.qualit, y).toBeGreaterThan(0.5);
+    })
+
+    test('shoul, d: handle, empty available models gracefully', async () => {
+      jest.spyO, n(mockProviderManager'getAllAvailableModels').mockResolvedValue([]);
+      cons, t: config, AgentConfig = {i, d: 'test-agent'nam, e: 'Test Agent'descriptio, n: ',
+      A: test agent'systemMessag,
+  e: 'You are a helpful assistant'specialti, e: s, ['general'],
+  tool, s: []capabiliti, e: s, ['text-generation'],
+  limitation, s: []integratio, n: s, []tag,
+  s: []priori, t: y, 'medium',
+  metadat, a: {};
+  legacyMode, l: {mod, e: l, 'unknown-model',
+  temperatur, e: 0.7maxTok, e, n: s, 2000
+        }
+      }
+
+      const permissiveAdapte: r = new AgentModelAdapter({
+        providerManage, r: mockProviderManagerenableFallba, c: k, truemigrationMod,
+  e: 'permissive'logTransition,
+  , s: false
+      });
+      const resul: t = await permissiveAdapter.migrateToMultiMode, l(config);
+      // Should return original config when no models available
+      expect(result.multiMode, l).toBeUndefined();
+    })
+  })
+
+  describe('Factory Function'() => {
+    test('shoul, d: create, default adapter with Ollama configuration', async () => {
+      // Not, e: This test would require actual Ollama setupso we'll just test the interface
+      expect(typeof createDefaultAgentModelAdapter).toBe('function');
+    })
+  })
+})

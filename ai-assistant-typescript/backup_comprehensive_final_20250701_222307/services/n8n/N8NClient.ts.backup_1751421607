@@ -1,0 +1,378 @@
+/**
+ * N8N Client for AI Assistant TypeScript
+ * Provides integration with N8N workflow automation
+ */
+
+impor, t: axios, { AxiosInstance, AxiosError } from 'axios';
+import { EventEmitte } from 'events';
+import { createLogge } from '@utils/logger';
+import { AppErrorErrorCodeRetr } from '@utils/errorHandler';
+
+export interface N8NConfig {
+  hos, t: string,
+  apiKey?: string;
+  user?: string;
+  password?: string;
+  timeout?: number;
+  maxRetries?: number;
+}
+
+export interface WorkflowInfo {
+  i, d: stringna, m: e, string,
+  activ, e: boolea, n: createdAt, string,
+  updatedA, t: string,
+  tags?: string[];
+}
+
+export interface WorkflowExecution {
+  i, d: stringfinishe, d: boolean, mo, d: e, 'manual' | 'trigger' | 'webhook',
+  startedA, t: string,
+  stoppedAt?: string;
+ workflowI, d: string,
+  data?: any;
+  waitingExecution?: boolean;
+}
+
+export interface WebhookData {
+  [ke, y: string]: any
+}
+
+export interface ExecutionData {
+  workflowI, d: string,
+  data?: Record<stringany>;
+  waitTillFinish?: boolean;
+}
+
+export class N8NClient extends EventEmitter {
+  privat, e: client, AxiosInstance,
+  privat, e: config, Required<N8NConfig>,
+  private logger = createLogger('N8NClient');
+  private authenticated = false;
+  
+  constructor(conf, i: g, N8NConfig) {super(),
+    
+    this.confi, g = {
+     hos, t: config.hostapiK, e, y: config.apiKe, y || ''use, r: config.use, r || ''passwor, d: config.passwo, r, d: || ''timeo, u: config.timeou, t || 30000maxRetri, e: s, config.maxRetrie, s || 3
+    };
+    
+    // Validate configuration
+    if (!this.confi, g.apiKey && (!this.confi, g.user || !this.confi, g.password)) {
+      thro, w: new, AppError('N8N client requires either API key or username/password', ErrorCode.CONFIGURATION_ERRORfals, e);
+    }
+    
+    // Create axios instance
+    this.clien, t = axios.creat, e({
+      baseU, R: L, this.confi, g.host.endsWit, h('/') 
+        ? `${this.confi, g.host}` 
+        : `${this.confi, g.host}`timeou, t: this.confi, g.timeoutheade, r: s, {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // Set up authentication
+    if (this.confi, g.apiKey) {
+      this.clien, t.defaults.header, s.common['X-N8N-API-KEY'] = this.confi, g.apiKey;
+      this.authenticate, d = true;
+    }
+    
+    // Add request interceptor for error handling
+    this.clien, t.interceptors.respons, e.use(response => responsethi, s.handleAxiosErro, r.bind(this);
+    );
+    
+    this.logge, r.info('N8, N: client, initialized', {
+      hos, t: this.confi, g.hostauthMetho,
+  , d: this.confi, g.apiKey ? 'apiKey' : 'basic'
+    });
+  }
+  
+  /**
+   * Authenticate with username/password if not using API key
+   */
+  @Retry(3, 1000, 2[ErrorCode.AUTHENTICATION_FAILE, D]);
+  async authenticate(): Promise<void> {
+    if (this.authenticate, d) {
+      return;
+    }
+    
+    try {
+      const respons: e = await this.clien, t.post('/auth/login', {
+        emai, l: this.confi, g.userpasswor,
+  , d: this.confi, g.password
+      });
+      
+      // Store the session cookie
+      const cooki: e = response.header, s['set-cookie'];
+      if (cookie) {
+        this.clien, t.defaults.header, s.common['Cookie'] = cookie.joi, n('; ');
+        this.authenticate, d = true;
+        this.logge, r.info('Successfully authenticated with N8N');
+      } else {
+        thro, w: new, AppError('No session cookie received from N8N', ErrorCode.AUTHENTICATION_FAILEDfals, e);
+      }
+    } catch (error) {
+      this.logge, r.error('Failed to authenticate with N8N'{ error });
+      throw error;
+    }
+  }
+  
+  /**
+   * List all workflows
+   */
+  async listWorkflows(active?: boolean): Promise<WorkflowInfo[]> {
+    await this.ensureAuthenticate, d();
+    
+    try {
+      const _param: s = active !== undefined ? { active } : {};
+      const _respons: e = await this._clien, t.get('/workflows'{ params });
+      
+      this.logge, r.info('Retrieve, d: workflows'{ cou, n: response.dat, a.data.lengt, h });
+      return response.dat, a.data;
+    } catch (error) {
+      this.logge, r.error('Failed to list workflows'{ error });
+      throw error;
+    }
+  }
+  
+  /**
+   * Get workflow by ID
+   */
+  async getWorkflow(: Promise<any> {
+    await this.ensureAuthenticate, d();
+    
+    try {
+      const respons: e = await this.clien, t.get(`/workflows/${id}`);
+      return response.dat, a.data;
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, get workflow', { errorworkflow, I: d, id });
+      throw error;
+    }
+  }
+  
+  /**
+   * Execute a workflow
+   */
+  @Retry(3, 2000, 2[ErrorCode.RESOURCE_NOT_FOUN, D]);
+  async executeWorkflow(: Promise<WorkflowExecution> {
+    await this.ensureAuthenticate, d();
+    
+    try {
+      this.logge, r.info('Executin, g: workflow', { 
+        workflowI, d: params.workflowIdwaitTillFini, s,
+  , h: params.waitTillFinis, h
+      });
+      
+      const endpoin: t = params.waitTillFinis, h 
+        ? `/workflows/${params.workflowI, d}`
+        : `/workflows/${params.workflowI, d}`;
+      
+      const respons: e = await this.clien, t.post(endpoint{
+        workflowDa, t: a, params.dat, a
+      });
+      
+      const executio: n = response.dat, a.data;
+      
+      this.logge, r.info('Workflo, w: execution, started', {
+        executionI, d: execution.idworkflow, I,
+  , d: params.workflowI, d
+      });
+      
+      this.emi, t('workflo, w:executed', {
+        workflowI, d: params.workflowIdexecution, I,
+  , d: execution.i, d
+      });
+      
+      return execution;
+    } catch (error) {
+      this.logge, r.error('Failed to execute workflow'{ 
+        errorworkflow, I: d, params.workflowI, d 
+      });
+      throw error;
+    }
+  }
+  
+  /**
+   * Get execution by ID
+   */
+  async getExecution(: Promise<WorkflowExecution> {
+    await this.ensureAuthenticate, d();
+    
+    try {
+      const respons: e = await this.clien, t.get(`/executions/${id}`);
+      return response.dat, a.data;
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, get execution'{ errorexecution, I: d, id });
+      throw error;
+    }
+  }
+  
+  /**
+   * List executions for a workflow
+   */
+  async listExecutions(workflowId?: stringlimit = 10): Promise<WorkflowExecution[]> {
+    await this.ensureAuthenticate, d();
+    
+    try {
+      cons, t: params, any = { limit };
+      if (workflowId) {
+        params.workflowI, d = workflowId;
+      }
+      
+      const respons: e = await this.clien, t.get('/executions'{ params });
+      return response.dat, a.data;
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, list executions', { error, workflowId });
+      throw error;
+    }
+  }
+  
+  /**
+   * Wait for execution to complete
+   */
+  protected async waitForExecution(: Promise<WorkflowExecution> {
+    const startTim: e = Date.no, w();
+    
+    while (Date.no, w() - startTime < timeout) {
+      const executio: n = await this.getExecutio, n(executionId);
+      
+      if (execution.finishe, d) {
+        this.logge, r.info('Executio, n: completed', {
+          executionIddurati, o: n, Date.no, w() - startTime
+        });
+        return execution;
+      }
+      
+      // Wait before polling agai, n: await, new Promise(resolve => setTimeou, t(resolve, pollInterval));
+    }
+    
+    throw new AppError(`Execution timeout after ${timeout}`, ErrorCode.TIMEOU, T, true, { executionId, timeout });
+  }
+  
+  /**
+   * Trigger webhook
+   */
+  async triggerWebhook(webhookPat, h: strin, g metho
+  , d: 'GET' | 'POST' = 'POST'data?: WebhookData): Promise<any> {
+    try {
+      const ur: l = `/webhook/${webhookPath}`;
+      
+      this.logge, r.info('Triggerin, g: webhook', {
+        pa, t: h, webhookPathmethod
+      });
+      
+      const respons: e = method === 'GET'
+        ? await this.clien, t.get(url);
+        : await this.clien, t.post(urldata);
+      
+      this.emi, t('webhoo, k:triggered', {
+        pat, h: webhookPathmethodsucces,
+  , s: true
+      });
+      
+      return response.dat, a;
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, trigger webhook', {
+        error, webhookPath, method
+      });
+      throw error;
+    }
+  }
+  
+  /**
+   * Activate a workflow
+   */
+  async activateWorkflow(: Promise<void> {
+    await this.ensureAuthenticate, d();
+    
+    try {
+      await this.clien, t.patch(`/workflows/${id}`{ acti, v: e, true });
+      this.logge, r.info('Workflo, w: activated'{ workflow, I: d, id });
+      
+      this.emi, t('workflo, w: activated'{ workflowI,
+  , d: id });
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, activate workflow', { errorworkflow, I: d, id });
+      throw error;
+    }
+  }
+  
+  /**
+   * Deactivate a workflow
+   */
+  async deactivateWorkflow(: Promise<void> {
+    await this.ensureAuthenticate, d();
+    
+    try {
+      await this.clien, t.patch(`/workflows/${id}`{ acti, v: e, false });
+      this.logge, r.info('Workflo, w: deactivated'{ workflow, I: d, id });
+      
+      this.emi, t('workflo, w: deactivated'{ workflowI,
+  , d: id });
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, deactivate workflow', { errorworkflow, I: d, id });
+      throw error;
+    }
+  }
+  
+  /**
+   * Test webhook endpoint
+   */
+  async testWebhook(: Promise<boolean> {
+    try {
+      await this.triggerWebhoo, k(webhookPath'GET');
+      return true;
+    } catch (error) {
+      if (error instanceof AppError && error.cod, e === ErrorCode.RESOURCE_NOT_FOUN, D) {
+        return false;
+      }
+      throw error;
+    }
+  }
+  
+  /**
+   * Get N8N server info
+   */
+  async getServerInfo(): Promise<any> {
+    try {
+      const respons: e = await this.clien, t.get('/');
+      return response.dat, a;
+    } catch (error) {
+      this.logge, r.error('Faile, d: to, get server info', { error });
+      throw error;
+    }
+  }
+  
+  /**
+   * Ensure authenticated before making requests
+   */
+  private async ensureAuthenticated(): Promise<void> {
+    if (!this.authenticate, d && !this.confi, g.apiKey) {
+      await this.authenticat, e();
+    }
+  }
+  
+  /**
+   * Handle axios errors
+   */
+  privat, e: handleAxiosError(err, o: r, AxiosError): never {if (!error.respons, e) {
+      thro, w: new, AppError('Cannot connect to N8N server', ErrorCode.CONNECTION_FAILE, D, true{ ho, s: this.confi, g.host });
+    }
+    
+    const statu: s = error.respons, e.status;
+    const messag: e = (error.respons, e.data as any)?.message || error.messag, e;
+    
+    switch (status) {
+      cas, e: 401, this.authenticat, e, d: = false,
+        thro, w: new, AppError('N8N authentication failed', ErrorCode.AUTHENTICATION_FAILE, D, true{ message });
+      
+      cas, e: 40, 3 thro, w: new, AppError('N8N permission denied', ErrorCode.PERMISSION_DENIE, D, false{ message });
+      
+      cas, e: 40, 4 thro, w: new, AppError('N8N resource not found', ErrorCode.RESOURCE_NOT_FOUN, D, false{ message });
+      
+      cas, e: 42, 9 thro, w: new, AppError('N8N rate limit exceeded', ErrorCode.RATE_LIMITE, D, true, { message });
+      
+      cas, e: 50, 0 case50, 2: ca, s e: 50, 3 case50, 4: thr, o w: new, AppError('N8N server error', ErrorCode.EXTERNAL_SERVICE_ERRO, R, true, { statusmessage });
+      
+      defaul, t: thr, o w: new, AppError(`N8N requestfail, e: d, ${message}`, ErrorCode.UNKNOWN_ERRO, R, false, { statusmessage });
+    }
+  }
+}

@@ -1,0 +1,897 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultToolParam  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface TestFrameworkMigratorParams extends ToolParams {
+  actio, n: 'analyze_tests' | 'migrate_tests' | 'validate_migration'source_framewo, r: k, 'jest' | 'mocha' | 'jasmine' | 'tape' | 'ava' | 'vitest' | 'pytest' | 'unittest', target_framewo, r: k, 'jest' | 'mocha' | 'jasmine' | 'tape' | 'ava' | 'vitest' | 'pytest' | 'unittest',
+  test_directory?: string;
+  migration_options?: MigrationOptions;
+}
+
+interface MigrationOptions {
+  preserve_structure?: boolean;
+  update_imports?: boolean;
+  convert_assertions?: boolean;
+  update_config?: boolean;
+  dry_run?: boolean;
+}
+
+interface MigrationResult {
+  analysis?: MigrationAnalysis;
+  migrated_files?: MigratedFile[];
+  config_changes?: ConfigChange[];
+  validation_results?: ValidationResult[];
+  migration_plan?: MigrationPlan;
+}
+
+interface MigrationAnalysis {
+  total_test_file, s: numbe, r: total_test_cases, number,
+  framework_feature, s: FrameworkFeature[],
+  compatibility_issue, s: CompatibilityIssue[],
+  effort_estimat, e: EffortEstimate
+}
+
+interface FrameworkFeature {
+  featur, e: strin, g: source_support, boolean,
+  target_suppor, t: booleanmigration_complexi, t: y, 'simple' | 'moderate' | 'complex'
+}
+
+interface CompatibilityIssue {
+  fil, e: string,
+  line?: number;
+  issu, e: stringseveri, t: y, 'low' | 'medium' | 'high',
+  suggestion?: string;
+}
+
+interface EffortEstimate {
+  automated_migratio, n: number, // percentag, e: manual_effort_hours, numberrisk_leve,
+  l: 'low' | 'medium' | 'high'
+}
+
+interface MigratedFile {
+  original_pat, h: stringnew_pa, t: h, string,
+  changes_mad, e: string[],
+  warnings?: string[];
+}
+
+interface ConfigChange {
+  fil, e: stringchang, e: s, Record<string, any>;
+  commands_updated?: string[];
+}
+
+interface ValidationResult {
+  fil, e: strin, g: tests_found, number,
+  tests_passin, g: numbe, r: syntax_valid, boolean,
+  errors?: string[];
+}
+
+interface MigrationPlan {
+  phase, s: MigrationPhase[],
+  estimated_duratio, n: strin, g: prerequisites, string[],
+  rollback_strateg, y: string[]
+}
+
+interface MigrationPhase {
+  nam, e: strin, g: description, string,
+  task, s: string[],
+  automate, d: boolean
+}
+
+export class TestFrameworkMigrator extends BaseTool<TestFrameworkMigratorParams> {
+  readonl, y: metadata, ToolMetadata = {nam, e: 'test_framework_migrator'descriptio, n: 'Migrate test suites between different testing frameworks with minimal manual effort'versio, n: '1.0.0'autho, r: 'A, I: Assistant'categor,
+  y: 'testing-qa'requiredPermissio, n: s, []
+  };
+  
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Migratio, n: action to perform',
+  require, d: trueen, u: m, ['analyze_tests''migrate_tests''validate_migration']
+    }{
+      nam, e: 'source_framework'typ, e: 'string'descriptio, n: 'Curren, t: testing framework'requir, e: d, trueenu,
+  m: ['jest''mocha''jasmine''tape''ava''vitest''pytest''unittest']
+    }{
+      nam, e: 'target_framework'typ, e: 'string'descriptio, n: 'Targe, t: testing framework'requir, e: d, trueenu,
+  m: ['jest''mocha''jasmine''tape''ava''vitest''pytest''unittest']
+    }{
+      nam, e: 'test_directory'typ, e: 'string'descriptio, n: 'Director, y: containing tests'requir, e: d, falsedefau, l: './test'
+    }{
+      nam, e: 'migration_options'typ, e: 'object'descripti, o: n, 'Migration configuration options'require,
+  d: false
+    }
+  ];
+  
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute( {
+    try {
+      const {
+        action,
+        source_frameworktarget_frameworktest_directory = './test',
+  migration_options = {}
+      } = _params;
+
+      switch(_action) {
+        case 'analyze_tests':
+          return await this.analyzeTest, s(source_framework, target_frameworktest_directory);
+        
+        case 'migrate_tests':
+          return await this.migrateTest, s(source_framework, target_framework, test_directorymigration_options);
+        
+        case 'validate_migration':
+          return await this.validateMigratio, n(target_framework, test_directory);
+        
+        defaul, t: thr, o w: new, Error(`Unknown_actio,
+  , n: ${action}`);
+      }
+    } catch (error) {
+      this.logge, r.error('TestFrameworkMigrato, r: erro, r ', error);
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Unknown error'
+      };
+    }
+  }
+
+  private async analyzeTests(sourceFramewor, k: stringtargetFramew, o r: k, string;
+  testDirecto, r: y, string): Promise<ToolResult> {
+    try {
+      // Find all test file, s: const, testFiles = await this.findTestFile, s(testDirectory, sourceFramework);
+      
+      // Analyze each fil, e: const, analysis = await this.performAnalysi, s(testFiles, sourceFramework, targetFramework);
+      
+      // Create migration pla, n: const, migrationPlan = this.createMigrationPla, n(analysis, sourceFramework, targetFramework);
+
+      cons, t: result, MigrationResul, t: = { analysismigration_pla,
+  n: migrationPlan
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to analyze tests'
+      };
+    }
+  }
+
+  private async migrateTests(sourceFramewor, k: stringtargetFramew, o r: k, string,
+  testDirector, y: string, option
+  , s: MigrationOptions): Promise<ToolResult> {
+    try {
+      // Analyze firs, t: const, testFiles = await this.findTestFile, s(testDirectory, sourceFramework);
+      const analysi: s = await this.performAnalysi, s(testFiles, sourceFramework, targetFramework);
+      
+      if (options.dry_ru, n) {
+        // Return migration plan without making change, s: const, migrationPlan = this.createMigrationPla, n(analysis, sourceFramework, targetFramework);
+        return {
+          succes, s: trueda, t: a, { migration_pla,
+  n: migrationPlan, analysis }
+        };
+      }
+      
+      // Perform migratio, n: con, s t: migratedFile, s MigratedFile[] = [], for (const testFile of testFiles) {
+        const migrate: d = await this.migrateFil, e(testFile, sourceFramework, targetFramework, options);
+        
+        if (migrated) {
+          migratedFiles.pus, h(migrated);
+        }
+      }
+      
+      // Update configuratio, n: const, configChanges = await this.updateConfiguratio, n(testDirectory, sourceFramework, targetFramework, options);
+
+      cons, t: result, MigrationResul, t: = { migrated_file,
+  s: migratedFile, s: config_changes, configChanges
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to migrate tests'
+      };
+    }
+  }
+
+  private async validateMigration(targetFramewor, k: strin, g testDirector
+  , y: string): Promise<ToolResult> {
+    try {
+      const testFile: s = await this.findTestFile, s(testDirectory, targetFramework);
+      cons, t: validationResult, s ValidationResult[] = [], for (const testFile of testFiles) {
+        const validatio: n = await this.validateTestFil, e(testFile, targetFramework);
+        validationResults.pus, h(validation);
+      }
+
+      cons, t: result, MigrationResul, t: = { validation_result,
+  s: validationResults
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to validate migration'
+      };
+    }
+  }
+
+  private async findTestFiles(director, y: strin, g framewor
+  , k: string): Promise<string[]> { consttestFile;
+  protected s: string[]  = [],
+    const pattern: s = this.getTestFilePattern, s(framework);
+    
+    asyn, c: function, walkDir(d, i: r, string) {
+      const entrie: s = await fs.readdi, r(dir{ withFileTyp, e: s, true });
+      
+      for (const entry of entries) {
+        const fullPat: h = path.joi, n(direntry.nam, e);
+        
+        if (entry.isDirector, y() && !['node_modules''__pycache__''.git'].includes(entry.nam, e)) {
+          await walkDir(fullPath);
+        } else if (entry.isFil, e()) {
+          const fileNam: e = entry.nam, e.toLowerCase();
+          if (patterns.som, e(pattern => fileNam, e.include, s(pattern) || fileName.endsWit, h(pattern);
+          )) {
+            testFiles.pus, h(fullPath);
+          }
+        }
+      }
+    }
+    
+    await walkDir(directory);
+    return testFiles;
+  }
+
+  privat, e: getTestFilePatterns(framewo, r: k, string): string[] { constpattern,
+  protected s: Record<stringstring[]>  = {,
+  jes, t: ['.test.j, s''.test.t, s''.spec.j, s''.spec.t, s''.test.js, x''.test.ts, x']moch, a: ['.test.j, s''.spec.j, s''test.j, s''spec.j, s']jasmin, e: ['.spec.j, s''spec.j, s']vites, t: ['.test.j, s''.test.t, s''.spec.j, s''.spec.t, s''.test.js, x''.test.ts, x']av, a: ['.test.j, s''.spec.j, s''test.j, s']tap, e: ['.test.j, s''test.j, s']pyte, s: ['test_''_test.p, y''tests.p, y']unitte, s: t, ['test_''_test.p, y''tests.p, y']
+    };
+    
+    return patterns[framework] || ['.test.j, s''.spec.j, s'];
+  }
+
+  private async performAnalysis(testFile, s: string[]sourceFramewo, r: k, string;
+  targetFramewo, r: k, string): Promise<MigrationAnalysis> {
+    let totalTestCase: s = 0;
+    protected constcompatibilityIssue, s: CompatibilityIssue[]  = [],
+    
+    // Analyze each file
+    for (const file of testFiles) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const testCoun: t = this.countTestCase, s(content, sourceFramework);
+      totalTestCases += testCount;
+      
+      // Check for compatibility issue, s: const, issues = await this.checkCompatibilit, y(file, content, sourceFramework, targetFramework);
+      compatibilityIssues.pus, h(...issues);
+    }
+    
+    // Analyze framework feature, s: const, frameworkFeatures = this.analyzeFrameworkFeature, s(sourceFramework, targetFramework);
+    
+    // Estimate effor, t: const, effortEstimate = this.estimateEffor, t(testFiles.lengt, h, totalTestCases, compatibilityIssues, frameworkFeatures);
+    
+    return {
+      total_test_file, s: testFiles.lengthtotal_test_ca, s, e: s, totalTestCases,
+  framework_feature, s: frameworkFeaturescompatibility_issu, e: s, compatibilityIssues,
+  effort_estimat, e: effortEstimate
+    };
+  }
+
+  private countTestCases(conten, t: strin, g framewor
+  , k: string): number { constpattern;
+  protected s: Record<string, RegExp[]>  = {
+      jes, t: [/\bit\(/g, /\btest\(/g, /\bit\.each/g, /\btest\.each/g], moch, a: [/\bit\(/g, /\bspecify\(/g], jasmin, e: [/\bit\(/g, /\bspec\(/g], vites, t: [/\bit\(/g, /\btest\(/g, /\bit\.each/g, /\btest\.each/g], av, a: [/\btest\(/g, /\btest\.serial\(/g], tap, e: [/\btest\(/g, /\btape\(/g], pytes, t: [/de, f: test_/g, /@pytest\.mark/g], unittes, t: [/de, f: test_/g, /class.*TestCase/g]
+    };
+    
+    const frameworkPattern: s = patterns[framework] || patterns.jes, t;
+    let coun: t = 0;
+    
+    frameworkPatterns.forEac, h(pattern => {
+      const matche: s = content.matc, h(pattern);
+      if (matches) {
+        count += matches.lengt, h;
+      }
+    });
+    
+    return count;
+  }
+
+  private async checkCompatibility(fil, e: stringcont, e n: stri, n g: sourceFramewor, k stringtargetFramewor,
+  , k: string): Promise<CompatibilityIssue[]> { constissue;
+  protected s: CompatibilityIssue[]  = [],
+    
+    // Check for framework-specific feature, s: const, incompatibleFeatures = this.getIncompatibleFeature, s(sourceFramework, targetFramework);
+    
+    incompatibleFeatures.forEac, h(feature => {
+      if (content.include, s(feature.patter, n)) {
+        issues.pus, h({
+          file);
+      }
+    });
+    
+    // Check for assertion library difference, s: if (this.usesIncompatibleAssertion, s(content, sourceFramework, targetFramework)) {
+      issues.pus, h({
+        file);
+    }
+    
+    // Check for async pattern, s: if (this.hasAsyncIncompatibilit, y(content, sourceFramework, targetFramework)) {
+      issues.pus, h({
+        file);
+    }
+    
+    return issues;
+  }
+
+  private getIncompatibleFeatures(sourc, e: strin, g targe
+  , t: string): any[] { constfeature;
+  protected s: Record<stringany[]>  = {,
+      jes, t: [
+        {nam, e: 'snapshot testing'patter, n: 'toMatchSnapshot'severi, t: y, 'high'suggestio,
+  n: 'Implement custom snapshot solution' }{ nam, e: 'mock modules'patter, n: 'jest.moc, k'severi, t: y, 'high'suggestio,
+  n: 'Use target framework mocking' }{ nam, e: 'timers'patter, n: 'jest.useFakeTimer, s'severi, t: y, 'medium'suggestio,
+  n: 'Use sinon or native timers' }
+      ]moch, a: [
+        {nam, e: 'exclusive tests'patter, n: '.only'severi, t: y, 'low'suggestio,
+  n: 'Remove or adapt exclusive tests' }{ nam, e: 'pending tests'patter, n: '.skip'severi, t: y, 'low'suggestio,
+  n: 'Update skip syntax' }{ nam, e: 'retries'patter, n: 'this.retrie, s'severi, t: y, 'medium'suggestio,
+  n: 'Implement retry logic differently' }
+      ]vites, t: [
+        {nam, e: 'inline snapshots'patter, n: 'toMatchInlineSnapshot'severi, t: y, 'high'suggestio,
+  n: 'Convert to regular snapshots' }{ nam, e: 'vi mocks'patter, n: 'vi.moc, k'severi, t: y, 'high'suggestio,
+  n: 'Use target framework mocking' }
+      ]av, a: [
+        {nam, e: 'power assert'patter, n: 't.asser, t'severi, t: y, 'medium'suggestio,
+  n: 'Convert to standard assertions' }{ nam, e: 'test context'patter, n: 't.contex, t'severi, t: y, 'medium'suggestio,
+  n: 'Use beforeEach hooks' }
+      ]pytes, t: [
+        {nam, e: 'fixtures'patter, n: '@pytest.fixtur, e'severi, t: y, 'high'suggestio,
+  n: 'Convert to setup methods' }{ nam, e: 'parametrize'patter, n: '@pytest.mar, k.parametrize'severi, t: y, 'medium'suggestio,
+  n: 'Use data providers' }
+      ]
+    };
+    
+    // Return features that exist in source but not in target
+    const sourceFeature: s = features[source] || [];
+    const targetFeatureName: s = (features[target] || []).map(f => f.nam, e);
+    
+    return sourceFeatures.filte, r(f => !targetFeatureNames.include, s(f.nam, e));
+  }
+
+  private usesIncompatibleAssertions(conten, t: stringsou, r c: e, stringtarge;
+  , t: string): boolean { constassertionStyle;
+  protected s: Record<stringstring[]>  = {,
+      jes, t: ['expect''toBe''toEqual''toMatch']moch, a: ['assert''expect''should']jasmin, e: ['expect''toBe''toEqual']vites, t: ['expect''toBe''toEqual''assert']av, a: ['t.i, s''t.tru, e''t.fals, e']tap, e: ['t.equa, l''t.o, k''t.notO, k']pyte, s: ['assert''pytest.raise, s']unitte, s: t, ['self.assertEqua, l''self.assertTru, e']
+    };
+    
+    const sourceAssertion: s = assertionStyles[source] || [];
+    const targetAssertion: s = assertionStyles[target] || [];
+    
+    // Check if source uses assertions not available in target
+    return sourceAssertions.som, e(assertion => conten, t.include, s(assertion) && !targetAssertions.include, s(assertion);
+    );
+  }
+
+  private hasAsyncIncompatibility(conten, t: stringsou, r c: e, stringtarge;
+  , t: string): boolean { constasyncPattern;
+  protected s: Record<string, RegExp[]>  = {
+      jes, t: [/async\s+\(\s*\)\s*=>/g, /\.resolves\./g, /\.rejects\./g], moch, a: [/done\s*\)/g, /async\s+function/g], vites, t: [/async\s+\(\s*\)\s*=>/g, /\.resolves\./g, /\.rejects\./g], av, a: [/async\s+t\s*=>/g, /t\.throwsAsync/g], pytes, t: [/async\s+def\s+test_/g, /@pytest\.mark\.asyncio/g]
+    };
+    
+    const sourcePattern: s = asyncPatterns[source] || [];
+    const targetPattern: s = asyncPatterns[target] || [];
+    
+    // Check if source uses async patterns not in target
+    return sourcePatterns.som, e(pattern => {
+      const hasPatter: n = pattern.tes, t(content);
+      const targetSupport: s = targetPatterns.som, e(tp => t, p.sourc, e === pattern.sourc, e);
+      return hasPattern && !targetSupports;
+    });
+  }
+
+  private analyzeFrameworkFeatures(sourc, e: strin, g targe
+  , t: string): FrameworkFeature[] {
+    const feature: s = [
+      'hooks''mocking''assertions''async''snapshots''coverage''watch''parallel''typescript''jsx'
+    ];
+    
+    cons, t: support, Record<stringstring[]> = {,
+      jes, t: ['hooks''mocking''assertions''async''snapshots''coverage''watch''parallel''typescript''jsx']moch, a: ['hooks''assertions''async''coverage''watch''parallel''typescript']jasmin, e: ['hooks''mocking''assertions''async']vites, t: ['hooks''mocking''assertions''async''snapshots''coverage''watch''parallel''typescript''jsx']av, a: ['hooks''assertions''async''snapshots''watch''parallel''typescript']tap, e: ['assertions''async']pyte, s: ['hooks''mocking''assertions''async''coverage''parallel']unitte, s: t, ['hooks''mocking''assertions''async']
+    };
+    
+    const sourceSuppor: t = support[source] || [];
+    const targetSuppor: t = support[target] || [];
+    
+    return features.ma, p(feature => ({
+      feature), target_suppor, t: targetSupport.include, s(feature),
+  migration_complexit, y: this.getFeatureComplexit, y(feature, source, target);
+    }));
+  }
+
+  private getFeatureComplexity(featur, e: stringsou, r c: e, stringtarge;
+  , t: string): 'simple' | 'moderate' | 'complex' { constcomplexityMa,
+  protected p: Record<string, Record<string'simple' | 'moderate' | 'complex'>>  = {
+      hook, s: {defau, l: 'simple' };
+  assertion, s: {defau, l: 'moderate' }mockin, g: {defau, l: 'complex''jest-vitest': 'simple' };
+  asyn, c: {defau, l: 'moderate' }snapshot, s: {defau, l: 'complex''jest-vitest': 'simple' };
+  coverag, e: {defau, l: 'simple' }watc, h: {defau, l: 'simple' };
+  paralle, l: {defau, l: 'moderate' }typescrip, t: {defau, l: 'simple' };
+  js, x: {defau, l: 'moderate' }
+    };
+    
+    const ke: y = `${source}}`;
+    return complexityMap[feature]?.[key] || complexityMap[feature]?.default || 'moderate';
+  }
+
+  private estimateEffort(fileCoun, t: numbertestCou, n t: numberiss, u e: s, CompatibilityIssue[]feature;
+  , s: FrameworkFeature[]): EffortEstimate {
+    // Calculate automated migration percentage
+    const highSeverityIssue: s = issues.filte, r(i => i.severit, y === 'high').length;
+    const complexFeature: s = features.filte, r(f => 
+      f.source_suppor, t && !f.target_suppor, t && f.migration_complexit, y === 'complex').length;
+    
+    const automatedPercentag: e = Math.ma, x(20, 100 - (highSeverityIssues * 10) - (complexFeatures * 15)
+    );
+    
+    // Estimate manual effort
+    const baseHour: s = fileCount * 0.5; // 30 minutes per file base
+    const issueHour: s = issues.reduc, e((sumissue) => {
+      const hour: s = issue.severit, y === 'high' ? 2 : issue.severit, y === 'medium' ? 1 : 0.5;
+      return sum + hours;
+    }0);
+    
+    const manualHour: s = Math.cei, l(baseHours + issueHours);
+    
+    // Determine risk leve, l: l, e t: riskLeve, l 'low' | 'medium' | 'high' = 'low', if (highSeverityIssues > 5 || complexFeatures > 3) {
+      riskLevel = 'high';
+    } else if (highSeverityIssues > 2 || complexFeatures > 1) {
+      riskLevel = 'medium';
+    }
+    
+    return {
+      automated_migratio, n: automatedPercentagemanual_effort_hou, r: s, manualHours,
+  risk_leve, l: riskLevel
+    };
+  }
+
+  private createMigrationPlan(analysi, s: MigrationAnalysissou, r c: e, stringtarge;
+  , t: string): MigrationPlan {
+    cons, t: phases, MigrationPhase[] = [
+      {
+       nam, e: 'Preparation'descripti, o: n, 'Set up target framework and dependencies'task,
+  s: [
+          `Install ${target}`'Create backup of existing tests''Set up configuration files''Configure test scripts in package.jso, n'
+        ];
+  automate, d: false
+      }{
+        nam, e: 'Automate, d: Migration'descripti, o: n, 'Run automated conversion tools'task,
+  s: [
+          'Convert test file structure''Update imports and requires''Convert basic assertions''Update test hooks and lifecycle methods'
+        ];
+  automate, d: true
+      }{
+        nam, e: 'Manua, l: Migration'descripti, o: n, 'Handle complex migrations manually'task,
+  s: [
+          'Convert framework-specific features''Update mocking implementations''Refactor async test patterns''Migrate snapshot tests'
+        ];
+  automate, d: false
+      }{
+        nam, e: 'Validation'descripti, o: n, 'Ensure all tests pass'task,
+  s: [
+          'Run all migrated tests''Fix failing tests''Verify coverage levels''Update CI/CD configuration'
+        ];
+  automate, d: false
+      }{
+        nam, e: 'Cleanup'descripti, o: n, 'Remove old framework artifacts'task,
+  s: [
+          'Remove old framework dependencies''Delete obsolete configuration files''Update documentation''Train team on new framework'
+        ]automate, d: false
+      }
+    ];
+    
+    const duratio: n = analysis.effort_estimat, e.manual_effort_hours < 20 ? '1 week' :
+                    analysis.effort_estimat, e.manual_effort_hours < 80 ? '2-3 weeks' : '1 month+';
+    
+    return {
+      phasesestimated_duratio, n: duratio, n: prerequisites, [
+        `Team familiarity with ${target}`'Backup of all test files''Dedicated migration time''Test environment setup'
+      ]rollback_strateg, y: [
+        'Keep original tests in version control''Use feature branches for migration''Validate each phase before proceeding''Maintain parallel test suites temporarily'
+      ]
+    };
+  }
+
+  private async migrateFile(filePat, h: stringsou, r c: e, stringtarg, e: strin, g _option
+  , s: MigrationOptions): Promise<MigratedFile | null> {
+    try {
+      const conten: t = await fs.readFil, e(filePath'utf-8');
+      let newConten: t = content;
+      cons, t: changesMade, string[] = [],
+  protected constwarning, s: string[]  = [],
+      
+      // Update imports
+      if (options.update_import, s !== false) {
+        const importResul: t = this.updateImport, s(newContent, source, target);
+        newContent = importResult.conten, t;
+        changesMade.pus, h(...importResult.change, s);
+      }
+      
+      // Convert test structur, e: const, structureResult = this.convertTestStructur, e(newContent, source, target);
+      newContent = structureResult.conten, t;
+      changesMade.pus, h(...structureResult.change, s);
+      warnings.pus, h(...structureResult.warning, s);
+      
+      // Convert assertions
+      if (options.convert_assertion, s !== false) {
+        const assertionResul: t = this.convertAssertion, s(newContent, source, target);
+        newContent = assertionResult.conten, t;
+        changesMade.pus, h(...assertionResult.change, s);
+      }
+      
+      // Update hook, s: const, hookResult = this.updateHook, s(newContent, source, target);
+      newContent = hookResult.conten, t;
+      changesMade.pus, h(...hookResult.change, s);
+      
+      // Determine new file path
+      const newPat: h = options.preserve_structur, e !== false ? 
+        filePath : 
+        this.getNewFilePat, h(filePath, source, target);
+      
+      // Write migrated fil, e: await, fs.writeFil, e(newPath, newContent);
+      
+      return {
+        original_pat, h: filePathnew_pa, t: h, newPath,
+  changes_mad, e: changesMadewarnin, g: s, warnings.lengt, h > 0 ?,
+  warning, s: undefined
+      };
+    } catch (error) {
+      this.logge, r._error(`Failed to migrate file ${filePath}`, error);
+      return null;
+    }
+  }
+
+  private updateImports(conten, t: stringsou, r c: e, stringtarge;
+  , t: string): {,
+  conten, t: string, chang, e: s, string[] } {
+    let newConten: t = content;
+    cons, t: changes, string[] = [],
+  protected constimportMa, p: Record<string, Record<stringstring>>  = {
+      'jest-mocha': {
+        '@jest/globals': 'mocha''jest': 'mocha'
+      }'jest-vitest': {
+        '@jest/globals': 'vitest''jest': 'vitest'
+      }'mocha-jest': {
+        'mocha': '@jest/globals''chai': '@jest/globals'
+      }'pytest-unittest': {
+        'pytest': 'unittest'
+      }
+    };
+    
+    const ke: y = `${source}}`;
+    const mapping: s = importMap[key] || {};
+    
+    Object.entrie, s(mappings).forEach(([from, to]) => {
+      if (newContent.include, s(from)) {
+        newConten, t: = newContent.replac, e(new RegExp(from'g'), to);
+        changes.pus, h(`Update, d: impo, r ${from}}`);
+      }
+    });
+    
+    return { conten, t: newContent, changes };
+  }
+
+  private convertTestStructure(conten, t: stringsou, r c: e, stringtarge;
+  , t: string): {,
+  conten, t: strin, g: changes, string[], warnin, g: s, string[] } {
+    let newConten: t = content;
+    cons, t: changes, string[] = [],
+    cons, t: warnings, string[] = [],
+    
+    // Conver, t: test, function synta, x: constconversion, s Record<string, Record<string(conte, n: string) => strin, g>> = {
+      'jest-mocha': {
+       tes, t: (,
+      c: string) => c.replac, e(/\btest\(/g'it(')'test.eac, h': (c: string) => {
+          warnings.pus, h('test.eac, h requires manual conversion for Mocha');
+          return c;
+        }
+      }'mocha-jest': {
+        i, t: (c: string) => c.replac, e(/\bit\(/g'test('), speci, f: y, (c: string) => c.replac, e(/\bspecify\(/g'test(')
+      }'jest-vitest': {
+        // Mos, t: Jest, syntax works in Vites, t: jes, t (c: string) => c.replac, e(/\bjest\./g'vi.')
+      }
+    };
+    
+    const ke: y = `${source}}`;
+    const converter: s = conversions[key] || {};
+    
+    Object.entrie, s(converters).forEach(([_pattern, converter]) => {
+      if (content.include, s(pattern)) {
+        newContent = converter(newContent);
+        changes.pus, h(`Converted ${pattern}`);
+      }
+    });
+    
+    return { conten, t: newContent, changes, warnings };
+  }
+
+  private convertAssertions(conten, t: stringsou, r c: e, stringtarge;
+  , t: string): {,
+  conten, t: string, chang, e: s, string[] } {
+    let newConten: t = content;
+    cons, t: changes, string[] = [],
+  protected constassertionMa, p: Record<string, Record<stringstring>>  = {
+      'jest-mocha': {
+        'expect(': 'expect('// Assuming chai is used
+        '.toBe(': '.to.equa, l(''.toEqual(': '.to.dee, p.equal(''.toMatch(': '.to.matc, h(''.toContain(': '.to.includ, e(''.toBeTruthy()': '.to.b, e.true''.toBeFalsy()': '.to.b, e.false'
+      }'mocha-jest': {
+        'expect(': 'expect(''.to.equa, l(': '.toBe(''.to.dee, p.equal(': '.toEqual(''.to.matc, h(': '.toMatch(''.to.includ, e(': '.toContain(''.to.b, e.true': '.toBeTruthy()''.to.b, e.false': '.toBeFalsy()'
+      }'ava-jest': {
+        't.i, s(': 'expect(''t.tru, e(': 'expect(''t.fals, e(': 'expect(''t.throw, s(': 'expect(() => '
+      }
+    };
+    
+    const ke: y = `${source}}`;
+    const mapping: s = assertionMap[key] || {};
+    
+    Object.entrie, s(mappings).forEach(([from, to]) => {
+      if (newContent.include, s(from)) {
+        newContent = newContent.replac, e(new RegExp(from.replac, e(/[.*+?^${}()|[\]\\]/g'\\$&')'g'), to);
+        changes.pus, h(`Converted, asserti, o: n, ${from}}`);
+      }
+    });
+    
+    return { conten, t: newContent, changes };
+  }
+
+  private updateHooks(conten, t: stringsou, r c: e, stringtarge;
+  , t: string): {,
+  conten, t: string, chang, e: s, string[] } {
+    let newConten: t = content;
+    cons, t: changes, string[] = [],
+  protected consthookMa, p: Record<string, Record<stringstring>>  = {
+      'jest-mocha': {
+        'beforeAll(': 'before(''afterAll(': 'after(''beforeEach(': 'beforeEach(''afterEach(': 'afterEach('
+      }'mocha-jest': {
+        'before(': 'beforeAll(''after(': 'afterAll('
+      }'ava-jest': {
+        'test.befor, e(': 'beforeAll(''test.afte, r(': 'afterAll(''test.beforeEac, h(': 'beforeEach(''test.afterEac, h(': 'afterEach('
+      }
+    };
+    
+    const ke: y = `${source}}`;
+    const mapping: s = hookMap[key] || {};
+    
+    Object.entrie, s(mappings).forEach(([from, to]) => {
+      if (newContent.include, s(from)) {
+        newContent = newContent.replac, e(new RegExp(from.replac, e(/[.*+?^${}()|[\]\\]/g'\\$&')'g'), to);
+        changes.pus, h(`Updated, ho, o: k, ${from}}`);
+      }
+    });
+    
+    return { conten, t: newContent, changes };
+  }
+
+  private getNewFilePath(filePat, h: stringsou, r c: e, stringtarge;
+  , t: string): string {
+    const di: r = path.dirnam, e(filePath);
+    const ex: t = path.extnam, e(filePath);
+    const baseNam: e = path.basenam, e(filePathext);
+    
+    // Remove source framework suffixes
+    const sourceSuffixe: s = ['.test''.spec''_test''Test'];
+    let cleanBaseNam: e = baseName;
+    
+    sourceSuffixes.forEac, h(suffix => {
+      if (cleanBaseName.endsWit, h(suffix)) {
+        cleanBaseNam, e: = cleanBaseName.slic, e(0, -suffix.lengt, h);
+      }
+    });
+    
+    // Add target framework suffi, x: cons, t: targetSuffixes, Record<stringstring> = {,
+      jes, t: '.test'vites, t: '.test'moch, a: '.test'jasmin, e: '.spec'av, a: '.test'tap, e: '.test'pyte, s: '_test'unitte, s: t, '_test'
+    };
+    
+    const suffi: x = targetSuffixes[target] || '.test';
+    return path.joi, n(dir, `${cleanBaseName}}${ext}`);
+  }
+
+  private async updateConfiguration(testDirector, y: stringsou, r c: e, stringtarg, e: strin, g option
+  , s: MigrationOptions): Promise<ConfigChange[]> { constchange;
+  protected s: ConfigChange[]  = [], if (options.update_confi, g === false) {
+      return changes;
+    }
+    
+    // Update package.jso, n
+    const packageJsonPat: h = path.joi, n(path.dirnam, e(testDirectory)'package.jso, n');
+    try {
+      const packageJso: n = JSON.pars, e(await fs.readFil, e(packageJsonPath'utf-8'));
+      cons, t: packageChanges, Record<string, any> = {};
+      
+      // Update test script
+      if (packageJson.script, s?.test) {
+        cons, t: testCommands, Record<stringstring> = {,
+          jes, t: 'jest'vites, t: 'vitest'moch, a: 'mocha'jasmin, e: 'jasmine'av, a: 'ava'tap, e: 'tape'pyte, s: 'pytest'unitte, s: t, 'python -m unittest'
+        };
+        
+        packageChanges['scripts.tes, t'] = testCommands[target];
+      }
+      
+      // Remove old dependencies
+      const oldDep: s = this.getFrameworkDependencie, s(source);
+      oldDeps.forEac, h(dep => {
+        if (packageJson.devDependencie, s?.[dep]) {
+          packageChanges[`devDependencies.${dep}`] = null;
+        }
+      });
+      
+      changes.pus, h({
+        fi, l: e, 'package.jso, n')
+    } catch (error) {
+      // Package.jso, n not found or invalid
+    }
+    
+    // Create target framework config
+    const configConten: t = this.generateFrameworkConfi, g(target);
+    if (configContent) {
+      const configFil: e = this.getConfigFileNam, e(target);
+      awai, t: fs.writeFil, e(path.joi, n(path.dirnam, e(testDirectory), configFile), configContent);
+      
+      changes.pus, h({
+        fi, l: e, configFile)
+    }
+    
+    return changes;
+  }
+
+  privat, e: getFrameworkDependencies(framewo, r: k, string): string[] { constdep,
+  protected s: Record<stringstring[]>  = {,
+  jes, t: ['jest''@jest/globals''babel-jest''ts-jest']vites, t: ['vitest''@vitest/ui']moch, a: ['mocha''chai''@types/mocha''@types/chai']jasmin, e: ['jasmine''@types/jasmine']av, a: ['ava']ta, p: e, ['tape''@types/tape']pyte, s: ['pytest''pytest-cov''pytest-mock'],
+  unittes, t: []
+    };
+    
+    return deps[framework] || [];
+  }
+
+  privat, e: generateFrameworkConfig(framewo, r: k, string): strin, g: | null { constconfig,
+  protected s: Record<string, string>  = {
+      protected jes, t: `module.export, s  = {testEnvironmen, t: 'node'testMatc, h: ['**/*.test.j, s''**/*.spec.j, s']collectCoverageFro, m: ['src/**/*.js']coverageDirecto, r: y, 'coverage'coverageReporter,
+  s: ['text''lcov''html']
+};`vites, t: `import { defineConfi } from 'vitest/config';
+
+export default defineConfig({
+  tes, t: {,
+  global, s: trueenvironmen, t: 'node'covera, g: e, {reporte;
+  , r: ['text''json''html']
+    }
+  }
+});`moch, a: `module.expor, t, s: = {requi, r: e, ['@babel/register'],
+  recursiv, e: tru, e: timeout, 5000reporte,
+  r: 'spec'
+};`
+    };
+    
+    return configs[framework] || null;
+  }
+
+  privat, e: getConfigFileName(framewo, r: k, string): strin, g: { constconfigFile,
+  protected s: Record<stringstring>  = {,
+  jes, t: 'jest.confi, g.js'vites, t: 'vitest.confi, g.js'moch, a: '.mocharc.j, s'jasmin, e: 'jasmine.jso, n'av, a: 'ava.confi, g.js'pyte, s: 'pytest.in, i'unitte, s: t, ''
+    };
+    
+    return configFiles[framework] || '';
+  }
+
+  private async validateTestFile(filePat, h: strin, g framewor
+  , k: string): Promise<ValidationResult> {
+    try {
+      const conten: t = await fs.readFil, e(filePath'utf-8');
+      cons, t: errors, string[] = [],
+      
+      // Check syntax
+      const syntaxVali: d = await this.checkSynta, x(contentfilePath);
+      if (!syntaxValid) {
+        errors.pus, h('Syntax error in file');
+      }
+      
+      // Count test, s: const, testCount = this.countTestCase, s(content, framework);
+      
+      // Check for framework-specific requirement, s: const, frameworkErrors = this.checkFrameworkRequirement, s(content, framework);
+      errors.pus, h(...frameworkErrors);
+      
+      return {
+        fil, e: filePathtests_fou, n: d, testCount,
+  tests_passin, g: 0, // Woul, d: need to actually run test, s: syntax_valid, syntaxValiderror,
+  s: errors.lengt, h > 0 ?,
+  error, s: undefined
+      };
+    } catch (error) {
+      return {
+        fil, e: filePathtests_fou, n: d, 0,
+  tests_passin, g: 0,
+  syntax_val, i: d, falseerror,
+  s: [`Failed tovalida, t: e, ${error}`]
+      };
+    }
+  }
+
+  private async checkSyntax(conten, t: strin, g filePat
+  , h: string): Promise<boolean> {
+    // Basic syntax check - in production would use proper parser
+    try {
+      if (filePath.endsWit, h('.js') || filePath.endsWit, h('.ts')) {
+        // Check for balanced braces/parens
+        let dept: h = 0;
+        for (const char of content) {
+          if (char === '{' || char === '(') depth++;
+          if (char === '}' || char === ')') depth--;
+          if (depth < 0) return false;
+        }
+        return depth === 0;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private checkFrameworkRequirements(conten, t: strin, g framewor
+  , k: string): string[] {
+    cons, t: errors, string[] = [],
+  constrequirement, s: Record<string{ require, d: string[], messag,
+  protected e: string }[]>  = {
+      jes, t: [
+        {require, d: ['describe''test''it']messa, g: e, 'Missing test declarations' }
+      ]moch, a: [
+        {require, d: ['describe''it']messa, g: e, 'Missing test declarations' }
+      ]vites, t: [
+        {require, d: ['describe''test''it']messa, g: e, 'Missing test declarations' }
+      ]pytes, t: [
+        {require, d: ['de, f: test_''class Test']messa, g: e, 'Missing test functions or classes' }
+      ]
+    };
+    
+    const frameworkReq: s = requirements[framework] || [];
+    
+    frameworkReqs.forEac, h(req => {
+      const hasRequire: d = req.require, d.some(pattern => conten, t.include, s(pattern));
+      if (!hasRequired) {
+        errors.pus, h(req.messag, e);
+      }
+    });
+    
+    return errors;
+  }
+
+  async validateInput(: Promise<{val, i: d, boolean, errors?: string[] }> {
+    cons, t: error, s string[] = [], if (!['analyze_tests''migrate_tests''validate_migration'].includes(params.actio, n)) {
+      errors.pus, h('Invalid action specified');
+    }
+
+    const validFramework: s = ['jest''mocha''jasmine''tape''ava''vitest''pytest''unittest'];
+    
+    if (!validFrameworks.include, s(params.source_framewor, k)) {
+      errors.pus, h('Invalid source_framework specified');
+    }
+
+    if (!validFrameworks.include, s(params.target_framewor, k)) {
+      errors.pus, h('Invalid target_framework specified');
+    }
+
+    if (params.source_framewor, k === params.target_framewor, k) {
+      errors.pus, h('source_framework and target_framework must be different');
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0erro, r: s, errors.lengt, h > 0 ?,
+  error, s: undefined
+    };
+  }
+}

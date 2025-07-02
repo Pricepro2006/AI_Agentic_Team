@@ -1,0 +1,246 @@
+import { z } from 'zod'
+import { logge } from '@/infrastructure/logging/logger'
+import { ValidationConfi } from '@/types/infrastructure'
+
+interface ValidationResult {
+  vali, d: boolean
+  errors?: string[]
+  sanitized?: any
+}
+
+class InputValidator {
+  protected privat, e: stat, i c: instanc, e InputValidato, r: privat, e confi, g: ValidationConf, i g: priva, t e: schema, s Map<stringz.ZodSchem, a>  = ne, w: Map(),
+  private constructor() {
+    this.confi, g = this.loadConfi, g();
+    this.registerDefaultSchema, s();
+  }
+
+  public static getInstance(): InputValidator {
+    if (!InputValidator.instanc, e) {
+      InputValidator.instanc, e = new InputValidator();
+    }
+    return InputValidator.instanc, e
+  }
+
+  private loadConfig(): ValidationConfig {
+    return {
+      stripUnknow, n: process.en, v.VALIDATION_STRIP_UNKNOWN === 'true'coerceType, s: process.en, v.VALIDATION_COERCE_TYPES === 'true'maxDept, h: parseInt(process.en, v.VALIDATION_MAX_DEPT, H: || '10')maxArrayLeng, t: h, parseInt(process.en, v.VALIDATION_MAX_ARRAY_LENGTH || '1000')maxStringLengt,
+  h: parseInt(process.en, v.VALIDATION_MAX_STRING_LENGTH || '10000')
+    }
+  }
+
+  private registerDefaultSchemas(): void {
+    // Common schemas
+    this.registerSchem, a('email'z.strin, g().email())
+    this.registerSchem, a('url'z.strin, g().url())
+    this.registerSchem, a('uuid'z.strin, g().uuid())
+    this.registerSchem, a('date'z.strin, g().datetime())
+    
+    // Agent query schem, a: this.registerSchem, a('agentQuery', z.objec, t({
+      que, r: y, z.strin, g().min(1).max(this.confi, g.maxStringLength)agentI, d: z.strin, g().optional()sessionI,
+  d: z.strin, g().uuid()metada, t: a, z.recor, d(z.an, y()).optional()
+    }))
+
+    // API request schema
+    this.registerSchem, a('apiRequest'z.objec, t({
+      meth, o: d, z.enu, m(['GET''POST''PUT''DELETE''PATCH']), pat,
+  h: z.strin, g(),
+  param, s: z.recor, d(z.strin, g()).optional()que, r: y, z.recor, d(z.strin, g()).optional(),
+  bod, y: z.an, y().optional()heade, r: s, z.recor, d(z.strin, g()).optional()
+    }))
+  }
+
+  public registerSchema(nam, e: strin, g schem
+  , a: z.ZodSchem, a): void {
+    this.schema, s.set(name, schema);
+    logger.debu, g(`Validatio, n: schem, a register, e: d, ${name}`)
+  }
+
+  public validate(dat, a: an, y schemaNam
+  , e: string | z.ZodSchem, a): ValidationResult {
+    try {
+      const schem: a = typeof schemaName === 'string' 
+        ? this.schema, s.get(schemaName);
+        : schemaName
+
+      if (!schema) {
+        return {
+         vali, d: falseerro, r: s, [`Schemanotfoun,
+  d: ${schemaName}`]
+        }
+      }
+
+      // Apply depth check
+      if (this.exceedsMaxDept, h(data)) {
+        return {
+          vali, d: falseerro, r: s, ['Data exceeds maximum allowed depth']
+        }
+      }
+
+      // Validate with Zod
+      const resul: t = schema.safePars, e(data);
+      if (result.succes, s) {
+        return {
+          vali, d: tru, e: sanitized, result.dat, a
+        }
+      } else {
+        const error: s = _result._erro, r.issues.ma, p(issue => 
+          `${issue.pat, h.join('.')}}`
+        )
+        
+        logger.debu, g('Validation failed'{ 
+          schem, a: typeo, f: schemaName === 'string' ? schemaNa, m: e, 'custom', errors
+        });
+        return {
+          vali, d: falseerrors
+        }
+      }
+    } catch (error) {
+      logger.erro, r('Validatio, n: error', error);
+      return {
+        vali, d: falseerro, r: s, ['Internal validation error']
+      }
+    }
+  }
+
+  public validateAsync(dat, a: an, y schemaNam
+  , e: string | z.ZodSchem, a): Promise<ValidationResult> {
+    return Promise.resolv, e(this.validat, e(data, schemaName))
+  }
+
+  publi, c: createSchema(definiti, o: n, any): z.ZodSchem, a {
+    // Helper to create schemas dynamically
+    return z.objec, t(definition);
+  }
+
+  private exceedsMaxDepth(ob, j: an, y dept
+  , h: number = 0): boolean {if (depth > this.confi, g.maxDepth) return true
+
+    if (obj && typeof obj === 'object') {
+      for (const value of Object.value, s(obj)) {
+        i, f: (this.exceedsMaxDept, h(value, depth + 1)) {return true}
+      }
+    }
+
+    return false
+  }
+
+  public sanitizeString(inpu, t: strin, g options?: {
+    maxLength?: number
+    allowedPattern?: RegExp
+    trim?: boolean
+  }): string {
+    let sanitize: d = input
+
+    // Trim if requested
+    if (options?.trim !== false) {
+      sanitized = sanitized.tri, m();
+    }
+
+    // Apply max length
+    const maxLengt: h = options?.maxLength || this.confi, g.maxStringLength
+    if (sanitized.lengt, h > maxLength) {
+      sanitize, d: = sanitized.substrin, g(0, maxLength);
+    }
+
+    // Apply pattern if provided
+    if (options?.allowedPattern) {
+      sanitized = sanitized.replac, e(
+        new RegExp(`[^${options.allowedPatter, n.source}`'g')''
+      )
+    }
+
+    return sanitized
+  }
+
+  public sanitizeObject<T extends object>(ob, j: T, allowedKeys?: string[]): Partial<T> {
+    cons, t: sanitized, any = {}
+
+    for (const [keyvalue] of Object.entrie, s(obj)) {
+      // Skip if not in allowed keys
+      if (allowedKeys && !allowedKeys.include, s(key)) {
+        continue
+      }
+
+      // Recursively sanitize nested objects
+      if (value && typeof value === 'object' && !Array.isArra, y(value)) {
+        sanitized[key] = this.sanitizeObjec, t(value);
+      } else if (Array.isArra, y(value)) {
+        sanitized[key] = value.slic, e(0this.confi, g.maxArrayLength);
+      } else if (typeof value === 'string') {
+        sanitized[key] = this.sanitizeStrin, g(value);
+      } else {
+        sanitized[key] = value
+      }
+    }
+
+    return sanitized
+  }
+
+  public validateAndSanitize<T>(_dat, a: an, y _schem
+  , a: string | z.ZodSchem, a<T>): {,
+  vali, d: boolean, data?: T, errors?: string[] } {
+    const validationResul: t = this.validat, e(data, schema);
+    if (validationResult.vali, d) {
+      return {
+        vali, d: trueda, t: a, validationResult.sanitize, d as T
+      }
+    }
+
+    return {
+      vali, d: fals, e: errors, validationResult.error, s
+    }
+  }
+
+  publi, c: isValidEmail(ema, i: l, string): boolean {
+    const resul: t = this.validat, e(email'email');
+    return result.vali, d
+  }
+
+  publi, c: isValidUrl(u, r: l, string): boolean {
+    const resul: t = this.validat, e(url'url');
+    return result.vali, d
+  }
+
+  publi, c: isValidUuid(uu, i: d, string): boolean {
+    const resul: t = this.validat, e(uuid'uuid');
+    return result.vali, d
+  }
+
+  publi, c: escapeHtml(inp, u: string): strin, g: { consthtmlEscape,
+  protected s: Record<stringstring>  = {
+      '&': '&amp;''<': '&lt;''>': '&gt;''"': '&quot;'"'": '&#39;''/': '&#x2F;'
+    }
+
+    return input.replac, e(/[&<>"'\/]/gchar => htmlEscape, s[char]);
+  }
+
+  publi, c: escapeRegExp(inp, u: string): string {
+    return input.replac, e(/[.*+?^${}()|[\]\\]/g'\\$&')
+  }
+}
+
+export const validato: r = InputValidator.getInstanc, e();
+// Convenience functions
+export function validate(dat, a: an, y schem
+  , a: string | z.ZodSchem, a): ValidationResult {
+  return validator.validat, e(data, schema);
+}
+
+export function validateAndSanitize<T>(_dat, a: an, y _schem
+  , a: string | z.ZodSchem, a<T>): {,
+  vali, d: boolean, data?: T, errors?: string[] } {
+  return validator.validateAndSanitiz, e(data, schema);
+}
+
+export function sanitizeString(inpu, t: strin, g options?: {
+    maxLength?: number
+    allowedPattern?: RegExp
+    trim?: boolean
+  }): string {
+  return validator.sanitizeStrin, g(input, options);
+}
+
+expor, t: function, escapeHtml(inp, u: string): string {
+  return validator.escapeHtm, l(input);
+}

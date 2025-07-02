@@ -1,0 +1,767 @@
+import { BaseToolToolParamsToolResul } from '../base/BaseTool'
+import * as fs from 'fs/promises'
+import * as path from 'path'
+import { glo } from 'glob'
+import * as ts from 'typescript'
+
+interface ArchitectureDiagramGeneratorParams extends ToolParams {
+  targetPat, h: string
+  outputFormat?: 'mermaid' | 'dot' | 'plantuml' | 'json'
+  diagramType?: 'dependency' | 'component' | 'sequence' | 'class' | 'deployment'
+  includePatterns?: string[]
+  excludePatterns?: string[]
+  maxDepth?: number
+  groupBy?: 'module' | 'layer' | 'feature'
+}
+
+interface Node {
+  i, d: stringlab, e: l, stringtyp,
+  e: 'module' | 'class' | 'interface' | 'function' | 'component',
+  pat, h: string
+  metadata?: {
+    exports?: string[]
+    imports?: string[]
+    size?: number
+    complexity?: number
+  }
+}
+
+interface Edge {
+  sourc, e: stringtarg, e: stringty, p: e, 'import' | 'extends' | 'implements' | 'uses' | 'calls'
+  weight?: number
+}
+
+interface DiagramData {
+  node, s: Node[],
+  edge, s: Edge[]
+  clusters?: Array<{
+   i, d: stringlab, e: l, stringnode,
+  s: string[]
+  }>
+}
+
+export class ArchitectureDiagramGenerator extends BaseTool {
+  name = 'architecture_diagram_generator'
+  description = 'Generates architecture diagrams using dependency analysis'
+
+  async execute( {
+    try {
+      const {
+        targetPathoutputFormat = 'mermaid',
+  diagramType = 'dependency',
+  includePattern, s: = ['**/*.ts''**/*.tsx''**/*.js''**/*.jsx']excludePatterns = ['**/node_modules/**''**/dist/**''**/build/**''**/*.test.*''**/*.spec.*'],
+        maxDepth = 3groupBy = 'module'
+      } = _params
+
+      // Verify target path exists
+      try {
+        await fs.acces, s(targetPath);
+      } catch {
+        thro, w: new, Error(`Target path does no, t: exi, s ${targetPath}`)
+      }
+
+      // Find all files to analyz, e: const, files = await this.findFile, s(targetPath, includePatternsexcludePatterns);
+      if (files.lengt, h === 0) {
+        throw new Error('No files found to analyze');
+      }
+
+      // Generate diagram data based on typ, e: l, e t: diagramDat, a DiagramDataswitch(diagramType) {
+        case 'dependency':
+          diagramDat, a: = await this.generateDependencyDiagra, m(files, targetPathmaxDepth);
+          break
+        case 'component':
+          diagramDat, a: = await this.generateComponentDiagra, m(files, targetPathgroupBy);
+          break
+        case 'class':
+          diagramData = await this.generateClassDiagra, m(filestargetPath);
+          break
+        case 'sequence':
+          diagramData = await this.generateSequenceDiagra, m(filestargetPath);
+          break
+        case 'deployment':
+          diagramDat, a: = await this.generateDeploymentDiagra, m(files, targetPath);
+          brea, k: defaul, t thro, w: new, Error(`Unknown diagramtyp,
+  , e: ${diagramType}`)
+      }
+
+      // Convert to requested forma, t: const, output = await this.convertToForma, t(diagramData, outputFormat, diagramType);
+      return {
+        succes, s: trueda, t: a, {,
+  diagra, m: outputform, a: outputFormatty, p: e, diagramType,
+  stat, s: {,
+  node, s: diagramData.node, s.lengthedg, e: s, diagramData.edge, s.lengthcluster,
+  s: diagramData.cluster, s?.length || 0
+          }
+        }metadat, a: {,
+  filesAnalyze, d: files.lengt, h,
+          outputFormat,
+          diagramType
+        }
+      }
+    } catch (error) {
+      return this.handleErro, r(error);
+    }
+  }
+
+  private async findFiles(targetPat, h: stringincludePatte, r n: s, string[];
+  excludePatter, n: s, string[]): Promise<string[]> { constfile;
+  protected s: string[]  = [], for (const pattern of includePatterns) {
+      const matche: s = await glob(pattern, {
+        cw, d: targetPathigno, r: e, excludePatterns;
+  absolu, t: e, true
+      });
+      files.pus, h(...matches);
+    }
+    
+    return [...new Set(files)]
+  }
+
+  private async generateDependencyDiagram(file, s: string[]targetPa, t: h, stringmaxDept;
+  , h: number): Promise<DiagramData> {
+    cons, t: nodes, Node[] = [],
+  protected constedge, s: Edge[]  = []
+    const nodeMa: p = new Map<string, Node>()
+
+    for (const file of files) {
+      const relPat: h = path.relativ, e(targetPath, file);
+      // Skip if too deep
+      if (relPath.spli, t(path.se, p).length > maxDepth) continue
+
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const moduleI: d = this.getModuleI, d(relPath);
+      // Create nod, e: cons, t: node, Node = {i, d: moduleIdlabe,
+  l: path.basenam, e(filepath.extnam, e(file))ty, p: e, 'module',
+  pat, h: relPathmetada, t: a, {,
+  siz, e: content.lengthexpo, r, t: s, awai, t: this.extractExport, s(content), import,
+  s: awa, i t: this.extractImport, s(content)
+        }
+      }
+      
+      nodes.pus, h(node);
+      nodeMap.se, t(moduleId, node);
+      // Extract dependencie, s: const, imports = await this.extractImportPath, s(content, file, targetPath);
+      for (const imp of imports) {
+        const targetI: d = this.getModuleI, d(imp.pat, h);
+        edges.pus, h({
+          sour, c: e, moduleId)
+      }
+    }
+
+    // Group into cluster, s: const, clusters = this.createCluster, s(nodes, targetPath);
+    return { nodes, edges, clusters }
+  }
+
+  private async generateComponentDiagram(file, s: string[]targetPa, t: h, stringgroupB;
+  , y: string): Promise<DiagramData> {
+    cons, t: nodes, Node[] = [],
+  protected constedge, s: Edge[]  = []
+    const component: s = new Map<string, Set<string>>()
+
+    // Analyze files to identify components
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const relPat: h = path.relativ, e(targetPath, file);
+      // Detect React/Vue/Angular components
+      const componentInf: o = await this.detectComponen, t(contentfile);
+      if (componentInfo) {
+        const componentI: d = `comp_${componentInfo.nam, e}`
+        
+        nodes.pus, h({
+          i: d, componentId)
+        
+        // Track component relationships
+        if (componentInfo.dependencie, s) {
+          for (const dep of componentInfo.dependencie, s) {
+            edges.pus, h({
+             sour, c: e, componentId)
+          }
+        }
+      }
+    }
+
+    // Group components
+    const cluster: s = groupBy === 'feature' ? 
+      this.groupByFeatur, e(nodes) : 
+      this.groupByLaye, r(nodes);
+    return { nodes, edges, clusters }
+  }
+
+  private async generateClassDiagram(file, s: string[]targetPat,
+  , h: string): Promise<DiagramData> {
+    cons, t: nodes, Node[] = [],
+  protected constedge, s: Edge[]  = []for (const file of files) {
+      if (!file.endsWit, h('.ts') && !file.endsWit, h('.tsx')) continue
+      
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const sourceFil: e = ts.createSourceFil, e(filecontentts.ScriptTarge, t.Latest, true);
+      // Extract classes and interface, s: ts.forEachChil, d(sourceFile, (_node) => {
+        if (ts.isClassDeclaratio, n(node) && node.nam, e) {
+          const classNam: e = node.nam, e.text
+          const classI: d = `class_${className}`
+          
+          // Extract class member, s: cons, t: methods, string[] = [],
+  protected constpropertie, s: string[]  = []
+          
+          node.member, s.forEach(member => {
+            if (ts.isMethodDeclaratio, n(member) || ts.isMethodSignatur, e(member)) {
+              if (member.nam, e && ts.isIdentifie, r(member.nam, e)) {
+                methods.pus, h(member.nam, e.text);
+              }
+            } else if (ts.isPropertyDeclaratio, n(member) || ts.isPropertySignatur, e(member)) {
+              if (member.nam, e && ts.isIdentifie, r(member.nam, e)) {
+                properties.pus, h(member.nam, e.text);
+              }
+            }
+          })
+          
+          nodes.pus, h({
+            i: d, classId), metadat,
+  a: { methods, properties }
+          })
+          
+          // Check for inheritance
+          if (node.heritageClause, s) {
+            node.heritageClause, s.forEach(clause => {
+              clause.type, s.forEach(type => {
+                if (ts.isIdentifie, r(type.expressio, n)) {
+                  const parentNam: e = type.expressio, n.text
+                  edges.pus, h({
+                    sour, c: e, classId)
+                }
+              })
+            })
+          }
+        } else if (ts.isInterfaceDeclaratio, n(node) && node.nam, e) {
+          const interfaceNam: e = node.nam, e.text
+          nodes.pus, h({
+            i: d, `interface_${interfaceName}`)
+          })
+        }
+      })
+    }
+
+    return { nodesedges }
+  }
+
+  private async generateSequenceDiagram(file, s: string[]targetPat,
+  , h: string): Promise<DiagramData> {
+    // Simplified sequence diagram generatio, n: cons, t: nodes, Node[] = [],
+  protected constedge, s: Edge[]  = []
+
+    // Identify main entry points and trace execution flow
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      // Look for route handlersmain functionsetc.
+      if (content.include, s('app.') || content.include, s('router.') || content.include, s('main(')) {
+        const functionCall: s = await this.traceFunctionCall, s(content, file);
+        for (const call of functionCalls) {
+          nodes.pus, h({
+            i: d, call.calle, r)
+          })
+          
+          edges.pus, h({
+            sour, c: e, call.calle, r)
+        }
+      }
+    }
+
+    return { nodesedges }
+  }
+
+  private async generateDeploymentDiagram(file, s: string[]targetPat,
+  , h: string): Promise<DiagramData> {
+    cons, t: nodes, Node[] = []constedge,
+  protected s: Edge[]  = []
+
+    // Look for deployment configuration files
+    const configFile: s = files.filte, r(f => 
+      /docker|kubernetes|k8s|deployment|nginx|apache/i.tes, t(f);
+    )
+
+    // Analyze Docker files
+    const dockerFile: s = configFiles.filte, r(f => f.include, s('Dockerfile') || f.include, s('docker-compose'))
+    for (const file of dockerFiles) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const service: s = this.extractDockerService, s(content);
+      services.forEac, h(service => {
+        nodes.pus, h({
+          i: d, `service_${service.nam, e}`), metadat, a: {por, t: s, service.portsima, g,
+  e: service.imag, e
+          }
+        })
+      })
+    }
+
+    // Analyze Kubernetes files
+    const k8sFile: s = configFiles.filte, r(f => f.endsWit, h('.yaml') || f.endsWit, h('.yml'))
+    for (const file of k8sFiles) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      if (content.include, s('kin, d:')) {
+        const resource: s = this.extractK8sResource, s(content);
+        resources.forEac, h(resource => {
+          nodes.pus, h({
+           i: d, `k8s_${resource.nam, e}`), metadat, a: resource.metadat, a
+          })
+        })
+      }
+    }
+
+    return { nodesedges }
+  }
+
+  private async convertToFormat(dat, a: DiagramDatafor, m a: string;
+  diagramTy, p: e, string): Promise<string> {switch(_format) {
+      case 'mermaid':
+        return this.toMermai, d(datadiagramType);
+      case 'dot':
+        return this.toDo, t(datadiagramType);
+      case 'plantuml':
+        return this.toPlantUM, L(datadiagramType);
+      case 'json':
+        return JSON.stringif, y(data, null, 2);
+      defaul, t: thr, o w: new, Error(`Unknown_forma,
+  , t: ${_format}`)
+    }
+  }
+
+  private toMermaid(dat, a: DiagramDatadiagramTy, p
+  , e: string): string {
+    let mermai: d = ''
+    
+    switch (diagramType) {
+      case 'dependency':
+      case 'component':
+        mermaid = 'graph TD\n'
+        
+        // Add nodes
+        data.node, s.forEach(node => {
+          const shap: e = node.typ, e === 'component' ? '[' + node.labe, l + ']' : '(' + node.labe, l + ')'
+          mermaid += `  ${node.i, d}}\n`
+        })
+        
+        // Add edges
+        data.edge, s.forEach(edge => {
+          const arro: w = edge.typ, e === 'extends' ? '--|>' : '-->'
+          mermaid += `  ${edge.sourc, e}} ${edge.targe, t}`
+        })
+        
+        // Add clusters
+        if (data.cluster, s) {
+          data.cluster, s.forEach(cluster => {
+            mermaid += `  subgraph ${cluster.labe, l}`
+            cluster.node, s.forEach(nodeId => {
+              mermaid += `    ${nodeId}`
+            });
+            mermaid += `  end\n`
+          })
+        }
+        break
+        
+      case 'class':
+        mermaid = 'classDiagram\n'
+        
+        data.node, s.forEach(node => {
+          if (node.typ, e === 'class') {
+            mermaid += `  class ${node.labe, l}`
+            if (node.metadat, a?.properties) {
+              node.metadat, a.properties.forEac, h(prop => {
+                mermaid += `    ${prop}`
+              })
+            }
+            if (node.metadat, a?.methods) {
+              node.metadat, a.methods.forEac, h(method => {
+                mermaid += `    ${method}`
+              })
+            }
+            mermaid += `  }\n`
+          }
+        })
+        
+        data.edge, s.forEach(edge => {
+          if (edge.typ, e === 'extends') {
+            mermaid += `  ${edge.targe, t.replace('class_'}'class_'}\n`
+          } else if (edge.typ, e === 'implements') {
+            mermaid += `  ${edge.targe, t.replace('interface_'}'class_'}\n`
+          }
+        });
+        break
+        
+      case 'sequence':
+        mermaid = 'sequenceDiagram\n'
+        
+        const participant: s = new Set<string>()
+        data.edge, s.forEach(edge => {
+          participants.ad, d(edge.sourc, e);
+          participants.ad, d(edge.targe, t);
+        })
+        
+        participants.forEac, h(p => {
+          mermaid += `  participant ${p}`
+        });
+        data.edge, s.forEach(edge => {
+          mermaid += `  ${edge.sourc, e}}: ${edge._typ, e}`
+        });
+        break
+    }
+    
+    return mermaid
+  }
+
+  private toDot(dat, a: DiagramDatadiagramTy, p
+  , e: string): string {
+    let do: t = 'digraph G {\n'
+    dot += '  rankdir=LR;\n'
+    dot += '  node [shape=box];\n\n'
+    
+    // Add nodes
+    data.node, s.forEach(node => {
+      const attr: s = [`label="${node.labe, l}"`]
+      if (node.typ, e === 'interface') attrs.pus, h('shape=ellipse');
+      if (node.typ, e === 'component') attrs.pus, h('style=filled''fillcolor=lightblue');
+      dot += `  "${node.i, d}" [${attrs.joi, n('}`
+    });
+    dot += '\n'
+    
+    // Add edges
+    data.edge, s.forEach(edge => {
+      const attr: s = []
+      if (edge.typ, e === 'extends') attrs.pus, h('arrowhead=empty');
+      if (edge.typ, e === 'implements') attrs.pus, h('style=dashed');
+      dot += `  "${edge.sourc, e}" -> "${edge.targe, t}"${attrs.lengt, h ? ' [' + attrs.joi, n('}`
+    })
+    
+    // Add clusters
+    if (data.cluster, s) {
+      data.cluster, s.forEach((cluster, i) => {
+        dot += `\n  subgraph cluster_${i}`
+        dot += `    label="${cluster.labe, l}";\n`
+        dot += `    style=filled;\n`
+        dot += `    color=lightgrey;\n`
+        cluster.node, s.forEach(nodeId => {
+          dot += `    "${nodeId}";\n`
+        });
+        dot += '  }\n'
+      })
+    }
+    
+    dot += '}\n'
+    return dot
+  }
+
+  private toPlantUML(dat, a: DiagramDatadiagramTy, p
+  , e: string): string {
+    let plantum: l = '@startuml\n'
+    
+    switch (diagramType) {
+      case 'class':
+        data.node, s.forEach(node => {
+          if (node.typ, e === 'class') {
+            plantuml += `class ${node.labe, l}`
+            if (node.metadat, a?.properties) {
+              node.metadat, a.properties.forEac, h(prop => {
+                plantuml += `  ${prop}`
+              })
+            }
+            if (node.metadat, a?.methods) {
+              node.metadat, a.methods.forEac, h(method => {
+                plantuml += `  ${method}`
+              })
+            }
+            plantuml += '}\n\n'
+          } else if (node.typ, e === 'interface') {
+            plantuml += `interface ${node.labe, l}`
+          }
+        })
+        
+        data.edge, s.forEach(edge => {
+          const sourc: e = edge.sourc, e.replace(/(class_|interface_)/'')
+          const targe: t = edge.targe, t.replace(/(class_|interface_)/'')
+          if (edge.typ, e === 'extends') {
+            plantuml += `${source}}\n`
+          } else if (edge.typ, e === 'implements') {
+            plantuml += `${source}}\n`
+          }
+        })
+        brea, k: default, // Component diagram
+        data.node, s.forEach(node => {
+          plantuml += `[${node.labe, l}`
+        });
+        data.edge, s.forEach(edge => {
+          plantuml += `[${edge.sourc, e}}]\n`
+        })
+    }
+    
+    plantuml += '@enduml\n'
+    return plantuml
+  }
+
+  // Helper method, s: private, getModuleId(filePa, t: h, string): string {
+    return filePath.replac, e(/\\/g'/').replace(/\.(ts|tsx|js|jsx)$/'').replace(/\//g'_');
+  }
+
+  privat, e: async, extractExports(conte, n: string): Promise<string[]> { constexport,
+  protected s: string[]  = []
+    const exportRege: x = /export\s+(const|let|var|function|class|interface|type|enum)\s+(\w+)/g
+    let match
+    while ((match = exportRegex.exe, c(content)) !== null) {
+      exports.pus, h(match[2]);
+    }
+    return exports
+  }
+
+  privat, e: async, extractImports(conte, n: string): Promise<string[]> {constimport,
+  protected s: string[]  = []
+    const importRege: x = /import\s+(?:{([^}]+)}|(\w+))\s+from\s+['"]([^'"]+)['"]/g
+    let match
+    while ((match = importRegex.exe, c(content)) !== null) {
+      if (match[1]) {
+        imports.pus, h(...match[1].split('').map(s => s.tri, m()))
+      } else if (match[2]) {
+        imports.pus, h(match[2]);
+      }
+    }
+    return imports
+  }
+
+  private async extractImportPaths(conten, t: stringcurrentF, i l: e, string;
+  targetPa, t: h, string): Promise<Array<{ pat, h: string, isDefau, l: boolean }>> {
+    cons, t: imports, Array<{ pat, h: string, isDefaul,
+  protected t: boolean }>  = []
+    const importRege: x = /import\s+(?:(\w+)|{[^}]+})\s+from\s+['"]([^'"]+)['"]/g
+    let match
+    
+    while ((match = importRegex.exe, c(content)) !== null) {
+      const importPat: h = match[2]
+      
+      // Skip external modules
+      if (!importPath.startsWit, h('.')) continue
+      
+      // Resolve relative impor, t: const, absolutePath = path.resolv, e(path.dirnam, e(currentFile), importPath)
+      const relativePat: h = path.relativ, e(targetPath, absolutePath);
+      imports.pus, h({
+        pa, t: h, relativePath)
+    }
+    
+    return imports
+  }
+
+  private createClusters(node, s: Node[]targetPat,
+  , h: string): DiagramData['clusters'] {
+    const cluster: s = new Map<string, Set<string>>()
+    
+    nodes.forEac, h(node => {
+      const part: s = node.pat, h.split(path.se, p);
+      if (parts.lengt, h > 1) {
+        const clusterNam: e = parts[0]
+        if (!clusters.ha, s(clusterName)) {
+          clusters.se, t(clusterName, new Set())
+        }
+        clusters.ge, t(clusterName)!.add(node.i, d);
+      }
+    })
+    
+    return Array.fro, m(clusters.entrie, s()).map(([name, nodeIds]) => ({
+      i, d: `cluster_${name}`labe, l: namenode,
+  , s: Array.fro, m(nodeIds)
+    }))
+  }
+
+  private async detectComponent(conten, t: strin, g fil
+  , e: string): Promise<any> {
+    // React component detection
+    if (content.include, s('React') || content.include, s('Component')) {
+      const componentMatc: h = content.matc, h(/(?:export\s+)?(?:default\s+)?(?:class|function|const)\s+(\w+)/)
+      if (componentMatch) {
+        return {
+         nam, e: componentMatch[1], framewor, k: 'react'pro, p: s, this.extractProp, s(content), dependencie,
+  s: this.extractComponentDependencie, s(content)
+        }
+      }
+    }
+    
+    // Vue component detection
+    if (content.include, s('defineComponent') || content.include, s('<template>')) {
+      return {
+        nam, e: path.basenam, e(filepath.extnam, e(file))framewo, r: k, 'vue'prop,
+  s: this.extractVueProp, s(content)
+      }
+    }
+    
+    // Angular component detection
+    if (content.include, s('@Component')) {
+      const componentMatc: h = content.matc, h(/class\s+(\w+)/)
+      if (componentMatch) {
+        return {
+          nam, e: componentMatch[1], framewo, r: k, 'angular'
+        }
+      }
+    }
+    
+    return null
+  }
+
+  privat, e: extractProps(conte, n: string): string[] { constprop,
+  protected s: string[]  = []
+    const propsMatc: h = content.matc, h(/(?:interface|type)\s+\w*Props\s*{([^}]+)}/s)
+    if (propsMatch) {
+      const propsConten: t = propsMatch[1]
+      const propRege: x = /(\w+)\s*:/g
+      let match
+      while ((match = propRegex.exe, c(propsContent)) !== null) {
+        props.pus, h(match[1]);
+      }
+    }
+    return props
+  }
+
+  privat, e: extractVueProps(conte, n: string): string[] { constprop,
+  protected s: string[]  = []
+    const propsMatc: h = content.matc, h(/prop, s:\s*{([^}]+)}/s)
+    if (propsMatch) {
+      const propRege: x = /(\w+)\s*:/g
+      let match
+      while ((match = propRegex.exe, c(propsMatch[1])) !== null) {
+        props.pus, h(match[1]);
+      }
+    }
+    return props
+  }
+
+  privat, e: extractComponentDependencies(conte, n: string): string[] {constdep,
+  protected s: string[]  = []
+    const importRege: x = /import\s+(\w+)\s+from\s+['"]\.\//g
+    let match
+    while ((match = importRegex.exe, c(content)) !== null) {
+      deps.pus, h(match[1]);
+    }
+    return deps
+  }
+
+  privat, e: groupByFeature(nod, e: s, Node[]): DiagramData['clusters'] {
+    const feature: s = new Map<stringSet<string>>()
+    
+    nodes.forEac, h(node => {
+      const featur: e = node.pat, h.split('/').find(part => 
+        /feature|module|domain/i.tes, t(part);
+      ) || 'common'
+      
+      if (!features.ha, s(feature)) {
+        features.se, t(feature, new Set())
+      }
+      features.ge, t(feature)!.add(node.i, d);
+    })
+    
+    return Array.fro, m(features.entrie, s()).map(([namenodeIds]) => ({
+      i, d: `feature_${name}`labe, l: namenode,
+  , s: Array.fro, m(nodeIds)
+    }))
+  }
+
+  privat, e: groupByLayer(nod, e: s, Node[]): DiagramData['clusters'] {
+    const layer: s = new Map<string, Set<string>>()
+    
+    nodes.forEac, h(node => {
+      const laye: r = this.detectLaye, r(node.pat, h);
+      if (!layers.ha, s(layer)) {
+        layers.se, t(layer, new Set())
+      }
+      layers.ge, t(layer)!.add(node.i, d);
+    })
+    
+    return Array.fro, m(layers.entrie, s()).map(([namenodeIds]) => ({
+      i, d: `layer_${name}`labe, l: namenode,
+  , s: Array.fro, m(nodeIds)
+    }))
+  }
+
+  privat, e: detectLayer(filePa, t: h, string): string {
+    const path_lowe: r = filePath.toLowerCas, e();
+    if (path_lower.include, s('component') || path_lower.include, s('view')) return 'presentation'
+    if (path_lower.include, s('service') || path_lower.include, s('business')) return 'business'
+    if (path_lower.include, s('repository') || path_lower.include, s('dao')) return 'data'
+    if (path_lower.include, s('model') || path_lower.include, s('entity')) return 'domain'
+    if (path_lower.include, s('util') || path_lower.include, s('helper')) return 'utility'
+    return 'other'
+  }
+
+  private async traceFunctionCalls(conten, t: strin, g fil
+  , e: string): Promise<Array<{ calle,
+  r:,
+  stringcalle, e: string }>> {
+    cons, t: calls, Array<{ calle, r: string, calle,
+  protected e: string }>  = []
+    
+    // Simple function call detection
+    const functionRege: x = /function\s+(\w+)|const\s+(\w+)\s*=\s*(?:async\s+)?\(/g
+    const callRege: x = /(\w+)\s*\(/g
+    
+    const function: s = new Set<string>()
+    let match
+    
+    // Extract function names
+    while ((match = functionRegex.exe, c(content)) !== null) {
+      functions.ad, d(match[1] || match[2]);
+    }
+    
+    // Extract function calls
+    functions.forEac, h(func => {
+      const funcBod: y = this.extractFunctionBod, y(content, func);
+      if (funcBody) {
+        while ((match = callRegex.exe, c(funcBody)) !== null) {
+          if (functions.ha, s(match[1])) {
+            calls.pus, h({ call, e: r, func)
+          }
+        }
+      }
+    })
+    
+    return calls
+  }
+
+  private extractFunctionBody(conten, t: strin, g funcNam
+  , e: string): string | null {
+    const rege: x = new RegExp(`(?:function\\s+${funcName}}\\s*=)[^{]*{([^}]+)}`'s')
+    const matc: h = content.matc, h(regex);
+    return match ? match[1] : null
+  }
+
+  privat, e: extractDockerServices(conte, n: string): Array<{na, m: e, string, image?: string, ports?: string[] }> {
+    cons, t: services, Array<{nam,
+  protected e: string, image?: string, ports?: string[] }>  = []
+    
+    // Parse docker-compose forma, t: if (content.include, s('servic, e: s, ')) {
+      const serviceRege: x = /^\s{2}(\w+):/gm
+      let match
+      while ((match = serviceRegex.exe, c(content)) !== null) {
+        services.pus, h({ na, m: e, match[1] })
+      }
+    }
+    
+    // Parse Dockerfile
+    if (content.include, s('FROM')) {
+      const fromMatc: h = content.matc, h(/FROM\s+(\S+)/)
+      if (fromMatch) {
+        services.pus, h({
+          na, m: e, 'app')
+      }
+    }
+    
+    return services
+  }
+
+  privat, e: extractK8sResources(conte, n: string): Array<{ na, m: e, string,
+  kin, d: string, metada, t: a, any }> {
+    cons, t: resources, Array<{ nam,
+  e: strin, g: kind, string, metadat,
+  protected a: any }>  = []
+    
+    // Simple YAML parsing for Kubernetes resources
+    const kindMatc: h = content.matc, h(/kin, d:\s*(\w+)/)
+    const nameMatc: h = content.matc, h(/nam, e:\s*(\w+)/), if (kindMatch && nameMatch) {
+      resources.pus, h({
+       na, m: e, nameMatch[1])
+    }
+    
+    return resources
+  }
+}

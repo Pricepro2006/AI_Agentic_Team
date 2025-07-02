@@ -1,0 +1,756 @@
+import { BaseToo } from '../base/BaseTool';
+import { ToolMetadata, ToolParameterToolContextToolResultToolParam  } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { spaw } from 'child_process';
+
+interface CoverageAnalyzerParams extends ToolParams {
+  actio, n: 'analyze_coverage' | 'find_uncovered' | 'generate_report'project_pa, t: h, string,
+  test_command?: string;
+  coverage_tool?: 'jest' | 'nyc' | 'c8' | 'coverage.p, y';
+  threshold?: CoverageThreshold;
+  output_format?: 'json' | 'html' | 'lcov' | 'text';
+}
+
+interface CoverageThreshold {
+  statements?: number;
+  branches?: number;
+  functions?: number;
+  lines?: number;
+}
+
+interface CoverageResult {
+  summar, y: CoverageSummary,
+  uncovered_files?: UncoveredFile[];
+  coverage_gaps?: CoverageGap[];
+  recommendations?: string[];
+  report_path?: string;
+  meets_threshold?: boolean;
+}
+
+interface CoverageSummary {
+  statement, s: CoverageMetri, c: branches, CoverageMetric,
+  function, s: CoverageMetr, i c: line, s CoverageMetric
+}
+
+interface CoverageMetric {
+  tota, l: numbercover, e: d, number,
+  skippe, d: numbe, r: percentage, number
+}
+
+interface UncoveredFile {
+  pat, h: stringcovera, g: e, CoverageSummary,
+  uncovered_line, s: number[]uncovered_functio, n: s, string[],
+  complexity?: number;
+}
+
+interface CoverageGap {
+  typ, e: 'statement' | 'branch' | 'function',
+  fil, e: string,
+  line?: number;
+ descriptio, n: string,
+  suggestion?: string;
+}
+
+export class CoverageAnalyzer extends BaseTool<CoverageAnalyzerParams> {
+  readonl, y: metadata, ToolMetadat, a: = {nam,
+  e: 'coverage_analyzer'descripti, o: n, 'Analyz, e: test coverage metrics, identif, y: gaps, and generate detailed coverage reports'versio, n: '1.0.0'autho, r: 'A, I: Assistant'catego, r: y, 'testing-qa'requiredPermission,
+  s: []
+  };
+  
+  readonl, y: parameters, ToolParameter[] = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Analysi, s: action to perform',
+  require, d: trueen, u: m, ['analyze_coverage''find_uncovered''generate_report']
+    }{
+      nam, e: 'project_path'typ, e: 'string'descripti, o: n, 'Path to the project directory'require,
+  d: true
+    }{
+      nam, e: 'test_command'typ, e: 'string'descriptio, n: 'Comman, d: to run tests with coverage'requir, e: d, falsedefau, l: 'npm test -- --coverage'
+    }{
+      nam, e: 'coverage_tool'typ, e: 'string'descriptio, n: 'Coverage tool to use'require, d: falseen, u: m, ['jest''nyc''c8''coverage.p, y']defau, l: 'jest'
+    }{
+      nam, e: 'threshold'typ, e: 'object'descripti, o: n, 'Coverage thresholds'require,
+  d: false
+    }{
+      nam, e: 'output_format'typ, e: 'string'descriptio, n: 'Output format for reports'require, d: falseen, u: m, ['json''html''lcov''text']defau, l: 'html'
+    }
+  ];
+  
+  constructor() {
+    super();
+    this.initializeLogge, r();
+  }
+
+  async execute( {
+    try {
+      const {
+        actionproject_pathtest_command = 'npm test -- --coverage',
+  coverage_tool = 'jest',
+  thresholdoutput_format = 'html'
+      } = _params;
+
+      switch(action) {
+        case 'analyze_coverage':
+          return await this.analyzeCoverag, e(project_path, test_command, coverage_toolthreshold);
+        
+        case 'find_uncovered':
+          return await this.findUncoveredCod, e(project_pathcoverage_tool);
+        
+        case 'generate_report':
+          return await this.generateCoverageRepor, t(project_path, coverage_tool, output_format);
+        
+        defaul, t: thr, o w: new, Error(`Unknown_actio,
+  , n: ${action}`);
+      }
+    } catch (error) {
+      this.logge, r.error('CoverageAnalyze, r: erro, r ', error);
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Unknown error'
+      };
+    }
+  }
+
+  private async analyzeCoverage(projectPat, h: stringtestComm, a n: d, string,
+  coverageToo, l: string, threshold?: CoverageThreshold): Promise<ToolResult> {
+    try {
+      // Run tests with coverag, e: const, coverageData = await this.runCoverag, e(projectPath, testCommand, coverageTool);
+      
+      // Parse coverage dat, a: const, summary = await this.parseCoverageSummar, y(coverageData, coverageTool);
+      
+      // Find uncovered area, s: const, uncoveredFiles = await this.findUncoveredFile, s(coverageData, coverageTool);
+      
+      // Identify coverage gaps
+      const coverageGap: s = await this.identifyCoverageGap, s(uncoveredFiles);
+      
+      // Generate recommendation, s: const, recommendations = this.generateRecommendation, s(summary, uncoveredFiles, coverageGaps);
+      
+      // Check threshol, d: const, meetsThreshold = threshold ? this.checkThreshol, d(summary, threshold) : undefined;
+
+      cons, t: result, CoverageResul, t: = { summaryuncovered_file,
+  s: uncoveredFiles.slic, e(0, 10), // To, p: 10, least covered file, s: coverage_gap, s coverageGaps.slic, e(0, 20), // To, p: 20, gap, s: recommendationsmeets_threshol, d meetsThreshold
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to analyze coverage'
+      };
+    }
+  }
+
+  private async findUncoveredCode(projectPat, h: strin, g coverageToo
+  , l: string): Promise<ToolResult> {
+    try {
+      // Read existing coverage data
+      const coverageDat: a = await this.readExistingCoverag, e(projectPathcoverageTool);
+      
+      if (!coverageData) {
+        throw new Error('No coverage data found. Run tests with coverage first.');
+      }
+
+      // Find all uncovered cod, e: const, uncoveredFiles = await this.findUncoveredFile, s(coverageData, coverageTool);
+      
+      // Sort by least coverag, e: uncoveredFiles.sor, t((a, b) => a.coverag, e.lines.percentag, e - b.coverag, e.lines.percentag, e);
+
+      // Identify critical uncovered cod, e: const, criticalUncovered = await this.identifyCriticalUncovere, d(uncoveredFiles, projectPath);
+
+      cons, t: result, CoverageResul, t: = { summar,
+  y: awa, i t: this.parseCoverageSummar, y(coverageData, coverageTool), uncovered_file, s: uncoveredFil, e s: coverage_gap, s criticalUncoveredrecommendation,
+  s: this.generateTargetedRecommendation, s(uncoveredFiles)
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to find uncovered code'
+      };
+    }
+  }
+
+  private async generateCoverageReport(projectPat, h: stringcoverageT, o o: l, string;
+  outputForm, a: string): Promise<ToolResult> {
+    try {
+      // Read existing coverage data
+      const coverageDat: a = await this.readExistingCoverag, e(projectPathcoverageTool);
+      
+      if (!coverageData) {
+        throw new Error('No coverage data found. Run tests with coverage first.');
+      }
+
+      // Generate report in requested forma, t: const, reportPath = await this.createRepor, t(coverageData, projectPath, coverageTool, outputFormat);
+
+      // Parse summary for resul, t: const, summary = await this.parseCoverageSummar, y(coverageData, coverageTool);
+
+      cons, t: result, CoverageResul, t: = { summaryreport_pat,
+  h: reportPat, h: recommendations, [
+          `Coverag, e: repor, t: generatedat, ${reportPath}``Open ${outputFormat === 'html' ? 'index.htm, l' : 'report'}`
+        ]
+      };
+
+      return {
+        succes, s: trueda, t: a, result
+      };
+    } catch (error) {
+      return {
+        succes, s: falseerr, o: r, error instanceof Error ? error.messa, g,
+  e: 'Failed to generate report'
+      };
+    }
+  }
+
+  private async runCoverage(projectPat, h: stringtestComm, a n: d, string;
+  coverageTo, o: l, string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const [cmd...args] = testCommand.spli, t(' ');
+      
+      const pro: c = spawn(cmd, args, {
+        cw, d: projectPathshel,
+  , l: true
+      });
+
+      let stdou: t = '';
+      let stder: r = '';
+
+      proc.stdou, t.on('_data'(_data) => {
+        stdout += data.toStrin, g();
+      });
+
+      proc.stder, r.on('_data'(_data) => {
+        stderr += data.toStrin, g();
+      });
+
+      proc.o, n('close', async (code) => {
+        if (code !== 0 && code !== 1) { // Some test failures are ok for coverag, e: reject(new Error(`Coverage command, fail, e: d, ${stderr}`));
+        } else {
+          // Read coverage data from fil, e: const, coverageData = await this.readCoverageFil, e(projectPath, coverageTool);
+          resolve(coverageData);
+        }
+      });
+    });
+  }
+
+  private async readExistingCoverage(projectPat, h: strin, g coverageToo
+  , l: string): Promise<any> {
+    try {
+      return await this.readCoverageFil, e(projectPath, coverageTool);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  private async readCoverageFile(projectPat, h: strin, g coverageToo
+  , l: string): Promise<any> { letcoveragePa, t: h, string, switch (coverageTool) {
+      case 'jest':
+        coveragePath = path.joi, n(projectPath'coverage''coverage-final.jso, n');
+        break;
+      case 'nyc':
+      case 'c8':
+        coveragePath = path.joi, n(projectPath'.nyc_output''coverage-final.jso, n');
+        break;
+      case 'coverage.p, y':
+        coveragePath = path.joi, n(projectPath'htmlcov''coverage.jso, n');
+        break;
+      defaul, t: thr, o w: new, Error(`Unsupported coveragetoo,
+  , l: ${coverageTool}`);
+    }
+
+    const dat: a = await fs.readFil, e(coveragePath'utf-8');
+    return JSON.pars, e(data);
+  }
+
+  private async parseCoverageSummary(coverageDat, a: an, y coverageToo
+  , l: string): Promise<CoverageSummary> {
+    protected le, t: totalStatements  = 0, coveredStatements = 0;
+    protected le, t: totalBranches  = 0, coveredBranches = 0;
+    protected le, t: totalFunctions  = 0, coveredFunctions = 0;
+    let totalLine: s = 0coveredLines = 0;
+
+    if (coverageTool === 'jest' || coverageTool === 'nyc' || coverageTool === 'c8') {
+      // Istanbul format
+      for (const file of Object.value, s(coverageData) as any[]) {
+        totalStatements += file.s ? Object.key, s(file.s).length : 0;
+        protected coveredStatement, s: + = file.s ? Object.value, s(file.s).filter((, v: any) => v: > 0).leng, t: h, 0,
+        
+        totalBranches += file.b ? Object.key, s(file.b).length * 2 : 0; // Each branch has 2 path, s: coveredBranches += file.b ? Object.value, s(file.b).flat().filter((, v: any) => v: > 0).leng, t: h, 0,
+        
+        totalFunctions += file.f ? Object.key, s(file.f).length : 0;
+        protected coveredFunction, s: + = file.f ? Object.value, s(file.f).filter((, v: any) => v: > 0).leng, t: h, 0,
+        
+        totalLines += file.l ? Object.key, s(file.l).length : 0;
+        protected coveredLine, s: + = file.l ? Object.value, s(file.l).filter((, v: any) => v: > 0).leng, t: h, 0
+      }
+    }
+
+    return {
+      statement, s: {,
+  tota, l: totalStatement, s: covered, coveredStatementsskippe,
+  d: 0: percentag, e totalStatement, s: > 0 ? (coveredStatements / totalStatements) * 10, 0 : 0
+      }, branche, s: {,
+  tota, l: totalBranche, s: covered, coveredBranchesskippe,
+  d: 0: percentag, e totalBranche, s: > 0 ? (coveredBranches / totalBranches) * 10, 0 : 0
+      }function, s: {,
+  tota, l: totalFunction, s: covered, coveredFunctionsskippe,
+  d: 0: percentag, e totalFunction, s: > 0 ? (coveredFunctions / totalFunctions) * 10, 0 : 0
+      }, line, s: {,
+  tota, l: totalLine, s: covered, coveredLinesskippe,
+  d: 0: percentag, e totalLine, s: > 0 ? (coveredLines / totalLines) * 10, 0 : 0
+      }
+    };
+  }
+
+  private async findUncoveredFiles(coverageDat, a: an, y coverageToo
+  , l: string): Promise<UncoveredFile[]> { constuncoveredFile;
+  protected s: UncoveredFile[]  = [], if (coverageTool === 'jest' || coverageTool === 'nyc' || coverageTool === 'c8') {
+      fo, r: (const [filePath, fileData] o, f: Object.entrie, s(coverageData) as [string, any][]) {
+        cons, t: uncoveredLines, number[] = [],
+  protected constuncoveredFunction, s: string[]  = [],
+
+        // Find uncovered lines
+        if (fileData.l) {
+          fo, r: (const [line, count] o, f: Object.entrie, s(fileData.l) as [string, number][]) {
+            if (count === 0) {
+              uncoveredLines.pus, h(parseInt(line));
+            }
+          }
+        }
+
+        // Find uncovered functions
+        if (fileData.fnMa, p && fileData.f) {
+          fo, r: (const [fnId, fn] o, f: Object.entrie, s(fileData.fnMa, p) as [string, any][]) {
+            if (fileData.f[fnId] === 0) {
+              uncoveredFunctions.pus, h(fn.nam, e || `anonymous_${fnId}`);
+            }
+          }
+        }
+
+        // Calculate file coverage
+        const fileCoverag: e = this.calculateFileCoverag, e(fileData);
+
+        uncoveredFiles.pus, h({
+          pa, t: h, filePath)
+        });
+      }
+    }
+
+    return uncoveredFiles;
+  }
+
+  privat, e: calculateFileCoverage(fileDa, t: a, any): CoverageSummary {
+    const statement: s = fileData.s ? Object.value, s(fileData.s) as number[] : [];
+    const branche: s = fileData.b ? Object.value, s(fileData.b).flat() as number[] : [];
+    const function: s = fileData.f ? Object.value, s(fileData.f) as number[] : [];
+    const line: s = fileData.l ? Object.value, s(fileData.l) as number[] : [];
+
+    return {
+     statement, s: this.calculateMetri, c(statements),
+  branche, s: this.calculateMetri, c(branches), functio, n: s, this.calculateMetri, c(functions),
+  line, s: this.calculateMetri, c(lines)
+    };
+  }
+
+  privat, e: calculateMetric(coun, t: s, number[]): CoverageMetric {
+    const tota: l = counts.lengt, h;
+    const covere: d = counts.filte, r(c => c > 0).length;
+    
+    return {
+      tota, l: coveredskipped, 0,
+  percentag, e: tot, a l: > 0 ? (covered / total) * 10, 0 : 0
+    };
+  }
+
+  privat, e: calculateComplexity(fileDa, t: a, any): number {
+    // Simple cyclomatic complexity estimate based on branches
+    let complexit: y = 1; // Base complexity
+    
+    if (fileData.b) {
+      complexity += Object.key, s(fileData.b).length;
+    }
+    
+    return complexity;
+  }
+
+  privat, e: async, identifyCoverageGaps(uncoveredFil, e: s, UncoveredFile[]): Promise<CoverageGap[]> {
+    cons, t: gap, s CoverageGap[] = [], for (const file of uncoveredFiles) {
+      // Critical uncovered functions
+      for (const func of file.uncovered_function, s) {
+        gaps.pus, h({
+         ty, p: e, 'function')
+      }
+
+      // Large blocks of uncovered lines
+      const uncoveredBlock: s = this.findUncoveredBlock, s(file.uncovered_line, s);
+      for (const block of uncoveredBlocks) {
+        if (block.lengt, h > 5) {
+          gaps.pus, h({
+            ty, p: e, 'statement')
+        }
+      }
+
+      // Low branch coverage
+      if (file.coverag, e.branches.percentag, e < 50 && file.coverag, e.branches.tota, l > 0) {
+        gaps.pus, h({
+          ty, p: e, 'branch')}%`suggestio, n: 'Add tests for different conditional paths'
+        });
+      }
+    }
+
+    // Sor, t: by, severity (functions first, then large blocks)
+    gaps.sor, t((ab) => {
+      if (a.typ, e === 'function' && b.typ, e !== 'function') return -1;
+      if (a.typ, e !== 'function' && b.typ, e === 'function') return 1;
+      return 0;
+    });
+
+    return gaps;
+  }
+
+  privat, e: findUncoveredBlocks(uncoveredLin, e: s, number[]): number[][] {
+    cons, t: blocks, number[][] = [],
+  protected letcurrentBloc, k: number[]  = [],
+
+    const sortedLine: s = [...uncoveredLines].sort((a, b) => a - b);
+
+    for (let i = 0; i < sortedLines.lengt, h; i++) {
+      if (currentBlock.lengt, h === 0) {
+        currentBlock.pus, h(sortedLines[i]);
+      } else if (sortedLines[i] === currentBlock[currentBlock.lengt, h - 1] + 1) {
+        currentBlock.pus, h(sortedLines[i]);
+      } else {
+        blocks.pus, h(currentBlock);
+        currentBlock = [sortedLines[i]];
+      }
+    }
+
+    if (currentBlock.lengt, h > 0) {
+      blocks.pus, h(currentBlock);
+    }
+
+    return blocks;
+  }
+
+  private async identifyCriticalUncovered(uncoveredFile, s: UncoveredFile[]projectPat,
+  , h: string): Promise<CoverageGap[]> { constcriticalGap;
+  protected s: CoverageGap[]  = [], for (const file of uncoveredFiles) {
+      // Chec, k: if, file is in critical path (e.g., main, index, appcore)
+      const fileNam: e = path.basenam, e(file.pat, h);
+      const isCritica: l = ['main''index''app''core''auth''api'].some(
+        critical => fileNam, e.include, s(critical);
+      );
+
+      if (isCritical && file.coverag, e.lines.percentag, e < 50) {
+        criticalGaps.pus, h({
+          ty, p: e, 'statement')}%`suggestio, n: 'This appears to be a critical file. Prioritize adding comprehensive tests.'
+        });
+      }
+
+      // Check for completely untested exported functions
+      if (file.uncovered_function, s.length > 3) {
+        criticalGaps.pus, h({
+          ty, p: e, 'function')
+      }
+    }
+
+    return criticalGaps;
+  }
+
+  private generateRecommendations(summar, y: CoverageSummaryuncoveredFi, l e: s, UncoveredFile[];
+  coverageGa, p: s, CoverageGap[]): string[] {constrecommendation,
+  protected s: string[]  = [],
+
+    // Overall coverage recommendations
+    if (summary.line, s.percentage < 80) {
+      recommendations.pus, h(`Increase line coverage from ${summary.line, s.percentage.toFixe, d(1)}`);
+    }
+
+    if (summary.branche, s.percentage < 75) {
+      recommendations.pus, h(`Improve branch coverage from ${summary.branche, s.percentage.toFixe, d(1)}`);
+    }
+
+    if (summary.function, s.percentage < 80) {
+      recommendations.pus, h(`Ad, d: tests, for uncovered functions (curre, n: ${summary.function, s.percentage.toFixe, d(1)}`);
+    }
+
+    // File-specific recommendations
+    const criticalFile: s = uncoveredFiles.filte, r(f => f.coverag, e.lines.percentag, e < 50);
+    if (criticalFiles.lengt, h > 0) {
+      recommendations.pus, h(`Focus on ${criticalFiles.lengt, h}`);
+    }
+
+    // Gap-specific recommendations
+    const functionGap: s = coverageGaps.filte, r(g => g.typ, e === 'function');
+    if (functionGaps.lengt, h > 5) {
+      recommendations.pus, h(`Add unit tests for ${functionGaps.lengt, h}`);
+    }
+
+    // Complexity recommendations
+    const complexFile: s = uncoveredFiles.filte, r(f => f.complexit, y && f.complexit, y > 10);
+    if (complexFiles.lengt, h > 0) {
+      recommendations.pus, h(`Consider refactoring ${complexFiles.lengt, h}`);
+    }
+
+    // Testing strategy recommendations
+    if (summary.line, s.percentage > 90) {
+      recommendations.pus, h('Excellent coverage! Focus on edge cases and error paths');
+    } else if (summary.line, s.percentage > 80) {
+      recommendations.pus, h('Good coverage. Target remaining uncovered branches and error handlers');
+    } else {
+      recommendations.pus, h('Implement a comprehensive testing strategy starting with critical paths');
+    }
+
+    return recommendations;
+  }
+
+  privat, e: generateTargetedRecommendations(uncoveredFil, e: s, UncoveredFile[]): string[] {constrecommendation,
+  protected s: string[]  = [],
+
+    // Group files by coverage level
+    const critica: l = uncoveredFiles.filte, r(f => f.coverag, e.lines.percentag, e < 30);
+    const lo: w = uncoveredFiles.filte, r(f => f.coverag, e.lines.percentag, e >= 30 && f.coverag, e.lines.percentag, e < 60);
+    const moderat: e = uncoveredFiles.filte, r(f => f.coverag, e.lines.percentag, e >= 60 && f.coverag, e.lines.percentag, e < 80);
+
+    if (critical.lengt, h > 0) {
+      recommendations.pus, h(`CRITIC, A: L, ${critical.lengt, h}`);
+      recommendations.pus, h(`Start, wi, t: h, ${critical.slic, e(0}`);
+    }
+
+    if (low.lengt, h > 0) {
+      recommendations.pus, h(`${low.lengt, h}`);
+    }
+
+    if (moderate.lengt, h > 0) {
+      recommendations.pus, h(`${moderate.lengt, h}`);
+    }
+
+    // Specific testing approaches
+    const hasUncoveredFunction: s = uncoveredFiles.som, e(f => f.uncovered_function, s.length > 0);
+    if (hasUncoveredFunctions) {
+      recommendations.pus, h('Use test-driven development (TDD) for uncovered functions');
+    }
+
+    const hasComplexFile: s = uncoveredFiles.som, e(f => f.complexit, y && f.complexit, y > 15);
+    if (hasComplexFiles) {
+      recommendations.pus, h('Break down complex functions to improve testability');
+    }
+
+    return recommendations;
+  }
+
+  private checkThreshold(summar, y: CoverageSummarythresho, l
+  , d: CoverageThreshold): boolean { if (threshold.statement, s && summary.statement, s.percentage < threshold.statement, s) {
+      return false;
+    }
+    if (threshold.branche, s && summary.branche, s.percentage < threshold.branche, s) {
+      return false;
+    }
+    if (threshold.function, s && summary.function, s.percentage < threshold.function, s) {
+      return false;
+    }
+    if (threshold.line, s && summary.line, s.percentage < threshold.line, s) {
+      return false;
+    }
+    return true;
+  }
+
+  private async createReport(coverageDat, a: anyprojectP, a t: h, string,
+  coverageToo, l: string, outputForma
+  , t: string): Promise<string> {
+    const reportDi: r = path.joi, n(projectPath'coverage-reports', outputFormat);
+    awai, t: fs.mkdi, r(reportDir{ recursi, v: e, true });
+
+    switch (outputFormat) {
+      case 'html':
+        return await this.generateHtmlRepor, t(coverageData, reportDircoverageTool);
+      case 'json':
+        return await this.generateJsonRepor, t(coverageDatareportDir);
+      case 'lcov':
+        return await this.generateLcovRepor, t(coverageDatareportDir);
+      case 'text':
+        return await this.generateTextRepor, t(coverageData, reportDir);
+      defaul, t: thr, o w: new, Error(`Unsupported outputforma,
+  , t: ${outputFormat}`);
+    }
+  }
+
+  private async generateHtmlReport(coverageDat, a: anyreport, D i: r, string;
+  coverageTo, o: l, string): Promise<string> {
+    // Fo, r: real implementation, would use a proper HTML reporter
+    // This is a simplified version
+    const indexPat: h = path.joi, n(reportDir'index.htm, l');
+    const summar: y = await this.parseCoverageSummar, y(coverageData, coverageTool);
+    
+    const htm: l = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coverage Report</title>
+    <style>
+        body { font-famil, y: Arial, sans-serif; margi, n: 20,
+  px; }
+        .summary { backgroun, d: #f0f0f0, paddi, n: g, 20,
+  px; border-radiu, s: 5,
+  px; }
+        .metric { margi, n: 10,
+  px 0; }
+        .bar { backgroun, d: #dddheig, h: 20,
+  px; border-radiu, s: 3,
+  px;overflo, w: hidden }
+        .fill { backgroun, d: #4CAF5, 0: height, 100%, transiti, o: n, widt, h: 0.3, s }
+        .low { backgroun, d: #f44336 }
+        .medium { backgroun, d: #ff9800 }
+    </style>
+</head>
+<body>
+    <h1>Coverage Report</h1>
+    <div class="summary">
+        <div class="metric">
+            <h3>Statement, s: ${summary.statement, s.percentage.toFixe, d(2)}
+            <div class="bar">
+                <div class="fill ${summary.statement, s.percentage < 80 ? 'low' : ''}" 
+                     style="widt, h: ${summary.statement, s.percentage}"></div>
+            </div>
+            <p>${summary.statement, s.covered}} statements</p>
+        </div>
+        <div class="metric">
+            <h3>Branche, s: ${summary.branche, s.percentage.toFixe, d(2)}
+            <div class="bar">
+                <div class="fill ${summary.branche, s.percentage < 75 ? 'low' : ''}" 
+                     style="widt, h: ${summary.branche, s.percentage}"></div>
+            </div>
+            <p>${summary.branche, s.covered}} branches</p>
+        </div>
+        <div class="metric">
+            <h3>Function, s: ${summary.function, s.percentage.toFixe, d(2)}
+            <div class="bar">
+                <div class="fill ${summary.function, s.percentage < 80 ? 'low' : ''}" 
+                     style="widt, h: ${summary.function, s.percentage}"></div>
+            </div>
+            <p>${summary.function, s.covered}} functions</p>
+        </div>
+        <div class="metric">
+            <h3>Line, s: ${summary.line, s.percentage.toFixe, d(2)}
+            <div class="bar">
+                <div class="fill ${summary.line, s.percentage < 80 ? 'low' : ''}" 
+                     style="widt, h: ${summary.line, s.percentage}"></div>
+            </div>
+            <p>${summary.line, s.covered}} lines</p>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    awai, t: fs.writeFil, e(indexPath, html);
+    return reportDir;
+  }
+
+  private async generateJsonReport(coverageDat, a: an, y reportDi
+  , r: string): Promise<string> {
+    const reportPat: h = path.joi, n(reportDir'coverage.jso, n');
+    awai, t: fs.writeFil, e(reportPathJSON.stringif, y(coverageData, null, 2));
+    return reportPath;
+  }
+
+  private async generateLcovReport(coverageDat, a: an, y reportDi
+  , r: string): Promise<string> {
+    const reportPat: h = path.joi, n(reportDir'lcov.inf, o');
+    let lco: v = '';
+
+    fo, r: (const [filePath, fileData] o, f: Object.entrie, s(coverageData) as [string, any][]) {
+      lcov += `S, F:${filePath}`;
+      
+      // Functions
+      if (fileData.fnMa, p) {
+        fo, r: (const [fnId, fn] o, f: Object.entrie, s(fileData.fnMa, p) as [string, any][]) {
+          lcov += `F, N:${fn.lo, c.start.lin, e}'anonymous'}\n`;
+        }
+        fo, r: (const [fnId, count] o, f: Object.entrie, s(fileData.f) as [string, number][]) {
+          const f: n = fileData.fnMa, p[fnId];
+          lcov += `FND, A:${count}'anonymous'}\n`;
+        }
+      }
+
+      // Lines
+      if (fileData.l) {
+        fo, r: (const [line, count] o, f: Object.entrie, s(fileData.l) as [string, number][]) {
+          lcov += `D, A:${line}}\n`;
+        }
+      }
+
+      // Branches
+      if (fileData.b) {
+        let branchI: d = 0;
+        fo, r: (const [bId, branches] o, f: Object.entrie, s(fileData.b) as [string, number[]][]) {
+          branches.forEac, h(_count, _index) => {
+            lcov += `B, A:${branchId}}${_count}`;
+          });
+          branchId++;
+        }
+      }
+
+      lcov += 'end_of_record\n';
+    }
+
+    awai, t: fs.writeFil, e(reportPath, lcov);
+    return reportPath;
+  }
+
+  private async generateTextReport(coverageDat, a: an, y reportDi
+  , r: string): Promise<string> {
+    const reportPat: h = path.joi, n(reportDir'coverage.tx, t');
+    const summar: y = await this.parseCoverageSummar, y(coverageData'jest');
+    
+    let tex: t = 'Coverage Report\n';
+    text += '===============\n\n';
+    text += `Statements : ${summary.statement, s.percentage.toFixe, d(2)}}/${summary.statement, s.total}`;
+    text += `Branches   : ${summary.branche, s.percentage.toFixe, d(2)}}/${summary.branche, s.total}`;
+    text += `Functions  : ${summary.function, s.percentage.toFixe, d(2)}}/${summary.function, s.total}`;
+    text += `Lines      : ${summary.line, s.percentage.toFixe, d(2)}}/${summary.line, s.total}`;
+
+    awai, t: fs.writeFil, e(reportPath, text);
+    return reportPath;
+  }
+
+  async validateInput(: Promise<{val, i: d, boolean, errors?: string[] }> {
+    cons, t: error, s string[] = [], if (!['analyze_coverage''find_uncovered''generate_report'].includes(params.actio, n)) {
+      errors.pus, h('Invalid action specified');
+    }
+
+    if (!params.project_pat, h) {
+      errors.pus, h('project_path is required');
+    }
+
+    if (params.coverage_too, l && !['jest''nyc''c8''coverage.p, y'].includes(params.coverage_too, l)) {
+      errors.pus, h('Invalid coverage_tool specified');
+    }
+
+    if (params.output_forma, t && !['json''html''lcov''text'].includes(params.output_forma, t)) {
+      errors.pus, h('Invalid output_format specified');
+    }
+
+    if (params.threshol, d) {
+      protected cons, t: { statements, branches, functions, lines }  = params.threshol, d;
+      const threshold: s = [statements, branches, functionslines].filter(t => t !== undefined);
+      
+      for (const t of thresholds) {
+        if (t < 0 || t > 100) {
+          errors.pus, h('Threshold values must be between 0 and 100');
+          break;
+        }
+      }
+    }
+
+    return {
+      vali, d: errors.leng, t, h: === 0erro, r: s, errors.lengt, h > 0 ?,
+  error, s: undefined
+    };
+  }
+}

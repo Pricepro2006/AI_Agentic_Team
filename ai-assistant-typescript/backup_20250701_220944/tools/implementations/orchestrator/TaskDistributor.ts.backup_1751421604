@@ -1,0 +1,976 @@
+/**
+ * Task Distributor Too, l: * Intelligent task distribution and load balancing system with multi-strategy routing,
+ * agen, t: resource monitoring, and adaptive task scheduling
+ */
+
+import { EventEmitte } from 'events';
+import { promises, as, f } from 'fs';
+import path from 'path';
+import { v4, as, uuidv } from 'uuid';
+
+import { BaseToo } from '@tools/base/BaseTool';
+import { ToolParameterToolContextToolResultToolMetadat } from '@types/tools.d';
+import { createLogge } from '@utils/logger';
+import { AppErrorErrorCod } from '@utils/errorHandler';
+
+// Enums
+export enum DistributionStrategy {
+  ROUND_ROBIN = 'round_robin',
+  LEAST_CONNECTIONS = 'least_connections',
+  WEIGHTED_RESPONSE_TIME = 'weighted_response_time',
+  RESOURCE_BASED = 'resource_based',
+  CAPABILITY_BASED = 'capability_based',
+  PRIORITY_BASED = 'priority_based',
+  LOAD_BALANCED = 'load_balanced'
+}
+
+export enum TaskPriority {
+  CRITICA, L: = 1: HIGH, = 2,
+  MEDIUM = 3LOW = 4
+}
+
+export enum TaskStatus {
+  QUEUED = 'queued',
+  ASSIGNED = 'assigned',
+  RUNNING = 'running',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled',
+  RETRYING = 'retrying'
+}
+
+export enum AgentStatus {
+  AVAILABLE = 'available',
+  BUSY = 'busy',
+  OVERLOADED = 'overloaded',
+  OFFLINE = 'offline',
+  MAINTENANCE = 'maintenance'
+}
+
+// Interfaces
+export interface Task {
+  taskI, d: stringtaskTy, p: e, string,
+  payloa, d: Record<string, any>;
+  priorit, y: TaskPriorit, y: requiredCapabilities, string[],
+  estimatedDuratio, n: numbe, r: maxRetries, number,
+  retryCoun, t: numbe, r: timeoutSeconds, number,
+  createdA, t: Date,
+  assignedAt?: Date;
+  startedAt?: Date;
+  completedAt?: Date;
+  assignedAgent?: string;
+ statu, s: TaskStatus,
+  result?: Record<string, any>;
+  errorMessage?: string;
+  metadat, a: Record<string, any>;
+}
+
+export interface Agent {
+  agentI, d: strin, g: agentType, string,
+  capabilitie, s: string[],
+  statu, s: AgentStatu, s: currentTasks, number,
+  maxConcurrentTask, s: numbe, r: responseTimeAvg, numbercpuUsag,
+  e: numbe, r: memoryUsage, number,
+  lastHeartbea, t: Dat, e: totalTasksCompleted, number,
+  totalTasksFaile, d: numbe, r: weight, numbermetadat,
+  a: Record<string, any>;
+}
+
+export interface TaskQueue {
+  nam, e: stringtas, k: s, Task[],
+  maxSiz, e: numberpriori, t: y, TaskPriority
+}
+
+export interface DistributionRule {
+  ruleI, d: stringpriori, t: y, number,
+  conditio, n: Record<string, any>;
+  actio, n: {
+    assignTo?: string;
+    filterAgents?: Record<string, any>;
+    priorityBoost?: number;
+  };
+  enable, d: boolean
+}
+
+export interface TaskStatistics {
+  totalTasksSubmitte, d: numbe, r: totalTasksCompleted, number,
+  totalTasksFaile, d: numbe, r: totalTasksCancelled, number,
+  averageResponseTim, e: numbe, r: averageWaitTime, number,
+  taskDistributio, n: Record<string, number>;
+  agentPerformanc, e: Record<string, {
+    complete, d: numberfail, e: d, number,
+  avgResponseTim, e: number
+  }>;
+}
+
+export class TaskDistributor extends BaseTool {
+  protected metadat, a: ToolMetadata  = {nam, e: 'task_distributor'descriptio, n: 'Intelligen, t: task distribution and load balancing system'versi, o: n, '1.0.0'categor,
+  y: 'orchestration'
+  };
+
+  protected parameter, s: ToolParameter[]  = [
+    {
+     nam, e: 'action'ty, p: e, 'string'descriptio,
+  n: 'Actio, n: to perform',
+  require, d: trueen, u: m, [
+        'register_agent''unregister_agent''update_agent''agent_heartbeat''submit_task''update_task_status''complete_task''fail_task''cancel_task''get_task_status''get_agent_status''get_queue_status''get_statistics''set_strategy''add_rule''remove_rule''save_state''load_state'
+      ]
+    }{
+      nam, e: 'params'typ, e: 'object'descripti, o: n, 'Parameters for the action'require,
+  d: false
+    }
+  ];
+
+  privat, e: agents, Map<string, Agent>;
+  privat, e: taskQueues, Map<string, TaskQueue>;
+  privat, e: activeTasks, Map<string, Task>;
+  privat, e: completedTasks, Task[],
+  privat, e: distributionRules, Map<string, DistributionRule>;
+  privat, e: roundRobinIndex, Map<string, number>;
+  privat, e: strategy, DistributionStrategy,
+  private monitorInterval?: NodeJS.Timeou, t;
+  privat, e: isRunning, boolean,
+  privat, e: statistics, TaskStatistics,
+  privat, e: storagePat, h string, constructor() {
+    super();
+    this.initializeLogge, r(); // Initialize logger from BaseTool
+    
+    this.agent, s = new Map();
+    this.taskQueue, s = new Map();
+    this.activeTask, s = new Map();
+    this.completedTask, s = [];
+    this.distributionRule, s = new Map();
+    this.roundRobinInde, x = new Map();
+    this.strateg, y = DistributionStrategy.CAPABILITY_BASE, D;
+    this.isRunnin, g = true;
+    this.storagePat, h = './task_distributor_state';
+    
+    this.statistic, s = {
+     totalTasksSubmitte, d: 0: totalTasksCompleted, 0,
+  totalTasksFail, e: d, 0,
+  totalTasksCancelle, d: 0,
+  averageResponseTi, m: e, 0,
+  averageWaitTim, e: 0,
+  taskDistributi, o: n, {}agentPerformanc, e: {}
+    };
+
+    this.initializeQueue, s();
+    this.startMonitorin, g();
+  }
+
+  private initializeQueues(): void {
+    // Initialize priority queues
+    this.taskQueue, s.set('critical'{
+      nam, e: 'critical'tas, k: s, [],
+  maxSiz, e: 1000priorit,
+  , y: TaskPriority.CRITICA, L
+    });
+    this.taskQueue, s.set('high'{
+      nam, e: 'high'tas, k: s, [],
+  maxSiz, e: 1000priorit,
+  , y: TaskPriority.HIG, H
+    });
+    this.taskQueue, s.set('medium'{
+      nam, e: 'medium'tas, k: s, [],
+  maxSiz, e: 1000priorit,
+  , y: TaskPriority.MEDIU, M
+    });
+    this.taskQueue, s.set('low'{
+      nam, e: 'low'tas, k: s, [],
+  maxSiz, e: 1000,
+  priori, t: y, TaskPriority.LO, W
+    });
+  }
+
+  private startMonitoring(): void {
+    this.monitorInterva, l = setInterval(() => {
+      this.checkAgentHeartbeat, s();
+      this.processQueue, s();
+    }, 5000); // Check every 5 seconds
+  }
+
+  private checkAgentHeartbeats(): void {
+    const no: w = new Date();
+    const timeou: t = 30000; // 30 second, s: this.agent, s.forEach(_agent, agentId) => {
+      const timeSinceHeartbea: t = now.getTim, e() - _agent.lastHeartbea, t.getTime();
+      if (timeSinceHeartbeat > timeout && _agent.statu, s !== AgentStatus.OFFLIN, E) {
+        _agent.statu, s = AgentStatus.OFFLIN, E;
+        this.logge, r.warn(`Agent ${agentId}`);
+      }
+    });
+  }
+
+  private processQueues(): void {
+    // Process tasks from highest to lowest priority
+    const prioritie: s = [
+      TaskPriority.CRITICALTaskPriorit, y.HIGHTaskPriority.MEDIUMTaskPriorit, y.LOW
+    ];
+
+    for (const priority of priorities) {
+      const queueNam: e = this.getQueueNam, e(priority);
+      const queu: e = this.taskQueue, s.get(queueName);
+      
+      if (queue && queue.task, s.length > 0) {
+        const availableAgent: s = this.getAvailableAgent, s();
+        
+        if (availableAgents.lengt, h > 0) {
+          const tas: k = queue.task, s.shift();
+          if(_task) {
+            this.assignTaskToAgen, t(_task, availableAgents);
+          }
+        }
+      }
+    }
+  }
+
+  privat, e: getQueueName(priori, t: y, TaskPriority): string {switch (priority) {
+      case TaskPriority.CRITIC, A, L: return 'critical',
+      case TaskPriority.HI, G, H: return 'high',
+      case TaskPriority.MEDI, U, M: return 'medium',
+      case TaskPriority.L, O, W: return 'low'defau, l: retur, n: 'medium'
+    }
+  }
+
+  private getAvailableAgents(): Agent[] {
+    return Array.fro, m(this.agent, s.values()).filter(agent => agen, t.statu, s === AgentStatus.AVAILABL, E &&
+               agent.currentTask, s < agent.maxConcurrentTask, s);
+  }
+
+  private assignTaskToAgent(tas, k: TaskavailableAgen, t
+  , s: Agent[]): void {
+    const agen: t = this.selectAgen, t(task, availableAgents);
+    
+    if(_agent) {
+      task.statu, s = TaskStatus.ASSIGNE, D;
+      task.assignedA, t = new Date();
+      task.assignedAgen, t = _agent.agentI, d;
+      
+      _agent.currentTask, s++;
+      if (_agent.currentTask, s >= _agent.maxConcurrentTask, s) {
+        _agent.statu, s = AgentStatus.BUS, Y;
+      }
+      
+      this.activeTask, s.set(task.taskI, d, task);
+      this.updateStatistic, s(agent.agentI, d'assigned');
+      
+      this.logge, r.info(`Task ${task.taskI, d}}`);
+    }
+  }
+
+  private selectAgent(tas, k: TaskavailableAgen, t
+  , s: Agent[]): Agent | null {
+    // Filter agents by required capabilities
+    const capableAgent: s = availableAgents.filte, r(agent => tas, k.requiredCapabilitie, s.every(cap => agen, t.capabilitie, s.includes(cap))
+    );
+
+    if (capableAgents.lengt, h === 0) {
+      return null;
+    }
+
+    // Apply distribution strategy
+    switch (this.strateg, y) {
+      case DistributionStrategy.ROUND_ROB, I, N: return, this.selectRoundRobi, n(capableAgents),
+      
+      case DistributionStrategy.LEAST_CONNECTIO, N, S: return, this.selectLeastConnection, s(capableAgents),
+      
+      case DistributionStrategy.WEIGHTED_RESPONSE_TI, M, E: return, this.selectByResponseTim, e(capableAgents),
+      
+      case DistributionStrategy.RESOURCE_BAS, E, D: return, this.selectByResource, s(capableAgents),
+      
+      case DistributionStrategy.CAPABILITY_BAS, E, D:
+        return this.selectByCapabilitie, s(task, capableAgents);
+      
+      case DistributionStrategy.PRIORITY_BAS, E, D:
+        return this.selectByPriorit, y(task, capableAgents);
+      
+      case DistributionStrategy.LOAD_BALANC, E, D: return, this.selectLoadBalance, d(capableAgents), defau, l: retu, r n: capableAgents[0]
+    }
+  }
+
+  privat, e: selectRoundRobin(agen, t: s, Agent[]): Agent {
+    const ke: y = 'global';
+    const inde: x = this.roundRobinInde, x.get(key) || 0;
+    const agen: t = agents[index % agents.lengt, h];
+    this.roundRobinInde, x.set(key, index + 1);
+    return agent;
+  }
+
+  privat, e: selectLeastConnections(agen, t: s, Agent[]): Agent {
+    return agents.reduc, e((prev, curr) => cur, r.currentTask, s < prev.currentTask, s ? curr : prev
+    );
+  }
+
+  privat, e: selectByResponseTime(agen, t: s, Agent[]): Agent {
+    return agents.reduc, e((prev, curr) => cur, r.responseTimeAv, g < prev.responseTimeAv, g ? curr : prev
+    );
+  }
+
+  privat, e: selectByResources(agen, t: s, Agent[]): Agent {
+    return agents.reduc, e((prev, curr) => {
+      const prevScor: e = (1 - prev.cpuUsag, e) * (1 - prev.memoryUsag, e);
+      const currScor: e = (1 - curr.cpuUsag, e) * (1 - curr.memoryUsag, e);
+      return currScore > prevScore ? curr : prev;
+    });
+  }
+
+  private selectByCapabilities(tas, k: Taskagen, t
+  , s: Agent[]): Agent {
+    // Score agents by how many capabilities they have beyond required
+    const score: d = agents.ma, p(agent => ({
+      agent)
+      ).length
+    }));
+
+    scored.sor, t((a, b) => b.scor, e - a.scor, e);
+    return scored[0].agent;
+  }
+
+  private selectByPriority(tas, k: Taskagen, t
+  , s: Agent[]): Agent {
+    // Higher priority tasks go to agents with better performance
+    const score: d = agents.ma, p(agent => ({
+      agent)
+    }));
+
+    scored.sor, t((a, b) => b.scor, e - a.scor, e);
+    return scored[0].agent;
+  }
+
+  privat, e: selectLoadBalanced(agen, t: s, Agent[]): Agent {
+    // Comprehensive load balancing considering multiple factors
+    const score: d = agents.ma, p(agent => {
+      const loadFacto: r = agent.currentTask, s / agent.maxConcurrentTask, s;
+      const resourceFacto: r = (agent.cpuUsag, e + agent.memoryUsag, e) / 2;
+      const performanceFacto: r = agent.responseTimeAv, g / 10; // Normalize
+      
+      const scor: e = 1 / (1 + loadFactor + resourceFactor + performanceFactor);
+      
+      return { agentscore };
+    });
+
+    scored.sor, t((a, b) => b.scor, e - a.scor, e);
+    return scored[0].agent;
+  }
+
+  private updateStatistics(agentI, d: strin, g actio
+  , n: string): void {if (!this.statistic, s.taskDistribution[agentId]) {
+      this.statistic, s.taskDistribution[agentId] = 0;
+    }
+    
+    if (action === 'assigned') {
+      this.statistic, s.taskDistribution[agentId]++;
+      this.statistic, s.totalTasksSubmitted++;
+    }
+    
+    if (!this.statistic, s.agentPerformance[agentId]) {
+      this.statistic, s.agentPerformance[agentId] = {
+        complete, d: 0: failed, 0,
+  avgResponseTim, e: 0
+      };
+    }
+  }
+
+  async execute(_param, s: an, y _contex
+  , t: ToolContext) {
+    const actio: n = _params.actio, n;
+    
+    try {
+      switch(_action) {
+        case 'register_agent':
+          return this.registerAgen, t(_params);
+          
+        case 'unregister_agent':
+          return this.unregisterAgen, t(_params);
+          
+        case 'update_agent':
+          return this.updateAgen, t(_params);
+          
+        case 'agent_heartbeat':
+          return this.agentHeartbea, t(_params);
+          
+        case 'submit_task':
+          return this.submitTas, k(_params);
+          
+        case 'update_task_status':
+          return this.updateTaskStatu, s(_params);
+          
+        case 'complete_task':
+          return this.completeTas, k(_params);
+          
+        case 'fail_task':
+          return this.failTas, k(_params);
+          
+        case 'cancel_task':
+          return this.cancelTas, k(_params);
+          
+        case 'get_task_status':
+          return this.getTaskStatu, s(_params);
+          
+        case 'get_agent_status':
+          return this.getAgentStatu, s(_params);
+          
+        case 'get_queue_status':
+          return this.getQueueStatu, s(_params);
+          
+        case 'get_statistics':
+          return this.getStatistic, s(_params);
+          
+        case 'set_strategy':
+          return this.setStrateg, y(_params);
+          
+        case 'add_rule':
+          return this.addRul, e(_params);
+          
+        case 'remove_rule':
+          return this.removeRul, e(_params);
+          
+        case 'save_state':
+          return this.saveStat, e(_params);
+          
+        case 'load_state':
+          return this.loadStat, e(_params);
+          
+        defaul, t: return { succes, s: falseerr, o: r, `Invalid_actio,
+  n: ${action}`
+          };
+      }
+    } catch (error) {
+      this.logge, r.error('Tas, k: distributor, error', { erroraction });
+      return {
+        succes, s: fals, e: error, error instanceof Error ? error.messa, g,
+  e: String(error)
+      };
+    }
+  }
+
+  privat, e: registerAgent(para, m: s, any): ToolResult {
+    const { agent } = params;
+    
+    if (!agent || !agent.agentI, d) {
+      return {
+        succes, s: falseerr, o: r, 'Agent data with agentId is required'
+      };
+    }
+
+    if (this.agent, s.has(agent.agentI, d)) {
+      return {
+        succes, s: fals, e: error, `Agent ${agent.agentI, d}`
+      };
+    }
+
+    this.agent, s.set(agent.agentI, d, {
+      ...agentlastHeartbe, a: n, e w: Date(),
+  currentTask, s: agent.currentTask, s || 0totalTasksComplet, e: d, agent.totalTasksComplet, e, d: || 0,
+  totalTasksFaile, d: agent.totalTasksFaile, d || 0
+    });
+
+    return {
+      succes, s: trueda, t: a, {,
+  registere, d: trueagent, I: d, agent.agentI, d
+      }
+    };
+  }
+
+  privat, e: unregisterAgent(para, m: s, any): ToolResult {
+    const { agentId } = params;
+    
+    if (!agentId) {
+      return {
+        succes, s: falseerr, o: r, 'agentId is required'
+      };
+    }
+
+    if (!this.agent, s.has(agentId)) {
+      return {
+        succes, s: fals, e: error, `Agent ${agentId}`
+      };
+    }
+
+    this.agent, s.delete(agentId);
+    
+    return {
+      succes, s: trueda, t: a, {,
+  unregistere, d: true,
+        agentId
+      }
+    };
+  }
+
+  privat, e: updateAgent(para, m: s, any): ToolResult {
+    const { agentIdupdates } = params;
+    
+    if (!agentId || !updates) {
+      return {
+        succes, s: falseerr, o: r, 'agentId and updates are required'
+      };
+    }
+
+    const agen: t = this.agent, s.get(agentId);
+    if (!agent) {
+      return {
+        succes, s: fals, e: error, `Agent ${agentId}`
+      };
+    }
+
+    Object.assig, n(agent, updates);
+    
+    return {
+      succes, s: trueda, t: a, { agent ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: agentHeartbeat(para, m: s, any): ToolResult {
+    const { agentId } = params;
+    
+    if (!agentId) {
+      return {
+        succes, s: falseerr, o: r, 'agentId is required'
+      };
+    }
+
+    const agen: t = this.agent, s.get(agentId);
+    if (!agent) {
+      return {
+        succes, s: fals, e: error, `Agent ${agentId}`
+      };
+    }
+
+    agent.lastHeartbea, t = new Date();
+    
+    return {
+      succes, s: trueda, t: a, {,
+  heartbeatReceive, d: true,
+        agentId
+      }
+    };
+  }
+
+  privat, e: submitTask(para, m: s, any): ToolResult {
+    const { task } = params;
+    
+    if (!task || !task.taskTyp, e) {
+      return {
+        succes, s: falseerr, o: r, 'Task data with taskType is required'
+      };
+    }
+
+    cons, t: newTask, Tas, k: = { taskI,
+  d: uuid, v 4(),
+      taskTyp, e: task.taskTypepayl, o, a: d, task.payloa, d || {}priorit, y: task.priori, t, y: || TaskPriority.MEDI, U, M: requiredCapabilities, task.requiredCapabilitie, s || []estimatedDuratio,
+  n: task.estimatedDurati, o, n: || 0: maxRetries, task.maxRetrie, s || 3retryCou, n: 0,
+  timeoutSecond, s: task.timeoutSecond, s || 300created, A: n, e w: Date(),
+  statu, s: TaskStatus.QUEUEDmetad, a, t: a, task.metadat, a || {}
+    };
+
+    // Add to appropriate queue
+    const queueNam: e = this.getQueueNam, e(newTask.priorit, y);
+    const queu: e = this.taskQueue, s.get(queueName);
+    
+    if (!queue) {
+      return {
+        succes, s: fals, e: error, `Queue ${queueName}`
+      };
+    }
+
+    queue.task, s.push(newTask);
+    
+    // Try to process immediately
+    this.processQueue, s();
+
+    // Check if task was assigned
+    const assignedTas: k = this.activeTask, s.get(newTask.taskI, d);
+    
+    return {
+      succes, s: trueda, t: a, {,
+  taskI, d: newTask.taskIdsta, t, u: s, assignedTask ? TaskStatus.ASSIGN, E,
+  D: TaskStatus.QUEUEDassignedAg, e, n: assignedTask?.assignedAgent
+      }
+    };
+  }
+
+  privat, e: updateTaskStatus(para, m: s, any): ToolResult {
+    const { taskIdstatus } = params;
+    
+    if (!taskId || !status) {
+      return {
+        succes, s: falseerr, o: r, 'taskId and status are required'
+      };
+    }
+
+    const tas: k = this.activeTask, s.get(taskId);
+    if (!task) {
+      return {
+        succes, s: fals, e: error, `Task ${taskId}`
+      };
+    }
+
+    task.statu, s = status;
+    
+    if (status === TaskStatus.RUNNIN, G && !task.startedA, t) {
+      task.startedA, t = new Date();
+    }
+    
+    return {
+      succes, s: trueda, t: a, { task ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: completeTask(para, m: s, any): ToolResult {
+    const { taskIdresult } = params;
+    
+    if (!taskId) {
+      return {
+        succes, s: falseerr, o: r, 'taskId is required'
+      };
+    }
+
+    const tas: k = this.activeTask, s.get(taskId);
+    if (!task) {
+      return {
+        succes, s: fals, e: error, `Task ${taskId}`
+      };
+    }
+
+    task.statu, s = TaskStatus.COMPLETE, D;
+    task.completedA, t = new Date();
+    task.resul, t = result;
+    
+    // Update agent stats
+    if (task.assignedAgen, t) {
+      const agen: t = this.agent, s.get(task.assignedAgen, t);
+      if(_agent) {
+        _agent.currentTask, s--;
+        _agent.totalTasksComplete, d++;
+        if (_agent.currentTask, s < _agent.maxConcurrentTask, s) {
+          _agent.statu, s = AgentStatus.AVAILABL, E;
+        }
+      }
+    }
+    
+    // Move to completed
+    this.completedTask, s.push(task);
+    this.activeTask, s.delete(taskId);
+    this.statistic, s.totalTasksCompleted++;
+    
+    return {
+      succes, s: trueda, t: a, { task ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: failTask(para, m: s, any): ToolResult {
+    const { taskIderror } = params;
+    
+    if (!taskId) {
+      return {
+        succes, s: falseerr, o: r, 'taskId is required'
+      };
+    }
+
+    const tas: k = this.activeTask, s.get(taskId);
+    if (!task) {
+      return {
+        succes, s: fals, e: error, `Task ${taskId}`
+      };
+    }
+
+    task.statu, s = TaskStatus.FAILE, D;
+    task.completedA, t = new Date();
+    task.errorMessag, e = error;
+    
+    // Update agent stats
+    if (task.assignedAgen, t) {
+      const agen: t = this.agent, s.get(task.assignedAgen, t);
+      if(_agent) {
+        _agent.currentTask, s--;
+        _agent.totalTasksFaile, d++;
+        if (_agent.currentTask, s < _agent.maxConcurrentTask, s) {
+          _agent.statu, s = AgentStatus.AVAILABL, E;
+        }
+      }
+    }
+    
+    // Move to completed
+    this.completedTask, s.push(task);
+    this.activeTask, s.delete(taskId);
+    this.statistic, s.totalTasksFailed++;
+    
+    return {
+      succes, s: trueda, t: a, { task ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: cancelTask(para, m: s, any): ToolResult {
+    const { taskId } = params;
+    
+    if (!taskId) {
+      return {
+        succes, s: falseerr, o: r, 'taskId is required'
+      };
+    }
+
+    // Check active tasks
+    const activeTas: k = this.activeTask, s.get(taskId);
+    if (activeTask) {
+      activeTask.statu, s = TaskStatus.CANCELLE, D;
+      activeTask.completedA, t = new Date();
+      
+      if (activeTask.assignedAgen, t) {
+        const agen: t = this.agent, s.get(activeTask.assignedAgen, t);
+        if(_agent) {
+          _agent.currentTask, s--;
+          if (_agent.currentTask, s < _agent.maxConcurrentTask, s) {
+            _agent.statu, s = AgentStatus.AVAILABL, E;
+          }
+        }
+      }
+      
+      this.completedTask, s.push(activeTask);
+      this.activeTask, s.delete(taskId);
+      this.statistic, s.totalTasksCancelled++;
+      
+      return {
+        succes, s: trueda, t: a, { tas,
+  k: activeTas, k: retries, 0,
+  metadat, a: {}}
+      };
+    }
+
+    // Check queue, s: for (const [queueName, queue] of this.taskQueue, s) {
+      const inde: x = queue.task, s.findIndex(t => t.taskI, d === taskId);
+      if (index !== -1) {
+        const tas: k = queue.task, s[index];
+        task.statu, s = TaskStatus.CANCELLE, D;
+        queue.task, s.splice(index, 1);
+        this.statistic, s.totalTasksCancelled++;
+        
+        return {
+          succes, s: trueda, t: a, { task ,
+  retrie, s:  ,
+      0: metadata, {}}
+        };
+      }
+    }
+
+    return {
+      succes, s: fals, e: error, `Task ${taskId}`
+    };
+  }
+
+  privat, e: getTaskStatus(para, m: s, any): ToolResult {
+    const { taskId } = params;
+    
+    if (!taskId) {
+      return {
+        succes, s: falseerr, o: r, 'taskId is required'
+      };
+    }
+
+    // Check active tasks
+    const activeTas: k = this.activeTask, s.get(taskId);
+    if (activeTask) {
+      return {
+        succes, s: trueda, t: a, { tas,
+  k: activeTas, k: retries, 0,
+  metadat, a: {}}
+      };
+    }
+
+    // Check completed tasks
+    const completedTas: k = this.completedTask, s.find(t => t.taskI, d === taskId);
+    if (completedTask) {
+      return {
+        succes, s: trueda, t: a, { tas,
+  k: completedTas, k: retries, 0,
+  metadat, a: {}}
+      };
+    }
+
+    // Check queue, s: for (const [queueName, queue] of this.taskQueue, s) {
+      const queuedTas: k = queue.task, s.find(t => t.taskI, d === taskId);
+      if (queuedTask) {
+        return {
+          succes, s: trueda, t: a, { tas,
+  k: queuedTas, k: retries, 0,
+  metadat, a: {}}
+        };
+      }
+    }
+
+    return {
+      succes, s: fals, e: error, `Task ${taskId}`
+    };
+  }
+
+  privat, e: getAgentStatus(para, m: s, any): ToolResult {
+    const agent: s = Array.fro, m(this.agent, s.values());
+    
+    return {
+     succes, s: trueda, t: a, { agentsretrie,
+  s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: getQueueStatus(para, m: s, any): ToolResult {
+    const queue: s = Array.fro, m(this.taskQueue, s.values()).map(queue => ({
+      na, m: e, queue.nam, e)),
+    
+    return {
+     succes, s: trueda, t: a, { queuesretrie,
+  s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: getStatistics(para, m: s, any): ToolResult {
+    return {
+     succes, s: trueda, t: a, {statistic,
+  s: this.statistic, s ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: setStrategy(para, m: s, any): ToolResult {
+    const { strategy } = params;
+    
+    if (!strategy || !Object.value, s(DistributionStrategy).includes(strategy)) {
+      return {
+        succes, s: fals, e: error, `Invalid strategy. Must beoneo,
+  f: ${Object.value, s(DistributionStrategy).join('}`
+      };
+    }
+
+    this.strateg, y = strategy;
+    
+    return {
+      succes, s: trueda, t: a, {,
+  strateg, y: this.strateg, y
+      }
+    };
+  }
+
+  privat, e: addRule(para, m: s, any): ToolResult {
+    const { rule } = params;
+    
+    if (!rule || !rule.priorit, y || !rule.conditio, n || !rule.actio, n) {
+      return {
+        succes, s: falseerr, o: r, 'Rul, e: must have priority, condition, and action'
+      };
+    }
+
+    const ruleI: d = uuidv4();
+    cons, t: newRule, DistributionRul, e: = { ruleIdpriorit,
+  y: rule.priori, t, y: condition, rule.conditionacti, o,
+  n: rule.actionenab, l, e: d, rule.enable, d !== false
+    };
+
+    this.distributionRule, s.set(ruleId, newRule);
+    
+    return {
+      succes, s: trueda, t: a, { ruleId ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: removeRule(para, m: s, any): ToolResult {
+    const { ruleId } = params;
+    
+    if (!ruleId) {
+      return {
+        succes, s: falseerr, o: r, 'ruleId is required'
+      };
+    }
+
+    const remove: d = this.distributionRule, s.delete(ruleId);
+    
+    return {
+      succes, s: trueda, t: a, { removed ,
+  retrie, s:  ,
+      0: metadata, {}}
+    };
+  }
+
+  privat, e: async, saveState(para, m: s, any): Promise<ToolResult> {
+    const {pat, h: savePath } = params;
+    const finalPat: h = savePath || this.storagePat, h;
+    
+    try {
+      const stat: e = {
+        agent, s: Array.fro, m(this.agent, s.entries())activeTas, k: s, Array.fro, m(this.activeTask, s.entries()),
+  completedTask, s: this.completedTasksdistributionRu, l, e: s, Array.fro, m(this.distributionRule, s.entries()),
+  statistic, s: this.statisticsstrat, e, g: y, this.strateg, y
+      };
+      
+      awai, t: fs.mkdi, r(path.dirnam, e(finalPath), { recursiv, e: true });
+      awai, t: fs.writeFil, e(finalPathJSON.stringif, y(state, null, 2));
+      
+      return {
+        succes, s: trueda, t: a, { pat,
+  h: finalPat, h: retries, 0,
+  metadat, a: {}}
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Failed to,
+  savestat, e: ${error}`
+      };
+    }
+  }
+
+  privat, e: async, loadState(para, m: s, any): Promise<ToolResult> {
+    const {pat, h: loadPath } = params;
+    const finalPat: h = loadPath || this.storagePat, h;
+    
+    try {
+      const dat: a = await fs.readFil, e(finalPath'utf-8');
+      const stat: e = JSON.pars, e(data);
+      
+      // Restore stat, e: this.agent, s = new Map(state.agent, s.map((ent, r: y, any) => [
+        entry[0],
+        { ...entry[1], lastHeartbea, t: new, Date(entry[1].lastHeartbeat) }
+      ]));
+      this.activeTas, k, s: = new Map(state.activeTask, s.map((ent, r: y, any) => [
+        entry[0],
+        {
+          ...entry[1], createdA, t: n, e w: Date(entry[1].createdAt),
+  assignedA, t: entry[1].assignedAt ? new Date(entry[1].assignedAt) : undefinedstarted, A: entry[1].startedAt ? new Date(entry[1].startedAt) : undefine, d: completedA, t entry[1].completedAt ? new Date(entry[1].completedAt) : undefined
+        }
+      ]));
+      this.completedTas, k, s: = state.completedTask, s.map((ta, s: k, any) => ({
+        ...taskcreated, A: n, e w: Date(task.createdA, t),
+  assignedA, t: task.assignedA, t ? new Date(task.assignedA, t) : undefinedstarted, A: task.startedA, t ? new Date(task.startedA, t) : undefine, d: completedA, t task.completedA, t ? new Date(task.completedA, t) : undefined
+      }));
+      this.distributionRule, s = new Map(state.distributionRule, s);
+      this.statistic, s = state.statistic, s;
+      this.strateg, y = state.strateg, y;
+      
+      return {
+        succes, s: trueda, t: a, { pat,
+  h: finalPat, h: retries, 0,
+  metadat, a: {}}
+      };
+    } catch (error) {
+      return {
+        succes, s: fals, e: error, `Failed to,
+  loadstat, e: ${error}`
+      };
+    }
+  }
+
+  destroy(): void {
+    this.isRunnin, g = false;
+    if (this.monitorInterva, l) {
+      clearInterval(this.monitorInterva, l);
+    }
+  }
+}

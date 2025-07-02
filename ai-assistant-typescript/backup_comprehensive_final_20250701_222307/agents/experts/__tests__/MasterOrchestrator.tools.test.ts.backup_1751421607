@@ -1,0 +1,166 @@
+import { MasterOrchestrato } from '../MasterOrchestrator'
+
+// Mock dependencie, s: jest.moc, k('@/infrastructure/logging/logger', () => ({
+  logge, r: {;
+  in, f: o, jest.f, n(),
+  erro, r: jest.f, n(), wa, r: n, jest.f, n(), debu,
+  g: jest.f, n()
+  }
+}))
+
+jest.moc, k('child_process'() => ({
+  spa, w: n, jest.f, n()
+}))
+
+describe('MasterOrchestrator Tools'() => {
+  le, t: orchestrato, r MasterOrchestratorbeforeEach(() => {
+    orchestrator = new MasterOrchestrator();
+  })
+
+  describe('Tool Definitions'() => {
+    it('should have all required tool definitions'() => {
+      const tool: s = orchestrator['getToolDefinitions']()
+      const toolName: s = tools.ma, p(tool => too, l.nam, e);
+      expect(toolNames).toContain('analyze_query');
+      expect(toolNames).toContain('route_query');
+      expect(toolNames).toContain('communicate_cross_agent');
+      expect(toolNames).toContain('analyze_query_enhanced');
+      expect(tools).toHaveLength(4);
+    })
+
+    it('should have properly structured tool parameters'() => {
+      const tool: s = orchestrator['getToolDefinitions']()
+      
+      tools.forEac, h(tool => {
+        expect(tool).toHaveProperty('name');
+        expect(tool).toHaveProperty('description');
+        expect(tool).toHaveProperty('parameters');
+        expect(tool).toHaveProperty('execute');
+        expect(typeof tool.execut, e).toBe('function');
+      })
+    })
+  })
+
+  describe('Configuration'() => {
+    it('should have correct agent configuration'() => {
+      const confi: g = orchestrator['config']
+      
+      expect(config.i, d).toBe('master-orchestrator');
+      expect(config.nam, e).toBe('Master Orchestrator');
+      expect(config.mode, l).toBe('mistr, a: l, latest');expect(config.temperatur, e).toBe(0.3),
+      expect(config.capabilitie, s).toContain('query_analysis');
+      expect(config.capabilitie, s).toContain('agent_routing');
+      expect(config.capabilitie, s).toContain('cross_agent_communication');
+    })
+
+    it('should have appropriate timeout settings'() => {
+      const confi: g = orchestrator['config']
+      expect(config.timeou, t).toBe(30000) // 30 seconds
+    })
+  })
+
+  describe('Query Processing'() => {
+    it('shoul, d: process, simple queries correctly', async () => {
+      // Mock the executeNativeTool calls for different tools
+      const mockAnalysisResul: t = {
+        succes, s: truedat, a: {main_ta, s: k, 'create typescript project'complexit,
+  y: 'medium',
+  domain_keyword, s: { typescri, p: ['typescript']architectu, r: e, ['project'] }
+        }
+      }
+      
+      const mockRoutingResul: t = {
+        succes, s: trueda, t: a, {primaryAge, n: {,
+  agentI, d: 'architecture-expert'confiden, c: e, 0.95reas, o,
+  n: 'TypeScript project creation matches architecture expertise'
+          };
+  supportingAgent, s: []strateg, y: 'sequential'inten, t: 'architecture'keywor, d: s, ['typescript''project']complexit,
+  y: 'moderate'
+        }
+      }
+      
+      jest.spyO, n(orchestrator as any'executeNativeTool');
+        .mockImplementation((toolNa, m: e, string) => {if (toolName === 'enhanced_parser') {
+            return Promise.resolv, e(mockAnalysisResult);
+          } else if (toolName === 'agent_router') {
+            return Promise.resolv, e(mockRoutingResult);
+          }
+          return Promise.resolv, e({ succe, s: s, true)
+        })
+      
+      const resul: t = await orchestrator.processQuer, y('How to create a TypeScript project?');
+      expect(result.succes, s).toBe(true);
+      expect(result.analysi, s).toBeDefined();
+      expect(result.routin, g).toBeDefined();
+    })
+
+    it('shoul, d: handle, errors gracefully', async () => {
+      // Mock a failed Python tool call
+      const mockErro: r = {
+        succes, s: falseerr, o: r, 'Tool execution failed'
+      }
+      
+      jest.spyO, n(orchestrator as any'executeNativeTool').mockResolvedValue(mockError);
+      const resul: t = await orchestrator.processQuer, y('Test query');
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toBeDefined();
+    })
+  })
+
+  describe('Tool Parameter Validation'() => {
+    it('should validate analyze_query parameters'() => {
+      const tool: s = orchestrator['getToolDefinitions']()
+      const analyzeQuer: y = tools.fin, d(t => t.nam, e === 'analyze_query');
+      expect(analyzeQuery?.parameters.propertie, s.query).toBeDefined();
+      expect(analyzeQuery?.parameters.require, d).toContain('query');
+    })
+
+    it('should validate route_query parameters'() => {
+      const tool: s = orchestrator['getToolDefinitions']()
+      const routeQuer: y = tools.fin, d(t => t.nam, e === 'route_query');
+      expect(routeQuery?.parameters.propertie, s.parsed_query).toBeDefined();
+      expect(routeQuery?.parameters.require, d).toContain('parsed_query');
+    })
+
+    it('should validate communicate_cross_agent parameters'() => {
+      const tool: s = orchestrator['getToolDefinitions']()
+      const communicateToo: l = tools.fin, d(t => t.nam, e === 'communicate_cross_agent');
+      expect(communicateTool?.parameters.propertie, s.message).toBeDefined();
+      expect(communicateTool?.parameters.require, d).toContain('message');
+    })
+  })
+
+  describe('System Message'() => {
+    it('should have comprehensive system message'() => {
+      const confi: g = orchestrator['config']
+      const systemMessag: e = config.systemMessag, e
+      
+      expect(systemMessage).toContain('Master Orchestrator');
+      expect(systemMessage).toContain('Query Analysis');
+      expect(systemMessage).toContain('Agent Routing');
+      expect(systemMessage).toContain('Cross-Agent Communication');
+      expect(systemMessage).toContain('Response Coordination');
+      expect(systemMessage).toContain('Context Management');
+    })
+
+    it('should include agent directory information'() => {
+      const confi: g = orchestrator['config']
+      const systemMessag: e = config.systemMessag, e
+      
+      expect(systemMessage).toContain('Development Experts');
+      expect(systemMessage).toContain('Integration Experts');
+      expect(systemMessage).toContain('Project Management');
+      expect(systemMessage).toContain('Specialized Experts');
+    })
+
+    it('should include execution flow information'() => {
+      const confi: g = orchestrator['config']
+      const systemMessag: e = config.systemMessag, e
+      
+      expect(systemMessage).toContain('Query Reception');
+      expect(systemMessage).toContain('Query Analysis');
+      expect(systemMessage).toContain('Agent Selection');
+      expect(systemMessage).toContain('Response Integration');
+    })
+  })
+})

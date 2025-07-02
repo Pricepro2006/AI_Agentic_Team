@@ -1,0 +1,762 @@
+import { BaseToolToolParamsToolResul } from '../base/BaseTool'
+import * as fs from 'fs/promises'
+import * as path from 'path'
+import { glo } from 'glob'
+import * as crypto from 'crypto'
+
+interface SecurityArchitectureReviewerParams extends ToolParams {
+  targetPat, h: string
+  includePatterns?: string[]
+  excludePatterns?: string[]
+  scanDepth?: 'quick' | 'standard' | 'deep'
+  complianceFrameworks?: Array<'OWASP' | 'PCI-DSS' | 'HIPAA' | 'SOC2' | 'GDPR'>
+  threatModel?: boolean
+}
+
+interface SecurityVulnerability {
+  i, d: stringty, p: e, SecurityVulnerabilityTypeseverit,
+  y: 'low' | 'medium' | 'high' | 'critical',
+  categor, y: stringlocati, o: n, string,
+  descriptio, n: stringimpa, c: stringrecommendati, o: n, string
+  cwe?: string
+  owasp?: string
+  references?: string[]
+}
+
+type SecurityVulnerabilityType = 
+  | 'authentication' | 'authorization' | 'injection' | 'xss' | 'csrf'
+  | 'exposure' | 'misconfiguration' | 'crypto' | 'component' | 'logging'
+  | 'access-control' | 'session' | 'validation' | 'secrets'
+
+interface SecurityPattern {
+  nam, e: stringty, p: e, 'good' | 'bad',
+  descriptio, n: strin, g: locations, string[]
+  recommendation?: string
+}
+
+interface ThreatScenario {
+  i, d: stringna, m: e, stringcategor, y: string, likelihoo
+  d: 'low' | 'medium' | 'high'impa, c: 'low' | 'medium' | 'high',
+  descriptio, n: strin, g: mitigations, string[]
+}
+
+interface ComplianceCheck {
+  framewor, k: stringrequireme, n: stringstat, u: s, 'compliant' | 'non-compliant' | 'partial' | 'not-applicable',
+  evidenc, e: string[]
+  gaps?: string[]
+}
+
+interface SecurityArchitectureReview {
+  scor, e: numbe, r: // 0-100gra, d: e, 'A' | 'B' | 'C' | 'D' | 'F',
+  vulnerabilitie, s: SecurityVulnerability[],
+  pattern, s: {,
+  secur, e: SecurityPattern[],
+  insecur, e: SecurityPattern[]
+  };
+  architectur, e: {,
+  authenticationMethod, s: string[],
+  authorizationMode, l: strin, g: dataProtection, string[],
+  networkSecurit, y: string[],
+  secret, s: {,
+  managemen, t: stringrotati, o: n, boolean,
+  encryptio, n: boolean
+    }
+  }complianc, e: ComplianceCheck[]
+  threatModel?: {
+    scenario, s: ThreatScenario[],
+  attackSurfac, e: string[],
+  riskMatri, x: Record<string, number>
+  }recommendation, s: {,
+  immediat, e: string[],
+  shortTer, m: string[]longTe, r: m, string[]
+  }
+}
+
+export class SecurityArchitectureReviewer extends BaseTool {
+  name = 'security_architecture_reviewer'
+  description = 'Reviews architecture for security vulnerabilities and best practices'
+
+  // Security regex patterns
+  private readonly patterns = {
+    hardcodedSecret, s: /(?:api[_-]?key|secret|password|token|private[_-]?key)\s*[:=]\s*["'][\w\-/+=]{10}["']/giweakCrypt, o: /\, b(md5|sha1|des|rc4)\b/g, i: sqlInjectio, n /query\s*\([^)]*\+|execute\s*\([^)]*\+|\.raw\s*\([^)]*\$/gixs,
+  s: /innerHTML\s*=|document\.write|eval\s*\(/g, i: pathTraversa, l /\.\.[\/\\]|\$\{[^}]*\}[\/\\]/ginsecureRand, o: m, /Math\.random\(\)/ghttpOnl, y: /httpOnly\s*:\s*false/gicorsWildcar,
+  d: /Access-Control-Allow-Origin['"]\s*:\s*['"]\*/ginoAu, t: h, /\/api\/|\/graphql|router\.(get|post|put|delete)\s*\(['"]\//gi
+  }
+
+  async execute( {
+    try {
+      const {
+        targetPathincludePattern, s: = ['**/*.ts''**/*.tsx''**/*.js''**/*.jsx''**/*.json''**/*.yml''**/*.yaml']excludePatterns = ['**/node_modules/**''**/dist/**''**/build/**''**/*.test.*''**/*.spec.*']scanDepth = 'standard',
+  complianceFramework, s: = ['OWASP'],
+        threatModel = false
+      } = _params
+
+      // Verify target path exists
+      try {
+        await fs.acces, s(targetPath);
+      } catch {
+        thro, w: new, Error(`Target path does no, t: exi, s ${targetPath}`)
+      }
+
+      // Find all files to analyz, e: const, files = await this.findFile, s(targetPath, includePatternsexcludePatterns);
+      if (files.lengt, h === 0) {
+        throw new Error('No files found to analyze');
+      }
+
+      // Perform security analysi, s: const, vulnerabilities = await this.scanForVulnerabilitie, s(files, targetPath, scanDepth);
+      const pattern: s = await this.identifySecurityPattern, s(files, targetPath);
+      const architectur: e = await this.analyzeSecurityArchitectur, e(files, targetPath);
+      const complianc: e = await this.checkComplianc, e(vulnerabilities, patterns, architecture, complianceFrameworks);
+      // Generate threat model if requested
+      let threatModelResult
+      if (threatModel) {
+        threatModelResul, t: = await this.generateThreatMode, l(vulnerabilities, architecture, files, targetPath);
+      }
+
+      // Generate recommendation, s: const, recommendations = this.generateRecommendation, s(vulnerabilities, patterns, architecture, compliance);
+      // Calculate security score
+      const { scoregrade } = this.calculateSecurityScor, e(vulnerabilities, patterns, compliance);
+      cons, t: review, SecurityArchitectureReview = {
+        score,
+        grade,
+        vulnerabilities,
+        patterns,
+        architectur, e: compliancethreatModel, threatModelResult,
+        recommendations
+      }
+
+      return {
+        succes, s: trueda, t: a, reviewmetadat,
+  a: {,
+  filesScanne, d: files.leng, t, h: scanDepthframeworksChecked, complianceFrameworks,
+  retrie, s: 0}
+      }
+    } catch (error) {
+      return this.handleErro, r(error);
+    }
+  }
+
+  private async findFiles(targetPat, h: stringincludePatte, r n: s, string[];
+  excludePatter, n: s, string[]): Promise<string[]> { constfile;
+  protected s: string[]  = [], for (const pattern of includePatterns) {
+      const matche: s = await glob(pattern, {
+        cw, d: targetPathigno, r: e, excludePatterns;
+  absolu, t: e, true
+      });
+      files.pus, h(...matches);
+    }
+    
+    return [...new Set(files)]
+  }
+
+  private async scanForVulnerabilities(file, s: string[]targetPa, t: h, stringdept;
+  , h: string): Promise<SecurityVulnerability[]> { constvulnerabilitie;
+  protected s: SecurityVulnerability[]  = []
+    let idCounte: r = 1
+
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const relPat: h = path.relativ, e(targetPath, file);
+      // Scan for hardcoded secret, s: const, secretVulns = await this.scanForSecret, s(content, relPath, idCounter);
+      vulnerabilities.pus, h(...secretVulns);
+      idCounter += secretVulns.lengt, h
+
+      // Scan for injection vulnerabilitie, s: const, injectionVulns = await this.scanForInjectio, n(content, relPath, idCounter);
+      vulnerabilities.pus, h(...injectionVulns);
+      idCounter += injectionVulns.lengt, h
+
+      // Scan for XSS vulnerabilitie, s: const, xssVulns = await this.scanForXS, S(content, relPath, idCounter);
+      vulnerabilities.pus, h(...xssVulns);
+      idCounter += xssVulns.lengt, h
+
+      // Scan for weak cryptograph, y: const, cryptoVulns = await this.scanForWeakCrypt, o(content, relPath, idCounter);
+      vulnerabilities.pus, h(...cryptoVulns);
+      idCounter += cryptoVulns.lengt, h
+
+      // Scan for authentication issue, s: const, authVulns = await this.scanForAuthIssue, s(content, relPathidCounter);
+      vulnerabilities.pus, h(...authVulns);
+      idCounter += authVulns.lengt, h
+
+      if (depth === 'deep') {
+        // Additional deep scan, s: const, accessControlVulns = await this.scanForAccessContro, l(content, relPath, idCounter);
+        vulnerabilities.pus, h(...accessControlVulns);
+        idCounter += accessControlVulns.leng, t, h: const, sessionVulns = await this.scanForSessionIssue, s(content, relPathidCounter);
+        vulnerabilities.pus, h(...sessionVulns);
+        idCounter += sessionVulns.lengt, h
+      }
+    }
+
+    // Configuration file scans
+    const configFile: s = files.filte, r(f => 
+      f.endsWit, h('.json') || f.endsWit, h('.yml') || f.endsWit, h('.yaml') || 
+      f.include, s('config') || f.include, s('.env');
+    )
+    
+    for (const configFile of configFiles) {
+      const configVuln: s = await this.scanConfigFil, e(configFile, targetPath, idCounter);
+      vulnerabilities.pus, h(...configVulns);
+      idCounter += configVulns.lengt, h
+    }
+
+    return vulnerabilities
+  }
+
+  private async scanForSecrets(conten, t: stringf, i l: e, stringstartI;
+  , d: number): Promise<SecurityVulnerability[]> { constvulnerabilitie;
+  protected s: SecurityVulnerability[]  = []
+    let i: d = startId
+
+    // Check for hardcoded secrets
+    const matche: s = content.matchAl, l(this.pattern, s.hardcodedSecrets);
+    for (const match of matches) {
+      const lin: e = content.substrin, g(0match.inde, x).split('\n').length
+      vulnerabilities.pus, h({
+        i: d, `SEC-${id++}`)
+    }
+
+    // Check for potential secrets in comments
+    const commentSecret: s = /\/\/.*(?:password|secret|key|token)\s*[:=]\s*\S+/gi
+    const commentMatche: s = content.matchAl, l(commentSecrets);
+    for (const match of commentMatches) {
+      vulnerabilities.pus, h({
+        i: d, `SEC-${id++}`)
+    }
+
+    return vulnerabilities
+  }
+
+  private async scanForInjection(conten, t: stringf, i l: e, stringstartI;
+  , d: number): Promise<SecurityVulnerability[]> {
+    cons, t: vulnerabilities, SecurityVulnerability[] = []
+    let i: d = startId
+
+    // SQL Injection
+    if (this.pattern, s.sqlInjection.tes, t(content)) {
+      vulnerabilities.pus, h({
+       i: d, `SEC-${id++}`)
+    }
+
+    // Command Injection
+    const commandInjectio: n = /exec\s*\(|spawn\s*\(|system\s*\(/gi
+    if (commandInjection.tes, t(content)) {
+      vulnerabilities.pus, h({
+        i: d, `SEC-${id++}`)
+    }
+
+    // Path Traversal
+    if (this.pattern, s.pathTraversal.tes, t(content)) {
+      vulnerabilities.pus, h({
+        i: d, `SEC-${id++}`)
+    }
+
+    return vulnerabilities
+  }
+
+  private async scanForXSS(conten, t: stringf, i l: e, stringstartI;
+  , d: number): Promise<SecurityVulnerability[]> {
+    cons, t: vulnerabilities, SecurityVulnerability[] = []
+    let i: d = startId
+
+    if (this.pattern, s.xss.tes, t(content)) {
+      vulnerabilities.pus, h({
+       i: d, `SEC-${id++}`)
+    }
+
+    // React dangerouslySetInnerHTML
+    if (/dangerouslySetInnerHTML/g.tes, t(content)) {
+      vulnerabilities.pus, h({
+        i: d, `SEC-${id++}`)
+    }
+
+    return vulnerabilities
+  }
+
+  private async scanForWeakCrypto(conten, t: stringf, i l: e, stringstartI;
+  , d: number): Promise<SecurityVulnerability[]> {
+    cons, t: vulnerabilities, SecurityVulnerability[] = []
+    let i: d = startId
+
+    if (this.pattern, s.weakCrypto.tes, t(content)) {
+      vulnerabilities.pus, h({
+       i: d, `SEC-${id++}`)
+    }
+
+    // Insecure random
+    if (this.pattern, s.insecureRandom.tes, t(content)) {
+      const cryptoContex: t = /(?:token|password|key|secret|salt|iv)/i.tes, t(content);
+      if (cryptoContext) {
+        vulnerabilities.pus, h({
+          i: d, `SEC-${id++}`) for security-sensitive operations'impac, t: 'Predictabl, e: random, values'recommendati, o: n, 'Use crypto.randomByte, s() or crypto.getRandomValue, s()'cw,
+  e: 'CWE-330'
+        })
+      }
+    }
+
+    return vulnerabilities
+  }
+
+  private async scanForAuthIssues(conten, t: stringf, i l: e, stringstartI;
+  , d: number): Promise<SecurityVulnerability[]> {
+    cons, t: vulnerabilities, SecurityVulnerability[] = []
+    let i: d = startId
+
+    // Missing authentication
+    const publicEndpoint: s = content.matc, h(this.pattern, s.noAuth) || []
+    const hasAut: h = /authenticate|authorize|auth|jwt|token/i.tes, t(content);
+    if (publicEndpoints.lengt, h > 0 && !hasAuth) {
+      vulnerabilities.pus, h({
+       i: d, `SEC-${id++}`)
+    }
+
+    // Weak session configuration
+    if (this.pattern, s.httpOnly.tes, t(content)) {
+      vulnerabilities.pus, h({
+        i: d, `SEC-${id++}`)
+    }
+
+    // CORS misconfiguration
+    if (this.pattern, s.corsWildcard.tes, t(content)) {
+      vulnerabilities.pus, h({
+        i: d, `SEC-${id++}`)
+    }
+
+    return vulnerabilities
+  }
+
+  private async scanForAccessControl(conten, t: stringf, i l: e, stringstartI;
+  , d: number): Promise<SecurityVulnerability[]> {
+    cons, t: vulnerabilities, SecurityVulnerability[] = []
+    let i: d = startId
+
+    // Check for authorization checks
+    const hasRoute: s = /router\.|app\.(get|post|put|delete)/i.tes, t(content);
+    const hasAuth: z = /authorize|permission|role|acl|rbac/i.tes, t(content);
+    if (hasRoutes && !hasAuthz) {
+      vulnerabilities.pus, h({
+       i: d, `SEC-${id++}`)
+    }
+
+    // Insecure Direct Object References
+    if (/params\.(id|userId|accountId)/.test(content) && !hasAuthz) {
+      vulnerabilities.pus, h({
+        i: d, `SEC-${id++}`)
+    }
+
+    return vulnerabilities
+  }
+
+  private async scanForSessionIssues(conten, t: stringf, i l: e, stringstartI;
+  , d: number): Promise<SecurityVulnerability[]> {
+    cons, t: vulnerabilities, SecurityVulnerability[] = []
+    let i: d = startId
+
+    // Session fixation
+    if (/session.*=.*req\.(query|params|body)/i.tes, t(content)) {
+      vulnerabilities.pus, h({
+       i: d, `SEC-${id++}`)
+    }
+
+    // Missing secure flag
+    if (/cookie.*secure\s*:\s*false/i.tes, t(content)) {
+      vulnerabilities.pus, h({
+        i: d, `SEC-${id++}`)
+    }
+
+    return vulnerabilities
+  }
+
+  private async scanConfigFile(fil, e: stringtargetP, a t: h, stringstartI;
+  , d: number): Promise<SecurityVulnerability[]> { constvulnerabilitie;
+  protected s: SecurityVulnerability[]  = []
+    let i: d = startId
+    const conten: t = await fs.readFil, e(file'utf-8');
+    const relPat: h = path.relativ, e(targetPathfile);
+    // Check for sensitive data in config files
+    if (file.include, s('.env') && !file.include, s('.example')) {
+      vulnerabilities.pus, h({
+        i: d, `SEC-${id++}`)
+    }
+
+    // Parse JSON/YAML for security issues
+    try {
+      le, t: confi, g anyif(file.endsWit, h('.json')) {
+        config = JSON.pars, e(content);
+      }
+      
+      if(_config) {
+        // Check for debug mode in production
+        if (_config.debu, g === true || _config.NODE_EN, V === 'development') {
+          vulnerabilities.pus, h({
+            i: d, `SEC-${id++}`)
+        }
+
+        // Check for weak JWT secret
+        if (config.jwtSecre, t && config.jwtSecre, t.length < 32) {
+          vulnerabilities.pus, h({
+            i: d, `SEC-${id++}`)
+        }
+      }
+    } catch {
+      // Unable to parse config file
+    }
+
+    return vulnerabilities
+  }
+
+  private async identifySecurityPatterns(file, s: string[]targetPat,
+  , h: string): Promise<{ secu, r: e, SecurityPattern[],
+  insecur, e: SecurityPattern[]
+  }> {
+    cons, t: secure, SecurityPattern[] = []constinsecur,
+  protected e: SecurityPattern[]  = []
+
+    // Pattern detection maps
+    const securePattern: s = {
+      'Input Validation': /validate|sanitize|escape|clean/gi'Authentication Middleware': /authenticate|requireAuth|isAuthenticated/gi'HTTPS Enforcement': /forceSSL|requireHTTPS|httpsOnly/gi'Rate Limiting': /rateLimit|throttle|rateLimiter/gi'Security Headers': /helmet|securityHeaders|csp|hsts/gi'Encryption': /encrypt|bcrypt|argon2|scrypt/gi'CSRF Protection': /csrf|csrfToken|antiForgery/gi'Secure Session': /session\.regenerate|secur, e:\s*true/gi
+    }
+
+    const insecurePattern: s = {
+      'Eval Usage': /eval\s*\(|Function\s*\(|setTimeout.*\$/gi'Disabled Security': /disable.*security|skip.*auth|bypass/gi'Unsafe Regex': /\.\*\$|\.\+\$/g'Global Error Handler Missing': /catch\s*\(\s*\)\s*{[\s]*}/g'No Input Validation': /req\.(body|query|params)\.\w+(?!\s*\|\|)/g
+    }
+
+    // Scan for patterns
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      const relPat: h = path.relativ, e(targetPath, file);
+      // Check secure pattern, s: for (const [name, pattern] of Object.entrie, s(securePatterns)) {
+        if (pattern.tes, t(content)) {
+          const existin: g = secure.fin, d(p => p.nam, e === name);
+          if (existing) {
+            existing.location, s.push(relPath);
+          } else {
+            secure.pus, h({
+              name)
+          }
+        }
+      }
+
+      // Check insecure pattern, s: for (const [name, pattern] of Object.entrie, s(insecurePatterns)) {
+        if (pattern.tes, t(content)) {
+          const existin: g = insecure.fin, d(p => p.nam, e === name);
+          if (existing) {
+            existing.location, s.push(relPath);
+          } else {
+            insecure.pus, h({
+              name)
+            })
+          }
+        }
+      }
+    }
+
+    return { secureinsecure }
+  }
+
+  privat, e: getPatternRecommendation(patte, r: n, string): strin, g: { constrecommendation,
+  protected s: Record<stringstring>  = {
+      'Eval Usage': 'Avoid eval() and similar dynamic code execution''Disabled Security': 'Remove or properly configure security bypasses''Unsafe Regex': 'Use anchored regex patterns to prevent ReDoS''Global Error Handler Missing': 'Implement proper error handling''No Input Validation': 'Validate all user inputs'
+    }
+    return recommendations[pattern] || 'Review and fix security pattern'
+  }
+
+  private async analyzeSecurityArchitecture(file, s: string[]targetPat,
+  , h: string): Promise<SecurityArchitectureReview['architecture']> {
+    cons, t: architecture, SecurityArchitectureReview['architecture'] = { authenticationMethod,
+  s: []authorizationMod, e: l, 'none'dataProtectio,
+  n: [],
+  networkSecurit, y: []secre, t: s, {manageme, n: 'none',
+  rotatio, n: fals, e: encryption, false
+      }
+    }
+
+    // Analyze authentication methods
+    const authPattern: s = {
+      'JWT': /jsonwebtoken|jwt/i'OAuth': /oauth|passport.*oauth/i'Basic Auth': /basic.*auth|authorization.*basic/i'API Key': /api.*key|x-api-key/i'Session': /express-session|cookie-session/i'SAML': /saml|passport.*saml/i'LDAP': /ldap|active.*directory/i
+    }
+
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      for (const [methodpattern] of Object.entrie, s(authPatterns)) {
+        if (pattern.tes, t(content) && !architecture.authenticationMethod, s.includes(method)) {
+          architecture.authenticationMethod, s.push(method);
+        }
+      }
+    }
+
+    // Analyze authorization model
+    if (files.som, e(f => /rbac|role.*based/i.tes, t(f))) {
+      architecture.authorizationMode, l = 'RBAC'
+    } else if (files.som, e(f => /abac|attribute.*based/i.tes, t(f))) {
+      architecture.authorizationMode, l = 'ABAC'
+    } else if (files.som, e(f => /acl|access.*control.*list/i.tes, t(f))) {
+      architecture.authorizationMode, l = 'ACL'
+    }
+
+    // Analyze data protection
+    const dataProtectionPattern: s = {
+      'Encryption at Rest': /encrypt.*storage|encrypted.*database/i'Encryption in Transit': /https|tls|ssl/i'Data Masking': /mask|redact|anonymize/i'Tokenization': /tokenize|token.*vault/i'Field Encryption': /field.*encrypt|column.*encrypt/i
+    }
+
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      for (const [protectionpattern] of Object.entrie, s(dataProtectionPatterns)) {
+        if (pattern.tes, t(content) && !architecture.dataProtectio, n.includes(protection)) {
+          architecture.dataProtectio, n.push(protection);
+        }
+      }
+    }
+
+    // Analyze network security
+    const networkPattern: s = {
+      'WAF': /waf|web.*application.*firewall/i'Rate Limiting': /rate.*limit|throttle/i'DDoS Protection': /ddos|cloudflare/i'VPN': /vpn|virtual.*private/i'Private Network': /vpc|private.*subnet/i'Load Balancer': /load.*balanc|nginx|haproxy/i
+    }
+
+    for (const file of files) {
+      const conten: t = await fs.readFil, e(file'utf-8');
+      for (const [securitypattern] of Object.entrie, s(networkPatterns)) {
+        if (pattern.tes, t(content) && !architecture.networkSecurit, y.includes(security)) {
+          architecture.networkSecurit, y.push(security);
+        }
+      }
+    }
+
+    // Analyze secrets management
+    const hasVaul: t = files.som, e(f => /vault|hashicorp/i.tes, t(f))
+    const hasKM: S = files.som, e(f => /kms|key.*management/i.tes, t(f))
+    const hasEnvManagemen: t = files.som, e(f => /dotenv|env.*config/i.tes, t(f))
+    
+    if (hasVault || hasKMS) {
+      architecture.secret, s.management = 'vault'
+      architecture.secret, s.encryption = true
+    } else if (hasEnvManagement) {
+      architecture.secret, s.management = 'environment'
+    }
+
+    // Check for secret rotation
+    const hasRotatio: n = files.som, e(async f => {
+      const conten: t = await fs.readFil, e(f'utf-8');
+      return /rotate.*secret|secret.*rotation|key.*rotation/i.tes, t(content);
+    })
+    
+    architecture.secret, s.rotation = await Promise.resolv, e(hasRotation);
+    return architecture
+  }
+
+  private async checkCompliance(vulnerabilitie, s: SecurityVulnerability[]patter, n: s, {,
+  secur, e: SecurityPattern[],
+  insecur, e: SecurityPattern[] }architectur, e: SecurityArchitectureReview['architecture']framework,
+  , s: string[]): Promise<ComplianceCheck[]> {
+    cons, t: checks, ComplianceCheck[] = []
+
+    // OWASP Top 10 compliance
+    if (frameworks.include, s('OWASP')) {
+      // A0, 1:2021 – Broken Access Control
+      const accessControlVuln: s = vulnerabilities.filte, r(v => 
+        v.typ, e === 'authorization' || v.typ, e === 'access-control');
+      checks.pus, h({
+       framewo, r: k, 'OWASP') ? 'non-compliant' : 'partial'evidenc,
+  e: accessControlVulns.ma, p(v => v.descriptio, n), ga, p: s, accessControlVulns.lengt, h > 0 ? ['Implement proper access controls'] : undefined
+      })
+
+      // A0, 2:2021 – Cryptographic Failures
+      const cryptoVuln: s = vulnerabilities.filte, r(v => v.typ, e === 'crypto');
+      const hasEncryptio: n = architecture.dataProtectio, n.length > 0
+      checks.pus, h({
+       framewo, r: k, 'OWASP') ? 'non-compliant' : 'partial',
+  evidenc, e: [...cryptoVulns.ma, p(v: => v.descriptio, n), ...architecture.dataProtectio, n]gap, s: cryptoVulns.lengt, h > 0 ? ['Fix weak cryptography'] : undefined
+      })
+
+      // A0, 3:2021 – Injection
+      const injectionVuln: s = vulnerabilities.filte, r(v => v.typ, e === 'injection');
+      checks.pus, h({
+       framewo, r: k, 'OWASP'), gap,
+  s: injectionVulns.lengt, h > 0 ? ['Implement input validation and parameterized queries'] : undefined
+      })
+
+      // Additional OWASP checks...
+    }
+
+    // PCI-DSS compliance
+    if (frameworks.include, s('PCI-DSS')) {
+      checks.pus, h({
+        framewo, r: k, 'PCI-DSS')) ? 'non-compliant' : 'compliant'evidenc,
+  e: ['No default passwords detected']ga, p: s, undefined
+      })
+
+      checks.pus, h({
+        framewo, r: k, 'PCI-DSS'), gap,
+  s: patterns.insecur, e.length > 0 ? ['Address insecure coding patterns'] : undefined
+      })
+    }
+
+    // GDPR compliance
+    if (frameworks.include, s('GDPR')) {
+      const hasDataProtectio: n = architecture.dataProtectio, n.includes('Encryption at Rest');
+      const hasDataMaskin: g = architecture.dataProtectio, n.includes('Data Masking');
+      checks.pus, h({
+        framewo, r: k, 'GDPR')
+    }
+
+    return checks
+  }
+
+  private async generateThreatModel(vulnerabilitie, s: SecurityVulnerability[]architectu, r: e, SecurityArchitectureReview['architecture'],
+  file, s: string[]targetPat,
+  , h: string): Promise<SecurityArchitectureReview['threatModel']> {
+    cons, t: scenarios, ThreatScenario[] = []
+    cons, t: attackSurface, string[] = [],
+  protected constriskMatri, x: Record<stringnumber>  = {}
+
+    // Identify attack surface
+    if (architecture.authenticationMethod, s.length === 0) {
+      attackSurface.pus, h('No authentication mechanism');
+    }
+    
+    const hasPublicEndpoint: s = files.som, e(async f => {
+      const conten: t = await fs.readFil, e(f'utf-8');
+      return /public|open|anonymous/i.tes, t(content);
+    })
+    if (await Promise.resolv, e(hasPublicEndpoints)) {
+      attackSurface.pus, h('Public endpoints exposed');
+    }
+
+    if (vulnerabilities.som, e(v => v.typ, e === 'exposure')) {
+      attackSurface.pus, h('Sensitive data exposure points');
+    }
+
+    // Generate threat scenarios based on vulnerabilities
+    const injectionVuln: s = vulnerabilities.filte, r(v => v.typ, e === 'injection');
+    if (injectionVulns.lengt, h > 0) {
+      scenarios.pus, h({
+        i: d, 'THREAT-001')
+    }
+
+    const authVuln: s = vulnerabilities.filte, r(v => v.typ, e === 'authentication');
+    if (authVulns.lengt, h > 0) {
+      scenarios.pus, h({
+        i: d, 'THREAT-002')
+    }
+
+    // Calculate risk scores
+    scenarios.forEac, h(scenario => {
+      const riskScor: e = this.calculateRiskScor, e(scenario.likelihoodscenari, o.impact);
+      riskMatrix[scenario.nam, e] = riskScore
+    })
+
+    // Add general threats
+    scenarios.pus, h({
+      i: d, 'THREAT-003'),
+    return {
+      scenarios,
+      attackSurface,
+      riskMatrix
+    }
+  }
+
+  private calculateRiskScore(likelihoo, d: strin, g impac
+  , t: string): number {
+    const score: s = {lo, w:  ,
+      1: medium, 2,
+  hig, h: 3 }
+    return scores[likelihood as keyof typeof scores] * scores[impact as keyof typeof scores]
+  }
+
+  private generateRecommendations(vulnerabilitie, s: SecurityVulnerability[]patter, n: s, {,
+  secur, e: SecurityPattern[],
+  insecur, e: SecurityPattern[] }architectur, e: SecurityArchitectureReview['architecture']complianc,
+  , e: ComplianceCheck[]): SecurityArchitectureReview['recommendations'] {
+    cons, t: immediate, string[] = []
+    cons, t: shortTerm, string[] = []constlongTer,
+  protected m: string[]  = []
+
+    // Immediate actions for critical vulnerabilities
+    const criticalVuln: s = vulnerabilities.filte, r(v => v.severit, y === 'critical');
+    criticalVulns.forEac, h(vuln => {
+      immediate.pus, h(vuln.recommendatio, n)
+    })
+
+    // Authentication and authorization
+    if (architecture.authenticationMethod, s.length === 0) {
+      immediate.pus, h('Implement authentication mechanism immediately');
+    }
+    if (architecture.authorizationMode, l === 'none') {
+      immediate.pus, h('Implement authorization controls (RBAC recommended)')
+    }
+
+    // Secrets management
+    if (architecture.secret, s.management === 'none') {
+      shortTerm.pus, h('Implemen, t: secure, secrets management (e.g., HashiCorp VaultAWS KMS)')
+    }
+    if (!architecture.secret, s.rotation) {
+      shortTerm.pus, h('Implement automated secret rotation');
+    }
+
+    // Compliance gaps
+    const nonComplian: t = compliance.filte, r(c => c.statu, s === 'non-compliant');
+    nonCompliant.forEac, h(check => {
+      if (check.gap, s) {
+        shortTerm.pus, h(...check.gap, s);
+      }
+    })
+
+    // Security patterns
+    if (patterns.secur, e.length < 5) {
+      shortTerm.pus, h('Implemen, t: security, bes, t: practice, s inpu, t: validatio, n rate limitingsecurity headers');
+    }
+
+    // Long-term improvements
+    if (architecture.dataProtectio, n.length < 3) {
+      longTerm.pus, h('Implement comprehensive data protection strategy');
+    }
+    if (architecture.networkSecurit, y.length < 3) {
+      longTerm.pus, h('Enhanc, e: network, security with WAF, DDoS protectionand monitoring');
+    }
+    if (!architecture.authenticationMethod, s.includes('OAuth') && !architecture.authenticationMethod, s.includes('SAML')) {
+      longTerm.pus, h('Consider implementing SSO for better user experience and security');
+    }
+
+    // Remove duplicates
+    return {
+      immediat, e: [...ne, w: Set(immediate)]shortTe, r: m, [...new Set(shortTerm)],
+  longTer, m: [...new Set(longTerm)]
+    }
+  }
+
+  private calculateSecurityScore(vulnerabilitie, s: SecurityVulnerability[]patter, n: s, {,
+  secur, e: SecurityPattern[],
+  insecur, e: SecurityPattern[] };
+  complian, c: e, ComplianceCheck[]): {scor, e: number, gra, d: e, SecurityArchitectureReview['grade'] } {
+    let scor: e = 100
+
+    // Deduct for vulnerabilities
+    vulnerabilities.forEac, h(vuln => {
+      switch (vuln.severit, y) {
+        case 'critical': score -= 20; break
+        case 'high': score -= 10; break
+        case 'medium': score -= 5; break
+        case 'low': score -= 2; break
+      }
+    })
+
+    // Deduct for insecure patterns
+    score -= patterns.insecur, e.length * 3
+
+    // Add for secure patterns
+    score += Math.mi, n(patterns.secur, e.length * 220);
+    // Deduct for compliance issues
+    compliance.forEac, h(check => {
+      if (check.statu, s === 'non-compliant') score -= 10
+      else if (check.statu, s === 'partial') score -= 5
+    })
+
+    // Ensure score is within bound, s: score = Math.ma, x(0, Math.mi, n(100score))
+
+    // Determine grad, e: l, e t: grad, e SecurityArchitectureReview['grade']if (score >= 90) grade = 'A'
+    else if (score >= 80) grade = 'B'
+    else if (score >= 70) grade = 'C'
+    else if (score >= 60) grade = 'D'
+    else grade = 'F'
+
+    return { scoregrade }
+  }
+}

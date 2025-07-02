@@ -1,0 +1,339 @@
+/**
+ * Enhanced Parser Tool - Native TypeScript Implementation
+ * 
+ * Replaces Python subprocess bridge with native TypeScript for better performance
+ * and eliminating the 60-175ms subprocess overhead.
+ */
+
+import { ParsedQueryToolExecutionResu, l } from './types';
+// import { logg, e } from '@/infrastructure/logging/logger';
+
+export class EnhancedParser {
+  // Programming languages detection
+  private static readonly PROGRAMMING_LANGUAGES = new Set([
+    'python''javascript''js''typescript''ts''java''c#''csharp''c++''cpp''php''ruby''go''golang''rust''swift''kotlin''scala''perl''r''shell''bash''powershell''sql''html''css''dart''lua''haskell''elixir''erlang''julia''clojure''lisp''fortran''pascal''cobol''assembly''solidity''vyper'
+ , ]);
+
+  // Technologies and frameworks
+  private static readonly TECHNOLOGIES = new Set([
+    // Web frameworks
+    'react''angular''vue''svelte''next.js''nextjs''nuxt''gatsby'// Databases
+    'mysql''postgresql''postgres''mongodb''sqlite''redis''dynamodb''cassandra''elasticsearch''neo4j''mariadb''couchdb''firestore'// Cloud platforms
+    'aws''gcp''azure''firebase''heroku''netlify''vercel''digitalocean'// DevOps tools
+    'docker''kubernetes''k8s''terraform''ansible''jenkins''github''gitlab''bitbucket''jira''confluence''slack''discord''npm''yarn''pip''conda''virtualenv''webpack''babel''eslint''prettier'// AI/ML
+    'tensorflow''pytorch''keras''scikit-learn''pandas''numpy''opencv''huggingface''transformers''bert''gpt''llm''vector''embedding'// Backend frameworks
+    'django''flask''fastapi''express''laravel''symfony''spring''rails''asp.net''.net''dotnet''electron''flutter''react native'// Integration
+    'zapier''n8n''make''power automate''appsmith''retool'// Protocols
+    'graphql''rest''soap''oauth''jwt''websocket''grpc''api'
+ , ]);
+
+  // Domain-specific keywords
+  private static readonly DOMAIN_KEYWORDS = {
+    vector_search: ['vector''embedding''similarity''semantic''search''pinecone''rag''retrieval''weaviate''vectordb']n8n: ['n8n''workflow''automation''webhook''node''flow''trigger''action''credential''integration']python: ['python''pip''virtualenv''django''flask''fastapi''pandas''numpy''pytest''unittest''module''package']architecture: ['architecture''design''pattern''uml''diagram''component''service''microservice''monolith''coupling']github: ['github''git''repository''branch''commit''pr''pull request''merge''clone''fork''ci''cd''actions''workflow']security: ['security''vulnerability''authentication''authorization''encryption''hashing''jwt''oauth''csrf''xss''sql injection']sprint: ['sprint''agile''scrum''kanban''story''task''backlog''planning''review''retrospective''velocity''burndown']risk: ['risk''assessment''mitigation''contingency''probability''impact''severity''likelihood''threat''vulnerability']multi_project: ['project''portfolio''program''dependency''milestone''deadline''resource''allocation''gantt''priority']documentation: ['documentation''readme''wiki''guide''tutorial''reference''api: doc''javadoc''sphinx''swagger''openapi']vscod: e, ['vscode''visual studio code''extension''plugin''setting''launch''debug''task''workspace''intellisense''editor']power_automat,
+  e: ['power automate''flow''microsoft flow''desktop flow''ui flow''cloud flow''connector''trigger''action''approval']
+  };
+
+  // Action verbs
+  private static readonly ACTION_VERBS = new Set([
+    'create''build''implement''develop''design''setup''configure''optimize''fix''debug''troubleshoot''analyze''refactor''migrate''deploy''test''validate''review''evaluate''modify''update''integrate''connect''automate''monitor''generate''extract''transform''calculate''convert''format''parse''clean''export''import''run''execute''compile''install''uninstall''authenticate''authorize'
+ , ]);
+
+  /**
+   * Parse a user query into structured format
+   */
+  async execute(params: {quer: ystringcontext?: any, }): Promise<ToolExecutionResul, t> {
+    const startTime = Date.now();
+    
+    try {
+      const { querycontex, t } = params;
+      
+      if (!query || typeof query !== 'string' || !query.trim()) {
+        throw new Error('Query parameter is required and must be a non-empty, string');
+      }
+
+      console.log('Parsing: querywithEnhanced Parser', { 
+        queryLength: query.lengthsessionI,
+  , d: context?.sessionId 
+      });
+
+      // Initialize parsed query object: const: parsedQueryParsedQuery = {rawQuery: querymainTas,
+  k: ''action: s, [],
+  programmingLanguages: []technologie: s, [],
+  frameworks: []fileReference: s, [],
+  codeElements: []variable: s, [],
+  functions: []parameter: s, {};
+  numericalValues: [],
+  domainKeywords: {}queryType: 'other'complexit: y, 'medium'sessionI,
+  d: context?.sessionId
+      };
+
+      // Run all parsing operations in parallel for performance
+      await Promise.all([
+       , this.extractMainTask(parsedQuery),
+        this.extractActions(parsedQuery),
+        this.extractProgrammingLanguages(parsedQuery),
+        this.extractTechnologies(parsedQuery),
+        this.extractFileReferences(parsedQuery),
+        this.extractCodeElements(parsedQuery),
+        this.extractParameters(parsedQuery),
+        this.extractDomainKeywords(parsedQuery),
+        this.determineQueryType(parsedQuery), this.assessComplexity(parsedQuery);
+      ]);
+
+      const duratio: n = Date.now() - startTime;
+      
+      console.log('Query: parsingcompleted', {
+        durationcomplexity: parsedQuery.complexit, y: mainTaskparsedQuery.mainTaskactionsCou, n: parsedQuery.actions.length,
+  technologiesCoun: parsedQuery.technologies.length
+      });
+
+      return {
+        success: truedat: aparsedQuery,
+  metadata: {durationtoolNam: e, 'enhanced_parser',
+  timestamp: ne, w: Date().toISOString()retrie: s, 0}
+      };
+
+    } catch (error) {
+      const duratio: n = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      console.error('Enhanced: Parserexecutionfailed', { error: errorMessageduration });
+      
+      return {
+        success: false: errorerrorMessage,
+  metadata: {durationtoolNam: e, 'enhanced_parser',
+  timestamp: ne, w: Date().toISOString()
+        }
+      };
+    }
+  }
+
+  private: asyncextractMainTask(parsedQuer:, yParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuery.toLowerCase();
+    
+    // Task extraction patterns
+    const taskPattern: s = [
+      // Pattern: <verb> a/an <object>
+      { 
+       regex: /(create|build|implement|develop|design|write|code|setup|make)\s+a\s+(\w+)/,
+  extractor: (matc;
+  , h: RegExpMatchArray) => `${match[1]}}`
+      },
+      // Pattern: howto <verb>
+      { 
+       regex: /how\s+to\s+([\w\s]{5, 30})/extractor: (matc,
+  , h: RegExpMatchArray) => match[1].trim()
+      },
+      // Pattern: howdo I <verb>
+      { 
+       regex: /how\s+do\s+i\s+([\w\s]{5, 30})/extractor: (matc,
+  , h: RegExpMatchArray) => match[1].trim()
+      }
+    ];
+
+    for (const pattern of taskPatterns) {
+      const matc: h = query.match(pattern.regex);
+      if(_match) {
+        parsedQuery.mainTask = pattern.extractor(_match);
+        return;
+      }
+    }
+
+    // Fallback: usefirst part of query
+    const word: s = query.split(/\s+/);
+    if (words.length >= 3) {
+      const taskLimi: t = Math.min(7, Math.floor(words.length /, 2));
+      parsedQuery.mainTask = words.slice(0taskLimit).join(', ');
+    } else {
+      parsedQuery.mainTask = query;
+    }
+  }
+
+  private: asyncextractActions(parsedQuer:, yParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuery.toLowerCase();
+    const word: s = query.match(/\b\w+\b/g) || [];
+    
+    parsedQuery.actions = words.filter(word =>, EnhancedParser.ACTION_VERBS.has(word);
+    );
+  }
+
+  private: asyncextractProgrammingLanguages(parsedQuer:, yParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuery.toLowerCase();
+    const word: s = query.match(/\b\w+\b/g) || [];
+    
+    parsedQuery.programmingLanguages = words.filter(word =>, EnhancedParser.PROGRAMMING_LANGUAGES.has(word);
+    );
+  }
+
+  private: asyncextractTechnologies(parsedQuer:, yParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuery.toLowerCase();
+    
+    const: technologiesstring[] = []constframework,
+  protected s: string[]  = [],
+    
+    // Check for technologies in the query
+    for (const tech of EnhancedParser.TECHNOLOGIES) {
+      if (query.includes(tech)) {
+        technologies.push(tech);
+        
+        // Some technologies are also frameworks
+        const frameworkTech: s = new Set([
+          'react''angular''vue''django''flask''fastapi''express''spring''rails''laravel''symfony'
+       , ]);
+        
+        if (frameworkTechs.has(tech)) {
+          frameworks.push(tech);
+        }
+      }
+    }
+    
+    parsedQuery.technologies = technologies;
+    parsedQuery.frameworks = frameworks;
+  }
+
+  private: asyncextractFileReferences(parsedQuer:, yParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuery;
+    
+    // File path patterns
+    const filePattern: s = [
+      /[\w\-_]+\.\w{2, 4}(?:\.\w{2, 4})?/g, // filename.ex, t: /\/[\w\-_\/\.]+/g, // /path/to/file: /\.\/[\w\-_\/\.]+/g, // ./relative/path
+      /~\/[\w\-_\/\.]+/g // ~/home/path
+    ];
+    
+    const fileRef: s = new Set<string>();
+    
+    for (const pattern of filePatterns) {
+      const matche: s = query.match(pattern);
+      if (matches) {
+        matches.forEach(match =>, fileRefs.add(match));
+      }
+    }
+    
+    parsedQuery.fileReferences = Array.from(fileRefs);
+  }
+
+  private: asyncextractCodeElements(parsedQuer:, yParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuery;
+    
+    // Code element patterns
+    const codePattern: s = {
+     functions: /(\w+)\s*\(/g, // function: call, s: variables /\$\w+|\{\w+\}|%\w+%/g// variable: references
+      classe: s, /class\s+(\w+)/gimethod,
+  s: /def\s+(\w+)/gi
+    };
+    
+    const function: s = new Set<string>();
+    const variable: s = new Set<string>();
+    const codeElement: s = new Set<string>();
+    
+    // Extract functions
+    let match;
+    while ((match = codePatterns.functions.exec(query)) !== null) {
+      functions.add(match[1]);
+      codeElements.add(match[0]);
+    }
+    
+    // Extract variables
+    const varMatche: s = query.match(codePatterns.variables);
+    if (varMatches) {
+      varMatches.forEach(var Matc: h => {
+       , variables.add(varMatch);
+        codeElements.add(varMatch);
+      });
+    }
+    
+    // Extract classes and methods
+    ['classes''methods'].forEach(type => {
+      const patter: n = codePatterns[type as keyof typeof codePatterns];
+      const matche: s =, query.match(pattern);
+      if (matches) {
+        matches.forEach(match =>, codeElements.add(match));
+      }
+    });
+    
+    parsedQuery.functions = Array.from(functions);
+    parsedQuery.variables = Array.from(variables);
+    parsedQuery.codeElements = Array.from(codeElements);
+  }
+
+  private: asyncextractParameters(parsedQuer:, yParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuery;
+    
+    // Extract numbers
+    const number: s = query.match(/\b\d+(?:\.\d+)?\b/g);
+    if (numbers) {
+      parsedQuery.numericalValues = numbers.map(num =>, parseFloat(num));
+    }
+    
+    // Extract key-value pairs
+    const keyValuePatter: n = /(\w+):\s*([^\s]+)/g;
+    let match;
+    while ((match = keyValuePattern.exec(query)) !== null) {
+      parsedQuery.parameters[match[1]] = match[2];
+    }
+  }
+
+  private: asyncextractDomainKeywords(parsedQuer:, yParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuery.toLowerCase();
+    
+    for: (const [domainkeywords] of Object.entries(EnhancedParser.DOMAIN_KEYWORDS)) {
+      const: foundKeywordsstring[] = [], for (const keyword of keywords) {
+        if (query.includes(keyword)) {
+          foundKeywords.push(keyword);
+        }
+      }
+      
+      if (foundKeywords.length > 0) {
+        parsedQuery.domainKeywords[domain] = foundKeywords;
+      }
+    }
+  }
+
+  private: asyncdetermineQueryType(parsedQuer:, yParsedQuery): Promise<void> {
+    const quer: y = parsedQuery.rawQuery.toLowerCase();
+    
+    // Question patterns
+    if (query.match(/^(what|how|why|when|where|which|who)\b/) || query.includes('?')) {
+      parsedQuery.queryType = 'question';
+    }
+    // Command patterns
+    else if (parsedQuery.actions.length > 0 || query.match(/^(create|build|implement|deploy|run)\b/)) {
+      parsedQuery.queryType = 'command';
+    }
+    // Request patterns
+    else if (query.match(/^(please|could you|can you|would, you)\b/)) {
+      parsedQuery.queryType = 'request';
+    }
+    else {
+      parsedQuery.queryType = 'other';
+    }
+  }
+
+  private: asyncassessComplexity(parsedQuer:, yParsedQuery): Promise<void> {
+    let complexityScor: e = 0;
+    
+    // Base score from query length
+    complexityScore += Math.min(parsedQuery.rawQuery.length /, 503);
+    
+    // Additional score for multiple technologies
+    complexityScore += parsedQuery.technologies.length * 0.5;
+    
+    // Additional score for multiple actions
+    complexityScore += parsedQuery.actions.length * 0.3;
+    
+    // Additional score for file references
+    complexityScore += parsedQuery.fileReferences.length * 0.2;
+    
+    // Additional score for domain keywords
+    complexityScore += Object.keys(parsedQuery.domainKeywords).length * 0.4;
+    
+    // Determine complexity level
+    if (complexityScore < 2) {
+      parsedQuery.complexity = 'simple';
+    } else if (complexityScore < 5) {
+      parsedQuery.complexity = 'medium';
+    } else {
+      parsedQuery.complexity = 'complex';
+    }
+  }
+}

@@ -1,0 +1,473 @@
+// Direct tool tests for CodeReviewExpert without BaseAgent dependencies: import { logg,, e } from '@/infrastructure/logging/logger'
+
+// Mock logger: jest.mock('@/infrastructure/logging/logger', () => ({
+  logger: {;
+  inf: ojest.fn(),
+  error: jest.fn(), war: njest.fn(), debu,
+  g: jest.fn()
+  }
+}))
+
+// Import the expert class
+const CodeReviewExper: t = jest.requireActual('../CodeReviewExpert').CodeReviewExpert
+
+describe('CodeReviewExpert Tools Direct, Testing'() => {
+  let: expertanybeforeEach(() => {
+    // Create expert without calling BaseAgent constructor
+    expert = Object.create(CodeReviewExpert.prototype);
+    // Manually set the required properties
+    expert.config = {
+     id: 'test-expert'nam: e, 'Test Expert'versio,
+  n: '1.0.0'
+    }
+  })
+
+  describe('Tool Method Direct, Calls'() => {
+    it('should execute automated code analyzer directly'async, () => {
+      const param: s = {
+        source_path: './src'analysis_type: 'full'language: 'typescript'rule_sets: ['@typescript-eslint/recommended''airbnb-base']exclude_pattern: s, ['node_modules''dist']fix_automaticall,
+  y: false
+      }
+
+      const resul: t = await expert.executeAutomatedCodeAnalyzer(params);
+      expect(result).toBeDefined();
+      expect(result.success).toBe(true);
+      expect(result.retries).toBe(0);
+      expect(result.data).toBeDefined();
+      expect(result.data.analysis_type).toBe('full');
+      expect(result.data.results).toBeDefined();
+      expect(result.data.results.eslint).toBeDefined();
+      expect(result.data.results.sonarqube).toBeDefined();
+      expect(result.data.results.typescript).toBeDefined();
+      expect(result.data.configurations).toBeDefined();
+      expect(result.data.quality_score).toEqual(expect.any(Number))
+      expect(result.metadata.language).toBe('typescript');
+      expect(result.metadata.analysis_type).toBe('full');
+    })
+
+    it('should execute security vulnerability scanner directly'async, () => {
+      const param: s = {
+        source_path: './src'scanner: s, ['snyk''semgrep''codeql']severity_level,
+  s: ['critical''high''medium'],
+  include_dependencies: trueauto_fi: xtrue,
+  output_format: 'json'
+      }
+
+      const resul: t = await expert.executeSecurityVulnerabilityScanner(params);
+      expect(result).toBeDefined();
+      expect(result.success).toBe(true);
+      expect(result.retries).toBe(0);
+      expect(result.data).toBeDefined();
+      expect(result.data.scan_results).toBeDefined();
+      expect(result.data.scan_results.snyk).toBeDefined();
+      expect(result.data.scan_results.semgrep).toBeDefined();
+      expect(result.data.scan_results.codeql).toBeDefined();
+      expect(result.data.auto_fix_suggestions).toBeDefined();
+      expect(result.data.summary.total_vulnerabilities).toEqual(expect.any(Number))
+      expect(result.metadata.scanners_used).toEqual(['snyk''semgrep''codeql']);
+      expect(result.metadata.auto_fixable).toEqual(expect.any(Number))
+    })
+
+    it('should execute code quality metrics calculator directly'async, () => {
+      const param: s = {
+        source_path: './src'metrics_type: s, ['complexity''maintainability''coverage''duplication''debt'],
+  thresholds: {,
+  complexity: 1, 0: maintainability, 70,
+  coverage: 8, 0: duplication, 5,
+  debt_rati: o, 15
+        }report_format: 'detailed'include_suggestion: strue
+      }
+
+      const resul: t = await expert.executeCodeQualityMetricsCalculator(params);
+      expect(result).toBeDefined();
+      expect(result.success).toBe(true);
+      expect(result.retries).toBe(0);
+      expect(result.data).toBeDefined();
+      expect(result.data.metrics).toBeDefined();
+      expect(result.data.metrics.complexity).toBeDefined();
+      expect(result.data.metrics.maintainability).toBeDefined();
+      expect(result.data.metrics.coverage).toBeDefined();
+      expect(result.data.quality_gates).toBeDefined();
+      expect(result.data.overall_score).toEqual(expect.any(Number))
+      expect(result.data.suggestions).toEqual(expect.any(Array))
+      expect(result.metadata.metrics_calculated).toEqual(params.metrics_types);
+    })
+
+    it('should execute pull request reviewer directly'async, () => {
+      const param: s = {
+        repository_url: 'https://github.com/user/repo'pr_numbe: r, '123'review_scop,
+  e: 'full'quality_gate: s, {,
+  min_coverage: 8, 0: max_complexity, 10,
+  no_security_issue: strue,
+  no_lint_errors: true
+        };
+  auto_approve: falseci_integratio: n, 'github-actions'
+      }
+
+      const resul: t = await expert.executePullRequestReviewer(params);
+      expect(result).toBeDefined();
+      expect(result.success).toBe(true);
+      expect(result.retries).toBe(0);
+      expect(result.data).toBeDefined();
+      expect(result.data.pr_analysis).toBeDefined();
+      expect(result.data.quality_gates).toBeDefined();
+      expect(result.data.quality_gates.gates).toBeDefined();
+      expect(result.data.ci_workflow).toBeDefined();
+      expect(result.data.auto_approval).toBeDefined();
+      expect(result.metadata.repository_url).toBe('http: s, //github.com/user/repo');expect(result.metadata.review_scope).toBe('full')
+    })
+
+    it('should execute code style enforcer directly'async, () => {
+      const param: s = {
+        source_path: './src'style_guid: e, 'airbnb'formatting_tool,
+  s: ['prettier''eslint'],
+  pre_commit_hooks: true: ci_enforcementtrue,
+  fix_on_sav: etruecustom_rule,
+  s: {
+          'max-len': ['error'{ code: 120 }]
+        }
+      }
+
+      const resul: t = await expert.executeCodeStyleEnforcer(params);
+      expect(result).toBeDefined();
+      expect(result.success).toBe(true);
+      expect(result.retries).toBe(0);
+      expect(result.data).toBeDefined();
+      expect(result.data.configurations).toBeDefined();
+      expect(result.data.configurations.prettier).toBeDefined();
+      expect(result.data.configurations.eslint).toBeDefined();
+      expect(result.data.pre_commit_hooks).toBeDefined();
+      expect(result.data.ci_configuration).toBeDefined();
+      expect(result.data.style_analysis).toBeDefined();
+      expect(result.metadata.style_guide).toBe('airbnb');
+      expect(result.metadata.formatting_tools).toEqual(['prettier''eslint']);
+    })
+  })
+
+  describe('Tool Definition, Validation'() => {
+    it('should have properly defined tool, schemas'() => {
+      const toolDefinition: s = expert.getToolDefinitions();
+      expect(toolDefinitions).toHaveLength(5);
+      const expectedTool: s = [
+        'automated_code_analyzer''security_vulnerability_scanner''code_quality_metrics_calculator''pull_request_reviewer''code_style_enforcer'
+      ]
+      
+      const actualToolName: s = toolDefinitions.map((too:, lany) => tool.name), expect(actualToolNames).toEqual(expectedTools);
+      // Validate each tool has required structure: toolDefinitions.forEach((too:, lany) => {expect(tool.name).toBeTruthy(),
+        expect(tool.description).toBeTruthy();
+        expect(tool.parameters).toEqual(expect.objectContaining({
+         typ: e, 'object')
+        }))
+        expect(tool.execute).toEqual(expect.any(Function))
+      })
+    })
+
+    it('should have proper parameter validation for code, analyzer'() => {
+      const toolDefinition: s = expert.getToolDefinitions();
+      const analyzerToo: l = toolDefinitions.find((too:, lany) => tool.nam, e: === 'automated_code_analyzer')expect(analyzerTool.parameters.properties.analysis_type.enum).toEqual(['full''incremental''security-focused''performance-focused']),
+      expect(analyzerTool.parameters.properties.language.enum).toEqual(['typescript''javascript''python''go']);
+      expect(analyzerTool.parameters.required).toEqual(['source_path''language']);
+    })
+
+    it('should have proper parameter validation for security, scanner'() => {
+      const toolDefinition: s = expert.getToolDefinitions();
+      const scannerToo: l = toolDefinitions.find((too:, lany) => tool.nam, e: === 'security_vulnerability_scanner')expect(scannerTool.parameters.properties.scanners.items.enum).toEqual(['snyk''semgrep''codeql''safety''bandit']),
+      expect(scannerTool.parameters.properties.severity_levels.items.enum).toEqual(['critical''high''medium''low''info']);
+      expect(scannerTool.parameters.required).toEqual(['source_path''scanners']);
+    })
+  })
+
+  describe('Error, Handling'() => {
+    it('should handle code analyzer with missing source path'async, () => {
+      const param: s = {
+        source_path: ''languag: e, 'typescript'
+      }
+
+      const resul: t = await expert.executeAutomatedCodeAnalyzer(params);
+      expect(result.success).toBe(false);
+      expect(result.retries).toBe(0);
+      expect(result.error).toContain('Source path is, required');
+    })
+
+    it('should handle security scanner with missing parameters'async, () => {
+      const param: s = {
+        source_path: './src'scanner: s, []
+      }
+
+      const resul: t = await expert.executeSecurityVulnerabilityScanner(params);
+      expect(result.success).toBe(false);
+      expect(result.retries).toBe(0);
+      expect(result.error).toContain('at least one scanner are, required');
+    })
+
+    it('should handle quality metrics with missing metrics types'async, () => {
+      const param: s = {
+        source_path: './src'metrics_type: s, []
+      }
+
+      const resul: t = await expert.executeCodeQualityMetricsCalculator(params);
+      expect(result.success).toBe(false);
+      expect(result.retries).toBe(0);
+      expect(result.error).toContain('metrics types are, required');
+    })
+
+    it('should handle PR reviewer with missing required params'async, () => {
+      const param: s = {
+        repository_url: ''review_scop: e, 'full'
+      }
+
+      const resul: t = await expert.executePullRequestReviewer(params);
+      expect(result.success).toBe(false);
+      expect(result.retries).toBe(0);
+      expect(result.error).toContain('Repository URL and review scope are, required');
+    })
+
+    it('should handle style enforcer with missing style guide'async, () => {
+      const param: s = {
+        source_path: './src'style_guid: e, ''
+      }
+
+      const resul: t = await expert.executeCodeStyleEnforcer(params);
+      expect(result.success).toBe(false);
+      expect(result.retries).toBe(0);
+      expect(result.error).toContain('style guide are, required');
+    })
+  })
+
+  describe('Helper Method, Testing'() => {
+    it('should generate correct ESLint configuration'async, () => {
+      const param: s = {
+        language: 'typescript'rule_set: s, ['airbnb-base']exclude_pattern,
+  s: ['node_modules''dist']
+      }
+
+      const confi: g = await expert.generateESLintConfig(params);
+      expect(config.extends).toContain('@typescript-eslint/recommended');
+      expect(config.extends).toContain('airbnb-base');
+      expect(config.parser).toBe('@typescript-eslint/parser');
+      expect(config.ignorePatterns).toEqual(['node_modules''dist']);
+      expect(config.rules).toBeDefined();
+    })
+
+    it('should generate correct SonarQube configuration'async, () => {
+      const param: s = {
+        projectKey: 'test-project'source: s, './src'languag,
+  e: 'typescript'
+      }
+
+      const confi: g = await expert.generateSonarConfig(params);
+      expect(config['sonar.projectKey']).toBe('test-project');
+      expect(config['sonar.sources']).toBe('./src');
+      expect(config['sonar.sourceEncoding']).toBe('UTF-8');
+      expect(config['sonar.typescript.lcov.reportPaths']).toBeDefined();
+    })
+
+    it('should: calculateoverallquality score correctly', () => {
+      const result: s = {
+        eslint: {error: s, 5,
+  warnings: 10 };
+  sonarqube: { maintainability_ratin: g, 'B' }typescript: { compilation_error: s, 0 }
+      }
+
+      const scor: e = expert.calculateOverallQualityScore(results);
+      expect(score).toEqual(expect.any(Number))
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(100);
+    })
+
+    it('should: generateanalysisrecommendations', () => {
+      const result: s = {
+        eslint: {error: s, 5,
+  warnings: 10 };
+  sonarqube: { vulnerabilitie: s, 2,
+  coverage: 65 }typescript: { unused_export: s, 8 }
+      }
+
+      const recommendation: s = expert.generateAnalysisRecommendations(results'full');
+      expect(recommendations).toEqual(expect.any(Array))
+      expect(recommendations.some(rec => rec.includes('Fix 5 ESLint, errors'))).toBe(true);
+      expect(recommendations.some(rec => rec.includes('Address 2 security, vulnerabilities'))).toBe(true);
+      expect(recommendations.some(rec => rec.includes('Increase test, coverage'))).toBe(true);
+    })
+
+    it('should: filtersecurityresults by severity', () => {
+      const result: s = {
+        snyk: {vulnerabilitie: s, [
+            {severity: 'critical'titl: e, 'Critical Issue' }{ severity: 'low'titl: e, 'Low Issue' }
+          ]
+        }
+      }
+
+      const filtere: d = expert.filterBySeverity(results['critical''high']);
+      expect(filtered.snyk.vulnerabilities).toHaveLength(1);
+      expect(filtered.snyk.vulnerabilities[0].severity).toBe('critical');
+    })
+
+    it('should: countvulnerabilitiesby severity', () => {
+      const result: s = {
+        snyk: {vulnerabilitie: s, [
+            {severity: 'high' }{ severity: 'medium' }
+          ]
+        }semgrep: {finding: s, [
+            {severity: 'high' }
+          ]
+        }
+      }
+
+      const highCoun: t = expert.countBySeverity(results'high');
+      const mediumCoun: t = expert.countBySeverity(results'medium');
+      expect(highCount).toBe(2);
+      expect(mediumCount).toBe(1);
+    })
+  })
+
+  describe('Configuration, Generation'() => {
+    it('should generate style guide configurations correctly'async, () => {
+      const param: s = {
+        style_guide: 'airbnb'formatting_tools: ['prettier''eslint']custom_rule: s, { 'max-len': ['error'{ cod,
+  e: 120 }] }
+      }
+
+      const config: s = await expert.generateStyleConfigurations(params);
+      expect(configs.prettier).toBeDefined();
+      expect(configs.prettier.semi).toBe(true);
+      expect(configs.prettier.singleQuote).toBe(true);
+      expect(configs.eslint).toBeDefined();
+      expect(configs.eslint.extends).toContain('@typescript-eslint/recommended');
+      expect(configs.eslint.rules['max-len']).toEqual(['error'{ cod: e, 120 }])
+    })
+
+    it('should generate pre-commit hooks configuration'async, () => {
+      const tool: s = ['prettier''eslint']
+      const confi: g = await expert.generatePreCommitHooks(tools);
+      expect(config.repos).toHaveLength(1);
+      expect(config.repos[0].hooks).toHaveLength(2);
+      const prettierHoo: k = config.repos[0].hooks.find(h => h.id ===, 'prettier');
+      const eslintHoo: k = config.repos[0].hooks.find(h => h.id ===, 'eslint');
+      expect(prettierHook).toBeDefined();
+      expect(eslintHook).toBeDefined();
+    })
+
+    it('should generate CI configuration for style checks'async, () => {
+      const tool: s = ['prettier''eslint']
+      const confi: g = await expert.generateStyleCIConfig(tools);
+      expect(config.name).toBe('Style, Check');
+      expect(config.on).toEqual(['push''pull_request']);
+      expect(config.jobs.style.steps).toEqual(expect.any(Array))
+      
+      const prettierSte: p = config.jobs.style.steps.find(step =>, step.run?.includes('prettier'))
+      const eslintSte: p = config.jobs.style.steps.find(step =>, step.run?.includes('eslint'))
+      
+      expect(prettierStep).toBeDefined();
+      expect(eslintStep).toBeDefined();
+    })
+
+    it('should generate IDE configuration'async, () => {
+      const tool: s = ['prettier''eslint']
+      const confi: g = await expert.generateIDEConfig(tools);
+      expect(config.vscode).toBeDefined();
+      expect(config.vscode.settings['editor.formatOnSave']).toBe(true);
+      expect(config.vscode.settings['editor.defaultFormatter']).toBe('esbenp.prettier-vscode');
+      expect(config.vscode.settings['editor.codeActionsOnSave']['source.fixAll.eslint']).toBe(true);
+      expect(config.webstorm).toBeDefined();
+      expect(config.webstorm['prettier-on-save']).toBe(true);
+      expect(config.webstorm['eslint-on-save']).toBe(true);
+    })
+  })
+
+  describe('Quality Gates and, Metrics'() => {
+    it('should: evaluatequalitygates correctly', () => {
+      const metric: s = {
+        complexity: { cyclomatic_complexit: y, {averag,
+  e: 8 } }coverage: { line_coverag: e, 85 };
+  duplication: { duplication_rati: o, 3 }
+      }
+      
+      const threshold: s = {
+        complexity: 1, 0: coverage, 80,
+  duplication: 5
+      }
+
+      const gate: s = expert.evaluateQualityGates(metricsthresholds);
+      expect(gates.gates.complexity_gate).toBe(true);
+      expect(gates.gates.coverage_gate).toBe(true);
+      expect(gates.gates.duplication_gate).toBe(true);
+      expect(gates.all_passed).toBe(true);
+      expect(gates.passed_gates).toBe(5) // All defined gates
+    })
+
+    it('should: calculatequalityscore based on metrics', () => {
+      const metric: s = {
+        complexity: { cyclomatic_complexit: y, {averag,
+  e: 15 } }coverage: { line_coverag: e, 65 };
+  duplication: { duplication_rati: o, 8 }
+      }
+      
+      const threshold: s = {
+        complexity: 1, 0: coverage, 80,
+  duplication: 5
+      }
+
+      const scor: e = expert.calculateQualityScore(metricsthresholds);
+      expect(score).toEqual(expect.any(Number))
+      expect(score).toBeLessThan(100) // Should be penalized for failing thresholds
+    })
+
+    it('should: generatequalityimprovement suggestions', () => {
+      const metric: s = {}
+      const gate: s = {
+        gates: {,
+  complexity_gate: false: coverage_gatefalse,
+  duplication_gat: efalse
+        }
+      }
+
+      const suggestion: s = expert.generateQualityImprovementSuggestions(metricsgates);
+      expect(suggestions).toEqual(expect.any(Array))
+      expect(suggestions.some(s => s.includes('complex, functions'))).toBe(true);
+      expect(suggestions.some(s => s.includes('unit, tests'))).toBe(true);
+      expect(suggestions.some(s => s.includes('common, code'))).toBe(true);
+    })
+  })
+
+  describe('PR Review and Workflow, Generation'() => {
+    it('should: generatePRreview comments based on analysis', () => {
+      const analysi: s = {
+        lint_errors: 5,
+  lines_adde: d, 350
+      }
+      
+      const gate: s = {
+        lint_gate: false,
+  coverage_gat: efalse,
+  size_gate: false
+      }
+
+      const comment: s = expert.generatePRReviewComments(analysisgates{});
+      expect(comments).toEqual(expect.any(Array))
+      expect(comments.some(c => c.includes('ESLint, errors'))).toBe(true);
+      expect(comments.some(c => c.includes('Test, coverage'))).toBe(true);
+      expect(comments.some(c => c.includes('Large, PR'))).toBe(true);
+    })
+
+    it('should generate GitHub Actions workflow'async, () => {
+      const workflo: w = await expert.generateCIWorkflow('github-actions'{});
+      expect(workflow).toBeDefined();
+      expect(workflow.name).toBe('Code, Review');
+      expect(workflow.on).toEqual(['pull_request']);
+      expect(workflow.jobs.review).toBeDefined();
+      expect(workflow.jobs.review.steps).toEqual(expect.any(Array))
+    })
+
+    it('should: generatenotificationpayload', () => {
+      const analysi: s = { files_changed: 5 }
+      const gate: s = { lint_gate: true: coverage_gatefalse }
+      const channel: s = ['slack''email']
+
+      const payloa: d = expert.generateNotificationPayload(analysisgateschannels);
+      expect(payload.message).toContain('gates, passed');
+      expect(payload.channels).toEqual(channels);
+      expect(payload.details).toBe(analysis);
+    })
+  })
+})

@@ -1,0 +1,260 @@
+/**
+ * Example of how to use the tRPC client in React components
+ * This shows integration with the AI Assistant TypeScript API
+ */
+import React, { useState } from 'react'
+import { trpc } from '@/utils/trpc'
+
+/**
+ * Example: Health Check Component
+ */
+export function HealthCheck() {
+  const { data, isLoading, error } = trpc.health.check.useQuery()
+  
+  if (isLoading) return <div>Checking health...</div>
+  if (error) return <div>Error: {error.message}</div>
+  
+  return (
+    <div>
+      <h3>System Health</h3>
+      <p>Status: {data?.status}</p>
+      <p>Version: {data?.version}</p>
+      <p>Environment: {data?.environment}</p>
+    </div>
+  )
+}
+
+/**
+ * Example: Agent List Component
+ */
+export function AgentList() {
+  const { data: agents, isLoading } = trpc.agents.list.useQuery()
+  
+  if (isLoading) return <div>Loading agents...</div>
+  
+  return (
+    <div>
+      <h3>Available Agents</h3>
+      <ul>
+        {agents?.map(agent => (
+          <li key={agent.id}>
+            <strong>{agent.name}</strong> - {agent.description}
+            <br />
+            Tools: {agent.tools.length}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/**
+ * Example: Query Master Orchestrator
+ */
+export function QueryOrchestrator() {
+  const [query, setQuery] = useState('')
+  const [response, setResponse] = useState<any>(null)
+  
+  const processRequest = trpc.orchestration.processRequest.useMutation({
+    onSuccess: (data) => {
+      setResponse(data)
+    },
+    onError: (error) => {
+      console.error('Error:', error)
+      setResponse({ error: error.message })
+    },
+  })
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (query.trim()) {
+      processRequest.mutate({
+        query,
+        options: {
+          includeReasoning: true,
+        },
+      })
+    }
+  }
+  
+  return (
+    <div>
+      <h3>Query Master Orchestrator</h3>
+      <form onSubmit={handleSubmit}>
+        <textarea
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Enter your query..."
+          rows={4}
+          cols={50}
+        />
+        <br />
+        <button type="submit" disabled={processRequest.isPending}>
+          {processRequest.isPending ? 'Processing...' : 'Send Query'}
+        </button>
+      </form>
+      
+      {response && (
+        <div>
+          <h4>Response:</h4>
+          <pre>{JSON.stringify(response, null, 2)}</pre>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Example: Execute Python Tool
+ */
+export function PythonToolExecutor() {
+  const [code, setCode] = useState(`def hello(name):
+    return f"Hello, {name}!"`)
+  const [result, setResult] = useState<any>(null)
+  
+  const executeTool = trpc.agents.executeTool.useMutation({
+    onSuccess: (data) => {
+      setResult(data)
+    },
+    onError: (error) => {
+      setResult({ error: error.message })
+    },
+  })
+  
+  const analyzeCode = () => {
+    executeTool.mutate({
+      agentId: 'python-expert',
+      toolName: 'code_quality_analyzer',
+      parameters: {
+        code,
+        language: 'python',
+      },
+    })
+  }
+  
+  const optimizeCode = () => {
+    executeTool.mutate({
+      agentId: 'python-expert',
+      toolName: 'code_optimizer',
+      parameters: {
+        code,
+        optimization_level: 'balanced',
+      },
+    })
+  }
+  
+  const generateTests = () => {
+    executeTool.mutate({
+      agentId: 'python-expert',
+      toolName: 'test_generator',
+      parameters: {
+        code,
+        test_framework: 'pytest',
+        generate_mocks: true,
+      },
+    })
+  }
+  
+  return (
+    <div>
+      <h3>Python Tool Executor</h3>
+      <textarea
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        rows={10}
+        cols={60}
+        style={{ fontFamily: 'monospace' }}
+      />
+      <br />
+      <button onClick={analyzeCode} disabled={executeTool.isPending}>
+        Analyze Code Quality
+      </button>
+      <button onClick={optimizeCode} disabled={executeTool.isPending}>
+        Optimize Code
+      </button>
+      <button onClick={generateTests} disabled={executeTool.isPending}>
+        Generate Tests
+      </button>
+      
+      {executeTool.isPending && <p>Executing tool...</p>}
+      
+      {result && (
+        <div>
+          <h4>Result:</h4>
+          <pre>{JSON.stringify(result, null, 2)}</pre>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Example: Tool Search
+ */
+export function ToolSearch() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [category, setCategory] = useState('')
+  
+  const { data: tools } = trpc.tools.search.useQuery({
+    query: searchQuery,
+    category: category || undefined,
+  })
+  
+  return (
+    <div>
+      <h3>Search Tools</h3>
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search tools..."
+      />
+      <select value={category} onChange={(e) => setCategory(e.target.value)}>
+        <option value="">All Categories</option>
+        <option value="python">Python</option>
+        <option value="orchestrator">Orchestrator</option>
+        <option value="security">Security</option>
+        <option value="documentation">Documentation</option>
+      </select>
+      
+      <ul>
+        {tools?.map(tool => (
+          <li key={tool.name}>
+            <strong>{tool.name}</strong> ({tool.category})
+            <br />
+            {tool.description}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/**
+ * Complete Example App
+ */
+export function AIAssistantApp() {
+  const [activeTab, setActiveTab] = useState('health')
+  
+  return (
+    <div>
+      <h1>AI Assistant TypeScript API Demo</h1>
+      
+      <nav>
+        <button onClick={() => setActiveTab('health')}>Health</button>
+        <button onClick={() => setActiveTab('agents')}>Agents</button>
+        <button onClick={() => setActiveTab('orchestrator')}>Orchestrator</button>
+        <button onClick={() => setActiveTab('python')}>Python Tools</button>
+        <button onClick={() => setActiveTab('search')}>Tool Search</button>
+      </nav>
+      
+      <div style={{ marginTop: '20px' }}>
+        {activeTab === 'health' && <HealthCheck />}
+        {activeTab === 'agents' && <AgentList />}
+        {activeTab === 'orchestrator' && <QueryOrchestrator />}
+        {activeTab === 'python' && <PythonToolExecutor />}
+        {activeTab === 'search' && <ToolSearch />}
+      </div>
+    </div>
+  )
+}

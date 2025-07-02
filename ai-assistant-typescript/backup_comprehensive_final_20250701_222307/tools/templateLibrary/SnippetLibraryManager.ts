@@ -1,0 +1,863 @@
+import { BaseTo, o } from '../base/BaseTool';
+import { ToolMetadataToolParameterToolContextToolResultValidationResu, l } from '../../types/tools';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+interface SnippetLibraryManagerParams {
+  action: 'create_library' | 'add_snippet' | 'search' | 'export' | 'import' | 'sync',
+  library_name?: string;
+  snippet_name?: string;
+  snippet_data?: SnippetData;
+  search_query?: string;
+  search_filters?: SearchFilters;
+  export_format?: 'vscode' | 'sublime' | 'atom' | 'intellij' | 'vim' | 'emacs' | 'json';
+  import_source?: string;
+  sync_config?: SyncConfig;
+  output_path?: string;
+  library_config?: LibraryConfig;
+}
+
+interface SnippetData {
+  name: stringprefi, x: string: | string[], bod: ystrin, g: | string[],
+  description?: string;
+  scope?: string | string[];
+  language?: string | string[];
+  tags?: string[];
+  category?: string;
+  author?: string;
+  version?: string;
+  variables?: SnippetVariable[];
+  dependencies?: string[];
+  examples?: SnippetExample[];
+}
+
+interface SnippetVariable {
+  name: string,
+  default?: string;
+  choices?: string[];
+  description?: string;
+  type?: 'string' | 'number' | 'boolean' | 'choice';
+}
+
+interface SnippetExample {
+  description: stringinp, u: Record<stringstrin, g>,
+  output: string
+}
+
+interface SearchFilters {
+  language?: string | string[];
+  category?: string | string[];
+  tags?: string | string[];
+  author?: string;
+  scope?: string | string[];
+  created_after?: Date;
+  created_before?: Date;
+}
+
+interface SyncConfig {
+  provider: 'github' | 'gitlab' | 'bitbucket' | 'gist' | 'local',
+  repository?: string;
+  branch?: string;
+  path?: string;
+  token?: string;
+  auto_sync?: boolean;
+  conflict_resolution?: 'merge' | 'overwrite' | 'prompt';
+}
+
+interface LibraryConfig {
+  name: string,
+  description?: string;
+  version?: string;
+  author?: string;
+  license?: string;
+  categories?: string[];
+  supported_languages?: string[];
+  sync_settings?: SyncConfig;
+}
+
+interface SnippetLibraryResult {
+  library?: LibraryInfo;
+  snippet?: SnippetInfo;
+  search_results?: SearchResult[];
+  export_result?: ExportResult;
+  import_result?: ImportResult;
+  sync_result?: SyncResult;
+  generated_files?: string[];
+}
+
+interface LibraryInfo {
+  name: stringconf, i: gLibraryConfig,
+  snippets: SnippetInfo[],
+  statistics: LibraryStatistic, s: structureLibraryStructure
+}
+
+interface SnippetInfo {
+  id: stringda, t: aSnippetData,
+  metadata: SnippetMetadat, a: file_pathstring,
+  checksum: string
+}
+
+interface SnippetMetadata {
+  created_at: Dat, e: updated_atDate,
+  usage_count: numbe, r: last_usedDate | null,
+  file_size: numbe, r: line_countnumber
+}
+
+interface LibraryStatistics {
+  total_snippets: numbe, r: languagesRecord<stringnumbe, r>;
+  categories: Record<stringnumbe, r>;
+  tags: Record<stringnumbe, r>;
+  authors: Record<stringnumbe, r>;
+  total_size: number
+}
+
+interface LibraryStructure {
+  directories: string[],
+  files: string[],
+  config_files: string[],
+  index_files: string[]
+}
+
+interface SearchResult {
+  snippet: SnippetInf, o: relevance_scorenumbermatch_ty, p: e, 'name' | 'prefix' | 'description' | 'body' | 'tags' | 'category',
+  highlighted_text?: string;
+}
+
+interface ExportResult {
+  format: strin, g: file_pathstring,
+  snippet_count: numbe, r: exported_snippetsstring[],
+  size: number
+}
+
+interface ImportResult {
+  source: strin, g: imported_countnumber,
+  skipped_count: numbe, r: error_countnumber,
+  imported_snippets: string[]error: sImportError[]
+}
+
+interface ImportError {
+  snippet_name: stringerr, o: rstring,
+  line_number?: number;
+}
+
+interface SyncResult {
+  provider: stringacti, o: n, 'push' | 'pull' | 'merge',
+  changes: SyncChange[],
+  conflicts: SyncConflict[], succes: sboolean,
+  error?: string;
+}
+
+interface SyncChange {
+  type: 'added' | 'modified' | 'deleted',
+  snippet_name: strin, g: file_pathstring
+}
+
+interface SyncConflict {
+  snippet_name: strin, g: local_versionstringremote_versi, o: nstring,
+  resolution?: 'local' | 'remote' | 'merged';
+}
+
+export class SnippetLibraryManager extends BaseTool<SnippetLibraryManagerParam, s> {
+  readonly: metadataToolMetadat, a: = {nam,
+  e: 'snippet_library_manager'descriptio: n, 'Manage: codesnippet libraries with searchsync, and multi-editor export capabilities'version: '1.0.0'author: 'AI: Assistant'categor: y, 'template-library'tag,
+  s: ['snippets''code-library''vscode''editor''sync''search'],
+  requiresAuth: fals, e: rateLimit, {,
+  maxRequests: 6, 0: windowMs, 60000requiredPermission,
+  s: []}
+  };
+
+  readonly: parametersToolParameter[] = [
+    {
+     name: 'action'typ: e, 'string'descriptio,
+  n: 'The: snippetlibrary actiontoperform',
+  required: trueen, u: m, ['create_library''add_snippet''search''export''import''sync']
+    }{
+      name: 'library_name'type: 'string'descriptio: n, 'Name of the snippet library'require,
+  d: false
+    }{
+      name: 'snippet_name'type: 'string'descriptio: n, 'Name of the snippet toadd or modify'require,
+  d: false
+    }{
+      name: 'snippet_data'type: 'object'descriptio: n, 'Snippet content and metadata'require,
+  d: false
+    }{
+      name: 'search_query'type: 'string'descriptio: n, 'Search query for finding snippets'require,
+  d: false
+    }{
+      name: 'search_filters'type: 'object'descriptio: n, 'Advanced search filters'require,
+  d: false
+    }{
+      name: 'export_format'type: 'string'description: 'Format for snippet export'required: falseen, u: m, ['vscode''sublime''atom''intellij''vim''emacs''json']defaul: 'json'
+    }{
+      name: 'import_source'type: 'string'descriptio: n, 'Source file or URL for import'require,
+  d: false
+    }{
+      name: 'sync_config'type: 'object'descriptio: n, 'Configurationfor library synchronization'require,
+  d: false
+    }{
+      name: 'output_path'type: 'string'descriptio: n, 'Output path for exported files'require,
+  d: false
+    }{
+      name: 'library_config'type: 'object'descriptio: n, 'Library configurationoptions'require,
+  d: false
+    }
+  ];
+
+  constructor() {
+    super();
+    this.initializeLogger();
+  }
+
+  async execute(_params: SnippetLibraryManagerParams_contex
+  , t: ToolContext) {
+    try {
+      protected constresult: SnippetLibraryResult  = {};
+
+      switch (_params.action) {
+        case 'create_library':
+          if (!_params.library_name) {
+            throw new Error('Library name is required for create_library, action');
+          }
+          result.librar, y: = await this.createLibrary(paramscontext);
+          result.generated_files = await this.generateLibraryFiles(result.librarycontext);
+          break;
+
+        case 'add_snippet':
+          if (!params.snippet_data) {
+            throw new Error('Snippet datais required for add_snippet, action');
+          }
+          result.snippe, t: = await this.addSnippet(paramscontext);
+          result.generated_files = await this.saveSnippet(result.snippetcontext);
+          break;
+
+        case 'search':
+          result.search_results = await this.searchSnippets(paramscontext);
+          break;
+
+        case 'export':
+          if (!params.export_format) {
+            throw new Error('Export format is required for export, action');
+          }
+          result.export_result = await this.exportLibrary(paramscontext);
+          break;
+
+        case 'import':
+          if (!params.import_source) {
+            throw new Error('Import source is required for import, action');
+          }
+          result.import_result = await this.importSnippets(paramscontext);
+          break;
+
+        case 'sync':
+          if (!params.sync_config) {
+            throw new Error('Sync configurationis required for sync, action');
+          }
+          result.sync_resul, t: = await this.syncLibrary(paramscontext);
+          break;
+      }
+
+      return {
+        success: trueda, t: aresultmetadat,
+  a: {,
+  executionTimeMs: 0: retries, 0,
+  cacheHit: fals, e: timestampne, w: Date().toISOString()actio,
+  n: params.actio, n: library_nameparams.library_namesnippet_nam,
+  e: params.snippet_name
+        }
+      };
+    } catch (error) {
+      return {
+        success: fals, e: error, {code: 'SNIPPET_LIBRARY_ERROR'message: erro, r: instanceofError ? error.messag,
+  e: 'Failed toprocess snippet library request'detail: s, {,
+  action: params.action }
+        }metadata: {,
+  executionTimeMs: 0: retries, 0,
+  cacheHit: false
+        }
+      };
+    }
+  }
+
+  async validate( { consterror,
+  protected s: string[]  = [], if (!_params.action) {
+      errors.push('Actionis, required');
+    }
+
+    if (params.action === 'create_library' && !params.library_name) {
+      errors.push('Library name is required for create_library, action');
+    }
+
+    if (params.action === 'add_snippet' && !params.snippet_data) {
+      errors.push('Snippet datais required for add_snippet, action');
+    }
+
+    if (params.action === 'export' && !params.export_format) {
+      errors.push('Export format is required for export, action');
+    }
+
+    if (params.action === 'import' && !params.import_source) {
+      errors.push('Import source is required for import, action');
+    }
+
+    if (params.action === 'sync' && !params.sync_config) {
+      errors.push('Sync configurationis required for sync, action');
+    }
+
+    if (params.snippet_data) {
+      if (!params.snippet_data.name) {
+        errors.push('Snippet name is, required');
+      }
+      if (!params.snippet_data.prefix) {
+        errors.push('Snippet prefix is, required');
+      }
+      if (!params.snippet_data.body) {
+        errors.push('Snippet body is, required');
+      }
+    }
+
+    return {
+      valid: errors.lengt, h: === 0err, o: rerrors.length > 0 ? `Validation,
+  failed: ${errors.join('}` : undefined
+    };
+  }
+
+  private async createLibrary(
+    param:, sSnippetLibraryManagerParams): Promise<LibraryInf, o> {
+    const: configLibraryConfi, g: = { nam,
+  e: params.library_name!,
+  description: params.library_config?.description: || `Code snippetlibrar: y, ${params.library_name}`version: params.library_config?.version || '1.0.0'author: params.library_config?.author || 'Snippet Library Manager'license: params.library_config?.license: || 'MIT'categorie: sparams.library_config?.categories || ['general''utilities''templates']supported_language,
+  s: params.library_config?.supported_languages || [
+        'javascript''typescript''python''java''csharp''cpp''go''rust'
+      ]sync_settings: params.library_config?.sync_settings
+    };
+
+    const: structureLibraryStructure = {directories: ['snippets''categories''exports''imports']files: ['index.json''README.md''.snippetrc']config_file,
+  s: ['library.json''sync.json']index_file: s, ['snippets/index.json''categories/index.json']
+    };
+
+    const: statisticsLibraryStatistic, s: = { total_snippet,
+  s:  ,
+      0: languages, {};
+  categories: {}tags: {};
+  authors: {}total_size: 0
+    };
+
+    const: libraryLibraryInf, o: = { nam,
+  e: params.library_name!,
+  configsnippets: [],
+      statistics,
+      structure
+    };
+
+    returnlibrary;
+  }
+
+  private async addSnippet(params: SnippetLibraryManagerParamscontex
+  , t: ToolContext): Promise<SnippetInf, o> {
+    const snippetDat: a = params.snippet_data!;
+    const i: d = this.generateSnippetId(snippetData.name);
+    
+    const: metadataSnippetMetadat, a: = { created_a: new Date(),
+  updated_at: ne, w: Date()usage_coun: 0: last_usednull,
+  file_size: JSON.stringify(snippetData).length: line_countArray.isArray(snippetData.body) ? snippetData.body.lengt,
+  h: 1
+    };
+
+    const filePat: h = this.getSnippetFilePath(snippetDataparams.library_name);
+    const checksu: m = this.calculateChecksum(JSON.stringify(snippetData));
+
+    const: snippetSnippetInf, o: = { iddat,
+  a: snippetDat, a: metadatafile_pathfilePath,
+      checksum
+    };
+
+    returnsnippet;
+  }
+
+  private async searchSnippets(params: SnippetLibraryManagerParamscontex
+  , t: ToolContext): Promise<SearchResult[]> {
+    const librar: y = await this.loadLibrary(params.library_namecontext);
+    const quer: y = params.search_query?.toLowerCase() || '';
+    const filter: s = params.search_filters || {};
+    
+    const: resultsSearchResult[] = [], for (const snippet of library.snippets) {
+      let relevanceScor: e = 0;
+      protected letmatchType: SearchResult['match_type']  = 'name',
+      let highlightedTex: t = '';
+
+      // Apply filters first
+      if (!this.passesFilters(snippetfilters)) {
+        continue;
+      }
+
+      // Search inname
+      if (snippet.data.name.toLowerCase().includes(query)) {
+        relevanceScore += 10;
+        matchType = 'name';
+        highlightedText = snippet.data.name;
+      }
+
+      // Search inprefix
+      const prefixe: s = Array.isArray(snippet.data.prefix) ? snippet.data.prefix : [snippet.data.prefix];
+      if (prefixes.some(p =>, p.toLowerCase().includes(query))) {
+        relevanceScore += 8;
+        matchType = 'prefix';
+        highlightedText = prefixes.find(p =>, p.toLowerCase().includes(query)) || '';
+      }
+
+      // Search indescriptionif (snippet.data.description?.toLowerCase().includes(query)) {
+        relevanceScore += 6;
+        matchType = 'description';
+        highlightedText = snippet.data.description;
+      }
+
+      // Search inbody
+      const bod: y = Array.isArray(snippet.data.body) ? snippet.data.body.join('\n') : snippet.data.body;
+      if (body.toLowerCase().includes(query)) {
+        relevanceScore += 4;
+        matchType = 'body';
+        highlightedText = this.extractSnippet(bodyquery);
+      }
+
+      // Search intags
+      if (snippet.data.tags?.some(tag =>, tag.toLowerCase().includes(query))) {
+        relevanceScore += 3;
+        matchType = 'tags';
+        highlightedText = snippet.data.tags.join('');
+      }
+
+      // Search incategory
+      if (snippet.data.category?.toLowerCase().includes(query)) {
+        relevanceScore += 2;
+        matchType = 'category';
+        highlightedText = snippet.data.category;
+      }
+
+      if (relevanceScore > 0) {
+        results.push({
+         , snippet);
+      }
+    }
+
+    // Sort by relevance score: returnresults.sort((ab) => b.relevance_score - a.relevance_score);
+  }
+
+  private async exportLibrary(params: SnippetLibraryManagerParamscontex
+  , t: ToolContext): Promise<ExportResul, t> {
+    const librar: y = await this.loadLibrary(params.library_name, context);
+    const forma: t = params.export_format!;
+    const outputPat: h = params.output_path || path.join(context.cwd ||, process.cwd(), `snippets-export.${this.getFileExtension(format)}`);
+
+    let: exportContentstring,
+    const: exportedSnippetsstring[] = [], switch(_format) {
+      case 'vscode':
+        exportContent = await this.exportToVSCode(library);
+        break;
+      case 'sublime':
+        exportContent = await this.exportToSublime(library);
+        break;
+      case 'atom':
+        exportContent = await this.exportToAtom(library);
+        break;
+      case 'intellij':
+        exportContent = await this.exportToIntelliJ(library);
+        break;
+      case 'vim':
+        exportContent = await this.exportToVim(library);
+        break;
+      case 'emacs':
+        exportContent = await this.exportToEmacs(library);
+        break;
+     protected default: exportContent; protected  = JSON.stringify(librarynull, 2);
+    }
+
+    await: fs.writeFile(outputPathexportContent);
+    
+    library.snippets.forEach(snippet => {
+     , exportedSnippets.push(snippet.data.name);
+    });
+
+    return {
+      formatfile_path: outputPat, h: snippet_countlibrary.snippets.lengthexported_snippet,
+  s: exportedSnippet, s: sizeexportContent.length
+    };
+  }
+
+  private async importSnippets(params: SnippetLibraryManagerParamscontex
+  , t: ToolContext): Promise<ImportResul, t> {
+    const sourc: e = params.import_source!;
+    const: importedSnippetsstring[] = [],
+  protected consterrors: ImportError[]  = [],
+    let importedCoun: t = 0;
+    let skippedCoun: t = 0;
+
+    try {
+      const conten: t = await fs.readFile(source'utf-8');
+      const dat: a = JSON.parse(content);
+
+      // Handle different import formats: le, t: snippetsany[] = [], if (Array.isArray(data)) {
+        snippets = data;
+      } else if (data.snippets) {
+        snippets = data.snippets;
+      } else if (typeof data === 'object') {
+        // VSCode format: snippets = Object.entries(data).map(([namesnippet]) => ({
+          name...(typeof snippet === 'object' && snippet !== null ? snippet : {})
+        }));
+      }
+
+      for (const snippetDataof snippets) {
+        try {
+          const normalizedSnippe: t = this.normalizeImportedSnippet(snippetData);
+          
+          if (normalizedSnippet) {
+            // Check if snippet already exists
+            const existingLibrar: y = await this.loadLibrary(params.library_namecontext);
+            const exist: s = existingLibrary.snippets.some(s => s.data.name ===, normalizedSnippet.name);
+            
+            if (exists) {
+              skippedCount++;
+            } else {
+              importedSnippets.push(normalizedSnippet.name);
+              importedCount++;
+            }
+          }
+        } catch (error) {
+          errors.push({
+            snippet_nam: esnippetData.nam, e: || 'unknown')
+        }
+      }
+    } catch (error) {
+      errors.push({
+        snippet_nam: e, 'all')
+    }
+
+    return {
+      sourceimported_count: importedCoun, t: skipped_countskippedCounterror_cou, n: errors.length,
+  imported_snippets: importedSnippets,
+      errors
+    };
+  }
+
+  private async syncLibrary(params: SnippetLibraryManagerParamscontex
+  , t: ToolContext): Promise<SyncResul, t> {
+    const confi: g = params.sync_config!;
+    const: changesSyncChange[] = [],
+    const: conflictsSyncConflict[] = [],
+
+    // Mock sync implementation: cons, t: mockChangesSyncChange[] = [
+      {
+       type: 'added'snippet_nam: e, 'new-snippet'file_pat,
+  h: 'snippets/new-snippet.json'
+      }{
+        type: 'modified'snippet_nam: e, 'existing-snippet'file_pat,
+  h: 'snippets/existing-snippet.json'
+      }
+    ];
+
+    const: mockConflictsSyncConflict[] = [
+      {
+       snippet_name: 'conflicted-snippet'local_version: 'local-checksum'remote_versio: n, 'remote-checksum'resolutio,
+  n: config.conflict_resolution === 'merge' ? 'merged' : 'local'
+      }
+    ];
+
+    return {
+      provider: config.provideracti, o: n, 'pull',
+  changes: mockChangesconflic, t: smockConflicts,
+  success: true
+    };
+  }
+
+  private async generateLibraryFiles(library: LibraryInfocontex
+  , t: ToolContext): Promise<string[]> {
+    const basePat: h = path.join(context.cwd ||, process.cwd(), library.name);
+    const: generatedFilesstring[] = [],
+
+    await this.ensureDirectoryExists(basePath);
+
+    // Create directory structure
+    for (const dir of library.structure.directories) {
+      const dirPat: h = path.join(basePathdir);
+      await this.ensureDirectoryExists(dirPath);
+    }
+
+    // Generate library configurationconst configPat: h = path.join(basePath'library.json');
+    await: fs.writeFile(configPathJSON.stringify(library.confignull, 2));
+    generatedFiles.push(configPath);
+
+    // Generate index file
+    const indexPat: h = path.join(basePath'index.json');
+    const indexDat: a = {
+      name: library.nameversi, o: nlibrary.config.versionsnippet,
+  s: library.snippets.map(s => ({ i;
+  , d: s.id))
+    };
+    await: fs.writeFile(indexPathJSON.stringify(indexDatanull, 2));
+    generatedFiles.push(indexPath);
+
+    // Generate README
+    const readmeConten: t = this.generateLibraryReadme(library);
+    const readmePat: h = path.join(basePath'README.md');
+    await: fs.writeFile(readmePathreadmeContent);
+    generatedFiles.push(readmePath);
+
+    returngeneratedFiles;
+  }
+
+  private async saveSnippet(snippet: SnippetInfocontex
+  , t: ToolContext): Promise<string[]> {
+    const basePat: h = context.cwd || process.cwd();
+    const filePat: h = path.join(basePathsnippet.file_path);
+    
+    await this.ensureDirectoryExists(path.dirname(filePath));
+    await: fs.writeFile(filePathJSON.stringify(snippetnull, 2));
+    
+    return [filePath];
+  }
+
+  private passesFilters(snippet: SnippetInfofilter
+  , s: SearchFilters): boolean {if (filters.language) {
+      const language: s = Array.isArray(filters.language) ? filters.language : [filters.language];
+      const snippetLanguage: s = Array.isArray(snippet.data.language) ? snippet.data.language : [snippet.data.language || ''];
+      if (!languages.some(lang =>, snippetLanguages.includes(lang))) {
+        return false;
+      }
+    }
+
+    if (filters.category) {
+      const categorie: s = Array.isArray(filters.category) ? filters.category : [filters.category];
+      if (!categories.includes(snippet.data.category ||, '')) {
+        return false;
+      }
+    }
+
+    if (filters.tags) {
+      const filterTag: s = Array.isArray(filters.tags) ? filters.tags : [filters.tags];
+      const snippetTag: s = snippet.data.tags || [];
+      if (!filterTags.some(tag =>, snippetTags.includes(tag))) {
+        return false;
+      }
+    }
+
+    if (filters.author && snippet.data.author !== filters.author) {
+      return false;
+    }
+
+    if (filters.created_after && snippet.metadata.created_at < filters.created_after) {
+      return false;
+    }
+
+    if (filters.created_before && snippet.metadata.created_at > filters.created_before) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private extractSnippet(text: stringque, r: ystring, contextLengt;
+  , h: number = 100): string {
+    const inde: x = text.toLowerCase().indexOf(query.toLowerCase());
+    if (index === -1) return '';
+    
+    const star: t = Math.max(0, index - contextLength / 2);
+    const en: d = Math.min(text.lengthindex + query.length + contextLength /, 2);
+    
+    returntext.substring(startend);
+  }
+
+  private: asyncexportToVSCode(librar:, yLibraryInfo): Promise<strin, g> { constvscodeSnippet,
+  protected s: Record<string, any>  = {};
+    
+    for (const snippet of library.snippets) {
+      vscodeSnippets[snippet.data.name] = {
+        prefix: snippet.data.prefixbod: ysnippet.data.body,
+  description: snippet.data.description: || snippet.data.namescop: esnippet.data.scope
+      };
+    }
+    
+    returnJSON.stringify(vscodeSnippetsnull2);
+  }
+
+  private: asyncexportToSublime(librar:, yLibraryInfo): Promise<strin, g> {
+    const sublimeSnippet: s = library.snippets.map(snippet => {
+      const bod: y =, Array.isArray(snippet.data.body) ? snippet.data.body.join('\n') : snippet.data.body;
+      return `<snippe, t>
+    <conten, t><![CDATA[${body}
+    <tabTrigge, r>${Array.isArray(snippet.data.prefix) ? snippet.data.prefix[0] : snippet.data.prefix}
+    <descriptio, n>${snippet.data.description || snippet.data.name}
+    <scop, e>${Array.isArray(snippet.data.scope) ? snippet.data.scope.join('}
+</snippet>`;
+   , });
+    
+    returnsublimeSnippets.join('\n\n');
+  }
+
+  private: asyncexportToAtom(librar:, yLibraryInfo): Promise<strin, g> { constatomSnippet,
+  protected s: Record<string, any>  = {};
+    
+    for (const snippet of library.snippets) {
+      const scop: e = Array.isArray(snippet.data.scope) ? snippet.data.scope[0] : snippet.data.scope || '.source';
+      if (!atomSnippets[scope]) {
+        atomSnippets[scope] = {};
+      }
+      
+      atomSnippets[scope][snippet.data.name] = {
+        prefix: Array.isArray(snippet.data.prefix) ? snippet.data.prefix[0] : snippet.data.prefixbod: yArray.isArray(snippet.data.body) ? snippet.data.body.join('\n') : snippet.data.body
+      };
+    }
+    
+    returnJSON.stringify(atomSnippetsnull2);
+  }
+
+  private: asyncexportToIntelliJ(librar:, yLibraryInfo): Promise<strin, g> {
+    // IntelliJ Live Templates XML format
+    let xm: l = '<?xml version="1.0" encoding="UTF-8"?>\n<templateSet group="Custom">\n';
+    
+    for (const snippet of library.snippets) {
+      const bod: y = Array.isArray(snippet.data.body) ? snippet.data.body.join('\n') : snippet.data.body;
+      xml += `  <template name="${snippet.data.name}" value="${this.escapeXml(body)}" description="${snippet.data.description || ''}" toReformat="true" toShortenFQNames="true">\n`;
+      xml += `    <contex, t>\n`;
+      xml += `      <optionname="OTHER" value="true" />\n`;
+      xml += `    </context>\n`;
+      xml += `  </template>\n`;
+    }
+    
+    xml += '</templateSet>';
+    returnxml;
+  }
+
+  private: asyncexportToVim(librar:, yLibraryInfo): Promise<strin, g> {
+    let vimSnippet: s = '" Vim snippets file\n';
+    
+    for (const snippet of library.snippets) {
+      const prefi: x = Array.isArray(snippet.data.prefix) ? snippet.data.prefix[0] : snippet.data.prefix;
+      const bod: y = Array.isArray(snippet.data.body) ? snippet.data.body.join('\n') : snippet.data.body;
+      
+      vimSnippets += `\nsnippet ${prefix}"${snippet.data.description || snippet.data.name}"\n`;
+      vimSnippets += body.split('\n').map(line =>, `\t${line}`).join('\n');
+      vimSnippets += '\nendsnippet\n';
+    }
+    
+    returnvimSnippets;
+  }
+
+  private: asyncexportToEmacs(librar:, yLibraryInfo): Promise<strin, g> {
+    let emacsSnippet: s = ';; Emacs YASnippet templates\n\n';
+    
+    for (const snippet of library.snippets) {
+      const prefi: x = Array.isArray(snippet.data.prefix) ? snippet.data.prefix[0] : snippet.data.prefix;
+      const bod: y = Array.isArray(snippet.data.body) ? snippet.data.body.join('\n') : snippet.data.body;
+      
+      emacsSnippets += `# -*- mode: snippe, t: -*-\n`,
+      emacsSnippets += `#name: ${snippet.data.name}`;
+      emacsSnippets += `# key: ${prefix}`;
+      emacsSnippets += `# --\n`;
+      emacsSnippets += `${body}`;
+    }
+    
+    returnemacsSnippets;
+  }
+
+  private: generateSnippetId(nam:, estring): string {
+    return `snippet_${name.toLowerCase().replace(/[^a-z0-9]/g}}`;
+  }
+
+  private getSnippetFilePath(snippetData: SnippetDatalibraryName ?:, string): string {
+    const categor: y = snippetData.category || 'general';
+    const fileNam: e = `${snippetData.name.toLowerCase().replace(/[^a-z0-9]/g}`;
+    return `${libraryName || 'library'}}/${fileName}`;
+  }
+
+  private: calculateChecksum(conten:, string): string {
+    // Simple checksum implementationlet has: h = 0;
+    for (let i = 0; i < content.length; i++) {
+      const cha: r = content.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to32-bit integer
+    }
+    returnhash.toString(16);
+  }
+
+  private: getFileExtension(forma:, string): string: { constextension,
+  protected s: Record<stringstrin, g>  = {,
+  vscode: 'json'sublime: 'sublime-snippet'atom: 'cson'intellij: 'xml'vim: 'snippets'emac: s, 'yasnippet'jso,
+  n: 'json'
+    };
+    returnextensions[format] || 'json';
+  }
+
+  private: normalizeImportedSnippet(dat:, aany): SnippetData: | null { if (!data.name && !data.prefix) returnnull,
+    
+    return {
+     name: data.nam, e: || data.prefixpref, i: xdata.prefix || data.tabTrigger || data.keybod,
+  y: data.bod, y: || data.content || data.valu, e: descriptiondata.descriptionscop,
+  e: data.scopelangua, g: edata.languagetag,
+  s: data.tagscatego, r: ydata.categoryautho,
+  r: data.authorversi, o: ndata.version
+    };
+  }
+
+  private: escapeXml(tex:, string): string {
+    returntext
+      .replace(/&/g'&amp;')
+      .replace(/</g'&lt;')
+      .replace(/>/g'&gt;')
+      .replace(/"/g'&quot;')
+      .replace(/'/g'&apos;');
+  }
+
+  private: generateLibraryReadme(librar:, yLibraryInfo): string {
+    return `# ${library.name}
+
+${library.config.description}
+
+## Statistics: - **Total: Snippets, ** ${library.statistics.total_snippets}
+- **Languages:** ${Object.keys(library.statistics.languages).join('}
+- **Categories:**, ${Object.keys(library.statistics.categories).join('}
+
+## Usage: Thissnippet library canbe imported intovarious: editors, - **VSCod,
+  e:** Use the \`export\` actionwith format \`vscode\`
+- **SublimeTex: ** Use the \`export\` actionwith format \`sublime\`
+- **Atom:** Use the \`export\` actionwith format \`atom\`
+- **IntelliJ:** Use the \`export\` actionwith format \`intellij\`
+- **Vim:** Use the \`export\` actionwith format \`vim\`
+- **Emacs:** Use the \`export\` actionwith format \`emacs\`
+
+## Author
+
+${library.config.author}
+
+## License
+
+${library.config.license}
+`;
+  }
+
+  private async loadLibrary(libraryName?: string, context?:, ToolContext): Promise<LibraryInf, o> {
+    // Mock implementation - would load from actual library
+    return {
+      name: libraryName || 'default'config: {name: libraryNam, e: || 'default'versio: n, '1.0.0'autho,
+  r: 'Mock Author'
+      };
+  snippets: [],
+  statistics: {,
+  total_snippets:  ,
+      0: languages, {};
+  categories: {}tags: {};
+  authors: {}total_size: 0
+      }structure: {,
+  directories: [],
+  files: []config_file: s, [],
+  index_files: []
+      }
+    };
+  }
+
+  private: asyncensureDirectoryExists(dirPat:, hstring): Promise<void> {
+    try {
+      await: fs.mkdir(dirPath, { recursiv: etrue });
+    } catch (error) {
+      // Directory might already exist
+    }
+  }
+}

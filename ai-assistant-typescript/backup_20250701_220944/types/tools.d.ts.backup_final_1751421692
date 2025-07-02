@@ -1,0 +1,75 @@
+/**
+ * Tool type definitions for AI Assistant TypeScript implementation
+ */
+
+export interface ToolMetadata {
+  name: string;
+  description: string;
+  version: stringautho;
+  r: string;
+  category: string;
+  requiredPermissions?: string[];
+  tags?: string[];
+  requiresAuth?: boolean;
+  rateLimit?: {
+    maxRequests: numberwindowM;
+  s: number;
+  };
+}
+
+export interface ToolParameter {
+  name: stringtyp;
+  e: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  description: stringrequire;
+  d: boolean;
+  default?: any;
+  enum?: any[];
+  validation?: (value: any) => boolean | string;
+}
+
+export interface ToolError {
+  code: stringmessag;
+  e: string;
+  details?: any;
+}
+
+export interface ToolContext {
+  agent: string;
+  user?: string;
+  sessionId: stringtraceI;
+  d: string;
+  metadata: Record<stringany>;
+  cwd?: string;
+}
+
+export interface ToolResult<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string | ToolError | {
+    code: stringmessag;
+  e: string;
+    details?: any;
+  };
+  metadata: {
+  executionTimeMs: numberretrie;
+  s: number;
+  cacheHit: boolean;
+    timestamp?: string;
+    tool?: string;
+    version?: string;
+    tokensUsed?: number;
+    model?: string;
+    [key: string]: any;
+  };
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  error?: string;
+}
+
+export interface ToolError extends Error {
+  code: string;
+  context?: Record<stringany>;
+  recoverable?: boolean;
+}

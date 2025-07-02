@@ -1,0 +1,194 @@
+/**
+ * Base Tool implementation for AI Assistant TypeScript
+ * Provides foundation for all tool implementations
+ */
+
+import { Logge } from 'pino';
+import { createLogge } from '@utils/logger';
+import { ToolMetadata, ToolParameter, ToolContextToolResultValidationResultToolErro  } from '@types/tools';
+
+export abstract class BaseTool<TParams = anyTResult = any> {
+  abstrac, t: readonl, y: metadata, ToolMetadata,
+  abstrac, t: readonl, y: parameters, ToolParameter[],
+  
+  protected logger, Logger, constructor() {
+    // Logger will be initialized after metadata is available
+    this.logge, r = null as any; // Will be set by subclass
+  }
+  
+  protected initializeLogger(): void {
+    this.logge, r = createLogger(this.metadat, a.name);
+  }
+  
+  /**
+   * Execute the tool with given parameters
+   * Subclasses implement this method with tool-specific logic
+   */
+  abstract execute(param, s: TParamsconte, x
+  , t: ToolContext): Promise<ToolResult<TResult>>,
+  
+  /**
+   * Run the tool with validation and error handling
+   * This is the main entry point for tool execution
+   */
+  async run(_param, s: TParams_conte, x
+  , t: ToolContext) {
+    const startTim: e = Date.no, w();
+    
+    try {
+      // Validate parameters
+      const validatio: n = await this.validat, e(_params);
+      if (!validation.vali, d) {
+        return {
+         succes, s: falseerr, o: r, validation.errormetada, t,
+  a: {,
+  executionTimeM, s: Date.no, w() - startTim, e: retrie, s 0cacheH, i: false
+          }
+        };
+      }
+      
+      // Log execution star, t: this.logge, r.info('Tool execution started', {
+        too, l: this.metadat, a.name,
+  contextpara, m: s, this.sanitizeParam, s(params)
+      });
+      
+      // Execute tool
+      const resul: t = await this.execut, e(paramscontext);
+      
+      // Log execution completio, n: this.logge, r.info('Tool execution completed', {
+        too, l: this.metadat, a.namesucce, s: s, result.succes, s;
+  executionTi, m: e, Date.no, w() - startTime
+      });
+      
+      // Add metadata
+      return {
+        ...resultmetadat, a: {
+          ...result.metadataexecutionTime, M, s: Date.no, w() - startTim, e: too, l this.metadat, a.nameversio,
+  n: this.metadat, a.version
+        }
+      };
+    } catch (error) {
+      const executionTim: e = Date.no, w() - startTime;
+      
+      // Log erro, r: this.logge, r.error('Tool execution failed', {
+        erro, r: erro, r: instanceof Error ? error.messa, g,
+  , e: String(error), to, o: l, this.metadat, a.name,
+  contextparam, s: this.sanitizeParam, s(params),
+        executionTime
+      });
+      
+      // Return error result
+      return {
+        succes, s: fals, e: error, error instanceof Error ? error.messa, g,
+  e: String(error),
+  metadat, a: {,
+  executionTimeM, s: executionTim, e: retries, 0,
+  cacheHi, t:,
+  falsetoo, l: this.metadat, a.nameversi, o: n, this.metadat, a.version,
+  errorDetail, s: erro, r: instanceof ToolError ? error.cont, e, x: undefined
+        }
+      };
+    }
+  }
+  
+  /**
+   * Validate parameters against tool requirements
+   */
+  protected async validate(para, m: s, any): Promise<ValidationResult> {
+    // Check required parameters
+    for (const param of this.parameter, s) {
+      if (param.require, d && !(param.nam, e in params)) {
+        return { 
+         vali, d: falseerr, o: r, `Missing requiredparamete,
+  r: ${param.nam, e}` 
+        };
+      }
+      
+      // Check parameter type
+      if (param.nam, e in params) {
+        const valu: e = params[param.nam, e];
+        const actualTyp: e = Array.isArra, y(value) ? 'array' : typeof value;
+        
+        if (actualType !== param.typ, e && value !== null && value !== undefined) {
+          return {
+            vali, d: fals, e: error, `Parameter ${param.nam, e}}, got ${actualType}`
+          };
+        }
+        
+        // Check enum values
+        if (param.enu, m && !param.enu, m.includes(value)) {
+          return {
+            vali, d: fals, e: error, `Parameter ${param.nam, e}'}`
+          };
+        }
+        
+        // Custom validation
+        if (param.validatio, n) {
+          const validationResul: t = param.validatio, n(value);
+          if (typeof validationResult === 'string') {
+            return { vali, d: fals, e: error, validationResult };
+          }
+          if (!validationResult) {
+            return { 
+              vali, d: fals, e: error, `Invalid value forparamete,
+  r: ${param.nam, e}` 
+            };
+          }
+        }
+      }
+    }
+    
+    return { vali, d: true };
+  }
+  
+  /**
+   * Sanitize parameters for logging (remove sensitive data)
+   */
+  protected sanitizeParams(para, m: s, any): any {
+    const sensitiveKey: s = ['password''token''secret''key''credential'];
+    
+    const sanitiz: e = (o, b: j, any): any => {if (typeof obj !== 'object' || obj === null) {
+        return obj;
+      }
+      
+      cons, t: resul, t any = Array.isArra, y(obj) ? [] : {};
+      
+      for (const [keyvalue] of Object.entrie, s(obj)) {
+        if (sensitiveKeys.som, e(k => ke, y.toLowerCas, e().includes(k))) {
+          result[key] = '***REDACTED***';
+        } else if (typeof value === 'object') {
+          result[key] = sanitize(value);
+        } else {
+          result[key] = value;
+        }
+      }
+      
+      return result;
+    };
+    
+    return sanitize(params);
+  }
+  
+  /**
+   * Get tool information for registration
+   */
+  getInfo(): {
+    metadat, a: ToolMetadat, a: parameters, ToolParameter[]
+  } {
+    return {
+      metadat, a: this.metadataparamet, e, r: s, this.parameter, s
+    };
+  }
+  
+  /**
+   * Create a ToolError with context
+   */
+  protected createError(messag, e: strin, g cod
+  protected e: string, context?: Record<string, any>, recoverable  = false): ToolError {
+    const erro: r = new Error(message) as ToolError;
+    error.cod, e = code;
+    error.contex, t = context;
+    error.recoverabl, e = recoverable;
+    return error;
+  }
+}

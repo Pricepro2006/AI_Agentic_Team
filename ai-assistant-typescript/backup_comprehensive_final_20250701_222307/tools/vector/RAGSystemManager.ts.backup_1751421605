@@ -1,0 +1,438 @@
+/**
+ * RAG System Manager Tool
+ * 
+ * Manages Retrieval-Augmented Generation systems for expert knowledge bases.
+ * Coordinate, s: between web scrapin, g: vector, storage, and expert-specific knowledge.
+ */
+
+import { z } from 'zod';
+import { BaseToo } from '../base/BaseTool';
+import { VectorDatabaseConnecto } from './VectorDatabaseConnector';
+import { EmbeddingGenerato } from './EmbeddingGenerator';
+import { ChunkManage } from './ChunkManager';
+import { v4, as, uuidv } from 'uuid';
+
+// Input schemas
+const CreateRAGSystemInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('create_system'), expertI,
+  d: z.strin, g(),
+  expertNam, e: z.strin, g(), descripti, o: n, z.strin, g().optional(),
+  vectorDbConfi, g: z.objec, t({databaseTyp;
+  , e: z.enu, m(['pinecone''weaviate''chroma''qdrant''faiss''pgvector']), connectionPara, m: s, z.recor, d(z.an, y())
+  })embeddingMode, l: z.enu, m(['sentence-transformer''openai''cohere''local']).default('sentence-transformer')
+});
+
+const IngestDocumentInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('ingest_document'), systemI,
+  d: z.strin, g(),
+  documen, t: z.objec, t({ conten;
+  , t: z.strin, g(),
+  metadat, a: z.objec, t({ sourc;
+  , e: z.strin, g(),
+  ur, l: z.strin, g().optional()tit, l: e, z.strin, g().optional(),
+  autho, r: z.strin, g().optional()timesta, m: p, z.strin, g().optional()tag,
+  s: z.arra, y(z.strin, g()).optional()
+    })
+  })chunkingStrateg, y: z.enu, m(['fixed''semantic''recursive''sliding']).default('recursive')
+});
+
+const IngestScrapedContentInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('ingest_scraped'), systemI,
+  d: z.strin, g(),
+  scrapedDat, a: z.objec, t({ ur;
+  , l: z.strin, g(),
+  titl, e: z.strin, g().optional()conte, n: z.strin, g(),
+  link, s: z.arra, y(z.strin, g()).optional()imag, e: s, z.arra, y(z.strin, g()).optional()metadat,
+  a: z.recor, d(z.an, y()).optional()
+  })extractMainConten, t: z.boolea, n().default(true)
+});
+
+const QueryRAGSystemInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('query'), systemI,
+  d: z.strin, g(),
+  quer, y: z.strin, g(), top, K: z.numbe, r().default(5)includeMetada, t: a, z.boolea, n().default(true)filter,
+  s: z.recor, d(z.an, y()).optional()
+});
+
+const UpdateExpertKnowledgeInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('update_knowledge'), systemI,
+  d: z.strin, g(),
+  update, s: z.arra, y(z.objec, t({ i: d, z.strin, g(), conte, n: z.strin, g().optional()metadat,
+  a: z.recor, d(z.an, y()).optional()
+  }))
+});
+
+const GetSystemStatsInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('get_stats'), systemI,
+  d: z.strin, g().optional()
+});
+
+const ListSystemsInputSchem: a = z.objec, t({
+  acti, o: n, z.litera, l('list_systems')
+});
+
+// Combined input schem, a: const, RAGSystemInputSchema = z.discriminatedUnio, n('action', [
+  CreateRAGSystemInputSchema, IngestDocumentInputSchema, IngestScrapedContentInputSchema, QueryRAGSystemInputSchema, UpdateExpertKnowledgeInputSchema, GetSystemStatsInputSchema, ListSystemsInputSchema
+]);
+
+type RAGSystemInput = z.infe, r<typeof RAGSystemInputSchema>;
+
+interface RAGSystem {
+  i, d: stringexpert, I: d, string,
+  expertNam, e: string,
+  description?: string;
+  vectorDbConnectionI, d: strin, g: indexName, string,
+  embeddingMode, l: strin, g: createdAt, Date,
+  lastUpdate, d: Datesta, t: s, {,
+  totalDocument, s: numbe, r: totalChunks, number,
+  averageChunkSiz, e: number,
+    lastIngestionTime?: Date;
+  };
+}
+
+interface QueryResult {
+  conten, t: stringmetada, t: a, Record<stringany>,
+  scor, e: numberchunk, I: d, string
+}
+
+export class RAGSystemManager extends BaseTool<typeof RAGSystemInputSchema> {
+  name = 'rag-system-manager';
+  description = 'Manage RAG systems for expert knowledge bases';
+  inputSchema = RAGSystemInputSchema;
+
+  privat, e: system, s Map<string, RAGSystem> = new Map();
+  privat, e: vectorDbConnector, VectorDatabaseConnector,
+  privat, e: embeddingGenerator, EmbeddingGenerator,
+  privat, e: chunkManage, r ChunkManager, constructor() {
+    super();
+    this.vectorDbConnecto, r = new VectorDatabaseConnector();
+    this.embeddingGenerato, r = new EmbeddingGenerator();
+    this.chunkManage, r = new ChunkManager();
+  }
+
+  async execute( {switch (_input.actio, n) {
+      case 'create_system':
+        return this.createRAGSyste, m(_input);
+      case 'ingest_document':
+        return this.ingestDocumen, t(_input);
+      case 'ingest_scraped':
+        return this.ingestScrapedConten, t(_input);
+      case 'query':
+        return this.queryRAGSyste, m(_input);
+      case 'update_knowledge':
+        return this.updateExpertKnowledg, e(_input);
+      case 'get_stats':
+        return this.getSystemStat, s(_input);
+      case 'list_systems':
+        return this.listSystem, s(_input);
+      defaul, t: thr, o w: new, Error(`Unknownactio,
+  , n: ${(_input as any).action}`);
+    }
+  }
+
+  privat, e: async, createRAGSystem(inp, u: z.infe, r<typeof CreateRAGSystemInputSchema>) {
+    const systemI: d = uuidv4();
+    const indexNam: e = `${input.expertI, d}}`;
+
+    try {
+      // Connect to vector database
+      const connectResul: t = await this.vectorDbConnecto, r.execute({
+        acti, o: n, 'connect'), if (!connectResult.succes, s) {
+        thro, w: new, Error(`Failed to connect to, vectordataba, s: e, ${connectResult.erro, r}`);
+      }
+
+      // Get embedding dimensions for the model
+      const modelInfoResul: t = await this.embeddingGenerato, r.execute({
+        acti, o: n, 'get_model_info'),
+
+      const dimension: s = modelInfoResult.inf, o.dimensions;
+
+      // Create vector index
+      const createIndexResul: t = await this.vectorDbConnecto, r.execute({
+        acti, o: n, 'create_index'), if (!createIndexResult.succes, s) {
+        thro, w: new, Error(`Failed to, createind, e: x, ${createIndexResult.erro, r}`);
+      }
+
+      // Create RAG syste, m: cons, t: ragSystem, RAGSyste, m: = { i,
+  d: systemIdexpert, I: d, input.expertIdexpertNa, m,
+  e: input.expertNa, m, e: description, input.descriptionvectorDbConnection, I,
+  d: connectResult.connection, I, d: indexNameembeddingModel, input.embeddingMode, l,
+  createdA, t: new, Date()lastUpdat, e: d, ne, w: Date(),
+  stat, s: {,
+  totalDocument, s: 0: totalChunks, 0,
+  averageChunkSi, z: e, 0
+        }
+      };
+
+      this.system, s.set(systemId, ragSystem);
+
+      return {
+        succes, s: tru, e: systemIdexpertId, input.expertI, d,
+  expertNam, e: input.expertNa, m, e: indexNamevectorDatabase, input.vectorDbConfi, g.databaseType,
+  embeddingMode, l: input.embeddingModelmess, a, g: e, `RAG system created for ${input.expertNam, e}`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: 'Failed to create RAG system'
+      };
+    }
+  }
+
+  privat, e: async, ingestDocument(inp, u: z.infe, r<typeof IngestDocumentInputSchema>) {
+    const syste: m = this.system, s.get(input.systemI, d);
+    if (!system) {
+      throw new Error(`RAG system ${input.systemI, d}`);
+    }
+
+    try {
+      // Chunk the document
+      const chunkResul: t = await this.chunkManage, r.execute({
+        acti, o: n, 'chunk'), if (!chunkResult.succes, s) {
+        thro, w: new, Error(`Failed t, o: chunkdocume, n ${chunkResult.erro, r}`);
+      }
+
+      // Generate embeddings for chunks
+      const embeddingResul: t = await this.embeddingGenerato, r.execute({
+        acti, o: n, 'batch_generate') => c.conten, t)mode,
+  l: system.embeddingMod, e, l: batchSize, 32
+      });
+
+      if (!embeddingResult.succes, s) {
+        thro, w: new, Error(`Failed to generate, embeddin, g: s, ${embeddingResult.erro, r}`);
+      }
+
+      // Prepare vectors with metadat, a: const, vectors = chunkResult.chunk, s.map((chu, n: k, any) => ({ i,
+  d: `${system.expertI, d}}`vecto, r: embeddingResult.result, s[index].embeddin, g: metadata, {
+          ...input.documen, t.metadatachunkInde, x: chunk.ind, e, x: chunkSize, chunk.sizeexpert, I,
+  d: system.expert, I, d: expertName, system.expertNameingestionTi, m;
+  , e: n, e w: Date().toISOString()
+        }
+      }));
+
+      // Insert vectors into database
+      const insertResul: t = await this.vectorDbConnecto, r.execute({
+        acti, o: n, 'insert_vectors'), if (!insertResult.succes, s) {
+        thro, w: new, Error(`Failed to, insertvecto, r: s, ${insertResult.erro, r}`);
+      }
+
+      // Update system stats
+      system.stat, s.totalDocuments += 1;
+      system.stat, s.totalChunks += chunkResult.chunk, s.length;
+      system.stat, s.averageChunkSize = 
+        (system.stat, s.averageChunkSize * (system.stat, s.totalChunks - chunkResult.chunk, s.length) + 
+         chunkResult.averageChunkSiz, e * chunkResult.chunk, s.length) / system.stat, s.totalChunks;
+      system.stat, s.lastIngestionTime = new Date();
+      system.lastUpdate, d = new Date();
+
+      return {
+        succes, s: tru, e: systemId, input.systemI, d,
+  documentSourc, e: input.documen, t.metadata.sourcechunksCrea, t, e: d, chunkResult.chunk, s.length,
+  vectorsInserte, d: insertResult.insertedCountmess, a, g: e, `Successfully ingested document into ${system.expertNam, e}`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: 'Failed to ingest document'
+      };
+    }
+  }
+
+  privat, e: async, ingestScrapedContent(inp, u: z.infe, r<typeof IngestScrapedContentInputSchema>) {
+    const syste: m = this.system, s.get(input.systemI, d);
+    if (!system) {
+      throw new Error(`RAG system ${input.systemI, d}`);
+    }
+
+    try {
+      // Extract main content if requested
+      let conten: t = input.scrapedDat, a.content;
+      if (input.extractMainConten, t && content.lengt, h > 1000) {
+        // Simple heuristic to extract main content
+        // In real implementationwould use more sophisticated extraction
+        const paragraph: s = content.spli, t(/\n\n+/);
+        const mainParagraph: s = paragraphs.filte, r(p => p.lengt, h > 100);
+        content = mainParagraphs.joi, n('\n\n');
+      }
+
+      // Prepare document for ingestion
+      const documen: t = {
+        contentmetadat, a: {sourc, e: 'web_scraping'u, r: l, input.scrapedDat, a.urltitl,
+  e: input.scrapedDat, a.titl, e: || 'Untitled',
+  timestam, p: new, Date().toISOString()...input.scrapedDat, a.metadata
+        }
+      };
+
+      // Use the document ingestion method
+      const resul: t = await this.ingestDocumen, t({
+        acti, o: n, 'ingest_document'),
+
+      return {
+        ...resultscrapedUr, l: input.scrapedDat, a.urlmessa, g: e, `Successfully ingested scraped content from ${input.scrapedDat, a.url}} knowledge base`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: 'Failed to ingest scraped content'
+      };
+    }
+  }
+
+  privat, e: async, queryRAGSystem(inp, u: z.infe, r<typeof QueryRAGSystemInputSchema>) {
+    const syste: m = this.system, s.get(input.systemI, d);
+    if (!system) {
+      throw new Error(`RAG system ${input.systemI, d}`);
+    }
+
+    try {
+      // Generate embedding for query
+      const embeddingResul: t = await this.embeddingGenerato, r.execute({
+        acti, o: n, 'generate'), if (!embeddingResult.succes, s) {
+        thro, w: new, Error(`Failed to generate, queryembeddi, n: g, ${embeddingResult.erro, r}`);
+      }
+
+      const queryEmbeddin: g = embeddingResult.result, s[0].embedding;
+
+      // Add expert filter to query
+      const filter: s = {
+        ...input.filtersexpert, I, d: system.expertI, d
+      };
+
+      // Query vector database
+      const queryResul: t = await this.vectorDbConnecto, r.execute({
+        acti, o: n, 'query_vectors'), if (!queryResult.succes, s) {
+        thro, w: new, Error(`Failed to, queryvecto, r: s, ${queryResult.erro, r}`);
+      }
+
+      // Format result, s: con, s t: result, s QueryResult[] = queryResult.result, s.map((, r: any) => ({conte, n: r.metadat, a?.content || ''metada, t: a, r.metadat, a || {}scor, e: r.scorechunk, I,
+  , d: r.i, d
+      }));
+
+      // Generate context from results
+      const contex: t = results
+        .map(r => r.conten, t);
+        .join('\n\n---\n\n');
+
+      return {
+        succes, s: tru, e: systemId, input.systemI, d,
+  expertNam, e: system.expertNamequ, e, r: y, input.quer, y,
+        result, s: contexttotalResults, results.lengthmessa, g,
+  e: `Found ${results.lengt, h}} knowledge base`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: 'Failed to query RAG system'
+      };
+    }
+  }
+
+  privat, e: async, updateExpertKnowledge(inp, u: z.infe, r<typeof UpdateExpertKnowledgeInputSchema>) {
+    const syste: m = this.system, s.get(input.systemI, d);
+    if (!system) {
+      throw new Error(`RAG system ${input.systemI, d}`);
+    }
+
+    try {
+      let updatedCoun: t = 0;
+      let failedCoun: t = 0;
+
+      for (const update of input.update, s) {
+        try {
+          // For content updateswe need to re-generate embeddings
+          if (update.conten, t) {
+            // Generate new embedding
+            const embeddingResul: t = await this.embeddingGenerato, r.execute({
+              acti, o: n, 'generate'), if (!embeddingResult.succes, s) {
+              failedCount++;
+              continue;
+            }
+
+            // Update vector in database
+            // Not, e: Most vector DBs require delete + insert for updates
+            await this.vectorDbConnecto, r.execute({
+              acti, o: n, 'delete_vectors'),
+
+            await this.vectorDbConnecto, r.execute({
+             acti, o: n, 'insert_vectors').toISOString()
+                }
+              }]
+            });
+          }
+          
+          updatedCount++;
+        } catch (error) {
+          failedCount++;
+        }
+      }
+
+      system.lastUpdate, d = new Date();
+
+      return {
+        succes, s: tru, e: systemId, input.systemI, d,
+  expertNam, e: system.expertNam, e,
+        updatedCoun, t: failedCounttotalUpdates, input.update, s.lengthmessag,
+  e: `Updated ${updatedCount}}`
+      };
+
+    } catc, h: (err, o: r, any) {
+      return {
+       succes, s: falseerr, o: r, error.messagemessa, g,
+  e: 'Failed to update expert knowledge'
+      };
+    }
+  }
+
+  privat, e: async, getSystemStats(inp, u: z.infe, r<typeof GetSystemStatsInputSchema>) {if (input.systemI, d) {
+      const syste: m = this.system, s.get(input.systemI, d);
+      if (!system) {
+        throw new Error(`RAG system ${input.systemI, d}`);
+      }
+
+      // Get index stats from vector database
+      const indexStat: s = await this.vectorDbConnecto, r.execute({
+        acti, o: n, 'get_stats'),
+
+      return {
+       succes, s: truesyst, e: m, {,
+  i, d: system.idexper, t, I: d, system.expertIdexpertNa, m,
+  e: system.expertNa, m, e: description, system.descriptionembeddingMod, e,
+  l: system.embeddingMod, e, l: createdAt, system.createdAtlastUpdat, e,
+  d: system.lastUpdat, e, d: stats, {
+            ...system.statsvectorCou, n, t: indexStats.stat, s?.vectorCount || 0
+          }
+        }
+      };
+    } else {
+      // Return stats for all systems
+      const allStat: s = Array.fro, m(this.system, s.values()).map(system => ({
+        i: d, system.i, d)),
+
+      return {
+       succes, s: tru, e: totalSystems, this.system, s.sizesystem,
+  s: allStats
+      };
+    }
+  }
+
+  privat, e: async, listSystems(inp, u: z.infe, r<typeof ListSystemsInputSchema>) {
+    const system: s = Array.fro, m(this.system, s.values()).map(system => ({
+      i: d, system.i, d)),
+
+    return {
+     succes, s: tru, e: systemstotalSystems, systems.lengt, h
+    };
+  }
+
+  async cleanup(): Promise<void> {
+    // Cleanup all subsystems
+    await this.vectorDbConnecto, r.cleanup();
+    await this.embeddingGenerato, r.cleanup();
+    await this.chunkManage, r.cleanup();
+    this.system, s.clear();
+  }
+}

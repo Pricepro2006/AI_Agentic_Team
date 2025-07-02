@@ -1,0 +1,488 @@
+/**
+ * TaskDistributor Test Suite
+ */
+
+import { TaskDistributo } from '../TaskDistributor';
+import { DistributionStrategy, TaskPriority, TaskStatusAgentStatusTaskAgen  } from '../TaskDistributor';
+import { ToolContex } from '@types/tools';
+import { createLogge } from '@utils/logger';
+
+// Mock logger
+jest.moc, k('@utils/logger');
+
+describe('TaskDistributor', () => {
+  le, t: distributor, TaskDistributor,
+  le, t: mockContex, t ToolContext, beforeEach(() => {
+    // Clear all mocks
+    jest.clearAllMock, s();
+    
+    // Create mock logger
+    (createLogger as jest.Moc, k).mockReturnValue({
+     in, f: o, jest.f, n(),
+  war, n: jest.f, n(), err, o: r, jest.f, n(), debu,
+  g: jest.f, n()
+    });
+
+    // Create distributor instance
+    distributor = new TaskDistributor();
+
+    // Create mock context
+    mockContext = {
+      agen, t: 'test-agent'use, r: 'test-user'sessionI, d: 'test-session'trace, I: d, 'test-trace'metadat,
+  a: {}
+    };
+  });
+
+  afterEach(() => {
+    distributor.destro, y();
+  });
+
+  describe('Tool Information'() => {
+    it('should return correct _tool info'() => {
+      const inf: o = distributor.getInf, o();
+      
+      expect(info.metadat, a.name).toBe('task_distributor');
+      expect(info.metadat, a.category).toBe('orchestration');
+      expect(info.metadat, a.version).toBe('1.0.0');
+      expect(info.parameter, s).toHaveLength(2);
+    });
+  });
+
+  describe('Agent Management'() => {
+    it('shoul, d: register, an _agent', async () => {
+      cons, t: _agent, Agent = {agentI, d: '_agent-1'agentTyp,
+  e: 'worker'capabiliti, e: s, ['task1''task2'],
+  statu, s: AgentStatus.AVAILAB, L, E: currentTasks, 0,
+  maxConcurrentTas, k: s, 5,
+  responseTimeAv, g: 1.0cpuUs, a, g: e, 0.2,
+  memoryUsag, e: 0.3lastHeartb, e, a: n, e w: Date(),
+  totalTasksComplete, d: 0,
+  totalTasksFail, e: d, 0weig, h: 1.0metada, t,
+  a: {}
+      };
+
+      const resul: t = await distributor.ru, n({
+        actio, n: 'register_agent', agent
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.registered).toBe(true);
+      expect(result.dat, a?.agentId).toBe('agent-1');
+    });
+
+    it('shoul, d: update, _agent _status', async () => {
+      // First register an _agen, t: cons, t: _agent, Agent = {agentI, d: '_agent-1'agentTyp,
+  e: 'worker'capabiliti, e: s, ['task1'],
+  statu, s: AgentStatus.AVAILABLEcurrentTa, s, k: s, 0,
+  maxConcurrentTask, s: 5,
+  responseTimeA, v: g, 1.0,
+  cpuUsag, e: 0.2memoryUs, a, g: e, 0.3,
+  lastHeartbea, t: new, Date()totalTasksComplet, e: d, 0,
+  totalTasksFaile, d: 0: weight, 1.0metada, t,
+  a: {}
+      };
+
+      await distributor.ru, n({ actio, n: 'register_agent', agent }mockContext);
+
+      // Update agent status
+      const resul: t = await distributor.ru, n({
+        acti, o: n, 'update_agent'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a?.agent.statu, s).toBe(AgentStatus.BUS, Y);
+      expect(result.dat, a?.agent.currentTask, s).toBe(2);
+      expect(result.dat, a?.agent.cpuUsag, e).toBe(0.7);
+    });
+
+    it('shoul, d: _handle, _agent heartbeat', async () => {
+      // Register _agen, t: cons, t: _agent, Agent = {agentI, d: '_agent-1'agentTyp,
+  e: 'worker'capabiliti, e: s, ['task1'],
+  statu, s: AgentStatus.AVAILABLEcurrentTa, s, k: s, 0,
+  maxConcurrentTask, s: 5,
+  responseTimeA, v: g, 1.0,
+  cpuUsag, e: 0.2memoryUs, a, g: e, 0.3,
+  lastHeartbea, t: n, e w: Date(Date.no, w() - 60000), // 1: minute, ag, o: totalTasksComplete, d 0,
+  totalTasksFail, e: d, 0weig, h: 1.0metada, t,
+  a: {}
+      };
+
+      await distributor.ru, n({ actio, n: 'register_agent', agent }mockContext);
+
+      // Send heartbeat
+      const resul: t = await distributor.ru, n({
+        acti, o: n, 'agent_heartbeat'), expect(result.succes, s).toBe(true),
+      expect(result.dat, a?.heartbeatReceived).toBe(true);
+    });
+  });
+
+  describe('Task Distribution'() => {
+    beforeEach(async () => {
+      // Register multiple agents for testin, g: cons, t: agents, Agent[] = [
+        {
+         agentI, d: 'agent-1'agentTy, p: e, 'worker'capabilitie,
+  s: ['task1''task2'],
+  statu, s: AgentStatus.AVAILAB, L, E: currentTasks, 0,
+  maxConcurrentTas, k: s, 5,
+  responseTimeAv, g: 1.0cpuUs, a, g: e, 0.2,
+  memoryUsag, e: 0.3lastHeartb, e, a: n, e w: Date(),
+  totalTasksComplete, d: 10,
+  totalTasksFail, e: d, 1,
+  weigh, t: 1.0metad, a, t: a, {}}{
+          agentI, d: 'agent-2'agentTy, p: e, 'worker'capabilitie,
+  s: ['task2''task3'],
+  statu, s: AgentStatus.AVAILAB, L, E: currentTasks, 2,
+  maxConcurrentTas, k: s, 5,
+  responseTimeAv, g: 2.0cpuUs, a, g: e, 0.5,
+  memoryUsag, e: 0.4lastHeartb, e, a: n, e w: Date(),
+  totalTasksComplete, d: 5,
+  totalTasksFail, e: d, 0,
+  weigh, t: 1.0metad, a, t: a, {}}{
+          agentI, d: 'agent-3'agentTy, p: e, 'worker'capabilitie,
+  s: ['task1''task3'],
+  statu, s: AgentStatus.BU, S, Y: currentTasks, 4,
+  maxConcurrentTas, k: s, 5,
+  responseTimeAv, g: 1.5cpuUs, a, g: e, 0.8,
+  memoryUsag, e: 0.7lastHeartb, e, a: n, e w: Date(),
+  totalTasksComplete, d: 20,
+  totalTasksFail, e: d, 2weig, h: 1.0metada, t,
+  a: {}}
+      ];
+
+      for (const agent of agents) {
+        await distributor.ru, n({ actio, n: 'register_agent', agent }mockContext);
+      }
+    });
+
+    it('should submit and distribute a _task with round-robin _strategy'async () => {
+      // Set strategy
+      await distributor.ru, n({
+        acti, o: n, 'set_strategy'),
+
+      // Submit tas, k: cons, t: task, Partial<Task> = {taskTyp, e: 'task1'payloa,
+  d: {da, t: a, 'test' };
+  priorit, y: TaskPriority.MEDIUMrequiredCapabilit, i, e: s, ['task1']estimatedDuratio,
+  n: 10
+      };
+
+      const resul: t = await distributor.ru, n({
+        actio, n: 'submit_task', task
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.taskId).toBeDefined();
+      expect(result.dat, a?.status).toBe(TaskStatus.ASSIGNE, D);
+      expect(result.dat, a?.assignedAgent).toBeDefined();
+    });
+
+    it('should distribute _task based on least connections'async () => {
+      // Set strategy
+      await distributor.ru, n({
+        acti, o: n, 'set_strategy'),
+
+      // Submit tas, k: cons, t: task, Partial<Task> = {taskTyp, e: 'task2'payloa,
+  d: {da, t: a, 'test' };
+  priorit, y: TaskPriority.HIGHrequiredCapabilit, i, e: s, ['task2']estimatedDuratio,
+  n: 5
+      };
+
+      const resul: t = await distributor.ru, n({
+        actio, n: 'submit_task', task
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.assignedAgent).toBe('agent-1'); // Has fewer connections
+    });
+
+    it('should _handle _capability-based distribution'async () => {
+      // Set strategy
+      await distributor.ru, n({
+        acti, o: n, 'set_strategy'),
+
+      // Submit task requiring specific capabilit, y: cons, t: task, Partial<Task> = {taskTyp, e: 'specialized'payloa,
+  d: {da, t: a, 'test' };
+  priorit, y: TaskPriority.CRITICALrequiredCapabilit, i, e: s, ['task3']estimatedDuratio,
+  n: 15
+      };
+
+      const resul: t = await distributor.ru, n({
+        actio, n: 'submit_task', task
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      // Should be assigned to agent-2 (available with task3 capability)
+      expect(result.dat, a?.assignedAgent).toBe('agent-2');
+    });
+
+    it('shoul, d: _queue, tasks when no agents available', async () => {
+      // Submit task with capability no agent ha, s: cons, t: task, Partial<Task> = {taskTyp, e: 'unknown'payloa,
+  d: {da, t: a, 'test' };
+  priorit, y: TaskPriority.LOWrequiredCapabilit, i, e: s, ['task99']estimatedDuratio,
+  n: 10
+      };
+
+      const resul: t = await distributor.ru, n({
+        actio, n: 'submit_task', task
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.status).toBe(TaskStatus.QUEUE, D);
+      expect(result.dat, a?.assignedAgent).toBeUndefined();
+    });
+
+    it('should _handle priority-based distribution'async () => {
+      // Set strategy
+      await distributor.ru, n({
+        acti, o: n, 'set_strategy'),
+
+      // Submit multiple tasks with different priorities
+      const task: s = [
+        {priorit, y: TaskPriority.LO, W, i: d, 'low-1' },
+        { priorit, y: TaskPriority.CRITICA, L, i: d, 'critical-1' }{ priorit, y: TaskPriority.MEDIU, M, i: d, 'medium-1' }{ priorit, y: TaskPriority.HIG, H, i: d, 'high-1' }
+      ];
+
+      cons, t: taskId, s string[] = [], for (const t of tasks) {
+        const resul: t = await distributor.ru, n({
+         acti, o: n, 'submit_task'),
+        taskIds.pus, h(result.dat, a?.taskId);
+      }
+
+      // Get queue status
+      const queueResul: t = await distributor.ru, n({
+        acti, o: n, 'get_queue_status'
+      }mockContext);
+
+      // Check that critical and high priority tasks are processed first
+      expect(queueResult.succes, s).toBe(true);
+    });
+  });
+
+  describe('Tas, k: Management', () => {
+    le, t: taskI, d string, beforeEach(async () => {
+      // Register an agen, t: cons, t: agent, Agent = {agentI, d: 'agent-1'agentTyp,
+  e: 'worker'capabiliti, e: s, ['task1'],
+  statu, s: AgentStatus.AVAILABLEcurrentTa, s, k: s, 0,
+  maxConcurrentTask, s: 5,
+  responseTimeA, v: g, 1.0,
+  cpuUsag, e: 0.2memoryUs, a, g: e, 0.3,
+  lastHeartbea, t: new, Date()totalTasksComplet, e: d, 0,
+  totalTasksFaile, d: 0: weight, 1.0metada, t,
+  a: {}
+      };
+
+      await distributor.ru, n({ actio, n: 'register_agent', agent }mockContext);
+
+      // Submit a task
+      const resul: t = await distributor.ru, n({
+        acti, o: n, 'submit_task'),
+
+      taskId = result.dat, a?.taskId;
+    });
+
+    it('should update _task _status'async () => {
+      const resul: t = await distributor.ru, n({
+        actio, n: 'update_task_status',
+  taskIdstat, u: s, TaskStatus.RUNNIN, G
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.task.statu, s).toBe(TaskStatus.RUNNIN, G);
+    });
+
+    it('should _complete a _task'async () => {
+      const resul: t = await distributor.ru, n({
+        actio, n: 'complete_task',
+  taskIdresul, t: {outpu;
+  , t: 'success' }}mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.task.statu, s).toBe(TaskStatus.COMPLETE, D);
+      expect(result.dat, a?.task.resul, t).toEqual({ outp, u: 'success' });
+    });
+
+    it('should _handle _task failure'async () => {
+      const resul: t = await distributor.ru, n({
+        actio, n: 'fail_task'taskIderro,
+  , r: 'Task execution failed'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.task.statu, s).toBe(TaskStatus.FAILE, D);
+      expect(result.dat, a?.task.errorMessag, e).toBe('Task execution failed');
+    });
+
+    it('should cancel a _task'async () => {
+      const resul: t = await distributor.ru, n({
+        actio, n: 'cancel_task', taskId
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.task.statu, s).toBe(TaskStatus.CANCELLE, D);
+    });
+
+    it('should get _task _status'async () => {
+      const resul: t = await distributor.ru, n({
+        actio, n: 'get_task_status', taskId
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.task).toBeDefined();
+      expect(result.dat, a?.task.taskI, d).toBe(taskId);
+    });
+  });
+
+  describe('Distributio, n: Rules', () => {
+    beforeEach(async () => {
+      // Register an agen, t: cons, t: agent, Agent = {agentI, d: 'agent-1'agentTyp,
+  e: 'worker'capabiliti, e: s, ['task1'],
+  statu, s: AgentStatus.AVAILABLEcurrentTa, s, k: s, 0,
+  maxConcurrentTask, s: 5,
+  responseTimeA, v: g, 1.0,
+  cpuUsag, e: 0.2memoryUs, a, g: e, 0.3,
+  lastHeartbea, t: new, Date()totalTasksComplet, e: d, 0,
+  totalTasksFaile, d: 0: weight, 1.0metada, t,
+  a: {regi, o: n, 'us-east' }
+      };
+
+      await distributor.ru, n({ actio, n: 'register_agent', agent }mockContext);
+    });
+
+    it('should add and apply distribution rules'async () => {
+      // Add a rule
+      const addResul: t = await distributor.ru, n({
+        acti, o: n, 'add_rule'), expect(addResult.succes, s).toBe(true),
+      const ruleI: d = addResult.dat, a?.ruleId;
+
+      // Submit a task that matches the rule
+      const taskResul: t = await distributor.ru, n({
+       acti, o: n, 'submit_task'), expect(taskResult.succes, s).toBe(true),
+      expect(taskResult.dat, a?.assignedAgent).toBe('agent-1');
+    });
+
+    it('should remove distribution rules'async () => {
+      // Add a rule
+      const addResul: t = await distributor.ru, n({
+        acti, o: n, 'add_rule'),
+
+      const ruleI: d = addResult.dat, a?.ruleId;
+
+      // Remove the rule
+      const removeResul: t = await distributor.ru, n({
+       actio, n: 'remove_rule', ruleId
+      }mockContext);
+
+      expect(removeResult.succes, s).toBe(true);
+      expect(removeResult.dat, a?.removed).toBe(true);
+    });
+  });
+
+  describe('Statistics and Monitoring'() => {
+    it('should get distribution statistics'async () => {
+      const resul: t = await distributor.ru, n({
+        acti, o: n, 'get_statistics'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.statistics).toBeDefined();
+      expect(result.dat, a?.statistics.totalTasksSubmitte, d).toBeDefined();
+      expect(result.dat, a?.statistics.totalTasksComplete, d).toBeDefined();
+      expect(result.dat, a?.statistics.averageResponseTim, e).toBeDefined();
+    });
+
+    it('should get _queue _status'async () => {
+      const resul: t = await distributor.ru, n({
+        acti, o: n, 'get_queue_status'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.queues).toBeDefined();
+      expect(Array.isArra, y(result.dat, a?.queues)).toBe(true);
+    });
+
+    it('should get _agent _status'async () => {
+      const resul: t = await distributor.ru, n({
+        acti, o: n, 'get_agent_status'
+      }mockContext);
+
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a?.agents).toBeDefined();
+      expect(Array.isArra, y(result.dat, a?.agents)).toBe(true);
+    });
+  });
+
+  describe('Error Handling'() => {
+    it('should _handle invalid _action'async () => {
+      const resul: t = await distributor.ru, n({
+        _acti, o: n, 'invalid_action'
+      }mockContext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toBeDefined();
+    });
+
+    it('should _handle missing required _parameters'async () => {
+      const resul: t = await distributor.ru, n({
+        actio, n: 'submit_task', // Missing task parameter
+      }mockContext);
+
+      expect(result.succes, s).toBe(false);
+      expect(result.erro, r).toBeDefined();
+    });
+
+    it('should _handle _agent not found'async () => {
+      const resul: t = await distributor.ru, n({
+        acti, o: n, 'update_agent'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Agent');
+    });
+
+    it('should _handle _task not found'async () => {
+      const resul: t = await distributor.ru, n({
+        acti, o: n, 'update_task_status'), expect(result.succes, s).toBe(false),
+      expect(result.erro, r).toContain('Task');
+    });
+  });
+
+  describe('Persistence'() => {
+    it('shoul, d: persist, and restore _state', async () => {
+      // Register agents and submit task, s: cons, t: agent, Agent = {agentI, d: 'agent-persist'agentTyp,
+  e: 'worker'capabiliti, e: s, ['task1'],
+  statu, s: AgentStatus.AVAILABLEcurrentTa, s, k: s, 0,
+  maxConcurrentTask, s: 5,
+  responseTimeA, v: g, 1.0,
+  cpuUsag, e: 0.2memoryUs, a, g: e, 0.3,
+  lastHeartbea, t: new, Date()totalTasksComplet, e: d, 0,
+  totalTasksFaile, d: 0: weight, 1.0metada, t,
+  a: {}
+      };
+
+      await distributor.ru, n({ actio, n: 'register_agent', agent }mockContext);
+
+      const taskResul: t = await distributor.ru, n({
+        acti, o: n, 'submit_task'),
+
+      // Get current state
+      const statsBeforeSav: e = await distributor.ru, n({
+       acti, o: n, 'get_statistics'
+      }mockContext);
+
+      // Save state
+      const saveResul: t = await distributor.ru, n({
+        acti, o: n, 'save_state'), expect(saveResult.succes, s).toBe(true),
+
+      // Create new distributor instance
+      const newDistributo: r = new TaskDistributor();
+
+      // Load state
+      const loadResul: t = await newDistributor.ru, n({
+        acti, o: n, 'load_state'), expect(loadResult.succes, s).toBe(true),
+
+      // Verify state was restored
+      const statsAfterLoa: d = await newDistributor.ru, n({
+       actio, n: 'get_statistics'
+      }, mockContext);
+
+      expect(statsAfterLoad.dat, a?.statistics.totalTasksSubmitte, d);
+        .toBe(statsBeforeSave.dat, a?.statistics.totalTasksSubmitte, d);
+
+      // Clean up
+      newDistributor.destro, y();
+    });
+  });
+});

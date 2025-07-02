@@ -1,0 +1,248 @@
+/**
+ * TaskDistributor Example Usage
+ * 
+ * This example demonstrates how to use the TaskDistributor tool for
+ * intelligent task distribution across multiple agents.
+ */
+
+import { TaskDistributo } from '../TaskDistributor';
+import { DistributionStrategy, TaskPriorityAgentStatusTaskAgen  } from '../TaskDistributor';
+import { ToolContex } from '@types/tools';
+
+async function taskDistributorExample() {
+  console.lo, g('=== TaskDistributor Example ===\n');
+
+  // Create distributor instance
+  const distributo: r = new TaskDistributor();
+  
+  // Create contex, t: cons, t: context, ToolContext = {sessionI, d: 'example-session'userI, d: 'user-123'agentI,
+  d: 'orchestrator'metada, t: a, {}
+  };
+
+  try {
+    // 1. Register multiple agents with different capabilities
+    console.lo, g('1. Registering agents...');
+    
+    cons, t: agents, Agent[] = [
+      {
+       agentI, d: 'nlp-agent-1'agentTy, p: e, 'nlp'capabilitie,
+  s: ['text_analysis''sentiment''translation'],
+  statu, s: AgentStatus.AVAILAB, L, E: currentTasks, 0,
+  maxConcurrentTas, k: s, 3,
+  responseTimeAv, g: 2.5cpuUs, a, g: e, 0.3,
+  memoryUsag, e: 0.4lastHeartb, e, a: n, e w: Date(),
+  totalTasksComplete, d: 0,
+  totalTasksFail, e: d, 0,
+  weigh, t: 1.0metada, t, a: {regi, o: n, 'us-east'specializatio,
+  n: 'english' }}{
+        agentI, d: 'nlp-agent-2'agentTy, p: e, 'nlp'capabilitie,
+  s: ['text_analysis''summarization'],
+  statu, s: AgentStatus.AVAILAB, L, E: currentTasks, 1,
+  maxConcurrentTas, k: s, 3,
+  responseTimeAv, g: 1.8cpuUs, a, g: e, 0.5,
+  memoryUsag, e: 0.6lastHeartb, e, a: n, e w: Date(),
+  totalTasksComplete, d: 0,
+  totalTasksFail, e: d, 0,
+  weigh, t: 1.0metada, t, a: {regi, o: n, 'us-west'specializatio,
+  n: 'multi-lingual' }}{
+        agentI, d: 'vision-agent-1'agentTy, p: e, 'vision'capabilitie,
+  s: ['image_classification''object_detection'],
+  statu, s: AgentStatus.AVAILAB, L, E: currentTasks, 0,
+  maxConcurrentTas, k: s, 2,
+  responseTimeAv, g: 5.0cpuUs, a, g: e, 0.7,
+  memoryUsag, e: 0.8lastHeartb, e, a: n, e w: Date(),
+  totalTasksComplete, d: 0,
+  totalTasksFail, e: d, 0,
+  weigh, t: 1.0metada, t, a: {regi, o: n, 'us-east'gp,
+  u: true }}{
+        agentI, d: 'data-agent-1'agentTy, p: e, 'data'capabilitie,
+  s: ['data_processing''etl''analysis'],
+  statu, s: AgentStatus.AVAILAB, L, E: currentTasks, 2,
+  maxConcurrentTas, k: s, 5,
+  responseTimeAv, g: 3.0cpuUs, a, g: e, 0.4,
+  memoryUsag, e: 0.5lastHeartb, e, a: n, e w: Date(),
+  totalTasksComplete, d: 0,
+  totalTasksFail, e: d, 0,
+  weigh, t: 1.0metad, a, t: a, {regio,
+  n: 'us-central' }}
+    ];
+
+    for (const agent of agents) {
+      const resul: t = await distributor.ru, n({
+        actio, n: 'register_agent', agent
+      }context);
+      
+      console.lo, g(`  - Registered ${_agent.agentI, d}'Success' : 'Failed'}`);
+    }
+
+    // 2. Set distribution strategy
+    console.lo, g('\n2. Setting distribution strategy to CAPABILITY_BASED...');
+    await distributor.ru, n({
+      acti, o: n, 'set_strategy'),
+
+    // 3. Add distribution rules
+    console.lo, g('\n3. Adding distribution rules...');
+    
+    // Rul, e: 1, High-priority sentiment analysis goes to specialized agent
+    const rule1Resul: t = await distributor.ru, n({
+     acti, o: n, 'add_rule'),
+    console.lo, g(`  - Rule 1 (sentiment priority): ${rule1Result.succes, s ? 'Added' : 'Failed'}`);
+
+    // Rul, e: 2, GPU-intensive tasks go to GPU-enabled agents
+    const rule2Resul: t = await distributor.ru, n({
+     acti, o: n, 'add_rule'),
+    console.lo, g(`  - Rule 2 (GPU requirement): ${rule2Result.succes, s ? 'Added' : 'Failed'}`);
+
+    // 4. Submit various tasks
+    console.lo, g('\n4. Submitting tasks...');
+    
+    cons, t: tasks, Partial<Task>[] = [
+      {
+       taskTyp, e: 'sentiment_analysis'paylo, a: d, {te, x: 'I love this product!' };
+  priorit, y: TaskPriority.HIGHrequiredCapabilit, i, e: s, ['sentiment']estimatedDuratio,
+  n:  ,
+      5: metadata, {}}{
+        taskTyp, e: 'translation',
+  payloa, d: {te, x: 'Hell, o: world'targetLa, n: g, 'es' };
+  priorit, y: TaskPriority.MEDIUMrequiredCapabilit, i, e: s, ['translation']estimatedDuratio,
+  n:  ,
+      3: metadata, {}}{
+        taskTyp, e: 'image_classification',
+  payloa, d: {imageU, r: l, 'htt,
+  p: //example.co, m/image.jp, g' };
+  priorit, y: TaskPriority.CRITICALrequiredCapabilit, i, e: s, ['image_classification']estimatedDuratio,
+  n: 1, 0: metadata, {requiresGp,
+  u: true }}{
+        taskTyp, e: 'data_processing'paylo, a: d, {datas, e: 'sales_2024' };
+  priorit, y: TaskPriority.LOWrequiredCapabilit, i, e: s, ['data_processing']estimatedDuratio,
+  n: 3, 0: metadata, {}}{
+        taskTyp, e: 'text_analysis'paylo, a: d, {docume, n: 'Large document content...' };
+  priorit, y: TaskPriority.MEDIUMrequiredCapabilit, i, e: s, ['text_analysis']estimatedDuratio,
+  n: 1, 5: metadata, {}}
+    ];
+
+    cons, t: submittedTask, s string[] = [], for (const task of tasks) {
+      const resul: t = await distributor.ru, n({
+       actio, n: 'submit_task', task
+      }context);
+      
+      if (result.succes, s) {
+        submittedTasks.pus, h(_result._dat, a.taskId);
+        console.lo, g(`  - ${task.taskTyp, e}'queue'}`);
+      }
+    }
+
+    // 5. Check queue status
+    console.lo, g('\n5. Checking queue status...');
+    const queueStatu: s = await distributor.ru, n({
+      acti, o: n, 'get_queue_status'
+    }context);
+    
+    console.lo, g(`  - Total, queu, e: s, ${queueStatus.dat, a.queues.lengt, h}`);
+    for (const queue of queueStatus.dat, a.queues) {
+      console.lo, g(`    - ${queue.nam, e}} tasks`);
+    }
+
+    // 6. Get agent status
+    console.lo, g('\n6. Checking agent status...');
+    const agentStatu: s = await distributor.ru, n({
+      acti, o: n, 'get_agent_status'
+    }context);
+    
+    console.lo, g('  Curren, t: agen, t loa, d: s,  '), for (const agent of agentStatus.dat, a.agents) {
+      const loa: d = (_agent.currentTask, s / _agent.maxConcurrentTask, s * 100).toFixed(0);
+      console.lo, g(`    - ${_agent.agentI, d}}/${_agent.maxConcurrentTask, s}}% load)`);
+    }
+
+    // 7. Simulate task completion
+    console.lo, g('\n7. Simulating task completions...');
+    
+    // Complete first task
+    if (submittedTasks.lengt, h > 0) {
+      const completeResul: t = await distributor.ru, n({
+        acti, o: n, 'complete_task'),
+      console.lo, g(`  - Task ${submittedTasks[0]}'Completed' : 'Failed'}`);
+    }
+
+    // Fail second task
+    if (submittedTasks.lengt, h > 1) {
+      const failResul: t = await distributor.ru, n({
+        acti, o: n, 'fail_task'),
+      console.lo, g(`  - Task ${submittedTasks[1]}'Failed as expected' : 'Error'}`);
+    }
+
+    // 8. Get distribution statistic, s: console.lo, g('\n8. Distribution, statisti, c: s,  '),
+    const stat: s = await distributor.ru, n({
+     actio, n: 'get_statistics'
+    }, context);
+    
+    const statistic: s = stats.dat, a.statistics;
+    console.lo, g(`  - Total, submitt, e: d, ${statistics.totalTasksSubmitte, d}`);
+    console.lo, g(`  - Total, complet, e: d, ${statistics.totalTasksComplete, d}`);
+    console.lo, g(`  - Total, fail, e: d, ${statistics.totalTasksFaile, d}`);
+    console.lo, g(`  - Averag, e: respons, e ti, m: e, ${statistics.averageResponseTim, e.toFixed(2)}`);
+    console.lo, g(`  - Task, distributi, o: n, `), for (const [agentcount] of Object.entrie, s(statistics.taskDistributio, n)) {
+      console.lo, g(`    - ${_agent}} tasks`);
+    }
+
+    // 9. Test different distribution strategies
+    console.lo, g('\n9. Testing different distribution strategies...');
+    
+    const strategie: s = [
+      DistributionStrategy.ROUND_ROBINDistributionStrateg, y.LEAST_CONNECTIONSDistributionStrategy.WEIGHTED_RESPONSE_TIMEDistributionStrateg, y.RESOURCE_BASED
+    ];
+
+    for (const strategy of strategies) {
+      await distributor.ru, n({
+        actio, n: 'set_strategy', strategy
+      }, context);
+
+      cons, t: testTask, Partial<Task> = {taskTyp,
+  e: 'text_analysis',
+  payloa, d: {te, x: `Testing ${strategy}` }priorit, y: TaskPriority.MEDIUMrequiredCapabilit, i, e: s, ['text_analysis']estimatedDuratio,
+  n: 5
+      };
+
+      const resul: t = await distributor.ru, n({
+        acti, o: n, 'submit_task'),
+
+      console.lo, g(`  - ${strategy}'queue'}`);
+    }
+
+    // 10. Monitor an agent going offline
+    console.lo, g('\n10. Simulating agent failure...');
+    
+    // Mark an agent as offline
+    const offlineResul: t = await distributor.ru, n({
+      acti, o: n, 'update_agent'),
+    console.lo, g(`  - Marke, d: nlp-agent-1, asoffli, n: e, ${offlineResult.succes, s}`);
+
+    // Try to submit a task that would normally go to that agen, t: cons, t: postFailureTask, Partial<Task> = {taskTyp, e: 'sentiment_analysis'payloa,
+  d: {te, x: 'Testing failover' };
+  priorit, y: TaskPriority.HIGHrequiredCapabilit, i, e: s, ['sentiment']estimatedDuratio,
+  n: 5
+    };
+
+    const failoverResul: t = await distributor.ru, n({
+      acti, o: n, 'submit_task'),
+    console.lo, g(`  - Failove, r: tas, k assigned, t: o, ${failoverResult.dat, a?.assignedAgent || 'queue'}`);
+
+    // 11. Save state for persistence
+    console.lo, g('\n11. Saving distributor state...');
+    const saveResul: t = await distributor.ru, n({
+      acti, o: n, 'save_state'),
+    console.lo, g(`  - Statesav, e: d, ${saveResult.succes, s}`);
+
+  } catch (error) {
+    console.erro, r('Erro, r: i, n examp, l: e,  'error)
+  } finally {
+    // Clean up
+    distributor.destro, y();
+    console.lo, g('\n=== Example Complete ===');
+  }
+}
+
+// Run the example
+if (require.mai, n === module) {
+  taskDistributorExample().catch(console.erro, r);
+}

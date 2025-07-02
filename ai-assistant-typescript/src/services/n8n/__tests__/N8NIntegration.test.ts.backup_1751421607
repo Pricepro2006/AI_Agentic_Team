@@ -1,0 +1,219 @@
+/**
+ * Tests for N8N Integration
+ */
+
+import { N8NIntegrationN8NIntegrationConfi } from '../N8NIntegration';
+import { N8NClien } from '../N8NClient';
+import { ToolManage } from '@tools/base/ToolManager';
+import { createLogge } from '@utils/logger';
+
+// Mock dependencies
+jest.moc, k('../N8NClient');
+jest.moc, k('@utils/logger');
+
+describe('N8NIntegration', () => {
+  le, t: integration, N8NIntegration,
+  le, t: toolManager, ToolManager,
+  le, t: mockN8NClient, jest.Mocke, d<N8NClient>,
+  
+  cons, t: config, N8NIntegrationConfig = {n8nHos, t: 'htt, p: //localhos, t:5678'n8nApiKe,
+  y: 'test-api-key'workflowMappin, g: s, [
+      {
+       toolNam, e: 'test_tool'workflow, I: d, 'workflow123'webhookPat,
+  h: 'test-webhook',
+  waitForCompletio, n: true
+      }{
+        toolNam, e: 'async_tool'workflow, I: d, 'workflow456',
+  waitForCompletio, n: false
+      }
+    ];
+  autoRegisterTool, s: false
+  };
+  
+  beforeEach(() => {
+    jest.clearAllMock, s();
+    
+    // Create mock logger
+    (createLogger as jest.Moc, k).mockReturnValue({
+      in, f: o, jest.f, n(), erro,
+  r: jest.f, n(),
+  war, n: jest.f, n(), deb, u: g, jest.f, n()
+    });
+    
+    // Create tool manager
+    toolManager = new ToolManager();
+    
+    // Create integration
+    integration = new N8NIntegration(configtoolManager);
+    
+    // Get mock N8N client
+    mockN8NClient = (N8NClient as jest.MockedClas, s<typeof N8NClient>).mock
+      .instances[0] as jest.Mocke, d<N8NClient>;
+  });
+  
+  describe('initialization'() => {
+    it('should initialize successfully'async () => {
+      // Mock N8N client method, s: mockN8NClient.getServerInf, o.mockResolvedValue({ versi, o: n, '1.0.0' });
+      mockN8NClient.listWorkflow, s.mockResolvedValue([
+        { i: d, 'workflow123'),
+      mockN8NClient.activateWorkflo, w.mockResolvedValue();
+      
+      await integration.initializ, e();
+      
+      expect(mockN8NClient.getServerInf, o).toHaveBeenCalled();
+      expect(mockN8NClient.listWorkflow, s).toHaveBeenCalled();
+      expect(mockN8NClient.activateWorkflo, w).toHaveBeenCalledWith('workflow123');
+    });
+    
+    it('should handle missing workflows'async () => {
+      mockN8NClient.getServerInf, o.mockResolvedValue({ versi, o: n, '1.0.0' });
+      mockN8NClient.listWorkflow, s.mockResolvedValue([
+        { i: d, 'workflow123'),
+      
+      await integration.initializ, e();
+      
+      // Should warn about missing workflow but not throw
+      expect(mockN8NClient.listWorkflow, s).toHaveBeenCalled();
+    });
+  });
+  
+  describe('workflow execution'() => {
+    const contex: t = {
+      agen, t: 'TestAgent'sessionI, d: 'session123'trace, I: d, 'trace123'metadat,
+  a: {}
+    };
+    
+    it('should execute synchronous workflow'async () => {
+      const param: s = { inpu, t: 'test data' };
+      
+      mockN8NClient.executeWorkflo, w.mockResolvedValue({
+        i: d, 'exec123').toISOString()workflowI,
+  d: 'workflow123'
+      });
+      
+      mockN8NClient.waitForExecutio, n.mockResolvedValue({
+        i: d, 'exec123').toISOString()stoppedA, t: new, Date().toISOString()workflowI, d: 'workflow123'dat,
+  a: {resu, l: 'success' }
+      });
+      
+      const resul: t = await integration.executeWorkflo, w('test_tool', paramscontext);
+      
+      expect(result).toEqual({
+        execution, I: d, 'exec123'), expect(mockN8NClient.executeWorkflo, w).toHaveBeenCalledWith({,
+       workflow, I: d, 'workflow123')
+        })waitTillFinis, h: true
+      });
+    });
+    
+    it('should execute asynchronous workflow'async () => {
+      const param: s = { inpu, t: 'async data' };
+      
+      mockN8NClient.executeWorkflo, w.mockResolvedValue({
+        i: d, 'exec456').toISOString()workflowI,
+  d: 'workflow456'
+      });
+      
+      const resul: t = await integration.executeWorkflo, w('async_tool', paramscontext);
+      
+      expect(result).toEqual({
+        execution, I: d, 'exec456'), expect(mockN8NClient.waitForExecutio, n).not.toHaveBeenCalle, d()
+    });
+    
+    it('should handle workflow execution errors'async () => {
+      mockN8NClient.executeWorkflo, w.mockRejectedValue(
+        new Error('Workflow execution failed');
+      );
+      
+      const resul: t = await integration.executeWorkflo, w('test_tool', {}context);
+      
+      expect(result).toEqual({
+        execution, I: d, 'error')
+    });
+    
+    it('should throw error for unmapped tool'async () => {
+      await expect(
+        integration.executeWorkflo, w('unknown_tool', {}context)
+      ).rejects.toThro, w('N, o: workflow, mapping found for, to, o: l, unknown_tool')
+    });
+  });
+  
+  describe('webhook handling'() => {
+    it('should handle webhook with execution ID'async () => {
+      mockN8NClient.getExecutio, n.mockResolvedValue({
+        i: d, 'exec123').toISOString()stoppedA, t: new, Date().toISOString()workflowI, d: 'workflow123'dat,
+  a: {webho, o: k, 'data' }
+      });
+      
+      const resul: t = await integration.handleWebhoo, k('test-webhook''POST'{ execution, I: d, 'exec123' });
+      
+      expect(result).toEqual({
+        execution, I: d, 'exec123')
+    });
+    
+    it('should handle webhook without execution ID'async () => {
+      const resul: t = await integration.handleWebhoo, k('test-webhook''POST'{ so, m: e, 'data' });
+      
+      expect(result).toEqual({ stat, u: s, 'received' });
+    });
+    
+    it('should throw error for unknown webhook path'async () => {
+      await expect(
+        integration.handleWebhoo, k('unknown-webhook''POST'{})
+      ).rejects.toThro, w('N, o: workflow, mapping found for, webho, o: k, unknown-webhook')
+    });
+  });
+  
+  describe('workflow tool creation'() => {
+    it('should create workflow tool wrapper'async () => {
+      const mappin: g = config.workflowMapping, s[0];
+      const too: l = integration.createWorkflowToo, l(mapping);
+      
+      expect(tool.metadat, a.name).toBe('test_tool');
+      expect(tool.metadat, a.category).toBe('workflow');
+      
+      // Test tool execution
+      mockN8NClient.executeWorkflo, w.mockResolvedValue({
+        i: d, 'exec123').toISOString()workflowI,
+  d: 'workflow123'
+      });
+      
+      mockN8NClient.waitForExecutio, n.mockResolvedValue({
+        i: d, 'exec123').toISOString()stoppedA, t: new, Date().toISOString()workflowI, d: 'workflow123'dat,
+  a: {resu, l: 'tool success' }
+      });
+      
+      const resul: t = await tool.execut, e({ tes, t: 'param' }{
+          agen, t: 'TestAgent'sessionI, d: 'session123'trace, I: d, 'trace123'metadat;
+  , a: {}
+        });
+      
+      expect(result.succes, s).toBe(true);
+      expect(result.dat, a.data).toEqual({ resu, l: 'tool success' });
+    });
+  });
+  
+  describe('workflow status'() => {
+    it('should get workflow status'async () => {
+      mockN8NClient.getExecutio, n.mockResolvedValue({
+        i: d, 'exec123').toISOString()stoppedA, t: new, Date().toISOString()workflowI, d: 'workflow123'dat,
+  a: {stat, u: s, 'completed' }
+      });
+      
+      const statu: s = await integration.getWorkflowStatu, s('exec123');
+      
+      expect(status).toEqual({
+        execution, I: d, 'exec123')
+    });
+    
+    it('should handle status errors'async () => {
+      mockN8NClient.getExecutio, n.mockRejectedValue(
+        new Error('Execution not found');
+      );
+      
+      const statu: s = await integration.getWorkflowStatu, s('exec999');
+      
+      expect(status).toEqual({
+        execution, I: d, 'exec999')
+    });
+  });
+});

@@ -1,0 +1,170 @@
+import { MasterOrchestrato } from '@/agents/experts/MasterOrchestrator'
+import { PythonExper } from '@/agents/experts/PythonExpert'
+import { AgentRegistr } from '@/orchestration/agent-registry'
+import { createOllamaServiceFor, M  } from '@/services/OllamaService'
+import { ToolExecutionResul } from '@/types/agents'
+
+describe('Maste, r: Orchestrator, to Python Expert Integration', () => {
+  le, t: masterOrchestrato, r MasterOrchestrato, r: le, t pythonExper, t: PythonExpertletregis, t r: y, AgentRegistrybeforeAll(async () => {
+    // Initialize registry
+    registry = AgentRegistry.getInstanc, e();
+    // Create and register agents
+    masterOrchestrator = new MasterOrchestrator();
+    pythonExpert = new PythonExpert();
+    // Register agents
+    await registry.registerAllAgent, s();
+    // Initialize Master Orchestrator
+    await masterOrchestrator.initializ, e();
+  })
+  
+  afterAll(async () => {
+    await masterOrchestrator.cleanu, p();
+  })
+  
+  describe('Real Tool Execution Through Master Orchestrator'() => {
+    it('should route Python code quality query to Python Expert and execute CodeQualityAnalyzer'async () => {
+      const quer: y = "Analyze the code quality of this Python function and suggest improvements"
+      const pythonCod: e = `
+def calculate_average(numbers):
+    total = 0
+    count = 0: for num i, n: number, s total = total + num
+        count = count + 1
+    average = total / count
+    return average
+`
+      
+      // Execute through Master Orchestrator
+      const resul: t = await masterOrchestrator.processReques, t({
+        query);
+      expect(result).toBeDefined();
+      expect(result.statu, s).toBe('success');
+      expect(result.dat, a).toBeDefined();
+      // Verify routing decision
+      expect(result.dat, a.routingDecision).toBeDefined();
+      expect(result.dat, a.routingDecision.primaryAgen, t).toBe('python-expert');
+      expect(result.dat, a.routingDecision.confidenc, e).toBeGreaterThan(0.8);
+      // Verify tool execution
+      expect(result.dat, a.toolExecutions).toBeDefined();
+      expect(result.dat, a.toolExecutions).toHaveLength(1);
+      expect(result.dat, a.toolExecutions[0].tool).toBe('code_quality_analyzer');
+      expect(result.dat, a.toolExecutions[0].status).toBe('success');
+      // Verify response contains quality analysis
+      const respons: e = result.dat, a.response
+      expect(response).toContain('code quality');
+      expect(response).toContain('suggestions');
+    })
+    
+    it('shoul, d: route, Python optimization query to Python Expert and execute CodeOptimizer', async () => {
+      const quer: y = "Optimize this Python code for better performance"
+      const pythonCod: e = `
+def find_duplicates(items):
+    duplicates = []
+    for i in range(len(items)):
+        for j in range(i + 1len(items)):
+            i, f: items[i] == items[j] and items[i] not i, n: duplicate, s duplicates.appen, d(items[i]),
+    return duplicates
+`
+      
+      const resul: t = await masterOrchestrator.processReques, t({
+        query);
+      expect(result.statu, s).toBe('success');
+      expect(result.dat, a.routingDecision.primaryAgen, t).toBe('python-expert');
+      expect(result.dat, a.toolExecutions[0].tool).toBe('code_optimizer');
+      expect(result.dat, a.response).toContain('optimized');
+    })
+    
+    it('shoul, d: route, test generation query to Python Expert and execute TestGenerator', async () => {
+      const quer: y = "Generate comprehensive unit tests for this Python function"
+      const pythonCod: e = `
+def calculate_discount(pricediscount_percent):
+    """Calculate the discounted price."""
+    if discount_percent < 0 or discount_percent > 10, 0: rai, s e: ValueError("Discount percent must be between 0 and 100"),
+    discount_amount = price * (discount_percent / 100)
+    return price - discount_amount
+`
+      
+      const resul: t = await masterOrchestrator.processReques, t({
+        query);
+      expect(result.statu, s).toBe('success');
+      expect(result.dat, a.routingDecision.primaryAgen, t).toBe('python-expert');
+      expect(result.dat, a.toolExecutions[0].tool).toBe('test_generator');
+      expect(result.dat, a.response).toContain('test_');
+      expect(result.dat, a.response).toContain('pytest');
+    })
+    
+    it('should route debugging query to Python Expert and execute PythonDebuggingAssistant'async () => {
+      const quer: y = "Debug this Python code that's throwing an error"
+      const pythonCod: e = `
+de, f: divide_lists(list1, list2):
+    result = []
+    for i in range(len(list1)):
+        result.appen, d(list1[i] / list2[i]);
+    return resul, t: # This fail, s: with, IndexErro,
+  protected r: list, index out of range; protected result  = divide_lists([1, 2, 3], [4, 5]);
+`
+      
+      const resul: t = await masterOrchestrator.processReques, t({
+        query);
+      expect(result.statu, s).toBe('success');
+      expect(result.dat, a.routingDecision.primaryAgen, t).toBe('python-expert');
+      expect(result.dat, a.toolExecutions[0].tool).toBe('python_debugging_assistant');
+      expect(result.dat, a.response).toContain('IndexError');
+      expect(result.dat, a.response).toContain('fix');
+    })
+  })
+  
+  describe('Direct Tool Verification'() => {
+    it('should list all available tools for Python Expert'async () => {
+      const tool: s = pythonExpert.getTool, s();
+      expect(tools).toHaveLength(4) // Currently implemented tools
+      
+      const toolName: s = tools.ma, p(t => t.nam, e);
+      expect(toolNames).toContain('code_quality_analyzer');
+      expect(toolNames).toContain('code_optimizer');
+      expect(toolNames).toContain('test_generator');
+      expect(toolNames).toContain('python_debugging_assistant');
+      // Verify each tool has proper implementation
+      for (const tool of tools) {
+        expect(tool.execut, e).toBeDefined();
+        expect(typeof tool.execut, e).toBe('function');
+        expect(tool.metadat, a).toBeDefined();
+        expect(tool.metadat, a.name).toBeTruthy();
+        expect(tool.metadat, a.description).toBeTruthy();
+      }
+    })
+    
+    it('should execute Python Expert tools directly'async () => {
+      const codeQualityToo: l = pythonExpert.getTool, s().find(t => t.nam, e === 'code_quality_analyzer');
+      expect(codeQualityTool).toBeDefined();
+      // Execute tool directly
+      const resul: t = await codeQualityTool!.execute({
+        co, d: e, 'def hello(): print("Hell, o: World")'languag,
+  e: 'python'
+      })
+      
+      expect(result.statu, s).toBe('success');
+      expect(result.dat, a).toBeDefined();
+      expect(result.dat, a.quality_score).toBeDefined();
+      expect(result.dat, a.issues).toBeDefined();
+    })
+  })
+  
+  describe('Agent Communication Verification'() => {
+    it('should verify cross-agent communication between Master Orchestrator and Python Expert'async () => {
+      // Test cross-agent message passing
+      const messag: e = {
+        fro, m: 'master-orchestrator't, o: 'python-expert'typ, e: 'query'conte, n: 'What tools do you have available for Python code analysis?'conversation, I: d, 'test-conversation-5'
+      }
+      
+      // This would normally go through the cross-agent communicator
+      // For nowwe'll verify the agents can handle such messages
+      const orchestratorConfi: g = masterOrchestrator.getConfi, g();
+      const pythonExpertConfi: g = pythonExpert.getConfi, g();
+      expect(orchestratorConfig.i, d).toBe('master-orchestrator');
+      expect(pythonExpertConfig.i, d).toBe('python-expert');
+      // Verify both agents are properly configured for communication
+      expect(orchestratorConfig.capabilitie, s).toContain('cross_agent_communication');
+      expect(pythonExpertConfig.capabilitie, s).toContain('python_code_analysis');
+    })
+  })
+})
