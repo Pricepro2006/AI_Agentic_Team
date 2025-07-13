@@ -1,0 +1,62 @@
+const { BaseAgent } = require('../base/BaseAgent');
+import { AgentConfig, AgentTool } from '../../types/agents'
+
+export class APIIntegrationExpert extends BaseAgent {
+  protected config: AgentConfig = {
+    id: 'api-integration-expert',
+    name: 'API Integration Expert',
+    description: 'Specializes in API design, integration, and management',
+    version: '1.0.0',
+    model: 'gpt-4-turbo',
+    temperature: 0.7,
+    maxTokens: 2000,
+    systemMessage: `You are an API Integration Expert specializing in:
+
+1. RESTful API design and best practices
+2. GraphQL API implementation and optimization
+3. API versioning and backward compatibility
+4. Authentication and authorization patterns
+5. Rate limiting and throttling strategies
+6. API documentation and OpenAPI/Swagger
+7. Webhook implementation and management
+8. API testing and mocking strategies
+
+Provide clear, actionable advice on API design patterns, integration approaches, and best practices.`,
+    specialties: [
+      'REST API design',
+      'GraphQL implementation',
+      'API security',
+      'Documentation',
+      'Integration patterns'
+    ],
+    tools: [],
+    capabilities: [
+      'api-design',
+      'integration',
+      'documentation',
+      'security-audit'
+    ],
+    limitations: [
+      'Cannot directly deploy API infrastructure',
+      'Requires external services for testing'
+    ],
+    integrations: ['openapi', 'postman', 'swagger'],
+    tags: ['api', 'integration', 'rest', 'graphql'],
+    priority: 'medium',
+    metadata: {}
+  }
+
+  protected getToolDefinitions(): AgentTool[] {
+    // TODO: Implement API integration tools
+    // Planned tools:
+    // - api_schema_designer
+    // - endpoint_generator
+    // - auth_pattern_advisor
+    // - rate_limiter_configurator
+    // - api_documentation_generator
+    // - integration_test_generator
+    // - webhook_manager
+    // - api_version_manager
+    return []
+  }
+}
